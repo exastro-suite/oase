@@ -1,0 +1,87 @@
+{% load tz %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+        <table border="1" class="tab_layout">
+          <tr>
+            <th style="display:none">{% get_message 'MOSJA12042' request.user.get_lang_mode showMsgId=False %}</th>
+            <th>{% get_message 'MOSJA12043' request.user.get_lang_mode showMsgId=False %}</th>
+            <th>{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</th>
+            <th>{% get_message 'MOSJA12045' request.user.get_lang_mode showMsgId=False %}</th>
+            <th>{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</th>
+            <th>{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</th>
+            <th class="update_th">{% get_message 'MOSJA12046' request.user.get_lang_mode showMsgId=False %}</th>
+          </tr>
+
+          {% for rule in history_list %}
+          <tr>
+            <td class="num" style="display:none">{{rule.rule_manage_id}}</td>
+            <td>
+              <button type="button" id="btnDl{{rule.rule_manage_id}}" class="btn2-download btn2" onclick="downloadRuleHistoryAction('{{rule.rule_manage_id}}');"></button>
+            </td>
+            <td><div class="cell-inner">{{rule.rule_type_name}}</div></td>
+            <td><div class="cell-inner">{{rule.filename}}</div></td>
+            <td><div class="cell-inner">{{rule.last_update_user_name}}</div></td>
+            <td><div class="cell-inner"><time datetime="{{ rule.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}</time></div></td>
+            <td>
+              {% if permission_type_prd == 1 %}
+              <a href="#modal3_{{rule.rule_manage_id}}" class="modalOpen">
+                <button type="button" class="btn2-switchback btn2"></button>
+              </a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </table>
+
+        {% for rule in history_list %}
+        <div id="modal3_{{rule.rule_manage_id}}" class="modal">
+          <div class="overLay"></div>
+          <div class="inner">
+
+            <div class="sub-menu-header clearfix">
+              <h2>{% get_message 'MOSJA12047' request.user.get_lang_mode showMsgId=False %}</h2><br />
+              <span class="sub-menu-header-items flex">
+                <a href="" class="modalClose">
+                  <button type="button" class="btn-back btn2" style="position:absolute; right:16px; top:0px;"></button>
+                </a>
+                <div class="flex">
+                  <button type="button" id="btnSwitchBack{{rule.rule_manage_id}}" class="pro_teki btn-switchback btn" onClick="switchBack({{rule.rule_manage_id}});">{% get_message 'MOSJA12046' request.user.get_lang_mode showMsgId=False %}</button>
+                </div>
+              </span>
+            </div>
+
+            <div>{% get_message 'MOSJA12048' request.user.get_lang_mode showMsgId=False %}</div>
+            <table border="1" class="tab_layout">
+              <tr>
+                <th style="display:none">{% get_message 'MOSJA12042' request.user.get_lang_mode showMsgId=False %}</th>
+                <th>{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</th>
+                <th>{% get_message 'MOSJA12045' request.user.get_lang_mode showMsgId=False %}</th>
+                <th>{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</th>
+                <th>{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</th>
+              </tr>
+              <tr>
+                <td class="num" style="display:none">{{rule.rule_manage_id}}</td>
+                <td>{{rule.rule_type_name}}</td>
+                <td>{{rule.filename}}</td>
+                <td>{{rule.last_update_user_name}}</td>
+                <td>{{rule.last_update_timestamp|change_datestyle:request.user.get_lang_mode}}</td>
+              </tr>
+            </table><br>
+
+          </div>
+        </div>
+        {% endfor %}

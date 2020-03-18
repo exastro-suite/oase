@@ -1,0 +1,12 @@
+[Unit]
+Description=OASE_ApplyDriverProcess
+After=syslog.target network.target mysqld.service
+[Service]
+EnvironmentFile=/etc/sysconfig/oase_env
+EnvironmentFile=/etc/sysconfig/oase_apply_env
+ExecStart=/usr/bin/python3 ${OASE_ROOT_DIR}/backyards/apply_driver/oase_apply.py 
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill $MAINPID
+[Install]
+WantedBy=multi-user.target
+

@@ -1,0 +1,1036 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% block myheader %}
+
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  データオブジェクト取得
+////////////////////////////////////////////////
+var rule_type_data_obj_dict = {};
+$(function() {
+
+    rule_type_data_obj_dict = $.parseJSON($('#rule_type_data_obj_dict').val());
+
+    //テストリクエストのルール変更時の処理
+    $('#add-zabbix-rule-select')
+        .focus(function(){
+            previous = this.value;
+        })
+        .change(function(){
+            var $this   = $(this);
+            $this.prop("disabled", true);
+
+            // 前回エラーメッセージ削除
+            clearErrorMsg($this.closest('td'));
+
+            // this.value = 選択されたルール種別名に対応するルールID
+            refleshRows(this.value, 'add');
+
+            $this.prop("disabled", false);
+        });
+
+    $('#edit-zabbix-rule-select')
+        .focus(function(){
+            previous = this.value;
+        })
+        .change(function(){
+            var $this   = $(this);
+            $this.prop("disabled", true);
+
+            // 前回エラーメッセージ削除
+            clearErrorMsg($this.closest('td'));
+
+            // this.value = 選択されたルール種別名に対応するルールID
+            refleshRows(this.value, 'edit');
+
+            $this.prop("disabled", false);
+        });
+});
+
+function monitoringZabbixAddModalClose(selector1, selector2) {
+    if(monitoringModalClose(selector1, selector2)) {
+        refleshRows(null, 'add');
+    }
+}
+
+function monitoringZabbixAddModalChange(selector1, selector2, selector3) {
+    if(monitoringModalChange(selector1, selector2, selector3)) {
+        refleshRows(null, 'add');
+    }
+}
+
+///////////////////////////////////////////////////////////////////
+//
+// プルダウンの作成
+// mode: 'edit' or 'add'
+// matchinfo: 選択されている値
+//
+///////////////////////////////////////////////////////////////////
+function setpullDown(mode, matchinfo){
+
+    var items = $('#zabbix-items').data('zabbixitems');
+    var zabbixAry = items.split(',');
+    
+    var option;
+    
+    for ( let value of zabbixAry ){
+        
+        var str = '<option value=' + value + '>' + value + '</option>';
+        
+        if ( mode === 'edit' && matchinfo === value ){
+            str = '<option value=' + value + ' selected >' + value + '</option>';
+        }
+        
+        if (!option){
+            option = str
+        }
+        else{
+            option += str
+        }
+    }
+    
+    return option;
+
+}
+
+
+///////////////////////////////////////////////////////////////////
+//
+// 選択されたルール種別に応じて突合情報の内容を変更
+// rule_type_id: ルール種別ID
+// mode: 'edit' or 'add'
+//
+///////////////////////////////////////////////////////////////////
+function refleshRows(rule_type_id, mode){
+
+    var noneSelector = '#' + mode + '-rule-none';
+    var detailSelector = '#' + mode + '-rule-detail';
+    var tableIdStr = mode + 'Zabbixtable';
+
+    $(noneSelector).hide();
+    $(noneSelector).children().remove();
+    $(detailSelector).show();
+
+    // すべての子要素を削除
+    var table = document.getElementById(tableIdStr);
+    var clone = table.cloneNode( false );
+    table.parentNode.replaceChild(clone, table);
+
+    if(!rule_type_id) {
+        $(noneSelector).show();
+        $(noneSelector).append('<input type="hidden" value="" required>');
+        $(detailSelector).hide();
+
+    } else {
+        // 条件名変換用
+        var do_dict = rule_type_data_obj_dict[rule_type_id]['data_obj'];
+        
+        var option = setpullDown('add','');
+
+        // editの場合の保存済みZabbix項目反映用
+        var matchlist = {};
+        if(mode == 'edit') {
+            var trId  = '#' + $('#viewZabbixDetail').attr('data-recordid');
+            matchlist = $(trId).data('matchlist');
+        }
+
+        // id = '#' +mode + 'Zabbixtable' の下に行追加
+        for (key in do_dict){
+            // 行追加
+            var tr = clone.insertRow( -1 );
+            var value = key in matchlist ? matchlist[key] : "";
+
+            // HTML文作成
+            var th = '<th id="data-object-id-' + key + '"><div class="cell-inner">' + do_dict[key] + '<sup>*</sup><span class="help tooltip" title="' + getMessage("MOSJA26144", false) + '"><em class="owf owf-question"></em></span></div></th>';
+            var td = '<td><div class="cell-inner"><div class="select"><select id="' + mode + '-zabbix-' + key + '"  value="' + value + '" >' + option + '</select></div></div></td>';
+            
+
+            tr.innerHTML = th + td;
+        }
+    }
+}
+
+////////////////////////////////////////////////
+//  Zabbixの詳細画面にデータをセット
+////////////////////////////////////////////////
+function setInfoInZabbixDetailView(idName) {
+
+    var trId         = '#' + idName;
+
+    // 権限によるボタン制御
+    $('#btnToEditModalZabbix, #btnDelZabbix').prop('disabled', false);
+    var editable = $(trId).data('editable');
+    if(!editable) {
+        $('#btnToEditModalZabbix, #btnDelZabbix').prop('disabled', true);
+    }
+
+    var name         = $(trId).data('name');
+    var protocol     = $(trId).data('protocol');
+    var host         = $(trId).data('host');
+    var port         = $(trId).data('port');
+    var username     = $(trId).data('username');
+    var ruletypeid   = $(trId).data('ruletypeid');
+    var ruletypename = $(trId).data('ruletypename');
+    var matchlist    = $(trId).data('matchlist');
+    var updateuser   = $(trId).data('updateuser');
+    var timestamp    = $(trId).data('timestamp');
+
+    $('#viewZabbixDetail').attr('data-recordid', idName);
+    $('#viewZabbixName').text(name);
+    $('#viewZabbixProtocol').text(protocol);
+    $('#viewZabbixHost').text(host);
+    $('#viewZabbixPort').text(port);
+    $('#viewZabbixUsername').text(username);
+    $('#viewZabbixRuletype').text(ruletypename);
+    $('#viewZabbixUpdateuser').text(updateuser);
+    $('#viewZabbixTimestamp').text(timestamp);
+
+    setMatchlist('viewZabbixtable', matchlist, ruletypeid);
+
+    // ルール種別が削除されていた場合エラーを表示
+    if(!ruletypeid || ruletypeid <=0) {
+        var errorHTML = '<ul class="error-list" name="sub_error">';
+        errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA26141", false) + '<span class="tooltip help" data-tooltip="' + getMessage("MOSJA26142", false) + '"><em class="owf owf-question"></em></span></li>';
+        errorHTML += '</ul>';
+        $('#viewZabbixRuletype').addClass('error');
+        $('#viewZabbixRuletype').html( errorHTML );
+    }
+}
+
+
+////////////////////////////////////////////////
+//  Zabbixの編集画面にデータをセット
+////////////////////////////////////////////////
+function setInfoInZabbixEditView() {
+
+    beforeunloadThroughFlag = false;
+
+    var trId         = '#' + $('#viewZabbixDetail').attr('data-recordid');
+    var name         = $(trId).data('name');
+    var protocol     = $(trId).data('protocol');
+    var host         = $(trId).data('host');
+    var port         = $(trId).data('port');
+    var username     = $(trId).data('username');
+    var password     = $(trId).data('password');
+    var ruletypeid   = $(trId).data('ruletypeid');
+    var matchlist    = $(trId).data('matchlist');
+    var updateuser   = $(trId).data('updateuser');
+    var timestamp    = $(trId).data('timestamp');
+
+    $('#editZabbixName').val(name);
+    $('#editZabbixProtocol').val(protocol);
+    $('#editZabbixHost').val(host);
+    $('#editZabbixPort').val(port);
+    $('#editZabbixUsername').val(username);
+    $('#editZabbixPass').val(password);
+    $('#edit-zabbix-rule-select').val(ruletypeid);
+    if(!ruletypeid || ruletypeid <= 0) {
+        renderErrorMsg($('#edit-zabbix-rule-select'), getMessage("MOSJA26118", false));
+    }
+    $('#editZabbixUpdateuser').text(updateuser);
+    $('#editZabbixTimestamp').text(timestamp);
+
+    setMatchlist('editZabbixtable', matchlist, ruletypeid);
+}
+
+////////////////////////////////////////////////
+//  詳細画面の突合情報欄にテーブルを追加
+//  id: 追加対象の詳細画面のテーブルID(view or edit)
+////////////////////////////////////////////////
+function setMatchlist(id, matchlist, ruletypeid) {
+
+    // すべての子要素を削除
+    var table = document.getElementById(id);
+    var clone = table.cloneNode( false );
+    table.parentNode.replaceChild(clone, table);
+
+    if(ruletypeid > 0) {
+        dataobj = rule_type_data_obj_dict[ruletypeid]['data_obj'];
+        Object.keys(dataobj).forEach(function(key) {
+            var row = clone.insertRow( -1 );
+            var value = key in matchlist ? matchlist[key] : "";
+            // HTML文作成
+            var th = '<th id="data-object-id-' + key + '"><div class="cell-inner">' + dataobj[key] + '</div></th>';
+            var td = '<td></td>';
+            var option = setpullDown('edit',value);
+
+            // 編集ならinputを有効化
+            if (id == 'editZabbixtable'){
+                th = '<th id="data-object-id-' + key + '"><div class="cell-inner">' + dataobj[key] + '<sup>*</sup><span class="help tooltip" title="' + getMessage("MOSJA26144", false) + '"><em class="owf owf-question"></em></span></div></th>';
+                td = '<td><div class="cell-inner"><div class="select"><select id="edit-zabbix-' + key + '"  value="' + value + '" >' + option + '</select></div></div></td>';
+            }
+
+            row.innerHTML = th + td;
+
+            // 詳細表示ならtdにvalueを追加
+            if (id == 'viewZabbixtable'){
+                row.lastElementChild.append(value);
+           }
+ 
+        });
+    }
+}
+
+////////////////////////////////////////////////
+//  データの保存用 画面上のデータ収集
+//  idInfo: データ収集先ID辞書
+////////////////////////////////////////////////
+function setZabbixInfo(idInfo){
+
+    var adapterInfo = {};
+
+    // 入力データを取得してセット
+    adapterInfo["adapter_id"] = 1;
+    adapterInfo["zabbix_disp_name"] = $(idInfo['zabbix_disp_name']).val();
+    adapterInfo["hostname"] = $(idInfo['hostname']).val();
+    adapterInfo["username"] = $(idInfo['username']).val();
+    adapterInfo["password"] = $(idInfo['password']).val();
+    adapterInfo["protocol"] = $(idInfo['protocol']).val();
+    adapterInfo["port"] = $(idInfo['port']).val();
+    adapterInfo["rule_type_id"] = $(idInfo['rule_type_id']).val();
+
+    var conditionalData = {}; // 条件名、Zabbix項目を辞書形式で格納
+    $(idInfo['match_list']).each(function(index, element){
+        var id          = $(element).find('th').attr("id"); // 条件名
+        var value       = $(element).find('select').val(); // 条件式
+
+        id = id.replace("data-object-id-", "");
+        conditionalData[id] = value;
+    });
+
+    adapterInfo['match_list'] = conditionalData;
+
+    return adapterInfo;
+}
+
+
+////////////////////////////////////////////////
+//  データの保存(新規)
+////////////////////////////////////////////////
+function createZabbixAdapterinfo() {
+
+    var btnId = "#btnAddZabbix";
+
+    // ボタン制御 連打防止
+    $(btnId).prop("disabled", true);
+
+    // 確認メッセージを表示
+    if(!confirm(getMessage("MOSJA00002", false))){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    // データ収集
+    var idInfo = getIdInfo('add');
+    var postdata = setZabbixInfo(idInfo);
+    postdata['zabbix_adapter_id'] = "0";
+
+    // バリデーションチェック
+    var objTBody = document.getElementById("tbodyZabbixAdapterInfo");
+    validateResult = validateZabbixAdapterData(objTBody, postdata);
+
+    //エラーメッセージを表示
+    if(validateResult['errorFlag']){
+        renderCreateZabbixErrorMsg(validateResult['errorMsg']);
+        return;
+    }
+
+    createSomeAdapterInfo(postdata, btnId, renderCreateZabbixErrorMsg);
+}
+
+
+////////////////////////////////////////////////
+//  データの保存(更新)
+////////////////////////////////////////////////
+function updateZabbixAdapterInfo() {
+
+    var btnId = "#btnEditZabbix";
+
+    // ボタン制御 連打防止
+    $(btnId).prop("disabled", true);
+
+    // 確認メッセージを表示
+    if(!confirm(getMessage("MOSJA26145", false))){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    // データ収集
+    var idInfo = getIdInfo('edit');
+    var postdata = setZabbixInfo(idInfo);
+    postdata["zabbix_adapter_id"] = $('#viewZabbixDetail').attr('data-recordid').replace("zabbixadapter-", "");
+
+    // バリデーションチェック
+    var objTBody = document.getElementById("tbodyZabbixAdapterInfo");
+    validateResult = validateZabbixAdapterData(objTBody, postdata);
+
+    //エラーメッセージを表示
+    if(validateResult['errorFlag']){
+        renderUpdateZabbixErrorMsg(validateResult['errorMsg']);
+        return;
+    }
+
+    updateSomeAdapterInfo(postdata, btnId, renderUpdateZabbixErrorMsg);
+}
+
+
+////////////////////////////////////////////////
+//  データの保存(削除)
+////////////////////////////////////////////////
+function deleteZabbixAdapterInfo() {
+
+    var btnId = "#btnDelZabbix";
+    $(btnId).prop("disabled", true);
+
+    // 削除レコードの存在確認後に確認メッセージを表示する
+    var confirmMsg = getMessage("MOSJA26146", false);
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    // データ収集
+    var strId = $('#viewZabbixDetail').attr('data-recordid');
+    var recordId = strId.replace("zabbixadapter-", "");
+    var postdata = {
+            "adapter_id" : 1,
+            "record_id" : Number(recordId),
+        };
+
+    deleteSomeAdapterInfo(postdata, btnId);
+}
+
+
+////////////////////////////////////////////////
+//  バリデーション
+////////////////////////////////////////////////
+var regexNum = new RegExp(/^[0-9]+$/);
+function validateZabbixAdapterData(objTBody, adapterInfo){
+
+    var strID = "";
+    var ZabbixName   = adapterInfo["zabbix_disp_name"];
+    var protocol     = adapterInfo["protocol"];
+    var host         = adapterInfo["hostname"];
+    var port         = adapterInfo["port"];
+    var username     = adapterInfo["username"];
+    var password     = adapterInfo["password"];
+    var ruletypeid   = adapterInfo["rule_type_id"];
+    var matchlist    = adapterInfo['match_list'];
+
+    var errorFlag = false;
+    var errorMsg = {};
+    var chk_ZabbixName = {};
+    var chk_host = {};
+    var chk_ruletypeid = {};
+
+    // 画面に表示されているZabbixアダプタの名称・ホスト名をすべて保持
+    var selector = "";
+    if(objTBody != null){
+        for(var i = 0; i < objTBody.children.length; i++){
+            strID = objTBody.children[i].id.replace("zabbixadapter-", "");
+            selector = "#" + objTBody.children[i].id;
+            // idが取得できた場合
+            if(selector != "#") {
+                chk_ZabbixName[strID] = $(selector).data('name');
+                chk_host[strID]       = $(selector).data('host');
+                chk_ruletypeid[strID] = $(selector).data('ruletypeid');
+            }
+        }
+    }
+
+    strID = adapterInfo["zabbix_adapter_id"];
+    chk_ZabbixName[strID] = ZabbixName;
+    chk_host[strID] = host;
+
+    // 検査開始
+    errorMsg['zabbix_disp_name'] = "";
+    errorMsg['hostname'] = "";
+    errorMsg['port'] = "";
+    errorMsg['protocol'] = "";
+    errorMsg['username'] = "";
+    errorMsg['password'] = "";
+    errorMsg['rule_type_id'] = "";
+
+    // portの入力値チェック（0以上65535以下）
+    if(!regexNum.test(port) || 0 > parseInt(port) || parseInt(port) > 65535) {
+        errorMsg["port"] += getMessage("MOSJA26111", false) + "\n";
+        errorFlag = true;
+    }
+
+    // adapternameの重複チェック
+    var match_line = Object.keys(chk_ZabbixName).filter(function(key) {
+        if(strID != key && chk_ZabbixName[key] == ZabbixName){
+            return chk_ZabbixName[key] === ZabbixName;
+        }
+    });
+
+    if(match_line.length > 0){
+        errorMsg["zabbix_disp_name"] += getMessage("MOSJA26124", false) + "\n";
+        errorFlag = true;
+    }
+
+    // rule_type_idの未入力チェック
+    if (!ruletypeid || ruletypeid <=0 ) {
+        errorMsg["rule_type_id"] += getMessage("MOSJA26118", false) + "\n";
+        errorFlag = true;
+    }
+
+    // hostnameとrule_type_idの重複チェック
+    match_line = Object.keys(chk_host).filter(function(key) {
+        if(strID != key && chk_host[key] == host){
+            if(chk_ruletypeid[key] == ruletypeid){
+                return chk_host[key] === host;
+            }
+        }
+    });
+
+    if(match_line.length > 0){
+        errorMsg["hostname"] += getMessage("MOSJA26125", false) + "\n";
+        errorFlag = true;
+    }
+
+    var result = {
+        'errorFlag': errorFlag,
+        'errorMsg' : errorMsg,
+    };
+
+    return result;
+}
+
+
+////////////////////////////////////////////////
+// htmlのId情報を連想配列で取得
+// mode: 'edit' or 'add'
+////////////////////////////////////////////////
+function getIdInfo(mode){
+
+    modalwindowid = "#" + $('#zabbix_v1_modal_add_id').val();
+    if(mode == 'edit') {
+        modalwindowid = "#modal-zabbix-edit";
+    }
+
+    var idInfo = {
+        'modalwindow'     : modalwindowid,
+        'zabbix_disp_name': "#" + mode + "ZabbixName",
+        'hostname'        : "#" + mode + "ZabbixHost",
+        'port'            : "#" + mode + "ZabbixPort",
+        'protocol'        : "#" + mode + "ZabbixProtocol",
+        'username'        : "#" + mode + "ZabbixUsername",
+        'password'        : "#" + mode + "ZabbixPass",
+        'rule_type_id'    : "#" + mode + "-zabbix-rule-select",
+        'match_list'      : "#" + mode + "Zabbixtable tr",
+    };
+
+    return idInfo;
+}
+
+var renderCreateZabbixErrorMsg = function(errorMsg) {
+    renderZabbixErrorMsg(errorMsg, 'add');
+}
+
+var renderUpdateZabbixErrorMsg = function(errorMsg) {
+    renderZabbixErrorMsg(errorMsg, 'edit');
+}
+
+var renderZabbixErrorMsg = function(errorMsg, mode) {
+    alert(getMessage("MOSJA23014", false));
+
+    idInfo = getIdInfo(mode);
+
+    clearErrorMsg(idInfo['modalwindow']); // 前回エラーを削除
+
+    renderErrorMsg(idInfo['zabbix_disp_name'], errorMsg['zabbix_disp_name']);
+    renderErrorMsg(idInfo['hostname'], errorMsg['hostname']);
+    renderErrorMsg(idInfo['port'], errorMsg['port']);
+    renderErrorMsg(idInfo['protocol'], errorMsg['protocol']);
+    renderErrorMsg(idInfo['username'], errorMsg['username']);
+    renderErrorMsg(idInfo['password'], errorMsg['password']);
+    renderErrorMsg(idInfo['rule_type_id'], errorMsg['rule_type_id']);
+
+    //--------------------------------------------
+    // Zabbix項目へのエラー表示
+    //--------------------------------------------
+    $(idInfo['match_list']).each(function(index, element){
+        var id = $(element).find('input').attr("id");
+        var error_key = id.replace(mode + "-","");
+        renderErrorMsg( '#' + id, errorMsg[error_key]);
+    });
+}
+
+-->
+</script>
+{% endblock %}
+
+<input type="hidden" id="rule_type_data_obj_dict" value="{{ rule_type_data_obj_dict|jsonify }}"/>
+<input type="hidden" id="zabbix_v1_modal_add_id" value="modal-{{adapter_name|slugify}}-add"/>
+
+<!-- 監視先の詳細表示 -->
+<div id="modal-zabbix-detail" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-details"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="modalClose('#modal-zabbix-detail');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody id="viewZabbixDetail" data-recordid=''>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26129' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixName" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26130' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixProtocol" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26131' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixHost" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26132' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixPort" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26133' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixUsername" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26134' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixRuletype" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26135' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <table class="table-in-table">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26136' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26137' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="viewZabbixtable">
+                        </tbody>
+                      </table>
+
+                    </div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewZabbixTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="modalClose('#modal-zabbix-detail');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button id="btnToEditModalZabbix" class="oase-button" onclick="setInfoInZabbixEditView(); modalChange('#modal-zabbix-detail', '#modal-zabbix-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
+            </button></li>
+            <li><button id="btnDelZabbix" class="oase-button" onclick="deleteZabbixAdapterInfo();"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の詳細表示 -->
+
+
+<!-- 監視先の追加画面 -->
+<div id="modal-{{adapter_name|slugify}}-add" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-plus"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="monitoringZabbixAddModalClose('#modal-{{adapter_name|slugify}}-add','btnAddZabbix');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26129' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addZabbixName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26130' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"><div class="select"><select id="addZabbixProtocol" ><option>http</option><option>https</option></select></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26131' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00108' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addZabbixHost" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26132' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00109' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addZabbixPort" class="validation-input" type="number" value="" min="0" max="65535" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26133' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addZabbixUsername"  data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26138' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="addZabbixPass" data-maxlength="64" type="password" data-type="text" class="validation-input" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26139' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="select" >
+                          <select id="add-zabbix-rule-select" data-initial-value="">
+                            <option></option>
+                            {% for rule_item in rule_type_list %}
+                                {% if rule_item.editable == True and rule_item.active == True %}
+                            <option value="{{ rule_item.rule_type_id }}" >{{ rule_item.rule_type_name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr id="add-zabbix-rule-condition">
+                    <th><div class="cell-inner">{% get_message 'MOSJA26135' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <!-- ルール種別選択前 -->
+                      <div id="add-rule-none" class="unselected">
+                        {% get_message 'MOSJA26140' request.user.get_lang_mode showMsgId=False %}
+                        <input type="hidden" value="" required>
+                      </div>
+
+                      <!-- ルール種別選択後 -->
+                      <table id="add-rule-detail" class="table-in-table table-zabbix" hidden>
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26136' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26137' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="addZabbixtable">
+                        </tbody>
+                      </table>
+                    </div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="monitoringZabbixAddModalClose('#modal-{{adapter_name|slugify}}-add','btnAddZabbix');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="monitoringZabbixAddModalChange('#modal-{{adapter_name|slugify}}-add', '#modal-add-adapter','btnAddZabbix');"><em class="owf owf-prev"></em><span>{% get_message 'MOSJA26011' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="createZabbixAdapterinfo();" id="btnAddZabbix"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+        <form id="toSaveData" action="#" method="POST">
+          <input type="hidden" id="add_record"  value="" name="add_record" />
+          {% csrf_token %}
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の追加画面 -->
+
+
+<!-- 監視先の詳細編集 -->
+<div id="modal-zabbix-edit" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-edit"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="monitoringModalClose('#modal-zabbix-edit','btnEditZabbix');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26129' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editZabbixName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26130' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"><div class="select"><select id="editZabbixProtocol"><option>http</option><option>https</option></select></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26131' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00108' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editZabbixHost" data-maxlength="128" data-type="text" type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26132' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00109' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editZabbixPort" class="validation-input" type="number" value="" min="0" max="65535" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26133' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editZabbixUsername" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26138' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="editZabbixPass" data-maxlength="64" type="password" class="validation-input" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26139' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="select">
+                          <select id="edit-zabbix-rule-select">
+                            {% for rule_item in rule_type_list %}
+                              {% if rule_item.editable == True and rule_item.active == True %}
+                            <option value="{{ rule_item.rule_type_id }}" >{{ rule_item.rule_type_name }}</option>
+                              {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr id="edit-zabbix-rule-condition">
+                    <th><div class="cell-inner">{% get_message 'MOSJA26135' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <!-- ルール種別選択前 -->
+                      <div id="edit-rule-none" class="unselected" style="display: none;">{% get_message 'MOSJA26140' request.user.get_lang_mode showMsgId=False %}</div>
+
+                      <!-- ルール種別選択後 -->
+                      <table id="edit-rule-detail" class="table-in-table table-zabbix">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26136' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26137' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="editZabbixtable">
+                        </tbody>
+                      </table>
+
+                    </div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th><td><div id="editZabbixUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th><td><div id="editZabbixTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="monitoringModalClose('#modal-zabbix-edit','btnEditZabbix');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button id="btnEditZabbix" class="oase-button" onclick="updateZabbixAdapterInfo()"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の詳細編集 -->
+
+<!-- 監視先の一覧 -->
+<section id="zabbix-adapter-ver1">
+<div class="oase-section-title">
+  <div class="oase-section-title-inner">
+
+    <div class="oase-section-title-table">
+      <h2>{{adapter_name}}</h2>
+    </div>
+
+  </div>
+</div>
+
+<!-- プルダウン用にデータ属性を作成 -->
+<div hidden id="zabbix-items" data-zabbixitems={{zabbix_items}}></div>
+
+{% if info_list|length %}
+<div class="oase-table">
+  <div class="oase-table-load loading">
+    <div class="oase-table-loader-inner">
+      <em class="owf owf-update"></em>
+    </div>
+  </div>
+
+  <div class="oase-table-inner">
+    <table>
+
+      <thead>
+        <tr>
+          <th class="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="action-name sort filter" filter-type="common" filter-label="action-name"><div class="cell-inner">{% get_message 'MOSJA26129' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="protocol sort filter" filter-type="common" filter-label="protocol"><div class="cell-inner">{% get_message 'MOSJA26130' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="host sort filter" filter-type="common" filter-label="host"><div class="cell-inner">{% get_message 'MOSJA26131' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="port sort filter" filter-type="common" filter-label="port"><div class="cell-inner">{% get_message 'MOSJA26132' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="user-name sort filter" filter-type="common" filter-label="user-name"><div class="cell-inner">{% get_message 'MOSJA26133' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="rule-type sort filter" filter-type="common" filter-label="rule-type"><div class="cell-inner">{% get_message 'MOSJA26134' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="execution-date sort filter" filter-type="date" filter-label="execution-date"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+        </tr>
+      </thead>
+
+      <tbody id="tbodyZabbixAdapterInfo">
+        {% for i in info_list %}
+        <tr id="zabbixadapter-{{ i.zabbix_adapter_id }}" data-zabbix_id="{{ i.zabbix_adapter_id }}" data-name="{{ i.zabbix_disp_name }}" data-protocol="{{ i.protocol }}" data-host="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
+          <td class="operation-menu">
+            <div class="cell-inner"><ul>
+                <li><button class="tooltip detail oase-mini-button" onClick="setInfoInZabbixDetailView('zabbixadapter-{{ i.zabbix_adapter_id }}'); modalOpen('#modal-zabbix-detail');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul></div>
+          </td>
+
+          <td class="action-name">
+            <div class="cell-inner">{{ i.zabbix_disp_name }}</div>
+          </td>
+
+          <td class="protocol">
+            <div class="cell-inner">{{ i.protocol }}</div>
+          </td>
+
+          <td class="host">
+            <div class="cell-inner">{{ i.hostname }}</div>
+          </td>
+
+          <td class="port">
+            <div class="cell-inner">{{ i.port }}</div>
+          </td>
+
+          <td class="user-name">
+            <div class="cell-inner">{{ i.username }}</div>
+          </td>
+
+          {% if i.active %}
+          <td class="rule-type">
+            <div class="cell-inner">{{ i.rule_type_name }}</div>
+          </td>
+          {% else %}
+          <td class="rule-type error">
+            <div class="cell-inner">
+              <ul class="error-list">
+                <li><em class="owf owf-cross"></em>{% get_message 'MOSJA26141' request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" data-tooltip="{% get_message 'MOSJA26142' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></li>
+              </ul>
+            </div>
+          </td>
+          {% endif %}
+
+          <td class="last-update-user">
+            <div class="cell-inner">{{ i.last_update_user }}</div>
+          </td>
+
+          <td class="execution-date">
+            <div class="cell-inner">
+              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="oase-table-footer">
+    <ul class="button-group">
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd class="rowCount">4</dd>
+        </dl>
+      </li>
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd>
+            <select class="rowShowNum">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </dd>
+        </dl>
+      </li>
+
+      <li>
+        <button class="pagingPrev button" disabled=""><em class="owf owf-minus"></em></button>
+        <input class="pagingNow" type="text"> / <span class="pagingMax">1</span>
+        <button class="pagingNext button" disabled=""><em class="owf owf-plus"></em></button>
+      </li>
+
+      <li>
+        <button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+      <li>
+        <button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+    </ul>
+  </div>
+
+</div>
+
+{% else %}
+<div class="oase-none">
+  <p>{% autoescape off %}{% get_message 'MOSJA26143' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+</div>
+{% endif %}
+</section>
+

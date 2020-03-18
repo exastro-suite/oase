@@ -1,0 +1,1421 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+
+<script type="text/javascript" src="{% static "vendor/jquery/js/list.min.js" %}" charset="UTF-8"></script>
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  入力値バリデーションチェック
+////////////////////////////////////////////////
+$( function(){
+    beforeunloadThroughFlag = false;
+});
+////////////////////////////////////////////////
+//  未入力エラー処理
+////////////////////////////////////////////////
+function nonInput(tag, errorTitle, errorMessage){
+    tag.parents('th, td').addClass('error');
+    var errorHTML = '<ul class="error-list"><li><em class="owf owf-cross"></em>' + errorTitle + '<span class="tooltip help" title="' + errorMessage + '"><em class="owf owf-question"></em></span></li></ul>';
+        tag.after( errorHTML );
+    if( tag = $("#rule_type_name")){
+        tag.addClass("server-error");
+    }
+}
+////////////////////////////////////////////////
+//  DB登録（新規登録・複製）
+////////////////////////////////////////////////
+function submitTableData(){
+
+    var tableInfo     = {};
+    var objTBody      = document.getElementById("data_object_data");
+    var dataObjList   = new Array();
+    var groupList     = new Array();
+
+    // ボタン制御 連打防止
+    $("#btnUpd").prop("disabled", true);
+    if(confirm(getMessage('MOSJA00002',false)) == true){
+
+        //--------------------------------------------
+        // ルール種別名, 概要, RuleTable名の取得
+        //--------------------------------------------
+        tableInfo["rule_type_name"]  = $("#rule_type_name").val();
+        tableInfo["summary"]         = $("#summary").val();
+        tableInfo["rule_table_name"] = $("#rule_table_name").val();
+
+        //--------------------------------------------
+        // 条件名, 条件式のチェック
+        //--------------------------------------------
+        //eachでの条件名、条件式の取得
+        $("#data_object_data tr").each(function(index, element){
+            var dataObjInfo = {};//条件名、条件式の辞書
+            var input  = $(element).find('input').val(); // 条件名
+            var select = $(element).find('select option:selected').val(); // 条件式
+            var trID   = "New" + String(index + 3); // trタグに付与するID
+            $(this).attr('id', trID);
+
+            dataObjInfo["conditional_name"]          = input;
+            dataObjInfo["conditional_expression_id"] = select;
+            dataObjInfo["row_id"]                    = trID;
+            dataObjList.push(dataObjInfo);
+        });
+
+        //--------------------------------------------
+        // アクセス権限の取得
+        //--------------------------------------------
+        var groupInfo = {};
+        var permInfo  = {};
+        var permList  = new Array();
+        var permValue = '0';
+
+        {% for gr in group_list %}
+        groupInfo = {};
+        permList  = [];
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001003"]:checked').val();
+        permInfo['menu_id'] = '2141001003';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001004"]:checked').val();
+        permInfo['menu_id'] = '2141001004';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001005"]:checked').val();
+        permInfo['menu_id'] = '2141001005';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001007"]:checked').val();
+        permInfo['menu_id'] = '2141001007';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001008"]:checked').val();
+        permInfo['menu_id'] = '2141001008';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141002006"]:checked').val();
+        permInfo['menu_id'] = '2141002006';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        groupInfo['group_id']   = '{{gr.id}}';
+        groupInfo['permission'] = permList;
+        groupList.push(groupInfo);
+        {% endfor %}
+
+        //--------------------------------------------
+        // エラーチェック
+        //--------------------------------------------
+        var errorList    = [];
+        var errorDict    = {}; //{"エラー表示箇所","エラータイトル", "エラーメッセージ"}
+    
+        var noSelect = false;
+        $(".conditional-expression").each(function(index, element){
+            if($(element).find("option:selected").val() == ""){
+                $(element).addClass("non-select");
+                noSelect = true;
+            }
+        });
+
+        if(noSelect){
+            errorDict["errorTag"]     = $(".non-select");
+            errorDict["errorTitle"]   = getMessage('MOSJA00095', false);
+            errorDict["errorMessage"] = getMessage("MOSJA00015", true);
+            errorList.push($.extend(true,{},errorDict));
+        }
+         
+        // エラーがあれば表示
+        if (errorList.length != 0){
+            alert(getMessage('MOSJA00096', false));
+            $.each(errorList, function(index, errorDict){
+                nonInput(errorDict["errorTag"], errorDict["errorTitle"], errorDict["errorMessage"]);
+            });
+        }else{
+            //登録情報をjson形式に変換し、任意のvalueにセットする。
+            var jstr = JSON.stringify({"table_info": tableInfo, "data_obj_info":dataObjList, "group_list":groupList});
+            $("#add_record").val(jstr);
+    
+            //formにセットした登録情報をサーバーに送る
+            document.getElementById("formTableData").submit();
+        }
+
+    } else {
+        $("#btnUpd").prop("disabled", false);
+    }
+}
+
+
+function submitAction(){
+
+    // 前回エラー表記削除
+    $('.error').removeClass('error');
+    $('.error-list').remove();
+
+    $.ajax({
+        type : "POST",
+        url  : "decision_table/modify",
+        data : $("#formTableData").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            alert(getMessage('MOSJA00011', false));
+            beforeunloadThroughFlag = true;//ページ移動の注意を無視
+            $("#btnUpd").prop("disabled", false);
+            location.href = response_json.redirect_url;
+        }
+        else {
+            if(response_json.error_apl != "") {
+                alert(response_json.error_apl);
+            } else {
+                alert(getMessage('MOSJA00005', true) + "\n");
+            }
+
+            // 基本情報エラー処理
+            errorMsg = response_json.error_top;
+            Object.keys(errorMsg).forEach(function(id) {
+                if(id != "rule_type_name" && id != "summary" && id != "rule_table_name") {
+                    return true;
+                }
+                errorStr = errorMsg[id];
+
+                if(!errorStr || errorStr.length == 0) {
+                    return true;
+                }
+                // エラークラスを付与
+                nonInput($("#"+id), getMessage('MOSJA00097', false), errorMsg[id]);
+            });
+
+            // ルール条件エラー処理
+            if(response_json.error_flag == true) {
+                errorMsg = response_json.error_msg;
+                Object.keys(errorMsg).forEach(function(rowId) {
+
+                    errorStr = errorMsg[rowId];
+                    if(!errorStr || errorStr.length == 0) {
+                        return true;
+                    }
+                    // 入力エラー表示
+                    var inputValue = $("#"+rowId).find("input").val();
+                    $(".conditional-name").each(function(index, element){
+                        if($(element).val() == inputValue){
+                            var $errorTag = $(element).parent().parent().parent().find(".conditional-name");
+                            nonInput($errorTag, getMessage('MOSJA00098', false), getMessage('MOSJA11021', true));
+                        }
+                    });
+                });
+            } else {
+                errorMsg = response_json.error_msg;
+                Object.keys(errorMsg).forEach(function(rowId) {
+
+                    errorStr = errorMsg[rowId];
+                    if(!errorStr || errorStr.length == 0) {
+                        return true;
+                    }
+                    // 重複した行にエラー表示
+                    var inputValue = $("#"+rowId).find("input").val(); //重複エラーした条件名
+                    $(".conditional-name").each(function(index, element){
+                        if($(element).val() == inputValue){
+                            var $errorTag = $(element).parent().parent().parent().find(".conditional-name");
+                            nonInput($errorTag, getMessage('MOSJA00099', false), getMessage('MOSJA13019', true));
+                        }
+                    });
+                });
+            }
+            $("#btnUpd").prop("disabled", true);
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            alert(getMessage('MOSJA00014', false));
+            $("#btnUpd").prop("disabled", false);
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage('MOSJA00014', false) + "\n" + respdata.responseText);
+            $("#btnUpd").prop("disabled", false);
+        }
+    });
+}
+
+
+function submitTableData2(){
+
+    var tableInfo = {};
+    var groupList = new Array();
+
+    $("#btnUpd2").prop("disabled", true);
+    if(confirm(getMessage('MOSJA11012', false)) == true){
+
+        //--------------------------------------------
+        // ルール種別名, 概要, RuleTable名の取得
+        //--------------------------------------------
+        tableInfo["rule_type_name"] = $("#edit-rule-type-name").val();
+        tableInfo["summary"]        = $("#edit-summary").val();
+
+        //--------------------------------------------
+        // アクセス権限の取得
+        //--------------------------------------------
+        var groupInfo = {};
+        var permInfo  = {};
+        var permList  = new Array();
+        var permValue = '0';
+
+        {% for gr in group_list %}
+        groupInfo = {};
+        permList  = [];
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001003b"]:checked').val();
+        permInfo['menu_id'] = '2141001003';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001004b"]:checked').val();
+        permInfo['menu_id'] = '2141001004';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001005b"]:checked').val();
+        permInfo['menu_id'] = '2141001005';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001007b"]:checked').val();
+        permInfo['menu_id'] = '2141001007';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001008b"]:checked').val();
+        permInfo['menu_id'] = '2141001008';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141002006b"]:checked').val();
+        permInfo['menu_id'] = '2141002006';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        groupInfo['group_id']   = '{{gr.id}}';
+        groupInfo['permission'] = permList;
+        groupList.push(groupInfo);
+        {% endfor %}
+
+        //登録情報をjson形式に変換し、任意のvalueにセットする。
+        var jstr = JSON.stringify({"table_info": tableInfo, "group_list":groupList});
+        $("#add_record2").val(jstr);
+        $("#operate").val("save");
+
+        //formにセットした登録情報をサーバーに送る
+        document.getElementById("formTableData2").submit();
+    } else {
+        $("#btnUpd2").prop("disabled", false);
+    }
+}
+
+
+function submitAction2(){
+
+    var operate = $("#operate").val();
+    if( operate == "save" ){
+        //保存時のアクション
+        var ruleTypeID = $("#hidDetailID2").val();
+
+        $.ajax({
+            type : "POST",
+            url  : "decision_table/modify/" + ruleTypeID + "/",
+            data : $("#formTableData2").serialize(),
+            dataType: "json",
+        })
+        .done(function(response_json) {
+            if(response_json.status == 'success') {
+               alert(getMessage('MOSJA00011', false));
+               beforeunloadThroughFlag = true;//ページ移動の注意を無視
+               $("#btnUpd2").prop("disabled", false);
+                location.href = response_json.redirect_url;
+            }
+            else {
+                alert(response_json.error_msg);
+
+                // 基本情報エラー処理
+                errorMsg = response_json.error_top;
+                Object.keys(errorMsg).forEach(function(id) {
+                    if(id != "rule_type_name" && id != "summary" && id != "rule_table_name") {
+                        return true;
+                    }
+                    errorStr = errorMsg[id];
+    
+                    if(!errorStr || errorStr.length == 0) {
+                        return true;
+                    }
+                    // エラークラスを付与
+                    nonInput($("#"+id), getMessage('MOSJA00097', false), errorMsg[id]);
+                });
+                $("#btnUpd2").prop("disabled", false);
+            }
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                alert(getMessage('MOSJA00014', false));
+                $("#btnUpd2").prop("disabled", false);
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage('MOSJA00014', false) + "\n" + respdata.responseText);
+                $("#btnUpd2").prop("disabled", false);
+            }
+        });
+    }
+
+    if( operate == "delete" ){
+      //削除時のアクション
+      var ruleTypeID        = $("#hidDetailID2").val();//ルール種別ID取得
+      var decisionTableName = $("#rule_type_name2").val(); //ルール種別名の取得
+
+      if(confirm("["+decisionTableName+"]" + getMessage('MOSJA11014', false)) == true){
+            $.ajax({
+                type : "POST",
+                url  : "decision_table/delete_table/" + ruleTypeID + "/",
+                data : $("#formTableData2").serialize(),
+                dataType: "json",
+            })
+            .done(function(response_json) {
+                if(response_json.status == 'success') {
+                    alert(getMessage('MOSJA00200', false));
+                    $("#btnDelAccess").prop("disabled", false);
+                    location.href = response_json.redirect_url;
+                }
+                else {
+                    alert(response_json.error_msg);
+                    $("#btnDelAccess").prop("disabled", false);
+                }
+            })
+            .fail(function(respdata, stscode, resp) {
+                if(stscode == "error") {
+                    alert(getMessage('MOSJA00014', false));
+                    $("#btnDelAccess").prop("disabled", false);
+                    window.location.href = "/oase_web/top/logout";
+                } else {
+                    alert(getMessage('MOSJA00014', false) + "\n" + respdata.responseText);
+                    $("#btnDelAccess").prop("disabled", false);
+                }
+            });
+      } else {
+            $("#btnDelAccess").prop("disabled", false);
+      }
+    }
+}
+
+////////////////////////////////////////////////
+// 新規追加画面の表示
+////////////////////////////////////////////////
+function showNewTable(){
+
+    // モーダル画面のタイトル初期化
+    $("#modal-title-new").text(getMessage('MOSJA00090', false));
+    // 基本情報 初期化
+    $("#rule_type_name").val("");
+    $("#summary").val("");
+    $("#rule_table_name").val("");
+
+    // 初期ルール条件数 初期化
+    var ruleTrInput = '';
+    for ( var i = 1; i <= 1; i++ ) ruleTrInput += ruleRow;
+        $('#data_object tbody').html( ruleTrInput ); 
+
+    // バリデーションエラー初期化
+    $(".error-list").remove();
+    $("td").removeClass("error");
+
+    // アクセス権限情報埋め込み
+    var html = '';
+    {% if group_list|length %}
+    html += '<dl>';
+      {% for gr in group_list %}
+    html += createHTMLAccessPermission('dlAuthGrpListNew', '{{gr.id}}', '{{gr.name}}', '{{gr.perm.2141001007}}', '{{gr.perm.2141001004}}', '{{gr.perm.2141001005}}', '{{gr.perm.2141001003}}', '{{gr.perm.2141001008}}', '{{gr.perm.2141002006}}');
+      {% endfor %}
+    html += '</dl>';
+    {% else %}
+    html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+    {% endif %}
+
+    $("#dlAuthGrpListNew").html(html);
+}
+
+
+////////////////////////////////////////////////
+//  DTダウンロード処理(詳細画面)
+////////////////////////////////////////////////
+function downloadAction(){
+    
+    $("#btnDlAccess").prop("disabled", true);
+    var ruleTypeID = $("#hidDetailID2").val();
+    var url = '/oase_web/rule/decision_table/download/' + ruleTypeID + '/';
+
+    downloadAjaxExcel("#btnDlAccess", url);
+}
+
+
+////////////////////////////////////////////////
+//  DT明細ダウンロード処理
+////////////////////////////////////////////////
+function downloadRecordAction(pk){
+
+    $("#btnRecordDl" + pk).prop("disabled", true);
+
+    var url = '/oase_web/rule/decision_table/download/' + pk + '/';
+
+    downloadAjaxExcel("#btnRecordDl" + pk, url);
+
+}
+
+
+////////////////////////////////////////////////
+//  詳細画面の表示制御
+////////////////////////////////////////////////
+function showDetail(pk, copy_flg, del_flg, edit_flg, dl_flg){
+
+    // 基本情報(ルール種別名 概要 RuleTable名)を取得
+    var decisionTableData = []; // ルール種別名 概要 RuleTable名を格納
+    {% for d in decision_table_list %}
+        if (pk == {{d.pk}}){
+            decisionTableData.push("{{d.rule_type_name|escapejs}}");
+            decisionTableData.push("{{d.summary|escapejs}}");
+            decisionTableData.push("{{d.rule_table_name|escapejs}}");
+
+            $("#rule_type_name2").val("{{d.rule_type_name|escapejs}}");// formに埋め込み
+        }
+    {% endfor %}
+
+    // 基本情報埋め込み
+    $("#detail-table td div").each(function(index, element){
+        $(element).text(decisionTableData[index]);
+    });
+
+    // ルール条件を埋め込み
+    var html = ""
+    {% for object in object_list %}
+        if( pk == {{object.rule_type_id}} ){
+            html += '<tr><td><div class="cell-inner">{{object.conditional_name}}</div></td><td><div class="cell-inner" data-conditional-expression-id="{{object.conditional_expression_id}}">{% for condition in conditional_expression %}{% if object.conditional_expression_id == condition.conditional_expression_id %} {{condition.operator_name}}{% endif %}{% endfor %}</div></td></tr>';
+            $("#conditional-tbody").html(html);
+        }
+    {% endfor %}
+
+    $("#hidDetailID2").val(pk);// formに埋め込み
+
+    // アクセス権限情報埋め込み
+    {% for d in decision_table_list %}
+        if (pk == {{d.pk}}){
+            html = '';
+            {% if d.group_list|length %}
+            html += '<dl>';
+              {% for gr in d.group_list %}
+            html += createHTMLAccessPermission('dlAuthGrpListDisp', '{{gr.id}}', '{{gr.name}}', '{{gr.perm.2141001007}}', '{{gr.perm.2141001004}}', '{{gr.perm.2141001005}}', '{{gr.perm.2141001003}}', '{{gr.perm.2141001008}}', '{{gr.perm.2141002006}}');
+              {% endfor %}
+            html += '</dl>';
+            {% else %}
+            html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+            {% endif %}
+
+            $("#dlAuthGrpListDisp").html(html);
+        }
+    {% endfor %}
+
+    // ルールごとのボタン制御
+    if(copy_flg == 'True')
+        $("#btnCopyAccess").prop("disabled", false);
+    else
+        $("#btnCopyAccess").prop("disabled", true);
+
+    if(del_flg == 'True')
+        $("#btnDelAccess").prop("disabled", false);
+    else
+        $("#btnDelAccess").prop("disabled", true);
+
+    if(edit_flg == 'True')
+        $("#btnEditAccess").prop("disabled", false);
+    else
+        $("#btnEditAccess").prop("disabled", true);
+
+    if(dl_flg == 'True')
+        $("#btnDlAccess").prop("disabled", false);
+    else
+        $("#btnDlAccess").prop("disabled", true);
+}
+
+////////////////////////////////////////////////
+//  詳細画面のアクセス権限html生成
+////////////////////////////////////////////////
+function getPermissionText(perm){
+    if(perm == "1")
+        return '<em class="owf owf-circle"></em>' + getMessage('MOSJA00088', false);
+
+    else if(perm == "2")
+        return '<em class="owf owf-loupe"></em>' + getMessage('MOSJA00087', false);
+
+    else if(perm == "3")
+        return '<em class="owf owf-cross"></em>' + getMessage('MOSJA00086', false);
+
+    return "";
+}
+
+
+function getPermissionChecked(num, perm){
+    if(num == "1" && perm == "3")
+        return " checked";
+
+    else if(num == "2" && perm == "2")
+        return " checked";
+
+    else if(num == "3" && perm == "1")
+        return " checked";
+
+    return "";
+}
+
+function createHTMLAccessPermission(tagID, grID, grname, perm1, perm2, perm3, perm4, perm5, perm6){
+    var html = '';
+
+    html += '<dt>';
+    html += '  <em class="owf owf-down-on"></em>';
+    html += '  <span class="authority-group-name">' + grname + '</span>';
+    html += '    <span class="authority-check">';
+    html += '      <span class="rule-authority authority1 tooltip" title="' + getMessage('MOSJA14014', false) + '"><em class="level' + perm1 + '"></em></span>';
+    html += '      <span class="rule-authority authority2 tooltip" title="' + getMessage('MOSJA14015', false) + '"><em class="level' + perm2 + '"></em></span>';
+    html += '      <span class="rule-authority authority3 tooltip" title="' + getMessage('MOSJA14016', false) + '"><em class="level' + perm3 + '"></em></span>';
+    html += '      <span class="rule-authority authority4 tooltip" title="' + getMessage('MOSJA00091', false) + '"><em class="level' + perm5 + '"></em></span>';
+    html += '      <span class="rule-authority authority5 tooltip" title="' + getMessage('MOSJA00092', false) + '"><em class="level' + perm4 + '"></em></span>';
+    html += '      <span class="rule-authority authority6 tooltip" title="' + getMessage('MOSJA26004', false) + '"><em class="level' + perm6 + '"></em></span>';
+    html += '  </span>';
+    html += '</dt>';
+    html += '<dd>';
+    html += '  <div class="oase-modal-table">';
+    html += '    <table class="authority-table">';
+    html += '      <thead>';
+    html += '        <tr>';
+    html += '          <th><div class="cell-inner">' + getMessage('MOSJA00083', false) + '</div></th>';
+    html += '          <th><div class="cell-inner">' + getMessage('MOSJA00084', false) + '</div></th>';
+    html += '          <th><div class="cell-inner">' + getMessage('MOSJA00085', false) + '</div></th>';
+
+    if(tagID == "dlAuthGrpListDisp"){
+        html += '          <th><div class="cell-inner">' + getMessage('MOSJA00082', false) + '</div></th>';
+    } else if(tagID == "dlAuthGrpListNew" || tagID == "dlAuthGrpListEdit"){
+        html += '          <th><div class="cell-inner"><em class="owf owf-cross"></em><br>' + getMessage('MOSJA00086', false) + '</div></th>';
+        html += '          <th><div class="cell-inner"><em class="owf owf-loupe"></em><br>' + getMessage('MOSJA00087', false) + '</div></th>';
+        html += '          <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA00088', false) + '</div></th>';
+    }
+
+    html += '        </tr>';
+    html += '      </thead>';
+    html += '      <tbody>';
+
+    // --- カテゴリ ルールここから
+    html += '        <tr>';
+    html += '          <th rowspan="5"><div class="cell-inner">' + getMessage('MOSJA00089', false) + '</div></th>';
+    html += '          <td><div class="cell-inner">' + getMessage('MOSJA00078', false) + '</div></td>';
+    html += '          <td><div class="cell-inner">' + getMessage('MOSJA14017', false) + '</div></td>';
+
+    if(tagID == "dlAuthGrpListDisp"){
+        html += '          <td class="authority-type level' + perm1 + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm1);
+        html += '            </div>';
+        html += '          </td>';
+    } else if(tagID == "dlAuthGrpListNew"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001007-1" name="radio' + grID + '_2141001007"' + getPermissionChecked('1', perm1) + '><label class="radio" for="radio' + grID + '_2141001007-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001007-2" name="radio' + grID + '_2141001007"' + getPermissionChecked('2', perm1) + '><label class="radio" for="radio' + grID + '_2141001007-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001007-3" name="radio' + grID + '_2141001007"' + getPermissionChecked('3', perm1) + '><label class="radio" for="radio' + grID + '_2141001007-3"></label></div></td>';
+    } else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001007-1b" name="radio' + grID + '_2141001007b"' + getPermissionChecked('1', perm1) + '><label class="radio" for="radio' + grID + '_2141001007-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001007-2b" name="radio' + grID + '_2141001007b"' + getPermissionChecked('2', perm1) + '><label class="radio" for="radio' + grID + '_2141001007-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001007-3b" name="radio' + grID + '_2141001007b"' + getPermissionChecked('3', perm1) + '><label class="radio" for="radio' + grID + '_2141001007-3b"></label></div></td>';
+    }
+
+    html += '        </tr>';
+    html += '        <tr>';
+    html += '          <td rowspan="2"><div class="cell-inner">' + getMessage('MOSJA00089', false) + '</div></td>';
+    html += '          <td><div class="cell-inner">' + getMessage('MOSJA00093', false) + '</div></td>';
+
+    if(tagID == "dlAuthGrpListDisp"){
+        html += '          <td class="authority-type level' + perm2 + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm2);
+        html += '            </div>';
+        html += '          </td>';
+    } else if(tagID == "dlAuthGrpListNew"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001004-1" name="radio' + grID + '_2141001004"' + getPermissionChecked('1', perm2) + '><label class="radio" for="radio' + grID + '_2141001004-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001004-2" name="radio' + grID + '_2141001004"' + getPermissionChecked('2', perm2) + '><label class="radio" for="radio' + grID + '_2141001004-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001004-3" name="radio' + grID + '_2141001004"' + getPermissionChecked('3', perm2) + '><label class="radio" for="radio' + grID + '_2141001004-3"></label></div></td>';
+    } else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001004-1b" name="radio' + grID + '_2141001004b"' + getPermissionChecked('1', perm2) + '><label class="radio" for="radio' + grID + '_2141001004-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001004-2b" name="radio' + grID + '_2141001004b"' + getPermissionChecked('2', perm2) + '><label class="radio" for="radio' + grID + '_2141001004-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001004-3b" name="radio' + grID + '_2141001004b"' + getPermissionChecked('3', perm2) + '><label class="radio" for="radio' + grID + '_2141001004-3b"></label></div></td>';
+    }
+
+    html += '        </tr>';
+    html += '        <tr>';
+    html += '          <td><div class="cell-inner">' + getMessage('MOSJA00094', false) + '</div></td>';
+
+    if(tagID == "dlAuthGrpListDisp"){
+        html += '          <td class="authority-type level' + perm3 + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm3);
+        html += '            </div>';
+        html += '          </td>';
+    } else if(tagID == "dlAuthGrpListNew"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001005-1" name="radio' + grID + '_2141001005"' + getPermissionChecked('1', perm3) + '><label class="radio" for="radio' + grID + '_2141001005-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001005-2" name="radio' + grID + '_2141001005"' + getPermissionChecked('2', perm3) + '><label class="radio" for="radio' + grID + '_2141001005-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001005-3" name="radio' + grID + '_2141001005"' + getPermissionChecked('3', perm3) + '><label class="radio" for="radio' + grID + '_2141001005-3"></label></div></td>';
+    } else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001005-1b" name="radio' + grID + '_2141001005b"' + getPermissionChecked('1', perm3) + '><label class="radio" for="radio' + grID + '_2141001005-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001005-2b" name="radio' + grID + '_2141001005b"' + getPermissionChecked('2', perm3) + '><label class="radio" for="radio' + grID + '_2141001005-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001005-3b" name="radio' + grID + '_2141001005b"' + getPermissionChecked('3', perm3) + '><label class="radio" for="radio' + grID + '_2141001005-3b"></label></div></td>';
+    }
+
+    html += '        </tr>';
+    html += '        <tr>';
+    html += '          <td><div class="cell-inner">' + getMessage('MOSJA00091', false) + '</div></td>';
+    html += '          <td class="blank"><div class="cell-inner"></div></td>';
+
+    if(tagID == "dlAuthGrpListDisp"){
+        html += '          <td class="authority-type level' + perm5 + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm5);
+        html += '            </div>';
+        html += '          </td>';
+    } else if(tagID == "dlAuthGrpListNew"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001008-1" name="radio' + grID + '_2141001008"' + getPermissionChecked('1', perm5) + '><label class="radio" for="radio' + grID + '_2141001008-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001008-2" name="radio' + grID + '_2141001008"' + getPermissionChecked('2', perm5) + '><label class="radio" for="radio' + grID + '_2141001008-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001008-3" name="radio' + grID + '_2141001008"' + getPermissionChecked('3', perm5) + '><label class="radio" for="radio' + grID + '_2141001008-3"></label></div></td>';
+    } else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001008-1b" name="radio' + grID + '_2141001008b"' + getPermissionChecked('1', perm5) + '><label class="radio" for="radio' + grID + '_2141001008-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001008-2b" name="radio' + grID + '_2141001008b"' + getPermissionChecked('2', perm5) + '><label class="radio" for="radio' + grID + '_2141001008-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001008-3b" name="radio' + grID + '_2141001008b"' + getPermissionChecked('3', perm5) + '><label class="radio" for="radio' + grID + '_2141001008-3b"></label></div></td>';
+    }
+
+    html += '        </tr>';
+    html += '        <tr>';
+    html += '          <td><div class="cell-inner">' + getMessage('MOSJA00092', false) + '</div></td>';
+    html += '          <td class="blank"><div class="cell-inner"></div></td>';
+
+    if(tagID == "dlAuthGrpListDisp"){
+        html += '          <td class="authority-type level' + perm4 + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm4);
+        html += '            </div>';
+        html += '          </td>';
+    } else if(tagID == "dlAuthGrpListNew"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001003-1" name="radio' + grID + '_2141001003"' + getPermissionChecked('1', perm4) + '><label class="radio" for="radio' + grID + '_2141001003-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001003-2" name="radio' + grID + '_2141001003"' + getPermissionChecked('2', perm4) + '><label class="radio" for="radio' + grID + '_2141001003-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001003-3" name="radio' + grID + '_2141001003"' + getPermissionChecked('3', perm4) + '><label class="radio" for="radio' + grID + '_2141001003-3"></label></div></td>';
+    } else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141001003-1b" name="radio' + grID + '_2141001003b"' + getPermissionChecked('1', perm4) + '><label class="radio" for="radio' + grID + '_2141001003-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141001003-2b" name="radio' + grID + '_2141001003b"' + getPermissionChecked('2', perm4) + '><label class="radio" for="radio' + grID + '_2141001003-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141001003-3b" name="radio' + grID + '_2141001003b"' + getPermissionChecked('3', perm4) + '><label class="radio" for="radio' + grID + '_2141001003-3b"></label></div></td>';
+    }
+
+    html += '        </tr>';
+    // --- カテゴリ ルールここまで
+
+    // --- カテゴリ システムここから
+    html += '        <tr>';
+    html += '          <th><div class="cell-inner">' + getMessage('MOSJA10039', false) + '</div></th>';
+    html += '          <td><div class="cell-inner">' + getMessage('MOSJA26004', false) + '</div></td>';
+    html += '          <td class="blank"><div class="cell-inner"></div></td>';
+
+    if(tagID == "dlAuthGrpListDisp"){
+        html += '          <td class="authority-type level' + perm6 + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm6);
+        html += '            </div>';
+        html += '          </td>';
+    } else if(tagID == "dlAuthGrpListNew"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141002006-1" name="radio' + grID + '_2141002006"' + getPermissionChecked('1', perm6) + '><label class="radio" for="radio' + grID + '_2141002006-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141002006-2" name="radio' + grID + '_2141002006"' + getPermissionChecked('2', perm6) + '><label class="radio" for="radio' + grID + '_2141002006-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141002006-3" name="radio' + grID + '_2141002006"' + getPermissionChecked('3', perm6) + '><label class="radio" for="radio' + grID + '_2141002006-3"></label></div></td>';
+    } else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '_2141002006-1b" name="radio' + grID + '_2141002006b"' + getPermissionChecked('1', perm6) + '><label class="radio" for="radio' + grID + '_2141002006-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '_2141002006-2b" name="radio' + grID + '_2141002006b"' + getPermissionChecked('2', perm6) + '><label class="radio" for="radio' + grID + '_2141002006-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '_2141002006-3b" name="radio' + grID + '_2141002006b"' + getPermissionChecked('3', perm6) + '><label class="radio" for="radio' + grID + '_2141002006-3b"></label></div></td>';
+    }
+    html += '        </tr>';
+    // --- カテゴリ システムここまで
+
+    html += '      </tbody>';
+    html += '    </table>';
+    html += '  </div>';
+    html += '</dd>';
+
+    return html;
+}
+
+////////////////////////////////////////////////
+// 詳細画面の削除ボタン制御
+////////////////////////////////////////////////
+function deleteTable(){
+    $("#btnDelAccess").prop("disabled", true);
+    var ruleTypeID = $("#hidDetailID2").val(); //ルール種別番号の取得
+    ruleTypeID     = ruleTypeID.substr(3); //ルール種別番号の取得
+
+    //valueに値をセット
+    $("#add_record2").val(ruleTypeID);
+    $("#operate").val("delete");
+
+    //formにセットした登録情報をサーバーに送る
+    document.getElementById("formTableData2").submit();
+}
+
+////////////////////////////////////////////////
+// 詳細画面の編集ボタン制御
+////////////////////////////////////////////////
+function showEditTable() {
+
+    // 詳細画面からデータ取得
+    var decisionTableData = [];
+    $("#detail-table td div").each(function(index, element){
+        decisionTableData.push($(element).text());
+    });
+
+    $("#edit-rule-type-name").val(decisionTableData[0]);
+    $("#edit-summary").text(decisionTableData[1]);
+    $("#edit-rule-table-name").text(decisionTableData[2]);
+
+    // ルール条件を埋め込み
+    $("#conditional-tbody-EditMode").html(document.getElementById("conditional-tbody").innerHTML);
+
+    // アクセス権限情報埋め込み
+    var html = '';
+    {% for d in decision_table_list %}
+        if (decisionTableData[2] == '{{d.rule_table_name|escapejs}}'){
+            html = '';
+            {% if d.group_list|length %}
+            html += '<dl>';
+              {% for gr in d.group_list %}
+            html += createHTMLAccessPermission('dlAuthGrpListEdit', '{{gr.id}}', '{{gr.name}}', '{{gr.perm.2141001007}}', '{{gr.perm.2141001004}}', '{{gr.perm.2141001005}}', '{{gr.perm.2141001003}}', '{{gr.perm.2141001008}}', '{{gr.perm.2141002006}}');
+              {% endfor %}
+            html += '</dl>';
+            {% else %}
+            html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+            {% endif %}
+
+            $("#dlAuthGrpListEdit").html(html);
+        }
+    {% endfor %}
+}
+
+// 編集画面閉じたとき
+function closeEdit() {
+    // バリデーションエラー
+    $(".error-list").remove();
+    $("td").removeClass("error");
+}
+////////////////////////////////////////////////
+// 詳細画面の複製ボタン制御
+////////////////////////////////////////////////
+function showCopy() {
+
+    // モーダル画面のタイトルを変更
+    $("#modal-title-new").text(getMessage('MOSJA14018', false));
+
+    var conditionalData = []; // 条件名、条件式を辞書形式で格納
+
+    // 基本情報 初期化
+    $("#rule_type_name").val("");
+    $("#summary").val("");
+    $("#rule_table_name").val("");
+
+    // 新規作成画面の条件部をクリア
+    $("#data_object tbody").html("");
+    $('#data_object tbody').html(ruleRow);
+
+    // バリデーションエラー初期化
+    $(".error-list").remove();
+    $("td").removeClass("error");
+
+    // 詳細画面からデータ取得
+    $("#conditional-tbody div").each(function(index, element){
+        
+        if(index%2 == 0){ // 条件名
+            var rowID                                  = index/2; // ルール条件テーブルの行番号
+            var conditionalDict                        = {}; // 条件名、条件式の辞書
+
+            conditionalDict["conditionalName"]         = ""; // 条件名
+            conditionalDict["conditionalExpressionID"] = ""; // 条件式
+            conditionalData.push(conditionalDict);           // 空辞書の追加
+            conditionalData[rowID].conditionalName = $(element).text(); // 条件名追加
+
+            if( index != 0 ){
+                tableRowAdd('#data_object', ruleRow, -1, false); // ルール条件の行追加
+            }
+
+        }else{ // 条件式
+            var rowID = (index - 1)/2; // ルール条件テーブルの行番号
+            conditionalData[rowID].conditionalExpressionID = $(element).data("conditional-expression-id"); // 条件式追加
+        }
+        
+    });
+    // 新規作成画面に埋め込み
+    $("#data_object_data tr").each(function(index, element){
+        $(element).find("input").val(conditionalData[index].conditionalName);
+        $(element).find("select").val(conditionalData[index].conditionalExpressionID);
+    });
+
+    // アクセス権限情報埋め込み
+    var html = '';
+    var decisionTableData = [];
+
+    $("#detail-table td div").each(function(index, element){
+        decisionTableData.push($(element).text());
+    });
+
+    {% for d in decision_table_list %}
+        if (decisionTableData[2] == '{{d.rule_table_name|escapejs}}'){
+            html = '';
+            {% if d.group_list|length %}
+            html += '<dl>';
+              {% for gr in d.group_list %}
+            html += createHTMLAccessPermission('dlAuthGrpListNew', '{{gr.id}}', '{{gr.name}}', '{{gr.perm.2141001007}}', '{{gr.perm.2141001004}}', '{{gr.perm.2141001005}}', '{{gr.perm.2141001003}}', '{{gr.perm.2141001008}}', '{{gr.perm.2141002006}}');
+              {% endfor %}
+            html += '</dl>';
+            {% else %}
+            html = html + '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+            {% endif %}
+
+            $("#dlAuthGrpListNew").html(html);
+        }
+    {% endfor %}
+}
+
+////////////////////////////////////////////////
+// 権限グループリストの簡易表示を更新する
+////////////////////////////////////////////////
+$(function(){
+  // 条件式選択時 エラー解除
+  $(".conditional-expression").change(function(){
+    $(".select .error-list").remove();
+    $(".select").removeClass("error");
+  });
+
+  // 権限グループリスト開閉
+  $('.authority-group-list').on('click', 'dt', function(){
+    var $clickElement = $( this );
+    var $parentBlock = $clickElement.closest('.oase-modal-body');
+    var scrollTop = $clickElement.offset().top - $parentBlock.offset().top + $parentBlock.scrollTop() - 8;
+    $( this ).next().slideToggle( 0 ,function(){
+      // 開いたときスクロールする
+      if( $( this ).is(':visible') ) {
+        $parentBlock.animate({ scrollTop: scrollTop }, 300 );
+      }
+    });
+  });
+  
+  // 権限グループリストの簡易表示を変更
+  $('.oase-modal').on({
+    'click': function(){
+      var trIndex = $(this).parents('tbody').find('tr').index( $(this).parents('tr') ) + 1;
+      var authorityLevel = $(this).val();
+      $(this).parents('dd').prev('dt').find('.authority' + trIndex + ' em').removeClass().addClass('level' + authorityLevel );
+    }
+  }, 'input[type="radio"]');
+});
+
+// ルール詳細画面表示
+function authorityGroupListUpdate(element) {
+  $(element).find('.authority-table tbody tr').each(function(i){
+    var $authorityTr = $(this),
+        authorityLevel = 0;
+    var trIndex = $authorityTr.parent('tbody').find('tr').index( $authorityTr ) + 1;
+
+    if( $authorityTr.find('input[type="radio"]').length ) {
+      authorityLevel = $authorityTr.find('input[type="radio"]:checked').val();
+    } else {
+      authorityLevel = $authorityTr.find('.authority-type').attr('class').slice( -1 );
+    }
+    $authorityTr.parents('dd').prev('dt').find('.authority' + trIndex + ' em').removeClass().addClass('level' + authorityLevel);
+  });
+}
+
+/*グループ行 追加HTML */
+var ruleRow = heredocHTML( function(){/*
+  <tr>
+    <td class="move">
+      <div class="cell-inner"><em class="owf owf-select"></em></div>
+    </td>
+    <td class="input">
+      <div class="cell-inner">
+        <input type="text" class="conditional-name validation-input" required data-maxlength="32" data-type="condition_name">
+      </div>
+    </td>
+    <td class="select">
+      <div class="cell-inner">
+        <div class="select">
+          <select class="conditional-expression validation-input" name="cond_ex_id" data-initial-value="">
+            <option value="" hidden="" disabled="disabled" selected=""></option>
+            {% for c in conditional_expression %}
+             <option value="{{c.pk}}">{{c.operator_name}}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </td>
+    <td class="row-delete">
+      <div class="cell-inner">
+        <button class="tooltip oase-mini-button" title="{% get_message 'MOSJA11039' request.user.get_lang_mode showMsgId=False %}" onClick="tableRowRemove( this )"><em class="owf owf-cross"></em></button>
+      </div>
+    </td>
+  </tr>
+*/});
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+
+<div class="oase-main">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA00078' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              {% if hasUpdateAuthority %}
+              <li>
+                <button class="tooltip oase-button" title="{% get_message 'MOSJA11023' request.user.get_lang_mode showMsgId=False %}" onclick="authorityGroupListUpdate('#modal-new');showNewTable();modalTabOpen('#modal-new');">
+                  <em class="owf owf-doc-add"></em><span>{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</span>
+                </button></li>
+              {% endif %}
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+        {% if decision_table_list|length %}
+          {# ===== Data ===== #}
+          {% include 'rule/decision_table_data.html' %}
+        {% else %}
+          {# ===== 登録0件の場合はメッセージを表示 ===== #}
+          <div class="oase-none">
+            <p>{% autoescape off%}{% get_message 'MOSJA11000' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+          </div>
+        {% endif %}
+
+        {% if hasUpdateAuthority %}
+        <form id="formTableData" action="javascript:submitAction()" method="POST">
+          {% csrf_token %}
+          <input type="hidden" id="add_record"  value="" name="add_record" />
+          <input type="hidden" id="hidDetailID" value="" />
+        </form>
+        {% endif %}
+
+      </div><!-- /. oase-main-body-inner -->
+    </div><!-- /. oase-main-body -->
+
+
+<!-- ディシジョンテーブル新規追加 -->
+<div id="modal-new" class="oase-modal oase-modal-tab">
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title">
+            <h2>
+              <em class="owf owf-doc-add"></em>
+              <span id="modal-title-new">{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</span>
+              <span class="help tooltip" title="{% get_message 'MOSJA14008' request.user.get_lang_mode showMsgId=False %}">
+                <em class="owf owf-question"></em>
+              </span>
+            </h2>
+          </div>
+          <!-- Closeボタン --> 
+          <button class="tooltip oase-modal-close" title="{% get_message 'MOSJA11024' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-new');">
+            <em class="owf owf-cross"></em>
+          </button>
+        </div><!-- /. oase-modal-header -->
+
+        <div class="oase-modal-tab-main">
+          <div class="oase-modal-tab-menu">
+            <ul>
+              <li><button class="tooltip" title="{% get_message 'MOSJA11025' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#modal-new', 0 );">{% get_message 'MOSJA14001' request.user.get_lang_mode showMsgId=False %}</button></li>
+              <li><button class="tooltip" title="{% get_message 'MOSJA11026' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#modal-new', 1 );">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</button></li>
+            </ul>
+          </div>
+
+          <!-- Tab1 基本情報 -->
+          <div class="oase-modal-tab-block">
+            <div class="oase-modal-body">
+              <div class="oase-modal-block">
+                <h3>{% get_message 'MOSJA14007' request.user.get_lang_mode showMsgId=False %}</h3>
+                <div class="oase-modal-table">
+                  <table>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                      <td>
+                        <div class="cell-inner">
+                          <input id="rule_type_name" type="text" placeholder="{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}" required data-maxlength="64" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00102' request.user.get_lang_mode showMsgId=False %}">
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td>
+                        <div class="cell-inner">
+                          <textarea placeholder="{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}" id="summary" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea>
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                    <th><div class="cell-inner">RuleTable<sup>*</sup></div></th>
+                      <td>
+                        <div class="cell-inner">
+                          <input type="text" id="rule_table_name" required data-maxlength="64" data-type="ruleTableName" placeholder="RuleTable" class="tooltip-input validation-input" title="{% get_message 'MOSJA14011' request.user.get_lang_mode showMsgId=False %}">
+                        </div>
+                      </td>
+                    </tr>
+                  </table>
+                </div><!-- /. oase-modal-table -->
+              </div><!-- /. oase-modal-block -->
+
+                <div class="oase-modal-block">
+                  <h3>{% get_message 'MOSJA00080' request.user.get_lang_mode showMsgId=False %}</h3>  
+                  <!--グループが存在しない場合 -->
+                  <!--
+                    <div class="oase-none">
+                      <p>グループが存在しません。</p>
+                    </div>
+                   -->
+                  <div id="dlAuthGrpListNew" class="authority-group-list">
+                    <!-- jQueryでここにタグ追加される -->
+                  </div>
+
+          </div>
+          </div>
+
+          <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+          <li><button class="tooltip oase-button" title="{% get_message 'MOSJA11027' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#modal-new', 1 );"><em class="owf owf-arw-right"></em><span>{% get_message 'MOSJA14006' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+          </div>
+
+          </div>
+
+
+          <!-- Tab2 条件式 -->
+          <div class="oase-modal-tab-block table">
+
+          <div class="oase-modal-body">
+          <div class="oase-modal-block">
+          <h3>{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</h3>
+
+          <div class="oase-modal-rule-table">
+
+          <div class="oase-modal-rule-table-inner">
+          <table id="data_object">
+
+          <thead>
+          <tr id="record_dummy">
+          <th class="move">
+          <div class="cell-inner">{% get_message 'MOSJA14004' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          <th>
+          <div class="cell-inner">{% get_message 'MOSJA14003' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00100' request.user.get_lang_mode showMsgId=False %}{% get_message 'MOSJA00106' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div>
+          </th>
+          <th>
+          <div class="cell-inner">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div>
+          </th>
+          <th class="row-delete">
+          <div class="cell-inner">{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          </tr>
+          </thead>
+
+          <tbody id="data_object_data"></tbody>
+
+          </table>
+          <script>
+            //初期ルール条件数
+            var ruleTrInput = '';
+            for ( var i = 1; i <= 1; i++ ) ruleTrInput += ruleRow;
+            $('#data_object tbody').html( ruleTrInput );
+          </script>
+          
+          </div>
+
+          <div class="oase-modal-rule-table-footer">
+          <button class="tooltip add-rule oase-mini-button" title="{% get_message 'MOSJA11028' request.user.get_lang_mode showMsgId=False %}" onClick="tableRowAdd('#data_object', ruleRow )">
+            <em class="owf owf-plus"></em><span>{% get_message 'MOSJA14005' request.user.get_lang_mode showMsgId=False %}</span>
+          </button>
+          </div>
+
+          </div>
+          </div>
+          </div>
+
+          <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+          <li>
+            <button class="tooltip oase-button close" title="{% get_message 'MOSJA11029' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-new');">
+              <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnUpd" class="tooltip oase-button save" title="{% get_message 'MOSJA11030' request.user.get_lang_mode showMsgId=False %}" onclick="submitTableData();">
+              <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
+            </button>
+          </li>
+          </ul>
+          </div>
+
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ディシジョンテーブル詳細 -->
+<div id="modal-info" class="oase-modal">
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title">
+            <h2><em class="owf owf-doc-add"></em><span>{% get_message 'MOSJA14009' request.user.get_lang_mode showMsgId=False %}</span></h2>
+          </div>
+          <button class="tooltip oase-modal-close" title="{% get_message 'MOSJA11031' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-info');"><em class="owf owf-cross"></em></button>
+        </div>
+        <form id="formTableData2" action="javascript:submitAction2()" method="POST">
+          {% csrf_token %}
+          <input type="hidden" id="operate" value="" />
+          <input type="hidden" id="rule_type_name2" value="" />
+          <input type="hidden" id="add_record2" value="" name="add_record" />
+          <input type="hidden" id="hidDetailID2" value="" />
+        </form>
+
+        <div class="oase-modal-body">
+
+          <div class="oase-modal-block">
+
+            <h3>{% get_message 'MOSJA14007' request.user.get_lang_mode showMsgId=False %}</h3>
+
+            <div class="oase-modal-table">
+              <table id="detail-table">
+                <tr>
+                  <th><div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  <td><div class="cell-inner"></div></td>
+                </tr>
+                <tr>
+                  <th><div class="cell-inner">{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  <td><div class="cell-inner"></div></td>
+                </tr>
+                <tr>
+                  <th><div class="cell-inner">RuleTable</div></th>
+                  <td><div class="cell-inner"></div></td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+
+          <div class="oase-modal-block">
+
+            <h3>{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</h3>
+
+            <div class="oase-modal-rule-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA14003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th><div class="cell-inner">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  </tr>
+                </thead>
+                <tbody id="conditional-tbody">
+                <!-- jQueryでここにタグ追加される -->
+                </tbody>
+              </table>
+            </div>
+
+          </div>
+
+          <div class="oase-modal-block">
+
+            <h3>{% get_message 'MOSJA00082' request.user.get_lang_mode showMsgId=False %}</h3>
+
+            <div id="dlAuthGrpListDisp" class="authority-group-list">
+              <!-- jQueryでここにタグ追加される -->
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li>
+              <button id="btnCopyAccess" class="tooltip oase-button copy" title="{% get_message 'MOSJA11032' request.user.get_lang_mode showMsgId=False %}" onclick="authorityGroupListUpdate('#modal-new');modalChange('#modal-info', '#modal-new');showCopy();">
+                <em class="owf owf-doc-add"></em><span>{% get_message 'MOSJA14010' request.user.get_lang_mode showMsgId=False %}</span>
+              </button>
+            </li>
+            <li>
+              <button id="btnDelAccess" class="tooltip oase-button delete" title="{% get_message 'MOSJA11033' request.user.get_lang_mode showMsgId=False %}" onClick="deleteTable()">
+                <em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span>
+              </button>
+            </li>
+            <li>
+              <button id="btnEditAccess" class="tooltip oase-button edit" title="{% get_message 'MOSJA11034' request.user.get_lang_mode showMsgId=False %}" onclick="authorityGroupListUpdate('#modal-edit');modalChange('#modal-info','#modal-edit');showEditTable();">
+                <em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
+              </button>
+            </li>
+            <li>
+              <button id="btnDlAccess" class="tooltip oase-button download" title="{% get_message 'MOSJA11035' request.user.get_lang_mode showMsgId=False %}" onclick="downloadAction();">
+                <em class="owf owf-download"></em><span>DL</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ディシジョンテーブル編集 -->
+<div id="modal-edit" class="oase-modal">
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title">
+            <h2><em class="owf owf-doc-add"></em><span>{% get_message 'MOSJA14012' request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA14013' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></span></h2>
+          </div>
+          <button class="tooltip oase-modal-close" title="{% get_message 'MOSJA11036' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-edit');closeEdit();"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+
+          <div class="oase-modal-block">
+
+            <h3>{% get_message 'MOSJA14007' request.user.get_lang_mode showMsgId=False %}</h3>
+
+            <div class="oase-modal-table">
+              <table>
+                <tr>
+                  <th><div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                  <td><div class="cell-inner">
+                  <input id="edit-rule-type-name" required type="text" placeholder="{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}" data-maxlength="64" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00102' request.user.get_lang_mode showMsgId=False %}">
+                  </div></td>
+                </tr>
+                <tr>
+                  <th><div class="cell-inner">{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  <td><div class="cell-inner">
+                  <textarea id="edit-summary" placeholder="{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea>
+                  </div></td>
+                </tr>
+                <tr>
+                  <th><div class="cell-inner">RuleTable</div></th>
+                  <td><div id="edit-rule-table-name" class="cell-inner"></div></td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+          
+          <div class="oase-modal-block">
+          
+            <h3>{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</h3>
+            
+            <div class="oase-modal-rule-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA14003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th><div class="cell-inner">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  </tr>
+                </thead>
+                <tbody id="conditional-tbody-EditMode">
+                <!-- 詳細画面のconditional-tbodyをコピーして表示する -->
+                </tbody>
+              </table>
+            </div>
+            
+          </div>
+
+          <div class="oase-modal-block">
+
+            <h3>{% get_message 'MOSJA00082' request.user.get_lang_mode showMsgId=False %}</h3>
+
+            <div id="dlAuthGrpListEdit" class="authority-group-list">
+              <!-- jQueryでここにタグ追加される -->
+            </div>
+
+          </div>
+
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+          <li>
+            <button class="tooltip oase-button close" title="{% get_message 'MOSJA11036' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-edit');closeEdit();">
+              <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span>
+            </button>
+          </li>
+          <li>
+            <button id="btnUpd2" class="tooltip oase-button save" title="{% get_message 'MOSJA11037' request.user.get_lang_mode showMsgId=False %}" onclick="submitTableData2();">
+              <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
+            </button>
+          </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+  </main>
+</div><!-- /.oase-main -->
+<div class="oase-modal-overlay"></div>
+{% endblock%}

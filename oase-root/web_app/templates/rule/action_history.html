@@ -1,0 +1,458 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  ダウンロード
+////////////////////////////////////////////////
+function downloadAction(pk){
+
+    $("#btnDl" + pk).prop("disabled", true);
+
+    var responseId = document.getElementById('response_id' + pk).value;
+    var executionOrder = document.getElementById('execution_order' + pk).value;
+
+    var url = '/oase_web/rule/action_history/download/' + responseId + '/' + executionOrder + '/';
+
+    downloadAjaxText("#btnDl" + pk, url);
+
+}
+
+////////////////////////////////////////////////
+// 再実行処理 
+////////////////////////////////////////////////
+function retry(pk){
+
+    var btnId = "#btnReset" + pk;
+    var status_id = $("#status"+ pk).val();
+    var url = '/oase_web/rule/action_history/retry';
+
+    $(btnId).prop("disabled", true);
+
+    result = confirm(getMessage("MOSJA13012", false));
+    if(result){
+        // 実行中の場合は再実行しない
+        if(status_id == "2"){
+            alert(getMessage("MOSJA13013", true));
+            $(btnId).prop("disabled", false);
+            return;
+        }
+    }else{
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    $("#ActHisId").val(pk);
+    postHistoryId(url, btnId);
+}
+
+////////////////////////////////////////////////
+// 再開処理 
+////////////////////////////////////////////////
+function resume(){
+
+    $("#btnRestart").prop("disabled", true);
+
+    var url = '/oase_web/rule/action_history/resume';
+    var result = confirm(getMessage("MOSJA13015", false));
+    if(!result){
+        $("#btnRestart").prop("disabled", false);
+        return;
+    }
+
+    $("#ActHisId").val($('#hold-cancel').attr('data-hold-cancelid'));
+    postHistoryId(url, "#btnRestart");
+}
+
+////////////////////////////////////////////////
+//  停止処理
+////////////////////////////////////////////////
+function stop()
+{
+    $("#btnStop").prop("disabled", true);
+
+    var url = 'action_history/stop';
+    var result = confirm(getMessage("MOSJA13020", false));
+
+    if(!result){
+        $("#btnStop").prop("disabled", false);
+        return;
+    }
+
+    $("#ActHisId").val($('#hold-cancel').attr('data-hold-cancelid'));
+    postHistoryId(url, "#btnStop");
+}
+
+////////////////////////////////////////////////
+//  再開/停止のajax共通処理
+////////////////////////////////////////////////
+function postHistoryId(url, btnId)
+{
+    // 停止するアクション履歴のidをinputにセットする
+    $.ajax({
+        type : "POST",
+        url  : url,
+        data : $("#formActionData").serialize(),
+        dataType: "json",
+    })
+    .done(function(respdata) {
+        if(respdata.message !== '') {
+            alert(respdata.message);
+        }
+        $(btnId).prop("disabled", false);
+        location.href = '/oase_web/rule/action_history';
+    })
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA13014", true));
+        window.location.href = "/oase_web/top/logout";
+    });
+}
+
+////////////////////////////////////////////////
+//  承認停止画面に選択されたアクション履歴のidをセット
+////////////////////////////////////////////////
+function setHoldCancelId(pk){
+    $('#hold-cancel').attr('data-hold-cancelid', pk);
+}
+
+////////////////////////////////////////////////
+//  詳細画面へデータ出力
+////////////////////////////////////////////////
+function getObject(url)
+{
+    $.ajax({
+        type : "GET",
+        url  : url,
+    })
+    .done(function(respdata) {
+        if(typeof respdata.message !== 'undefined') {
+            alert(respdata.message);
+            location.href = '/oase_web/rule/action_history';
+        }
+        else {
+            modalOpen('#detail');
+            $("#dataObjectList").html(respdata);
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA13014", true));
+        window.location.href = "/oase_web/top/logout";
+    });
+}
+
+////////////////////////////////////////////////
+//  詳細画面表示
+////////////////////////////////////////////////
+function detailOpen(pk){
+
+    $("#btnDetail" + pk).prop("disabled", true);
+
+    var responseId = document.getElementById('response_id' + pk).value;
+    var executionOrder = document.getElementById('execution_order' + pk).value;
+
+    url = '/oase_web/rule/action_history/action_dataobject/' + responseId + '/' + executionOrder + '/';
+
+    getObject(url)
+
+    $("#btnDetail" + pk).prop("disabled", false);
+
+}
+
+function cancel(){
+    modalClose('#detail');
+}
+
+-->
+</script>
+{% endblock %}
+{% block maincontent %}
+
+<div class="oase-main">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA13031' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+
+      <section>
+
+      <!-- アクション履歴テーブルにデータが存在 -->
+      {% if action_history_data %}
+      <div class="oase-table">
+        <!-- 読み込みアニメーション -->
+        <div class="oase-table-load loading">
+          <div class="oase-table-loader-inner">
+            <em class="owf owf-update"></em>
+          </div>
+        </div>
+    
+        <div class="oase-table-inner">
+          <table class="oase-filter oase-sort">
+            <thead><!-- カラムタイトル ここから -->
+              <tr>
+                <th class="status sort filter" filter-type="select" filter-label="status">
+                  <div class="cell-inner">{% get_message 'MOSJA13032' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="operation-menu" filter-label="operation-menu">
+                  <div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="rule-type sort filter" filter-type="common" filter-label="rule-type">
+                  <div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="rule-name sort filter" filter-type="common" filter-label="rule-name">
+                  <div class="cell-inner">{% get_message 'MOSJA13008' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="action-type sort filter" filter-type="common" filter-label="action-type">
+                  <div class="cell-inner">{% get_message 'MOSJA13033' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="execution-date sort filter" filter-type="date" filter-label="execution-date">
+                  <div class="cell-inner">{% get_message 'MOSJA13034' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="last-execution-user sort filter" filter-type="common" filter-label="last-execution-user">
+                  <div class="cell-inner">{% get_message 'MOSJA13035' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+              </tr>
+            </thead><!-- カラムタイトル ここまで -->
+
+          <tbody><!-- テーブルデータ表示 ここから -->
+
+          {% for history in action_history_data %}
+            <!-- ステータスアイコン -->
+             <tr class="{{ history.class_info.status }}">
+              <th class="status">
+                <div class="cell-inner">
+                  <span class="tooltip">
+                    <em class="owf {{ history.class_info.name }}"></em>
+                    <span>{% get_message history.class_info.description request.user.get_lang_mode showMsgId=False %}</span>
+                  </span>
+                </div>
+              </th>
+
+                <!-- 操作カラム ここから -->
+                <td class="operation-menu">
+                  <div class="cell-inner">
+                    <ul>
+                      <li>
+                        <button type="button" id="btnDetail{{history.pk}}" class="tooltip oase-mini-button details" title="{% get_message 'MOSJA13045' request.user.get_lang_mode showMsgId=False %}" onclick="detailOpen('{{ history.pk }}');">
+                          <em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span>
+                        </button>
+                      </li>
+                      <li>
+                        <button type="button" id="btnDl{{history.pk}}" class="tooltip oase-mini-button" title="{% get_message 'MOSJA13046' request.user.get_lang_mode showMsgId=False %}" onclick="downloadAction('{{ history.pk }}');" value="DL">
+                          <em class="owf owf-download"></em><span>{% get_message 'MOSJA12077' request.user.get_lang_mode showMsgId=False %}</span>
+                        </button>
+                      </li>
+                      {%if history.rule_type_id in can_update %}
+                        {% if history.status == 6 or history.retry_status == 6 %}
+                        <li>
+                          <button type="button" id="btnReset{{history.pk}}" class="tooltip oase-mini-button" title="{% get_message 'MOSJA13047' request.user.get_lang_mode showMsgId=False %}" onClick="setHoldCancelId({{history.pk}});confirmOpen('#hold-cancel');" value="resume" {% if history.disuse_flag != "0" %} disabled="disabled"{% endif %}>
+                            <em class="owf owf-run-stop"></em><span>{% get_message 'MOSJA13036' request.user.get_lang_mode showMsgId=False %}</span>
+                          </button>
+                        </li>
+                        {% elif history.status == 8 %}
+                        <li>
+                          <button type="button" id="btnReset{{history.pk}}" class="tooltip oase-mini-button" value="retry" disabled="disabled">
+                            <em class="owf owf-run"></em><span>{% get_message 'MOSJA13037' request.user.get_lang_mode showMsgId=False %}</span>
+                          </button>
+                        </li>
+                        {% elif not history.retry_status and history.status == 2003 %}
+                        <li>
+                          <button type="button" id="btnReset{{history.pk}}" class="tooltip oase-mini-button" title="{% get_message 'MOSJA13048' request.user.get_lang_mode showMsgId=False %}" onClick="retry('{{ history.pk }}');" value="retry" {% if history.disuse_flag != "0" %} disabled="disabled"{% endif %}>
+                            <em class="owf owf-run"></em><span>{% get_message 'MOSJA13038' request.user.get_lang_mode showMsgId=False %}</span>
+                          </button>
+                        </li>
+                        {% elif history.retry_status == 2003 %}
+                        <li>
+                          <button type="button" id="btnReset{{history.pk}}" class="tooltip oase-mini-button" title="{% get_message 'MOSJA13048' request.user.get_lang_mode showMsgId=False %}" onClick="retry('{{ history.pk }}');" value="retry" {% if history.disuse_flag != "0" %} disabled="disabled"{% endif %}>
+                            <em class="owf owf-run"></em><span>{% get_message 'MOSJA13038' request.user.get_lang_mode showMsgId=False %}</span>
+                          </button>
+                        </li>
+                        {% else %}
+                        <li>
+                          <button type="button" id="btnReset{{history.pk}}" class="tooltip oase-mini-button" value="retry" disabled="disabled">
+                            <em class="owf owf-run"></em><span>{% get_message 'MOSJA13039' request.user.get_lang_mode showMsgId=False %}</span>
+                          </button>
+                        </li>
+                        {% endif %}
+                      {% endif %}
+                    </ul>
+                  </div>
+                </td>
+                <!-- 操作カラム ここまで -->
+
+                <!-- ルール種別 -->
+                <td class="rule-type">
+                  <div class="cell-inner">{{ history.rule_type_name }}</div>
+                </td>
+                
+                <!-- ルール名 -->
+                <td class="rule-name">
+                  <div class="cell-inner">{{ history.rule_name }}</div>
+                </td>
+      
+                <!-- アクション種別 -->
+                <!-- アクション種別IDからドライバ名を取得して表示-->
+                {% for type in action_type_list %}
+                  {% if type.action_type_id == history.action_type_id %}
+                  {% for driver in driver_type_list %}
+                    {% if type.driver_type_id == driver.driver_type_id %}
+                    <td class="action-type">
+                      <div class="cell-inner">{{ driver.name }}(ver{{ driver.driver_major_version }})</div>
+                    </td>
+                    {% endif %}
+                  {% endfor %}
+                  {% endif %}
+                {% endfor %}
+      
+                <!-- 最終実行日時 -->
+                <td class="execution-date">
+                  <div class="cell-inner" {% if history.status == 6 %}hidden{% endif %}><time datetime="{{ history.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ history.action_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div>
+                </td>
+            
+                <!-- 最終実行者 -->
+                <td class="last-execution-user">
+                  <div class="cell-inner"{% if history.status == 6 %}hidden{% endif %}>{{ history.last_act_user }}</div>
+                </td>
+     
+                <!-- 詳細、ダウンロード、再実行 -->
+                <input type="hidden" id="response_id{{ history.pk }}" value="{{ history.response_id }}" />
+                <input type="hidden" id="execution_order{{ history.pk }}" value="{{ history.execution_order }}" />
+                {% if not history.retry_status %}
+                <input type="hidden" id="status{{ history.pk }}" value="{{ history.status }}" />
+                {% else %}
+                <input type="hidden" id="status{{ history.pk }}" value="{{ history.retry_status }}" />
+                {% endif %}
+    
+            </tr>
+            {% endfor %}
+            </tbody>
+          </table>
+        </div><!-- ./oase-table-inner -->
+    
+        <div class="oase-table-footer">
+          <ul class="button-group">
+            <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+            <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+              <dd>
+                <select class="rowShowNum">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+              </dd></dl>
+            </li>
+            <li>
+              <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+              <input class="pagingNow" type="text"> /
+              <span class="pagingMax">0</span>
+              <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+            </li>
+            <li>
+              <button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button>
+            </li>
+            <li>
+              <button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button>
+            </li>
+          </ul>
+        </div>
+ 
+      </div><!-- /.oase-table -->
+    
+      {% else %}
+      <div class="oase-none">
+        <p>{% get_message 'MOSJA13040' request.user.get_lang_mode showMsgId=False %}</p>
+      </div>
+      {% endif %}
+
+      </section>
+
+      <div id="detail" class="oase-modal">
+        <div class="oase-modal-main">
+          <div class="oase-modal-inner">
+            <div class="oase-modal-content">
+              <div class="oase-modal-header">
+                <div class="oase-modal-title"><em class="owf owf-details"></em> {% get_message 'MOSJA13041' request.user.get_lang_mode showMsgId=False %}</div>
+                  <div class="tooltip oase-modal-close" title="{% get_message 'MOSJA13052' request.user.get_lang_mode showMsgId=False %}" onclick="cancel();"><em class="owf owf-cross"></em></div>
+                </div>
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block" id="dataObjectList">
+            {% include 'rule/action_history_data.html' with item_data_uri="data_object_data/data" target_id="dataObjectList" %}
+                  </div>
+               </div>
+             </div>
+           </div>
+         </div>
+       </div>
+       <div class="oase-modal-overlay"></div>
+
+       <div id="hold-cancel" class="oase-confirm" data-hold-cancelid="">
+       
+         <div class="oase-confirm-main">
+           <div class="oase-confirm-inner">
+             <div class="oase-confirm-content">
+             
+             <div class="oase-confirm-header">
+               <div class="oase-confirm-title"><em class="owf owf-info"></em> {% get_message 'MOSJA13042' request.user.get_lang_mode showMsgId=False %}</div>
+             </div>
+             
+             <div class="oase-confirm-body">
+               <p>{% get_message 'MOSJA13043' request.user.get_lang_mode showMsgId=False %}</p>
+             </div>
+             
+             <div class="oase-confirm-footer">
+               <ul class="oase-button-group">
+                 <li><button class="tooltip oase-button" title="{% get_message 'MOSJA13049' request.user.get_lang_mode showMsgId=False %}" onClick="confirmClose('#hold-cancel');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                 <li><button id="btnRestart" class="tooltip oase-button" title="{% get_message 'MOSJA13050' request.user.get_lang_mode showMsgId=False %}" onClick="resume();"><em class="owf owf-run"></em><span>{% get_message 'MOSJA13044' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                 <li><button id="btnStop" class="tooltip oase-button" title="{% get_message 'MOSJA13051' request.user.get_lang_mode showMsgId=False %}" onClick="stop();"><em class="owf owf-stop"></em><span>{% get_message 'MOSJA13037' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+               </ul>
+             </div>
+             
+             
+             </div>
+           </div>
+         </div>
+         <form id="formActionData">
+           {% csrf_token %}
+           <input type="hidden" id="ActHisId" value="" name="act_his_id" />
+         </form>
+       
+       </div>
+       
+       <div class="oase-confirm-overlay"></div>
+
+
+
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock%}
