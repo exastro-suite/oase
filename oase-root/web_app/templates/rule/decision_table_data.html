@@ -1,0 +1,122 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+
+<section>
+  <div class="oase-table">
+
+    <div class="oase-table-load loading">
+      <div class="oase-table-loader-inner">
+        <em class="owf owf-update"></em>
+      </div>
+    </div>
+
+    <div class="oase-table-inner">
+      <table class="oase-filter oase-sort">
+
+        <thead>
+          <tr>
+            <th class="operation-menu" filter-label="operation-menu">
+              <div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div>
+            </th>
+            <th class="rule-type sort filter" filter-type="common" filter-label="rule-type">
+              <div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</div>
+            </th>
+            <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user">
+              <div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div>
+            </th>
+            <th class="last-modified sort filter" filter-type="date" filter-label="last-modified">
+              <div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div>
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {% for d in decision_table_list %}
+          <tr>
+            <td class="operation-menu">
+              <div class="cell-inner">
+                <ul>
+                  {% if d.allow_view %}
+                  <li>
+                    <button class="tooltip detail oase-mini-button" title="{% get_message 'MOSJA11038' request.user.get_lang_mode showMsgId=False %}" onClick="authorityGroupListUpdate('#modal-info');modalOpen('#modal-info');showDetail({{d.pk}}, '{{d.allow_copy}}', '{{d.allow_delete}}', '{{d.allow_update}}', '{{d.allow_download}}');">
+                      <em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span>
+                    </button>
+                  </li>
+                  {% endif %}
+                  {% if d.allow_download %}
+                  <li>
+                    <button type="button" id="btnRecordDl{{d.pk}}" class="tooltip oase-mini-button" title="{% get_message 'MOSJA11035' request.user.get_lang_mode showMsgId=False %}" onclick="downloadRecordAction('{{d.pk}}');">
+                      <em class="owf owf-download"></em>
+                      <span>{% get_message 'MOSJA00077' request.user.get_lang_mode showMsgId=False %}</span>
+                    </button>
+                  </li>
+                  {% endif %}
+                </ul>
+              </div>
+            </td>
+            <td class="rule-type">
+              <div class="cell-inner">{{d.rule_type_name}}</div>
+            </td>
+            <td class="last-update-user">
+              <div class="cell-inner">{{d.last_update_user}}</div>
+            </td>
+            <td class="last-modified">
+              <div class="cell-inner">
+                <time datetime="{{ d.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ d.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+
+      </table>
+    </div>
+
+    <div class="oase-table-footer">
+      <ul class="button-group">
+        <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+        <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+          <select class="rowShowNum">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </dd></dl></li>
+        <li>
+          <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+          <input class="pagingNow" type="text"> /
+          <span class="pagingMax">0</span>
+          <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+        </li>
+        <li>
+          <button class="scrollTop button tooltip">
+            <em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span>
+          </button>
+        </li>
+        <li>
+          <button class="scrollBottom button tooltip">
+            <em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+
+  </div>
+</section>

@@ -1,0 +1,911 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- *
+ *
+ *    Modal
+ *
+ * -------------------------------------------------- */
+.ond .oase-modal {
+    display: none;
+    overflow: auto;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 9997;
+    width: 100%; height: 100%;
+    opacity: 1;
+    transition-duration: 0.3s;
+    animation: modal-open 0.3s;
+}
+@keyframes modal-open {
+  0% { opacity: 0; }
+100% { opacity: 1; }
+}
+.ond .oase-modal-overlay {
+    display: none;
+    overflow: hidden;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 9990;
+    width: 100%; height: 100%;
+    background-color: rgba( 0, 0, 0, 0.5 );
+}
+.ond .oase-modal-overlay.on {
+    display: block;
+}
+.ond .oase-modal.modal-close,
+.ond .oase-modal.modal-change {
+    opacity: 0;
+    overflow: hidden;
+}
+.ond .oase-modal.modal-change {
+    z-index: 9996;
+}
+.ond .oase-modal-main {
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 9999;
+    display: table;
+    width: 100%; height: 100%;
+    pointer-events: none;
+}
+.ond .oase-modal-inner {
+    display: table-cell;
+    width: 100%; height: 100%;
+    padding: 8px;
+    vertical-align: middle;
+    transition-duration: 0.3s;
+    animation: modal-in 0.3s;
+    pointer-events: none;
+}
+@keyframes modal-in {
+  0% { transform: translateY( -40px ); }
+100% { transform: translateY( 0 ); }
+}
+.ond .modal-close .oase-modal-inner {
+    transform: translateY( 40px );
+}
+.ond .modal-change .oase-modal-inner {
+    transform: translateY( 40px );
+}
+.ond .oase-modal-content {
+    max-width: 800px;
+    margin: 0 auto;
+    border-bottom: 4px solid #444;
+    box-shadow: 0 0 32px rgba( 0, 0, 0, 0.5 );
+    pointer-events: auto;
+}
+.ond .oase-modal-header {
+    position: relative;
+    background-color: #444;
+}
+.ond .oase-modal-title {
+    height: 48px;
+    padding: 0 80px 0 16px;
+    font-size: 1.67rem;
+    line-height: 56px;
+    white-space: nowrap;
+    letter-spacing: 0.05em;
+    color: #EFEFEF;
+}
+.ond .oase-modal-title h2 {
+    font-size: 1.67rem;
+    font-weight: bold;
+}
+.ond .oase-modal-title em {
+    vertical-align: -1px;
+}
+.ond .oase-modal-title span {
+    margin-left: 0.5em;
+}
+.ond .oase-modal-close {
+    position: absolute;
+    right: 0; top: 0;
+    width: 48px;
+    margin: 0; padding: 0;
+    border: none;
+    font-size: 1.67rem;
+    line-height: 48px;
+    background-color: #333;
+    text-align: center;
+    color: #FFF;
+    cursor: pointer;
+}
+.ond .oase-modal-close:hover {
+    background-color: #DC143C;
+}
+.ond .oase-modal-body {
+    overflow-y: scroll;
+    max-height: calc( 100vh - 148px );
+    padding-bottom: 24px;
+    background-color: #FDFDFD;
+    border: 4px solid #444;
+    border-bottom: none;
+}
+.ond .oase-modal-body::after {
+    content: '';
+    display: block;
+    clear: both;
+}
+.ond .oase-modal-block {
+    clear: both;
+    padding: 24px;
+}
+.ond .oase-modal-footer {
+    overflow: auto;
+    height: 64px;
+    padding: 12px 32px 0;
+    background-color: #F2F2F2;
+    border-left: 4px solid #444;
+    border-right: 4px solid #444;
+    text-align: center;
+}
+.ond .oase-modal-footer .oase-button-group {
+    white-space: nowrap;
+}
+.ond .oase-modal h3 {
+    padding: 12px 16px 11px;
+    border: 1px solid #CCC;
+    background-image: linear-gradient( #FFF, #F2F2F2 );
+    border-top: 2px solid #00B5B8;
+    border-radius: 0 0 4px 4px;
+    box-shadow: 0 2px 2px rgba( 0,0,0,0.1 );
+    font-size: 1.34rem;
+    margin-bottom: 16px;
+    color: #666;
+}
+.ond .oase-modal h4 {
+    padding: 8px 16px 7px;
+    border: 1px solid #999;
+    border-left: 5px solid #999;
+    font-size: 1.2rem;
+    margin-top: 32px;
+    margin-bottom: 8px;
+    background-color: #FFF;
+    color: #666;
+}
+.ond .oase-modal p {
+    margin: 0 0 24px;
+    line-height: 1.75;
+    color: #333;
+}
+.ond .oase-modal p.info {
+    padding: 24px;
+    background-color: #F2F2F2;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    text-align: center;
+}
+.ond .oase-modal .note {
+    display: inline-block;
+    padding-top: 4px;
+    font-size: 80%;
+    color: #666;
+}
+.ond .oase-modal .oase-modal-table table {
+    width: 100%;
+    margin-bottom: 24px;
+    border-collapse: collapse;
+}
+.ond .oase-modal .oase-modal-table th,
+.ond .oase-modal .oase-modal-table td {
+    background-color: #FFF;
+    font-size: 1rem;
+    line-height: 1.5;
+    border: 1px solid #CCC;
+    color: #333;
+    vertical-align: middle;
+}
+.ond .oase-modal .oase-modal-table th {
+    width: 30%;
+    background-color: #EFEFEF;
+    text-align: center;
+}
+.ond .oase-modal .oase-modal-table td {
+    font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+    font-size: 1rem;
+    word-wrap: break-word;
+    word-break: break-all;
+}
+.ond .oase-modal .cell-inner {
+    position: relative;
+    padding: 8px;
+}
+.ond .oase-modal-block > *:last-child,
+.ond .oase-modal-block > *:last-child table:last-child {
+    margin-bottom: 0!important;
+}
+
+
+/* 権限テーブル */
+.ond .oase-modal .oase-modal-table .authority-table thead th {
+    width: auto;
+    background-color: #00B5B8;
+    color: #FFF;
+}
+.ond .oase-modal .oase-modal-table .authority-table tbody th {
+    width: auto;
+}
+.ond .oase-modal .oase-modal-table .authority-table input[type="radio"] {
+    position: absolute;
+    left: -9999px;
+}
+.ond .oase-modal .oase-modal-table .authority-table .radio {
+    display: block;
+    position: relative;
+    width: 24px; height: 24px;
+    margin: 0 auto;
+    cursor: pointer;
+}
+.ond .oase-modal .oase-modal-table .authority-table .radio::before {
+    content: '';
+    display: block;
+    width: 24px; height: 24px;
+    margin: 0 auto;
+    background-color: #FFF;
+    border: 1px solid #CCC;
+    border-radius: 50%;
+    box-shadow: 0 0 4px rgba( 0,0,0,0.1 );
+}
+.ond .oase-modal .oase-modal-table .authority-table input[type="radio"]:focus ~  .radio::before {
+box-shadow: 0 0 4px rgba( 0,0,0,0.8 );
+}
+.ond .oase-modal .oase-modal-table .authority-table input[type="radio"].change-value ~  .radio::before {
+    border-color: #60C60D;
+}
+.ond .oase-modal .oase-modal-table .authority-table .radio::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 4px; top: 4px;
+    width: 18px; height: 18px;
+    background-color: #F2F2F2;
+    border-radius: 50%;
+    transition-duration: 0.3s;
+}
+.ond .oase-modal .oase-modal-table .authority-table .radio:hover::after {
+    background-color: #CCC;
+}
+.ond .oase-modal .oase-modal-table .authority-table input[type="radio"].change-value ~  .radio::after {
+    background-color: #EFF9E7;
+}
+.ond .oase-modal .oase-modal-table .authority-table input[type="radio"]:checked ~ .radio::after {
+    background-color: #666;
+    box-shadow: 0 0 8px rgba( 0,0,0,0.1 ) inset;
+    cursor: default;
+}
+.ond .oase-modal .oase-modal-table .authority-table .level3 input[type="radio"]:checked ~ .radio::after {
+    background-color: #FF0000;
+}
+.ond .oase-modal .oase-modal-table .authority-table .level2 input[type="radio"]:checked ~ .radio::after {
+    background-color: #FFFF00;
+}
+.ond .oase-modal .oase-modal-table .authority-table .level1 input[type="radio"]:checked ~ .radio::after {
+    background-color: #0000FF;
+}
+.ond .oase-modal .oase-modal-table .authority-table th em {
+    display: inline-block;
+    margin-bottom: 4px;
+    font-size: 150%;
+}
+.ond .oase-modal .oase-modal-table .authority-type {
+    text-align: center;
+    color: #666;
+}
+.ond .oase-modal .oase-modal-table .authority-type em {
+    font-size: 175%;
+    vertical-align: -5px;
+}
+/* 権限によって背景色を変更する */
+/*
+.ond .oase-modal .oase-modal-table .authority-type .cell-inner {
+    margin: 4px;
+    background-color: rgba( 255,255,255,0.2 );
+}
+.ond .oase-modal .oase-modal-table .authority-level0 .authority-type {
+    background-color: #FFE6E6;
+}
+.ond .oase-modal .oase-modal-table .authority-level1 .authority-type {
+    background-color: #FFF0E7;
+}
+.ond .oase-modal .oase-modal-table .authority-level2 .authority-type {
+    background-color: #EFF9E7;
+}
+*/
+.ond .authority-table .level3 em {
+    color: #FF0000;
+}
+.ond .authority-table .level2 em {
+    color: #FFDD00;
+}
+.ond .authority-table .level1 em {
+    color: #0000FF;
+}
+
+/* グループリスト */
+.ond .oase-modal .group-list {
+letter-spacing: -0.4em;
+}
+.ond .oase-modal .group-list li {
+display: inline-block;
+position: relative;
+width: 33.33333%;
+padding: 4px;
+vertical-align: top;
+letter-spacing: normal;
+word-break: break-all;
+}
+.ond .oase-modal .group-list label {
+display: block;
+width: 100%;
+padding: 8px 16px 8px 32px;
+background-color: #FFF;
+border: 1px solid #CCC;
+border-radius: 4px;
+line-height: 1.5;
+letter-spacing: 0.05em;
+color: #333;
+cursor: pointer;
+}
+.ond .oase-modal .group-list label:hover {
+background-color: #EFEFEF;
+}
+.ond .oase-modal .group-list input {
+display: block;
+position: absolute;
+left: -9999px;
+}
+.ond .oase-modal .group-list label::after {
+content: '';
+display: block;
+position: absolute;
+top: 50%; left: 16px;
+z-index: 10;
+transform: translateY( -50% );
+width: 12px; height: 12px;
+border: 1px solid #CCC;
+border-radius: 4px;
+background-color: #FFF;
+}
+.ond .oase-modal .group-list input:focus ~ label {
+box-shadow: 0 0 8px rgba( 0,0,0,0.3 );
+}
+.ond .oase-modal .group-list input:checked ~ label {
+background-color: #666;
+border-color: #666;
+color: #FFF;
+}
+.ond .oase-modal .group-list input.change-value ~ label {
+box-shadow: 0 0 0 1px #EFF9E7, 0 0 0 2px #60C60D;
+}
+.ond .oase-modal .group-list input:checked ~ label::after {
+border-color: #666;
+}
+.ond .oase-modal .group-list input:checked ~ label::before {
+content: '';
+display: block;
+position: absolute;
+top: 50%; left: 19px;
+z-index: 15;
+transform: translateY( -50% );
+width: 8px; height: 8px;
+background-color: #00B5B8;
+border-radius: 2px;
+}
+.ond .oase-modal .group-list span {
+display: block;
+width: 100%;
+padding: 8px 16px;
+background-color: #FFF;
+border: 1px solid #CCC;
+border-radius: 4px;
+line-height: 1.5;
+letter-spacing: 0.05em;
+color: #333;
+}
+
+/* TAB modal */
+.ond .oase-modal.oase-modal-tab .oase-modal-content {
+height: 100%;
+}
+.ond .oase-modal-tab-main {
+overflow: hidden;
+position: relative;
+height: calc( 100% - 48px );
+background-color: #FDFDFD;
+border: 4px solid #444;
+border-bottom: none;
+}
+.ond .oase-modal-tab-menu {
+height: 48px;
+}
+.ond .oase-modal-tab-menu ul {
+display: table;
+table-layout: fixed;
+width: 100%; height: 48px;
+background-color: #444;
+border-collapse: collapse;
+}
+.ond .oase-modal-tab-menu li {
+display: table-cell;
+}
+.ond .oase-modal-tab-block {
+position: absolute;
+top: 48px; left: 0;
+width: 100%; height: calc( 100% - 48px );
+}
+.ond .oase-modal-tab-block .oase-modal-body {
+overflow: auto;
+height: calc( 100% - 64px );
+min-height: inherit;
+padding: 0;
+border: none;
+}
+.ond .oase-modal-tab-block .oase-modal-footer {
+border: none;
+}
+.ond .oase-modal-tab-menu button {
+position: relative;
+width: 100%; height: 48px;
+margin: 0; padding: 0;
+background-color: #FFF;
+background-image: linear-gradient( #FDFDFD, #EFEFEF );
+box-shadow: 0 -2px 8px rgba( 0,0,0,0.1 ) inset;
+border: none;
+border: 1px solid #CCC;
+border-right: none;
+cursor: pointer;
+outline: none;
+transition-duration: 0.3s;
+}
+.ond .oase-modal-tab-menu button:hover,
+.ond .oase-modal-tab-menu button:focus {
+background-color: #FFF;
+background-image: linear-gradient( #FDFDFD, #E6F8F8 );
+}
+.ond .oase-modal-tab-menu button.open {
+background-image: linear-gradient( #E6F8F8, #FDFDFD );
+box-shadow: none;
+border-bottom-color: #FDFDFD;
+cursor: default;
+}
+.ond .oase-modal-tab-menu li:last-child button {
+border-right: 1px solid #CCC;
+}
+
+.ond .oase-modal .table h3 {
+height: 50px;
+}
+.ond .oase-modal .table .oase-modal-block,
+.ond .oase-modal .textarea .oase-modal-block {
+height: 100%;
+padding: 24px;
+}
+.ond .oase-modal .oase-modal-rule-table {
+overflow: auto;
+max-height: 480px;
+}
+.ond .oase-modal .table .oase-modal-table,
+.ond .oase-modal .table .oase-modal-rule-table,
+.ond .oase-modal .textarea .oase-modal-textarea {
+height: calc( 100% - 66px );
+max-height: none;
+}
+.ond .oase-modal .table .oase-modal-table-inner,
+.ond .oase-modal .table .oase-modal-rule-table-inner {
+height: calc( 100% - 40px );
+background-color: #FCFCFC;
+background-image: repeating-linear-gradient( 0deg, #FCFCFC 0, #FCFCFC 1px, #F5F5F5 2px, #F5F5F5 3px);
+overflow-y: scroll;
+}
+.ond .oase-modal .textarea .oase-modal-textarea-inner {
+height: calc( 100% - 40px );
+}
+.ond .oase-modal .textarea .oase-modal-textarea-inner textarea {
+height: 100%; min-height: inherit;
+border-radius: 0;
+border-bottom: none;
+overflow-y: scroll;
+resize: none;
+}
+.ond .oase-modal .oase-modal-table-footer,
+.ond .oase-modal .oase-modal-textarea-footer {
+height: 40px;
+padding: 0 8px;
+background-color: #EFEFEF;
+border: 1px solid #CCC;
+color: #333;
+white-space: nowrap;
+letter-spacing: -0.4em;
+}
+.ond .oase-modal .oase-modal-table-footer .oase-button-group,
+.ond .oase-modal .oase-modal-textarea-footer .oase-button-group {
+display: table;
+width: auto; height: 40px;
+}
+.ond .oase-modal .oase-modal-table-footer .oase-button-group li,
+.ond .oase-modal .oase-modal-textarea-footer .oase-button-group li {
+display: table-cell;
+padding-bottom: 6px;
+vertical-align: middle;
+letter-spacing: normal;
+}
+.ond .oase-modal .textarea .oase-modal-textarea.test-running {
+position: relative;
+}
+.ond .oase-modal .textarea .oase-modal-textarea.test-running::after {
+content: '';
+position: absolute;
+top: 0; left: 0;
+z-index: 10;
+width: 100%; height: 100%;
+background-color: rgba( 0,0,0,0.2 );
+cursor: wait;
+}
+.ond .oase-modal .textarea .oase-modal-textarea.test-running::before {
+content: 'RUNNING';
+display: inline-block;
+position: absolute;
+top: 50%; left: 50%;
+width: 60%;
+z-index: 11;
+transform: translate( -50%, -50% );
+padding: 8px;
+background-image: linear-gradient( 90deg, #002B62 0px, #002B62 8px, #264B7A 9px, #264B7A 16px );
+background-size: 16px 16px;
+border-radius: 4px;
+text-align: center;
+text-shadow: 1px 1px 1px #000;
+font-weight: bold;
+color: #FFF;
+animation: testRunningText 1s linear infinite;
+pointer-events: none;
+}
+@keyframes testRunningText {
+  0% { background-position: 0 0; opacity: 0.8; }
+ 50% { background-position: 16px 0; opacity: 1; }
+100% { background-position: 32px 0; opacity: 0.8; }
+}
+
+/* block tab */
+.ond .oase-modal .table .oase-modal-block-tab {
+height: calc( 100% - 66px );
+}
+.ond .oase-modal-block-tab {
+}
+.ond .oase-modal-block-tab-menu {
+height: 40px;
+}
+.ond .oase-modal-block-tab-menu ul {
+letter-spacing: -0.4em;
+border-bottom: 2px solid #00B5B8;
+}
+.ond .oase-modal-block-tab-menu li {
+display: inline-block;
+height: 38px;
+margin-right: 4px;
+vertical-align: top;
+letter-spacing: normal;
+}
+.ond .oase-modal-block-tab-menu button {
+display: block;
+height: 30px;
+margin-top: 8px; padding: 0 16px;
+background-color: #FFF;
+border: 1px solid #CCC;
+border-bottom: none;
+border-radius: 4px 4px 0 0;
+box-shadow: 0 -2px 4px rgba( 0,0,0,0.1 ) inset;
+vertical-align: top;
+color: #333;
+outline: none;
+cursor: pointer;
+}
+.ond .oase-modal-block-tab-menu button:hover,
+.ond .oase-modal-block-tab-menu button:focus {
+height: 34px;
+margin-top: 4px;
+}
+.ond .oase-modal-block-tab-menu button.open {
+height: 38px;
+margin: 0;
+background-color: #00B5B8;
+background-image: none;
+border-color: #00B5B8;
+box-shadow: none;
+color: #FFF;
+cursor: default;
+}
+.ond .oase-modal-block-tab-block {
+display: none;
+height: calc( 100% - 40px );
+}
+.ond .oase-modal-block-tab-block.open {
+display: block;
+}
+.ond .table .oase-modal-block-tab-block .oase-modal-table {
+height: 100%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+/* authority-group-list */
+.ond .authority-group-list dl {
+margin-bottom: 24px;
+border-top: 1px solid #CCC;
+}
+.ond .authority-group-list .oase-none p {
+margin-bottom: 0;
+}
+.ond .authority-group-list dt {
+display: block;
+position: relative;
+padding: 12px 128px 12px 40px;
+background-image: linear-gradient( #FDFDFD, #EFEFEF );
+border: 1px solid #CCC;
+border-top: none;
+font-size: 1.17rem;
+cursor: pointer;
+    user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+}
+.ond .authority-group-list dt > em {
+display: block;
+position: absolute;
+top: 50%; left: 14px;
+transform: translateY( -50% );
+width: 16px; height: 16px;
+margin-right: 0.5em;
+font-size: 1.34rem;
+color: #00B5B8;
+transition-duration: 0.1s;
+}
+.ond .authority-group-list dt:hover > em {
+top: 60%;
+}
+.ond .authority-group-list dt:hover {
+background-image: linear-gradient( #F2F2F2, #E2E2E2 );
+}
+.ond .authority-group-list dd {
+display: none;
+padding: 8px;
+background-color: #F2F2F2;
+border: 1px solid #CCC;
+border-top: none;
+box-shadow: 0 0 8px rgba( 0,0,0,0.1 ) inset;
+}
+.ond .authority-group-list dd table {
+margin-bottom: 0!important;
+}
+.ond .authority-check {
+display: table;
+position: absolute;
+top: 50%; right: 8px;
+transform: translateY( -50% );
+}
+.ond .rule-authority {
+display: table-cell;
+padding: 4px;
+}
+.ond .rule-authority em {
+content: '';
+display: block;
+width: 16px; height: 16px;
+background-color: #CCC;
+border: 2px solid #FFF;
+border-radius: 50%;
+box-shadow: 0 0 0 1px #CCC;
+}
+.ond .rule-authority em.level1 { background-color: #0000FF; }
+.ond .rule-authority em.level2 { background-color: #FFFF00; }
+.ond .rule-authority em.level3 { background-color: #FF0000; }
+
+
+
+
+
+
+/* Modal Form */
+.ond .oase-modal textarea {
+    width: 100%; min-height: 240px;
+    padding: 6px 8px 5px;
+    line-height: 1.5;
+    font-size: 1rem;
+    color: #333;
+    resize: vertical;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    vertical-align: top;
+    font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+}
+.ond .oase-modal .oase-modal-table textarea {
+    min-height: 300px;
+}
+.ond .oase-modal .oase-modal-table textarea.overview {
+    min-height: 80px;
+}
+.ond .oase-modal input,
+.ond .oase-modal select {
+    width: 100%;
+    margin: 0; padding: 6px 8px 5px;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    line-height: 1.1;
+    font-size: 1rem;
+    font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+    color: #333;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* -------------------------------------------------- **
+
+   Confirm Window
+
+** -------------------------------------------------- */
+.ond .oase-confirm {
+    display: none;
+    overflow: hidden;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 19997;
+    width: 100%; height: 100%;
+    opacity: 1;
+    transition-duration: 0.3s;
+    animation: confirm-open 0.3s;
+}
+@keyframes confirm-open {
+  0% { opacity: 0; }
+100% { opacity: 1; }
+}
+.ond .oase-confirm.confirm-close {
+opacity: 0;
+overflow: hidden;
+}
+.ond .confirm-on .oase-confirm {
+display: block;
+}
+.ond .oase-confirm-overlay {
+    display: none;
+    overflow: hidden;
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 19990;
+    width: 100%; height: 100%;
+    background-color: rgba( 255, 255, 255, 0.5 );
+}
+.ond .oase-confirm-main {
+position: absolute;
+top: 0; left: 0;
+z-index: 19999;
+display: table;
+width: 100%; height: 100%;
+pointer-events: none;
+}
+.ond .oase-confirm-inner {
+display: table-cell;
+width: 100%; height: 100%;
+padding: 8px;
+vertical-align: middle;
+transition-duration: 0.3s;
+animation: confirm-in 0.3s;
+pointer-events: none;
+}
+@keyframes confirm-in {
+  0% { transform: scale( 1.2 ); }
+100% { transform: scale( 1 ); }
+}
+.ond .confirm-close .oase-confirm-inner {
+transform: scale( 0.9 );
+}
+.ond .oase-confirm-content {
+max-width: 480px;
+margin: 0 auto;
+border-bottom: 4px solid #444;
+box-shadow: 0 0 32px rgba( 0, 0, 0, 0.5 );
+pointer-events: auto;
+}
+.ond .oase-confirm-header {
+position: relative;
+background-color: #444;
+}
+.ond .oase-confirm-title {
+height: 32px;
+padding: 0 80px 0 16px;
+font-size: 1.34rem;
+line-height: 40px;
+white-space: nowrap;
+letter-spacing: 0.05em;
+color: #EFEFEF;
+}
+.ond .oase-confirm-title em {
+vertical-align: -1px;
+}
+.ond .oase-confirm-body {
+overflow: auto;
+max-height: calc( 100vh - 148px );
+background-color: #FDFDFD;
+border: 4px solid #444;
+border-bottom: none;
+}
+.ond .oase-confirm-body::after {
+content: '';
+display: block;
+clear: both;
+}
+.ond .oase-confirm-body p {
+padding: 24px;
+line-height: 1.5;
+font-size: 1.17rem;
+}
+.ond .oase-confirm-footer {
+height: 64px;
+padding: 16px 32px 0;
+background-color: #F2F2F2;
+border-left: 4px solid #444;
+border-right: 4px solid #444;
+text-align: center;
+}
+
+
+.ond .running-bar {
+    display: block;
+    height: 16px;
+    margin: 0 24px 24px;
+    background-image: linear-gradient( 90deg, #00B5B8 0px, #00B5B8 8px, #66D3D4 9px, #66D3D4 16px );
+    background-size: 16px 16px;
+    border: 1px solid #00B5B8;
+    border-radius: 80px;
+    text-align: center;
+    font-size: 0.84rem;
+    font-weight: bold;
+    color: #00B5B8;
+    animation: runningBar 0.5s linear infinite;
+}
+@keyframes runningBar {
+  0% { background-position: 0 0; }
+100% { background-position: 16px 0; }
+}

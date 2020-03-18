@@ -1,0 +1,65 @@
+{% extends "common/plain_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% comment %}
+ログイン/ログアウトページのベース
+...メニュー無い系
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+{% endblock %}
+
+
+{% block login_body %}
+
+<div class="oase-login-container">
+    <div class="oase-login">
+
+{% block password-reset %}
+{% endblock %}
+
+        <main class="oase-login-inner">
+            <div class="oase-login-body">
+
+            <h1>
+                <!--<span class="logo"><img src="{% static "posts/logo-oase.png" %}" alt="OASE Logo"></span>-->
+                <span class="exastro"><img src="{% static "posts/exastro.png" %}" alt="Exastro"></span>
+                <span class="word"><span class="initial">O</span><span class="chara">peration</span></span>
+                <span class="word"><span class="initial">A</span><span class="chara">utonomy</span></span>
+                <span class="word"><span class="initial">S</span><span class="chara">upport</span></span>
+                <span class="word"><span class="initial">E</span><span class="chara">ngine</span></span>
+            </h1>
+
+       {% block maincontent %}
+       {% endblock%}
+            </div>
+
+            {% if logout %}
+            <div class="oase-login-message">
+                <p><em class="owf owf-info"></em>{% get_message 'MOSJA10027' showMsgId=False %}</p>
+            </div>
+            {% endif %}
+        </main>
+    </div>
+
+    <div class="login-footer"><span class="exastro"><em class="owf owf-exastro"></em>{% get_message 'MOSJA10023' showMsgId=False %}</span>{% get_message 'MOSJA10024' showMsgId=False %}</div>
+
+</div>
+
+<div id="oase-login-background"></div>
+{% endblock %}

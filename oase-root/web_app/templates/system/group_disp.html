@@ -1,0 +1,530 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  選択されたグループのアクセス権限を子画面にセットする
+////////////////////////////////////////////////
+function setPermissions(groupId) {
+    var trId = "#group" + groupId;
+    var summary = $(trId).data('summary');
+    var name = $(trId).data('name');
+    var permissionTypes = $(trId).data('types');
+    var radioIdList = ["#radio1-", "#radio2-","#radio3-","#radio4-","#radio5-","#radio6-"]
+    // グループ名と要約を参照/編集の子画面にセット
+    $('[name=modal-name]').html(textEntities(name));
+    $('[name=modal-summary]').html(textEntities(summary));
+
+    var accid = "";
+    var permissionTypeId = "";
+    var radioId = "";
+    var index = 0;
+    for(key in permissionTypes)
+    {
+        accid = "#" + key;
+        permissionTypeId = permissionTypes[key];
+        $(accid).removeClass("level1");
+        $(accid).removeClass("level2");
+        $(accid).removeClass("level3");
+
+        if(permissionTypes[key] == 1)
+        {
+            $(accid).html('<div class="cell-inner"><em class="owf owf-circle"></em>' + getMessage("MOSJA00088", false) + '</div></td>');
+            $(accid).addClass("level1");
+        }
+        else if(permissionTypes[key] == 2)
+        {
+            $(accid).html('<div class="cell-inner"><em class="owf owf-loupe"></em>' + getMessage("MOSJA00087", false) + '</div></td>');
+            $(accid).addClass("level2");
+        }
+        else if(permissionTypes[key] == 3)
+        {
+            $(accid).html('<div class="cell-inner"><em class="owf owf-cross"></em>' + getMessage("MOSJA00086", false) + '</div></td>');
+            $(accid).addClass("level3");
+        }
+
+        // 権限設定のラジオボタンをセット
+        document.getElementById("saveAccess").dataset.groupid = groupId;
+
+        radioId = radioIdList[index] + permissionTypeId;
+        $(radioId).prop('checked', true);
+
+        index++;
+    }
+
+    // 「システム管理者」の場合footerのボタンを表示させない
+    if(groupId == "1")
+    {
+        $("#setId").hide()
+    }
+    else
+    {
+        $("#setId").show()
+    }
+
+}
+////////////////////////////////////////////////
+//  編集モードへ移行する
+////////////////////////////////////////////////
+function changeModeToEdit() {
+
+    $("#btnEdit").prop("disabled", true);
+
+    window.location.href = '{% url "web_app:system:group_edit" %}';
+}
+
+//--------------------------------------------------------------
+//
+// アクセス権限画面の制御
+//
+//--------------------------------------------------------------
+
+////////////////////////////////////////////////
+// 初期値との差異の確認
+////////////////////////////////////////////////
+function isChanged() {
+    var permissionTypes = $('#permissionTypes').data('types');
+    var currentState = $('#saveAccess').serialize();
+    var currentStateList = currentState.split('&');
+
+    var changeFlag = false;
+    currentStateList.forEach(function(param) {
+        var keyValue = param.split('=');
+
+        if(keyValue[0] == "csrfmiddlewaretoken") {
+            return true; // continue
+        }
+
+        if(keyValue[0] in permissionTypes && permissionTypes[keyValue[0]] == keyValue[1]) {
+            return true; // continue
+        }
+
+        changeFlag = true;
+        return false; //break
+    });
+    return changeFlag;
+}
+
+////////////////////////////////////////////////
+// アクセス権限画面のリセットボタン
+////////////////////////////////////////////////
+function reset(){
+
+    if(!isChanged()) {
+        return;
+    }
+
+    var permissionTypes = $('#permissionTypes').data('types');
+    var array = ["2141001006", "2141002001", "2141002002", "2141002003", "2141002004", "2141002007"];
+
+    //編集モードを維持したまま値をリセットする
+    if(confirm(getMessage("MOSJA23010", false))){
+        for( a in array){
+            name = array[a];
+            var nodelist = document.getElementsByName(name);
+            var r_radio = Array.prototype.slice.call(nodelist,0);
+
+            // 初期値と等しければtrue, 等しくなければfalse
+            r_radio.forEach(function(element){
+                if(element.value == permissionTypes[name]){
+                    element.checked = true;
+                } else {
+                    element.checked = false;
+                }
+            });
+        }
+    }
+}
+
+
+////////////////////////////////////////////////
+// アクセス権限保存
+////////////////////////////////////////////////
+function saveAccess(){
+
+    $("#btnSaveAccess").prop("disabled", true);
+    if(confirm(getMessage("MOSJA23027", false))){
+        var objForm = document.getElementById("saveAccess");
+        objForm.submit();
+    } else {
+        $("#btnSaveAccess").prop("disabled", false);
+    }
+}
+
+////////////////////////////////////////////////
+//  保存処理
+////////////////////////////////////////////////
+function submitAction() {
+
+    groupId = document.getElementById("saveAccess").dataset.groupid;
+    $.ajax({
+        type: "POST",
+        url : "group/complete_permission/" + groupId + "/",
+        data: $("#saveAccess").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            alert(getMessage("MOSJA00011", false));
+            $("#btnSaveAccess").prop("disabled", false);
+            beforeunloadThroughFlag = true;
+            location.href = response_json.redirect_url;
+        }
+        else {
+            alert(response_json.msg);
+            $("#btnSaveAccess").prop("disabled", false);
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            $("#btnSaveAccess").prop("disabled", false);
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage("MOSJA23017", true) + "\n" + respdata.responseText);
+            $("#btnSaveAccess").prop("disabled", false);
+        }
+    });
+}
+
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA23000' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        {% if editable_user and actdirflg == "0" %}
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" type="button" id="btnEdit" onclick="changeModeToEdit();"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+        {% endif %}
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+
+        <section>
+
+          {% if group_list|length %}
+          <div class="oase-table">
+
+            <div class="oase-table-load loading"><div class="oase-table-loader-inner"><em class="owf owf-update"></em></div></div>
+
+            <div class="oase-table-inner">
+              <table class="oase-filter oase-sort">
+
+                <thead>
+                  <tr>
+                    <th class="operation-menu" filter-label="operation-menu"><div class="cell-inner">{% get_message 'MOSJA23002' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="template-name sort filter" filter-type="common" filter-label="template-name"><div class="cell-inner">{% get_message 'MOSJA23003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="overview sort filter" filter-type="text" filter-label="overview"><div class="cell-inner">{% get_message 'MOSJA23004' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA23005' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="last-modified sort filter" filter-type="date" filter-label="last-modified"><div class="cell-inner">{% get_message 'MOSJA23006' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                {% for group, acs in group_list %}
+                  <tr id="group{{ group.group_id }}" data-types='{"2141001006":"{{acs.0.permission_type_id}}", "2141002001":"{{acs.1.permission_type_id}}", "2141002002":"{{acs.2.permission_type_id}}", "2141002003":"{{acs.3.permission_type_id}}", "2141002004":"{{acs.4.permission_type_id}}",  "2141002007":"{{acs.5.permission_type_id}}"}' data-name='{{ group.group_name }}' data-summary='{{ group.summary }}'>
+                    <td class="operation-menu"><div class="cell-inner">
+                        <ul>
+                            <li><button class="tooltip detail oase-mini-button" onClick="setPermissions('{{ group.group_id }}');modalOpen('#modal-authority');"><em class="owf owf-authority"></em><span>{% get_message 'MOSJA23026' request.user.get_lang_mode showMsgId=False %}</span></button></li> 
+                        </ul>
+                    </div></td>
+                    <td id="tdName{{ group.group_id }}" class="template-name"><div class="cell-inner">{{ group.group_name }}</div></td>
+                    <td class="overview"><div class="cell-inner paragrap"><p>{{ group.summary }}</p></div></td>
+                    <td class="last-update-user"><div class="cell-inner">{{ group.last_update_user }}</div></td>
+                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ group.last_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ group.last_timestamp|timezone:'Asia/Tokyo' }}</time></div></td>
+                  </tr>
+                {% endfor %}
+                </tbody>
+
+              </table>
+            </div>
+
+
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+                <select class="rowShowNum">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+                </dd></dl></li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> /
+                  <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+
+                <li><button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+
+          </div>
+          {% else %}
+          <div class="oase-none">
+            <p>{% autoescape off%}{% get_message 'MOSJA23001' request.user.get_lang_mode %}{% endautoescape %}</p>
+          </div>
+          {% endif %}
+
+        </section>
+
+
+        <div id="modal-authority" class="oase-modal">
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+
+                  <div class="oase-modal-title">
+                    <h2><em class="owf owf-plus"></em><span>{% get_message 'MOSJA23028' request.user.get_lang_mode showMsgId=False %}</span></h2>
+                  </div>
+
+                  <button class="oase-modal-close" onclick="modalClose('#modal-authority');"><em class="owf owf-cross"></em></button>
+
+                </div>
+
+                <div class="oase-modal-body">
+
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA23029' request.user.get_lang_mode showMsgId=False %}</h3>
+
+                  <div class="oase-modal-table">
+                  <table>
+                  <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA23003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div name="modal-name" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA23004' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div name="modal-summary" class="cell-inner"></div></td>
+                  </tr>
+                  </tbody>
+                  </table>
+                  <table class="authority-table">
+                    <thead>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA00083' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <th><div class="cell-inner">{% get_message 'MOSJA00084' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <th><div class="cell-inner">{% get_message 'MOSJA00085' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <th><div class="cell-inner">{% get_message 'MOSJA23028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA00089' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner">{% get_message 'MOSJA00078' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        <td><div class="cell-inner">{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        <td id="{{ menu_id_list.0 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-cross"></em></div></td>
+                      </tr>
+
+                      <tr>
+                        <th rowspan="4"><div class="cell-inner">{% get_message 'MOSJA23030' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner">{% get_message 'MOSJA23031' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        <td class="blank"><div class="cell-inner"></div></td>
+                        <td id="{{ menu_id_list.2 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-loupe"></em></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="cell-inner">{% get_message 'MOSJA23000' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        <td class="blank"><div class="cell-inner"></div></td>
+                        <td id="{{ menu_id_list.3 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="cell-inner">{% get_message 'MOSJA23032' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        <td class="blank"><div class="cell-inner"></div></td>
+                        <td id="{{ menu_id_list.4 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="cell-inner">{% get_message 'MOSJA23033' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        <td class="blank"><div class="cell-inner"></div></td>
+                        <td id="{{ menu_id_list.5 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-cross"></em></div></td>
+                      </tr>
+
+                    </tbody>
+                  </table>
+
+
+                  </div>
+                  </div>
+                </div>
+
+                {% if editable_user %}
+                <div id="setId" class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onclick="modalClose('#modal-authority');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    <li><button class="oase-button" onClick="modalChange('#modal-authority', '#modal-authority-edit')"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+                {% endif %}
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div id="modal-authority-edit" class="oase-modal">
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+
+                  <div class="oase-modal-title">
+                    <h2><em class="owf owf-plus"></em><span>{% get_message 'MOSJA23028' request.user.get_lang_mode showMsgId=False %}</span></h2>
+                  </div>
+
+                  <button class="oase-modal-close" onclick="modalClose('#modal-authority-edit');"><em class="owf owf-cross"></em></button>
+
+                </div>
+
+                <div class="oase-modal-body">
+
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA23029' request.user.get_lang_mode showMsgId=False %}</h3>
+
+                    <div class="oase-modal-table">
+                      <table>
+                        <tbody>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA23003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div name="modal-name" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA23004' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div name="modal-summary" class="cell-inner"></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <form id="saveAccess" data-groupid="" action="javascript:submitAction()">
+                      {% csrf_token %}
+                      <table class="authority-table">
+                        <thead>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA00083' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <th><div class="cell-inner">{% get_message 'MOSJA00084' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <th><div class="cell-inner">{% get_message 'MOSJA00085' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <th><div class="cell-inner"><em class="owf owf-cross"></em><br>{% get_message 'MOSJA00086' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <th><div class="cell-inner"><em class="owf owf-loupe"></em><br>{% get_message 'MOSJA00087' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <th><div class="cell-inner"><em class="owf owf-circle"></em><br>{% get_message 'MOSJA00088' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr id="type-dt">
+                            <th><div class="cell-inner">{% get_message 'MOSJA00089' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div class="cell-inner">{% get_message 'MOSJA00078' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td><div class="cell-inner">{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td class="level3"><div class="cell-inner"><input type="radio" id="radio1-3" name="{{ menu_id_list.0 }}" value="3"><label class="radio" for="radio1-3"></label></div></td>
+                            <td class="level2"><div class="cell-inner"><input type="radio" id="radio1-2" name="{{ menu_id_list.0 }}" value="2"><label class="radio" for="radio1-2"></label></div></td>
+                            <td class="level1"><div class="cell-inner"><input type="radio" id="radio1-1" name="{{ menu_id_list.0 }}" value="1"><label class="radio" for="radio1-1"></label></div></td>
+                          </tr>
+
+                          <tr id="type-system">
+                            <th rowspan="4"><div class="cell-inner">{% get_message 'MOSJA23030' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div class="cell-inner">{% get_message 'MOSJA23031' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td class="blank"><div class="cell-inner"></div></td>
+                            <td class="level3"><div class="cell-inner"><input type="radio" id="radio3-3" name="{{ menu_id_list.2 }}" value="3"><label class="radio" for="radio3-3"></label></div></td>
+                            <td class="level2"><div class="cell-inner"><input type="radio" id="radio3-2" name="{{ menu_id_list.2 }}" value="2"><label class="radio" for="radio3-2"></label></div></td>
+                            <td class="level1"><div class="cell-inner"><input type="radio" id="radio3-1" name="{{ menu_id_list.2 }}" value="1"><label class="radio" for="radio3-1"></label></div></td>
+                          </tr>
+                          <tr id="type-group">
+                            <td><div class="cell-inner">{% get_message 'MOSJA23000' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td class="blank"><div class="cell-inner"></div></td>
+                            <td class="level3"><div class="cell-inner"><input type="radio" id="radio4-3" name="{{ menu_id_list.3 }}" value="3"><label class="radio" for="radio4-3"></label></div></td>
+                            <td class="level2"><div class="cell-inner"><input type="radio" id="radio4-2" name="{{ menu_id_list.3 }}" value="2"><label class="radio" for="radio4-2"></label></div></td>
+                            <td class="level1"><div class="cell-inner"><input type="radio" id="radio4-1" name="{{ menu_id_list.3 }}" value="1"><label class="radio" for="radio4-1"></label></div></td>
+                          </tr>
+                          <tr id="type-user">
+                            <td><div class="cell-inner">{% get_message 'MOSJA23032' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td class="blank"><div class="cell-inner"></div></td>
+                            <td class="level3"><div class="cell-inner"><input type="radio" id="radio5-3" name="{{ menu_id_list.4 }}" value="3"><label class="radio" for="radio5-3"></label></div></td>
+                            <td class="level2"><div class="cell-inner"><input type="radio" id="radio5-2" name="{{ menu_id_list.4 }}" value="2"><label class="radio" for="radio5-2"></label></div></td>
+                            <td class="level1"><div class="cell-inner"><input type="radio" id="radio5-1" name="{{ menu_id_list.4 }}" value="1"><label class="radio" for="radio5-1"></label></div></td>
+                          </tr>
+                          <tr id="type-action">
+                            <td><div class="cell-inner">{% get_message 'MOSJA23033' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td class="blank"><div class="cell-inner"></div></td>
+                            <td class="level3"><div class="cell-inner"><input type="radio" id="radio6-3" name="{{ menu_id_list.5 }}" value="3"><label class="radio" for="radio6-3"></label></div></td>
+                            <td class="level2"><div class="cell-inner"><input type="radio" id="radio6-2" name="{{ menu_id_list.5 }}" value="2"><label class="radio" for="radio6-2"></label></div></td>
+                            <td class="level1"><div class="cell-inner"><input type="radio" id="radio6-1" name="{{ menu_id_list.5 }}" value="1"><label class="radio" for="radio6-1"></label></div></td>
+                          </tr>
+
+
+                        </tbody>
+                      </table>
+                      </form>
+
+
+                    </div>
+                  </div>
+                </div>
+
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onclick="modalClose('#modal-authority-edit');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    <li><button id="btnSaveAccess" class="oase-button" onclick="saveAccess();"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+
+
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-overlay"></div>
+
+
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock %}

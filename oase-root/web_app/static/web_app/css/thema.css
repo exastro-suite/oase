@@ -1,0 +1,1218 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+
+
+
+
+/* -------------------------------------------------- **
+
+  IT Automation thema
+
+** -------------------------------------------------- */
+
+.ond.ita-mode .oase-body {
+  background: repeating-linear-gradient( 90deg, transparent, transparent 100px, #E6E6E6 100px, #E6E6E6 101px, transparent 101px, transparent 200px, #EBEBEB 200px, #EBEBEB 201px), repeating-linear-gradient( 0deg, transparent, transparent 100px, #E6E6E6 100px, #E6E6E6 101px, transparent 101px, transparent 200px, #EBEBEB 200px, #EBEBEB 201px), #F0F0F0 !important;
+}
+.ond.ita-mode .oase-nav {
+  background: #002B62;
+  background-image: linear-gradient(#335581, #002B62);
+}
+.ond.ita-mode .oase-nav .active {
+  background: #002B62!important;
+}
+.ond.ita-mode .oase-header,
+.ond.ita-mode .oase-footer {
+  box-shadow: none;
+}
+.ond.ita-mode .oase-footer {
+  background-color: #444;
+}
+.ond.ita-mode .oase-header .oase-header-user {
+  background: #333;
+}
+.ond.ita-mode .oase-header .oase-header-user dt em,
+.ond.ita-mode .oase-header .oase-header-user dt span,
+.ond.ita-mode .oase-header .oase-header-user dd a {
+  color: #FFF;
+}
+.ond.ita-mode .oase-header .oase-header-user dd a:hover {
+  opacity: 0.8;
+}
+
+.ond.ita-mode .oase-header-main-menu .menu-child li {
+  background: #666;
+  background-image: linear-gradient(#666,#5F5F5F);
+  color: #FFF;
+  text-shadow: 1px 1px 0 #333;
+}
+.ond.ita-mode .oase-header-main-menu li a:hover,
+.ond.ita-mode .oase-header-main-menu .menu-parent:hover > span,
+.ond.ita-mode .oase-header-main-menu .menu-parent > span:hover,
+.ond.ita-mode .oase-header-sub-menu a:hover {
+  background: #555;
+  background-image: linear-gradient(#444,#3F3F3F);
+  text-shadow: 1px 1px 0 #333;
+  color: #FFF;
+}
+.ond.ita-mode .oase-main {
+  padding: 10px 16px 0;
+}
+.ond.ita-mode .oase-main-description,
+.ond.ita-mode .oase-footer p,
+.ond.ita-mode .oase-footer em {
+  color: #FFF;
+}
+.ond.ita-mode .oase-main-body section {
+  padding-bottom: 16px!important;
+  border: none!important;
+}
+.ond.ita-mode .oase-main-body .oase-config-main section {
+  padding: 0!important;
+}
+.ond.ita-mode .oase-tab-table .oase-main-body section {
+ padding-left: 0!important;
+ padding-right: 0!important;
+}
+.ond.ita-mode  .division-vertical2 section:nth-of-type(1) {
+padding-right: 8px;
+}
+.ond.ita-mode  .division-vertical2 section:nth-of-type(2) {
+padding-left: 8px;
+}
+
+.ond.ita-mode .oase-table {
+  padding: 16px;
+  background-color: #FFF;
+  border-radius: 8px;
+  box-shadow: 0 0 8px rgba( 0, 0, 0, 0.2 );
+}
+.ond.ita-mode .oase-table-header-fixed {
+  margin: 16px 16px 0;
+  width: calc( 100% - 32px );
+}
+.ond.ita-mode .oase-table table {
+  background-color: #C4C4C4;
+}
+.ond.ita-mode .oase-table tbody tr,
+.ond.ita-mode .oase-table tbody tr:nth-of-type(even) {
+  background-color: #FFF;
+}
+.ond.ita-mode .oase-table tbody tr:hover th.status,
+.ond.ita-mode .oase-table tbody tr:hover {
+  background-color: #FFFFCC!important;
+}
+.ond.ita-mode .oase-table tbody tr td.operation-menu,
+.ond.ita-mode .oase-table tbody tr td.last-update-user,
+.ond.ita-mode .oase-table tbody tr td.last-modified,
+.ond.ita-mode .oase-table tbody tr td.execution-date,
+.ond.ita-mode .oase-table tbody tr td.last-execution-user,
+.ond.ita-mode .oase-table tbody tr td.add-modified {
+  background-color: #EBEBEB;
+}
+.ond.ita-mode .oase-table tbody tr.error td.operation-menu,
+.ond.ita-mode .oase-table tbody tr.error td.last-update-user,
+.ond.ita-mode .oase-table tbody tr.error td.last-modified,
+.ond.ita-mode .oase-table tbody tr.error td.execution-date,
+.ond.ita-mode .oase-table tbody tr.error td.last-execution-user,
+.ond.ita-mode .oase-table tbody tr.error td.add-modified {
+  background-color: #FFE6E6!important;
+}
+.ond.ita-mode .oase-table tbody tr:hover td.operation-menu,
+.ond.ita-mode .oase-table tbody tr:hover td.last-update-user,
+.ond.ita-mode .oase-table tbody tr:hover td.last-modified,
+.ond.ita-mode .oase-table tbody tr:hover td.execution-date,
+.ond.ita-mode .oase-table tbody tr:hover td.last-execution-user,
+.ond.ita-mode .oase-table tbody tr:hover td.add-modified {
+  background-color: #FFFF88!important;
+}
+
+
+.ond.ita-mode .oase-table th,
+.ond.ita-mode .oase-modal-rule-table th {
+  box-shadow: 0 0 0 1px #C4C4C4;
+}
+.ond.ita-mode .oase-table thead th,
+.ond.ita-mode .oase-table thead .cell-inner,
+.ond.ita-mode .oase-modal-rule-table thead th,
+.ond.ita-mode .oase-modal .oase-modal-table .authority-table thead th,
+.ond.ita-mode .oase-config-body table.authority-table thead th {
+  background-color: #CCD5E0;
+  font-weight: normal;
+  color: #000;
+}
+.ond.ita-mode .oase-table thead th.sort .cell-inner:hover {
+  background-color: #99AFCB;
+}
+.ond.ita-mode .oase-table .oase-filter-switch,
+.ond.ita-mode .oase-table .oase-filter-switch.clear {
+  color: #335581;
+  opacity: 1;
+}
+.ond.ita-mode .oase-table .oase-filter-switch.clear:hover,
+.ond.ita-mode .oase-table .oase-filter-switch.menu:hover {
+  opacity: 0.5;
+}
+.ond.ita-mode .oase-table thead th.sort .cell-inner::after,
+.ond.ita-mode .oase-table thead th.sort .cell-inner::before {
+  opacity: 0.1;
+  color: #000;
+}
+.ond.ita-mode .oase-table thead th.sort.asc .cell-inner::before,
+.ond.ita-mode .oase-table thead th.sort.desc .cell-inner::after {
+  opacity: 1;
+}
+.ond.ita-mode .oase-modal-block-tab-menu ul {
+  border-color: #002B62;
+}
+.ond.ita-mode .oase-modal-block-tab-menu button.open,
+.ond.ita-mode .oase-tab-table .oase-tab-menu a.open {
+  background-color: #002B62;
+  border-color: #002B62;
+}
+.ond.ita-mode .oase-main-header,
+.ond.ita-mode .oase-rule-staging .oase-section-title,
+.ond.ita-mode .oase-rule-production .oase-section-title {
+  padding: 6px 0;
+}
+.ond.ita-mode .oase-section-title {
+  border-right: none;
+  border-left: none;
+  border-bottom: none;
+}
+.ond.ita-mode .oase-rule-staging .oase-section-title,
+.ond.ita-mode .oase-rule-production .oase-section-title {
+  border: none;
+}
+.ond.ita-mode .oase-section-title .oase-section-title-table h2 {
+  font-weight: normal;
+  color: #000;
+}
+.ond.ita-mode .oase-main-header,
+.ond.ita-mode .oase-tab-table .oase-tab-menu,
+.ond.ita-mode .oase-section-title,
+.ond.ita-mode .oase-rule-staging,
+.ond.ita-mode .oase-rule-production {
+  background-color: transparent;
+  box-shadow: none;
+}
+.ond.ita-mode .oase-main-header-inner,
+.ond.ita-mode .oase-rule-staging .oase-section-title .oase-section-title-inner,
+.ond.ita-mode .oase-rule-production .oase-section-title .oase-section-title-inner {
+  padding: 0 16px;
+  background-color: #335581;
+  border-left: 5px solid #FFA032;
+}
+.ond.ita-mode .overflowMenuButton {
+top: -2px;
+right: 6px;
+}
+.ond.ita-mode .oase-main-title-inner,
+.ond.ita-mode .oase-main-menu,
+.ond.ita-mode .oase-rule-staging .oase-section-title .oase-section-title-table,
+.ond.ita-mode .oase-rule-staging .oase-section-title .oase-section-title-menu,
+.ond.ita-mode .oase-rule-production .oase-section-title .oase-section-title-table,
+.ond.ita-mode .oase-rule-production .oase-section-title .oase-section-title-menu{
+  height: 48px;
+}
+.ond.ita-mode .overflowMenu .oase-section-title-menu {
+  right: 0; top: 48px;
+  height: auto!important;
+  padding: 0 16px 8px;
+  border: none;
+  border-radius: 0;
+  background-color: #335581;
+  box-shadow: none;
+}
+.ond.ita-mode .oase-main-title h1,
+.ond.ita-mode .oase-rule-staging .oase-section-title .oase-section-title-table h2,
+.ond.ita-mode .oase-rule-production .oase-section-title .oase-section-title-table h2 {
+  border-right: none;
+  font-weight: normal;
+  font-size: 1.4rem;
+  color: #FFF;
+}
+
+.ond.ita-mode .oase-datepicker table.form th,
+.ond.ita-mode .oase-datepicker-calender-body th {
+  background-color: #002B62;
+  color: #FFF;
+}
+.ond.ita-mode .oase-datepicker-calender-body td.today span {
+  color: #002B62;
+}
+.ond.ita-mode .oase-datepicker-calender-body span.select-date {
+  border-color: #002B62;
+}
+.ond.ita-mode .oase-dashboard-title,
+.ond.ita-mode .oase-modal h3,
+.ond.ita-mode .oase-section-title,
+.ond.ita-mode .oase-config-header h3 {
+  border-top-color: #002B62;
+}
+.ond.ita-mode .oase-dashboard-title em,
+.ond.ita-mode .oase-dashboard-login-user p em,
+.ond.ita-mode .authority-group-list dt > em {
+  color: #002B62;
+}
+.ond.ita-mode .oase-dashboard-menu > li a {
+  background-color: #FF821E;
+  color: #FFF;
+}
+.ond.ita-mode .oase-dashboard-menu > li a:hover {
+  background-color: #FF640A;
+}
+.ond.ita-mode .oase-config-menu a {
+  background-color: #335581;
+  border-color: #335581;
+}
+.ond.ita-mode .oase-config-menu a.open,
+.ond.ita-mode .oase-config-menu a.open:hover {
+  background-color: #FFF;
+  border-color: #CCC;
+  color: #335581;
+}
+.ond.ita-mode .oase-config-menu a:hover {
+  background-color: #002B62;
+}
+.ond.ita-mode .oase-table tbody .operation-menu li button {
+  font-size: 1.2rem;
+}
+.ond.ita-mode .oase-table tbody .status {
+  font-size: 1.4rem;
+}
+.ond.ita-mode .oase-table tbody .cell-inner {
+  padding: 2px 4px;
+}
+.ond.ita-mode .oase-table tbody .status .cell-inner,
+.ond.ita-mode .oase-table tbody .operation-menu .cell-inner {
+  padding: 1px 4px;
+}
+.ond.ita-mode .oase-table thead .cell-inner,
+.ond.ita-mode .oase-table thead .operation-menu .cell-inner {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+.ond.ita-mode .oase-table tbody .status .cell-inner {
+  margin: 0;
+}
+.ond.ita-mode .oase-mini-button {
+  display: inline-block;
+  padding: 4px;
+  background: #FF821E;
+  box-shadow: none !important;
+  border: none!important;
+  border-bottom: 2px solid #CC6818!important;
+  border-radius: 4px;
+  text-shadow: none;
+  color: #FFF;
+}
+.ond.ita-mode .oase-mini-button em {
+  display: inline-block;
+  color: #FFF;
+}
+.ond.ita-mode .oase-mini-button:hover {
+  background: #FF640A;
+}
+.ond.ita-mode .oase-mini-button span {
+  color: #FFF;
+}
+.ond.ita-mode .oase-mini-button:active {
+  box-shadow: none;
+  background: #FF640A;
+  border-bottom: 0 solid #CC6818!important;
+  transform: translateY(1px);
+}
+.ond.ita-mode .oase-mini-button:active em,
+.ond.ita-mode .oase-mini-button:active span {
+  transform: none;
+}
+.ond.ita-mode .oase-mini-button:disabled {
+  border: none !important;
+}
+.ond.ita-mode .oase-footer .oase-polling.on em {
+  color: #CCC;
+}
+.ond.ita-mode .oase-polling.on .polling-interval {
+  border-color: #555;
+}
+.ond.ita-mode .oase-polling button:hover,
+.ond.ita-mode .oase-layout-change-menu label:hover,
+.ond.ita-mode .oase-layout-change-menu input:checked ~ label {
+  background-color: #333;
+}
+
+.ond.ita-mode .oase-main-header .oase-button-group,
+.ond.ita-mode .oase-section-title .oase-button-group {
+padding-left: 16px;
+letter-spacing: -0.4em;
+}
+.ond.ita-mode .oase-main-header .oase-button-group li,
+.ond.ita-mode .oase-section-title .oase-button-group li {
+padding: 4px 0;
+letter-spacing: normal;
+}
+.ond.ita-mode .oase-main-header .oase-button-group li::before,
+.ond.ita-mode .oase-section-title .oase-button-group li::before {
+content: '|';
+padding: 0 1em;
+color: #FFF;
+opacity: 0.3;
+}
+.ond.ita-mode .oase-main-header .oase-button-group li:first-child::before,
+.ond.ita-mode .oase-section-title .oase-button-group li:first-child::before {
+display: none;
+}
+.ond.ita-mode .oase-main-header .oase-button,
+.ond.ita-mode .oase-section-title .oase-button {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #FFF;
+  text-shadow: none;
+}
+.ond.ita-mode .oase-tab-table .oase-section-title .oase-button {
+color: #000;
+}
+.ond.ita-mode .oase-main-header .oase-button:hover,
+.ond.ita-mode .oase-section-title .oase-button:hover {
+  opacity: 0.8;
+}
+.ond.ita-mode .oase-main-header .oase-button em,
+.ond.ita-mode .oase-section-title .oase-button em {
+  padding: 0 0.5em 0 0;
+  border-right: none;
+  font-size: 1.2rem;
+}
+.ond.ita-mode .oase-main-header .oase-button span,
+.ond.ita-mode .oase-section-title .oase-button span {
+    padding: 0;
+    border-left: none;
+    font-size: 1rem;
+}
+.ond.ita-mode .oase-main-header .oase-button:active::after,
+.ond.ita-mode .oase-section-title .oase-button:active::after {
+    display: none;
+}
+.ond.ita-mode .oase-main-header .oase-button:disabled,
+.ond.ita-mode .oase-section-title .oase-button:disabled {
+  background-color: transparent!important;
+  opacity: 0.3;
+}
+.ond.ita-mode .oase-main-header .oase-button:disabled em,
+.ond.ita-mode .oase-section-title .oase-button:disabled em {
+  padding: 0 0.5em 0 0!important;
+  color: #FFF!important;
+}
+.ond.ita-mode .oase-main-header .oase-button:disabled span,
+.ond.ita-mode .oase-section-title .oase-button:disabled span {
+  padding: 0!important;
+  color: #FFF!important;
+}
+
+.ond.ita-mode .oase-section-title .oase-button.switch .on-off {
+  width: auto; height: auto;
+  margin-right: 0;
+  background-color: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.ond.ita-mode .oase-section-title .oase-button.switch.on .on-off {
+  background-color: transparent;
+}
+.ond.ita-mode .oase-section-title .oase-button.switch:active .on-off {
+  transform: none;
+}
+.ond.ita-mode .oase-section-title .oase-button.switch .on-off::after {
+  display: none;
+}
+.ond.ita-mode .oase-section-title .oase-button.on .on-off::after {
+  right: 25px;
+  background-color: transparent;
+}
+.ond.ita-mode .oase-section-title .oase-button.switch .on-off::before {
+  content: ':OFF';
+  display: inline;
+  position: static;
+  font-size: 1rem;
+  transform: none;
+  text-shadow: none;
+  font-weight: normal;
+  color: #FFF;
+}
+.ond.ita-mode .oase-section-title .oase-button.switch.on .on-off::before {
+  content: ':ON';
+}
+.ond.ita-mode .oase-section-title .oase-button-group .file-name {
+  color: #FFF;
+}
+.ond.ita-mode .division-2 section .sizeChange {
+  bottom: -8px; left: -8px;
+  height: 16px;
+}
+.ond.ita-mode .oase-polling.on .polling-interval {
+  background-image: linear-gradient( #000, #222 );
+}
+.ond.ita-mode .oase-polling.on .polling-interval-time {
+  background-image: repeating-linear-gradient( 45deg, #FF821E 0px, #FF821E 8px, #FF640A 9px, #FF640A 16px );
+}
+.ond.ita-mode .oase-polling.on .polling-interval-time::after {
+  background-image: linear-gradient( rgba( 255,255,255,0.4 ), transparent );
+}
+.ond.ita-mode .oase-modal .textarea .oase-modal-textarea.test-running::before {
+  background-image: linear-gradient( 90deg, #FF821E 0px, #FF821E 8px, #FF640A 9px, #FF640A 16px );
+}
+.ond.ita-mode .oase-modal-tab-menu button:hover,
+.ond.ita-mode .oase-modal-tab-menu button:focus {
+  background-image: linear-gradient( #FDFDFD, #E5EAEF );
+}
+.ond.ita-mode .oase-modal-tab-menu button.open {
+  background-image: linear-gradient( #E5EAEF, #FDFDFD );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* -------------------------------------------------- **
+
+  Dark mode thema
+
+** -------------------------------------------------- */
+
+.ond.dark-mode .oase-nav .active {
+  background: #111!important;
+}
+.ond.dark-mode .oase-header .oase-header-user,
+.ond.dark-mode .oase-modal h3,
+.ond.dark-mode .oase-config-header h3,
+.ond.dark-mode .oase-config-footer {
+  background-color: #333;
+  background-image: linear-gradient( #666, #444 );
+}
+.ond.dark-mode .oase-body,
+.ond.dark-mode .oase-main.config {
+  background-image: repeating-linear-gradient( 0deg, #222 0, #222 1px, #333 2px, #333 3px)!important;
+  background-color: #222;
+}
+.ond.dark-mode .oase-table-inner {
+  background-image: repeating-linear-gradient( 0deg, #333 0, #333 1px, #444 2px, #444 3px);
+  background-color: #333;
+}
+.ond.dark-mode .oase-table tbody .input .cell-inner input[type="text"],
+.ond.dark-mode .oase-table tbody .textarea .cell-inner textarea,
+.ond.dark-mode .oase-table tbody select,
+.ond.dark-mode .oase-table .oase-table-footer dd,
+.ond.dark-mode .oase-table .oase-table-footer input,
+.ond.dark-mode .oase-table .oase-table-footer select,
+.ond.dark-mode .oase-config-body input,
+.ond.dark-mode .oase-config-body select,
+.ond.dark-mode .oase-table .blank .cell-inner::after,
+.ond.dark-mode .oase-modal-table .blank .cell-inner::after,
+.ond.dark-mode .oase-config-body table.authority-table .blank .cell-inner::after,
+.ond.dark-mode .oase-modal .oase-modal-table .authority-table .radio::before,
+.ond.dark-mode .oase-modal-tab-main,
+.ond.dark-mode .oase-datepicker table.form input,
+.ond.dark-mode .oase-datepicker table.form select {
+  background-color: #000;
+}
+.ond.dark-mode .oase-table tbody tr,
+.ond.dark-mode .oase-tab-table .oase-tab-menu,
+.ond.dark-mode .oase-table .oase-table-footer dt,
+.ond.dark-mode .oase-config-menu a,
+.ond.dark-mode .oase-datepicker-calender-body td.off {
+  background-color: #222;
+}
+.ond.dark-mode .oase-table tbody tr:nth-of-type(even),
+.ond.dark-mode .oase-table .oase-table-footer ul,
+.ond.dark-mode .oase-modal .oase-modal-table-footer,
+.ond.dark-mode .oase-modal .oase-modal-textarea-footer,
+.ond.dark-mode .oase-tab-table .oase-tab-menu a,
+.ond.dark-mode .oase-config-body label span,
+.ond.dark-mode .oase-modal .oase-modal-table .authority-table .radio::after,
+.ond.dark-mode .oase-layout-change-menu label:hover,
+.ond.dark-mode .oase-layout-change-menu input:checked ~ label,
+.ond.dark-mode .oase-polling button:hover,
+.ond.dark-mode .oase-modal-block-tab-menu button {
+  background-color: #333;
+}
+.ond.dark-mode .oase-footer p,
+.ond.dark-mode .oase-table thead .cell-inner,
+.ond.dark-mode .oase-config-main section,
+.ond.dark-mode .oase-config-menu a.open,
+.ond.dark-mode .overflowMenu .oase-section-title-menu,
+.ond.dark-mode .oase-config-body label input:disabled,
+.ond.dark-mode .oase-datepicker {
+  background-color: #444!important;
+}
+.ond.dark-mode .oase-table thead th.sort .cell-inner:hover,
+.ond.dark-mode .oase-config-body td,
+.ond.dark-mode .oase-config-body label input:disabled ~ span {
+  background-color: #555;
+}
+.ond.dark-mode .oase-config-body th {
+  background-color: #666;
+}
+.ond.dark-mode .oase-datepicker-calender-body th,
+.ond.dark-mode .oase-datepicker table.form th {
+  background-color: #008486;
+}
+.ond.dark-mode .oase-dashboard-login-user,
+.ond.dark-mode .oase-dashboard-list > li,
+.ond.dark-mode .oase-main-header,
+.ond.dark-mode .none .oase-main-body .oase-none,
+.ond.dark-mode .oase-main-body.full-table .oase-none,
+.ond.dark-mode .division-2 .oase-main-body .oase-none,
+.ond.dark-mode .oase-section-title {
+  background-color: rgba( 255,255,255,0.1 );
+}
+.ond.dark-mode .oase-dashboard-title,
+.ond.dark-mode .oase-section-title,
+.ond.dark-mode .oase-modal h3,
+.ond.dark-mode .oase-config-header h3 {
+  border-color: #333;
+  border-top-color: #008486;
+}
+.ond.dark-mode .oase-main-title h1,
+.ond.dark-mode .oase-table tbody .input .cell-inner input[type="text"],
+.ond.dark-mode .oase-table tbody .textarea .cell-inner textarea,
+.ond.dark-mode .oase-table tbody select,
+.ond.dark-mode .oase-table .oase-table-footer ul,
+.ond.dark-mode .oase-table .oase-table-footer dt,
+.ond.dark-mode .oase-table .oase-table-footer dd,
+.ond.dark-mode .oase-table .oase-table-footer input,
+.ond.dark-mode .oase-modal .oase-modal-table-footer,
+.ond.dark-mode .oase-modal .oase-modal-textarea-footer,
+.ond.dark-mode .oase-config-main,
+.ond.dark-mode .oase-config-footer,
+.ond.dark-mode .oase-config-menu ul,
+.ond.dark-mode .oase-config-menu a.open,
+.ond.dark-mode .oase-config-body input,
+.ond.dark-mode .oase-config-body select,
+.ond.dark-mode .oase-config-body table,
+.ond.dark-mode .oase-config-body th,
+.ond.dark-mode .oase-config-body td,
+.ond.dark-mode .oase-config-body label span,
+.ond.dark-mode .overflowMenu .oase-section-title-menu,
+.ond.dark-mode .oase-modal .oase-modal-table .authority-table .radio::before,
+.ond.dark-mode .oase-modal-tab-menu button,
+.ond.dark-mode .division-vertical2 .oase-main-body section,
+.ond.dark-mode .oase-datepicker,
+.ond.dark-mode .oase-datepicker-calender-body th,
+.ond.dark-mode .oase-datepicker-calender-body td,
+.ond.dark-mode .oase-datepicker table.form input,
+.ond.dark-mode .oase-datepicker table.form select,
+.ond.dark-mode .oase-config-body table.authority-table th,
+.ond.dark-mode .oase-config-body table.authority-table td {
+  border-color: #111;
+}
+.ond.dark-mode .oase-config-menu a {
+  border-color: #222;
+}
+.ond.dark-mode .oase-dashboard-login-user,
+.ond.dark-mode .oase-dashboard-list > li,
+.ond.dark-mode .none .oase-main-body .oase-none,
+.ond.dark-mode .oase-main-body.full-table .oase-none,
+.ond.dark-mode .division-2 .oase-main-body .oase-none,
+.ond.dark-mode .oase-tab-table .oase-tab-menu a,
+.ond.dark-mode .oase-modal-block-tab-menu button,
+.ond.dark-mode .oase-datepicker table.form th,
+.ond.dark-mode .oase-datepicker table.form td,
+.ond.dark-mode .oase-polling.on .polling-interval {
+  border-color: #555;
+}
+.ond.dark-mode .oase-table table,
+.ond.dark-mode .oase-modal-rule-table table {
+  background-color: #000;
+}
+.ond.dark-mode .oase-table th,
+.ond.dark-mode .oase-modal-rule-table th,
+.ond.dark-mode .drag-move td {
+  box-shadow: 0 0 0 1px #000;
+}
+.ond.dark-mode .oase-dashboard-title {
+  background-image: linear-gradient( #666, #444 );
+}
+/* color */
+.ond.dark-mode .oase-dashboard-login-user,
+.ond.dark-mode .oase-table thead .cell-inner,
+.ond.dark-mode .oase-table tbody .input .cell-inner input[type="text"],
+.ond.dark-mode .oase-table tbody .textarea .cell-inner textarea,
+.ond.dark-mode .oase-table tbody select,
+.ond.dark-mode .oase-table .oase-table-footer select,
+.ond.dark-mode .oase-table tbody option,
+.ond.dark-mode .oase-table .oase-table-footer option,
+.ond.dark-mode .oase-button-group .file-name,
+.ond.dark-mode .oase-header .oase-header-user dt span,
+.ond.dark-mode .oase-main-title h1,
+.ond.dark-mode .oase-main-title .oase-main-description,
+.ond.dark-mode .oase-footer p,
+.ond.dark-mode .oase-dashboard-title,
+.ond.dark-mode .oase-dashboard-title em,
+.ond.dark-mode .oase-dashboard-list dt em,
+.ond.dark-mode .oase-dashboard-list dt > span > span,
+.ond.dark-mode .oase-table tbody .cell-inner,
+.ond.dark-mode .oase-section-title .oase-section-title-table h2,
+.ond.dark-mode .oase-table .oase-table-footer ul,
+.ond.dark-mode .oase-table .oase-table-footer select
+.ond.dark-mode .oase-table .oase-table-footer option,
+.ond.dark-mode .oase-table .oase-table-footer input,
+.ond.dark-mode .oase-modal h3,
+.ond.dark-mode .oase-modal-tab-menu button,
+.ond.dark-mode .oase-config-header h3,
+.ond.dark-mode .oase-tab-table .oase-tab-menu a,
+.ond.dark-mode .oase-config-body h4,
+.ond.dark-mode .oase-config-body p,
+.ond.dark-mode .oase-config-body ul,
+.ond.dark-mode .oase-config-body input,
+.ond.dark-mode .oase-config-body select,
+.ond.dark-mode .oase-config-body option,
+.ond.dark-mode .oase-config-body th,
+.ond.dark-mode .oase-config-body td,
+.ond.dark-mode .oase-config-body label span,
+.ond.dark-mode .oase-config-menu a,
+.ond.dark-mode .oase-modal-block-tab-menu button,
+.ond.dark-mode .oase-datepicker table.form input,
+.ond.dark-mode .oase-datepicker table.form select,
+.ond.dark-mode .oase-footer .oase-polling.on em {
+  color: #CCC;
+}
+.ond.dark-mode .oase-header .oase-header-user dt em {
+  color: #AAA;
+}
+.ond.dark-mode .oase-config-body label input:disabled,
+.ond.dark-mode .oase-config-body label input:disabled ~ span {
+  color: #666!important;
+}
+.ond.dark-mode .oase-modal-block-tab-menu ul {
+  border-color: #008486;
+}
+.ond.dark-mode .oase-modal-block-tab-menu button.open {
+  background-color: #008486;
+  border-color: #008486;
+}
+.ond.dark-mode .during-build {
+  background-image: linear-gradient( 90deg, #A00 0px, #A00 8px, #800 9px, #800 16px );
+  border-color: #600;
+  box-shadow: 0 0 16px #F00;
+  color: #FFF;
+}
+.ond.dark-mode .oase-modal .textarea .oase-modal-textarea.test-running::before {
+  background-image: linear-gradient( 90deg, #A00 0px, #A00 8px, #800 9px, #800 16px );
+  border-color: #600;
+  box-shadow: 0 0 16px #F00;
+}
+.ond.dark-mode .oase-polling.on .polling-interval {
+  background-image: linear-gradient( #000, #222 );
+}
+.ond.dark-mode .oase-polling.on .polling-interval-time {
+  background-image: repeating-linear-gradient( 45deg, #A00 0px, #A00 8px, #800 9px, #800 16px );
+  animation: pollingBar 0.3s infinite linear;
+}
+.ond.dark-mode .oase-polling.on .polling-interval-time::after {
+  background-image: linear-gradient( rgba( 255,255,255,0.4 ), transparent );
+}
+.ond.dark-mode .config-switch-input:checked ~ .config-switch-label {
+  background-color: #A00;
+  border-color: #800;
+}
+.ond.dark-mode .oase-button.switch.on .on-off {
+  background-color: #A00;
+}
+/* スクロールバー */
+.ond.dark-mode {
+  scrollbar-face-color: #444;
+  scrollbar-track-color: #111;
+  scrollbar-arrow-color: #333;
+  scrollbar-highlight-color: #111;
+  scrollbar-shadow-color: #111;
+  scrollbar-3dlight-color: #111;
+  scrollbar-darkshadow-color: #111;
+}
+.ond.dark-mode ::-webkit-scrollbar {}
+.ond.dark-mode ::-webkit-scrollbar-track {
+  background-color: #222;
+}
+.ond.dark-mode ::-webkit-scrollbar-thumb {
+  background-color: #444;
+  border: 1px solid #222;
+}
+/* その他 */
+.ond.dark-mode .error {
+  background-color: #411!important;
+}
+.ond.dark-mode .oase-table tbody tr:hover th.status,
+.ond.dark-mode .oase-table tbody tr:hover{
+  background-color: #442!important;
+}
+.ond.dark-mode .oase-table tbody tr:hover th,
+.ond.dark-mode .oase-table tbody tr:hover td {
+  background-color: #441;
+}
+.ond.dark-mode .oase-table tbody .attention .status {
+  background-color: #FF640A;
+}
+.ond.dark-mode .oase-table tbody .complete .status {
+  background-color: #60C60D;
+}
+.ond.dark-mode .oase-table tbody .error .status {
+  background-color: #FF0000;
+}
+.ond.dark-mode .oase-table tbody .running .status {
+  background-color: #002B62;
+}
+.ond.dark-mode .oase-table tbody .stop .status {
+  background-color: #8A2BE2;
+}
+.ond.dark-mode .oase-table tbody .addressed .status  {
+  background-color: #333;
+}
+.ond.dark-mode .oase-table tbody .warning .status {
+  background-color: #990;
+}
+.ond.dark-mode .oase-table tbody .status .cell-inner {
+  color: rgba( 255,255,255,0.8 );
+}
+.ond.dark-mode .oase-main .oase-rule-staging .oase-section-title {
+  border-top-color: #A00;
+}
+.ond.dark-mode .oase-rule-staging,
+.ond.dark-mode .oase-rule-production {
+  background-color: transparent;
+}
+.ond.dark-mode input.change-value,
+.ond.dark-mode select.change-value,
+.ond.dark-mode textarea.change-value {
+  background-color: #1B4A00!important;
+  color: #EEE!important;
+}
+.ond.dark-mode .oase-config-body label input.change-value ~ span {
+  background-color: #2B6D00!important;
+}
+.ond.dark-mode .oase-modal .oase-modal-table .authority-table input[type="radio"].change-value ~ .radio::after {
+  background-color: #1B4A00!important;
+}
+.ond.dark-mode .oase-tab-table .oase-tab-menu a.open {
+  background-color: #008486;
+  border-color: #008486;
+  color: #EEE;
+}
+/* modal */
+.ond.dark-mode .oase-modal-header,
+.ond.dark-mode .oase-modal .oase-modal-table .authority-table thead th{
+  background-color: #555;
+}
+.ond.dark-mode .oase-modal-body,
+.ond.dark-mode .oase-modal-tab-menu button.open {
+  background-image: repeating-linear-gradient( 0deg, #333 0, #333 1px, #444 2px, #444 3px);
+  background-color: #333;
+}
+.ond.dark-mode .oase-modal-footer {
+  background-color: #444;
+}
+.ond.dark-mode .oase-modal-content,
+.ond.dark-mode .oase-modal-body,
+.ond.dark-mode .oase-modal-footer {
+  border-color: #555;
+}
+.ond.dark-mode .oase-modal .table .oase-modal-table-inner,
+.ond.dark-mode .oase-modal .table .oase-modal-rule-table-inner {
+  background-color: #222;
+  background-image: none;
+}
+.ond.dark-mode .oase-modal .oase-modal-table th,
+.ond.dark-mode .oase-modal-rule-table th {
+  background-color: #444;
+}
+.ond.dark-mode .oase-modal .oase-modal-table td,
+.ond.dark-mode .oase-modal-rule-table td {
+  background-color: #333;
+}
+.ond.dark-mode .oase-modal-table .blank,
+.ond.dark-mode .oase-config-body table.authority-table .blank {
+  background-color: #2D2D2D!important;
+}
+.ond.dark-mode .oase-modal .oase-modal-table th,
+.ond.dark-mode .oase-modal .oase-modal-table td,
+.ond.dark-mode .oase-modal-rule-table th,
+.ond.dark-mode .oase-modal-rule-table td {
+  border-color: #000;
+  color: #CCC;
+}
+.ond.dark-mode .oase-modal-overlay {
+  background-color: rgba( 0, 0, 0, 0.75 );
+}
+.ond.dark-mode .oase-modal input,
+.ond.dark-mode .oase-modal select,
+.ond.dark-mode .oase-modal textarea {
+  background-color: #000;
+  border-color: #111;
+  color: #CCC;
+}
+.ond.dark-mode .oase-modal-tab-menu button {
+  background-image: none;
+  background-color: #111;
+  border: none;
+}
+.ond.dark-mode .oase-modal-tab-menu button:hover {
+  background-color: #333;
+}
+.ond.dark-mode .oase-modal-tab-menu li:last-child button {
+  border: none;
+}
+/* -------------------------------------------------- *
+*
+*    Mini Button
+*
+* -------------------------------------------------- */
+.ond.dark-mode .oase-mini-button,
+.ond.dark-mode .oase-table .oase-table-footer button,
+.ond.dark-mode .oase-datepicker-calender-body .num,
+.ond.dark-mode .oase-datepicker table.form button {
+  background-color: #999;
+  background-image: linear-gradient( #777, #444 );
+  border-color: #444;
+  box-shadow: 0 2px 2px 0 rgba( 0,0,0,0.6 ), 0 1px 0 1px rgba( 255,255,255,0.05 ) inset;
+  text-shadow: 0 1px 1px rgba( 255,255,255,0.2 ), 0 -1px 1px rgba( 0,0,0,0.8 );
+  color: #DDD;
+}
+.ond.dark-mode .oase-datepicker-calender-body td.today span,
+.ond.dark-mode .oase-datepicker-calender-body span.select-date {
+  border-color: #009093;
+}
+.ond.dark-mode .oase-mini-button em {
+  color: #DDD;
+}
+.ond.dark-mode .oase-mini-button span {
+  color: #DDD;
+}
+.ond.dark-mode .oase-mini-button:hover,
+.ond.dark-mode .oase-table .oase-table-footer button:hover {
+  color: #BBB;
+}
+.ond.dark-mode .oase-mini-button:active,
+.ond.dark-mode .oase-table .oase-table-footer button:active {
+  background-image: linear-gradient( #888, #555 );
+  box-shadow: 0 0 4px rgba( 0,0,0,0.6 ) inset;
+  border-color: #333;
+}
+/* -------------------------------------------------- *
+*
+*    Button
+*
+* -------------------------------------------------- */
+.ond.dark-mode .oase-button,
+.ond.dark-mode .oase-button-set {
+  border-color: #444;
+  background-color: #999;
+  background-image: linear-gradient( #777, #444 );
+  box-shadow: 0 2px 2px 0 rgba( 0,0,0,0.6 ), 0 1px 0 1px rgba( 255,255,255,0.05 ) inset;
+  text-shadow: 0 1px 1px rgba( 255,255,255,0.2 ), 0 -1px 1px rgba( 0,0,0,0.8 );
+  color: #DDD;
+}
+.ond.dark-mode .oase-button-set::after {
+  border-color: #444;
+}
+.ond.dark-mode .oase-button-set .oase-button {
+  border-color: #777;
+}
+.ond.dark-mode .oase-button em,
+.ond.dark-mode .oase-button-set em {
+  border-color: #777;
+}
+.ond.dark-mode .oase-button span {
+  border-color: #444;
+}
+.ond.dark-mode .oase-button:hover,
+.ond.dark-mode .oase-button:focus {
+  background-image: linear-gradient( #888, #555 );
+  color: #EEE;
+}
+.ond.dark-mode .oase-button:hover em,
+.ond.dark-mode .oase-button:focus em {
+  border-color: #888;
+}
+.ond.dark-mode .oase-button:hover span,
+.ond.dark-mode .oase-button:focus span {
+  border-color: #555;
+}
+.ond.dark-mode .oase-button:active {
+  background-image: linear-gradient( #888, #555 );
+  border-color: #333;
+  box-shadow: none;
+}
+.ond.dark-mode .oase-button:active::after {
+  box-shadow: 0 4px 6px 0 rgba( 0,0,0,0.7 ) inset;
+}
+.ond.dark-mode .oase-button:active em {
+  border-color: #6A6A6A;
+}
+.ond.dark-mode .oase-button:active span {
+  border-color: #555;
+}
+.ond.dark-mode .oase-button.switch .on-off {
+  border-color: #666;
+}
+.ond.dark-mode .oase-button.disabled,
+.ond.dark-mode .oase-mini-button.disabled,
+.ond.dark-mode .oase-button:disabled,
+.ond.dark-mode .oase-button:disabled:hover,
+.ond.dark-mode .oase-button:disabled:focus,
+.ond.dark-mode .oase-button:disabled:active,
+.ond.dark-mode .oase-mini-button:disabled,
+.ond.dark-mode .oase-mini-button:disabled:hover,
+.ond.dark-mode .oase-mini-button:disabled:focus,
+.ond.dark-mode .oase-mini-button:disabled:active {
+  background-color: #333!important;
+  border-color: #444!important;
+}
+.ond.dark-mode .oase-button.disabled em,
+.ond.dark-mode .oase-button:disabled em,
+.ond.dark-mode .oase-button:disabled:hover em,
+.ond.dark-mode .oase-button:disabled:focus em,
+.ond.dark-mode .oase-button:disabled:active em {
+  color: #444!important;
+  border-color: #444!important;
+}
+.ond.dark-mode .oase-mini-button.disabled span,
+.ond.dark-mode .oase-mini-button:disabled span,
+.ond.dark-mode .oase-mini-button:disabled:hover span,
+.ond.dark-mode .oase-mini-button:disabled:focus span,
+.ond.dark-mode .oase-mini-button:disabled:active span {
+  color: #444!important;
+  border-color: #333!important;
+}
+.ond.dark-mode .oase-mini-button.disabled em,
+.ond.dark-mode .oase-mini-button:disabled em,
+.ond.dark-mode .oase-mini-button:disabled:hover em,
+.ond.dark-mode .oase-mini-button:disabled:focus em,
+.ond.dark-mode .oase-mini-button:disabled:active em {
+  color: #444!important;
+  border-color: #444!important;
+}
+.ond.dark-mode .oase-button.disabled span,
+.ond.dark-mode .oase-button:disabled span,
+.ond.dark-mode .oase-button:disabled:hover span,
+.ond.dark-mode .oase-button:disabled:focus span,
+.ond.dark-mode .oase-button:disabled:active span {
+  color: #444!important;
+  border-color: #333!important;
+}
+.ond.dark-mode .oase-button:disabled .file-name {
+  color: #444!important;
+}
+/* -------------------------------------------------- *
+*
+*    Tooltip
+*
+* -------------------------------------------------- */
+.ond.dark-mode .oase-tooltip,
+.ond.dark-mode .oase-tooltip-input,
+.ond.dark-mode .oase-word-count {
+  color: #CCC;
+}
+.ond.dark-mode .oase-tooltip-input {
+  background-color: #000;
+  border-color: #666;
+  color: #CCC;
+  box-shadow: 0 2px 2px rgba( 0,0,0,0.6 );
+}
+.ond.dark-mode .oase-tooltip-input .oase-tooltip-text {
+  border-top-color: #666;
+}
+.ond.dark-mode .oase-tooltip .oase-tooltip-arw {
+  border-top: 4px solid #111;
+}
+.ond.dark-mode .oase-tooltip.bottom .oase-tooltip-arw {
+  border-bottom: 4px solid #111;
+}
+.ond.dark-mode .oase-word-count {
+  background-color: #000;
+  border-color: #666;
+  box-shadow: 0 -2px 2px rgba( 0,0,0,0.6 );
+  color: #CCC;
+}
+/* -------------------------------------------------- *
+ *
+ *    フィルターメニュー
+ *
+ * -------------------------------------------------- */
+.ond.dark-mode .oase-filter-menu .oase-filter-tab-menu {
+  background-color: #444;
+  border-color: #444;
+}
+.ond.dark-mode .oase-filter-menu .oase-filter-tab-menu a {
+  background-color: #444;
+  border-right: 1px solid #444;
+  color: #DDD;
+}
+.ond.dark-mode .oase-filter-menu .oase-filter-tab-menu a:hover {
+  background-color: #666;
+}
+.ond.dark-mode .oase-filter-menu .oase-filter-tab-menu a.selected {
+  background-color: #555;
+}
+.ond.dark-mode .oase-filter-menu .oase-filter-tab-body {
+  background-color: #444;
+}
+.ond.dark-mode .oase-table .oase-filter-menu .filter-text input[type="text"],
+.ond.dark-mode .oase-table .oase-filter-menu .filter-date input {
+  background-color: #000;
+  border-color: #444;
+  color: #DDD;
+}
+.ond.dark-mode .oase-table .oase-filter-menu .filter-date dl {
+  border-color: #444;
+}
+.ond.dark-mode .oase-table .oase-filter-menu .filter-date dt {
+  background-color: #444;
+  border-color: #444;
+  color: #DDD;
+}
+.ond.dark-mode .oase-table .oase-filter-menu .filter-date select {
+  background-color: #000;
+  border-color: #444;
+  color: #DDD;
+}
+.ond.dark-mode .oase-table .oase-filter-menu button {
+  background-color: #888;
+  border-color: #111;
+}
+.ond.dark-mode .oase-table .oase-filter-menu button:hover {
+  background-color: #999;
+}
+.ond.dark-mode .oase-table .oase-filter-menu .filter-text li label {
+  background-color: #666;
+  border-color: #111;
+  color: #DDD;
+}
+.ond.dark-mode .oase-table .oase-filter-menu .filter-text li label:hover {
+  background-color: #777;
+}
+.ond.dark-mode .oase-table .oase-filter-menu .filter-text li label.disabled {
+  background-color: #333;
+  color: #666;
+}
+.ond.dark-mode .oase-table .filter-select select {
+  border-color: #333;
+  background-color: #000;
+}
+.ond.dark-mode  .overflowMenu .oase-section-title-menu {
+  box-shadow: 0 0 16px rgba( 0,0,0,0.8 );
+}
+
+.ond.dark-mode .oase-table .oase-filter-menu input:focus,
+.ond.dark-mode .oase-table .oase-filter-menu select:focus {
+  background-color: #330;
+}
+.ond.dark-mode .oase-table .oase-filter-menu select option {
+  color: #DDD;
+}
+/*
+
+Radioボタンセット
+
+*/
+.ond.dark-mode .oase-config-body .radio-set,
+.ond.dark-mode .oase-config-body .radio-set li {
+  border-color: #444;
+}
+.ond.dark-mode .oase-config-body .radio-set label {
+  background-image: linear-gradient( #777, #444 );
+  box-shadow: 0 2px 2px 0 rgba( 0,0,0,0.6 ), 0 1px 0 1px rgba( 255,255,255,0.05 ) inset;
+  color: #DDD;
+}
+.ond.dark-mode .oase-config-body .radio-set label:hover {
+  background-image: linear-gradient( #888, #555 );
+}
+.ond.dark-mode .oase-config-body .radio-set input:checked ~ label {
+  background-image: linear-gradient( #333, #444 );
+  box-shadow: 0 1px 3px 0 rgba( 0,0,0,0.8 ) inset;
+  color: #EEE;
+}
+
+.ond.dark-mode .oase-config-body .range::after {
+background-color: #000;
+}
+.ond.dark-mode .oase-config-body .range .lower {
+background-color: #600;
+}
+
+/* Chrome */
+.ond.dark-mode .oase-config-body .range ::-webkit-slider-thumb {
+-webkit-appearance: none;
+background-color: #FFF;
+background-image: linear-gradient(#FFF,#EFEFEF);
+border: 2px solid #CCC;
+}
+/* Firefox */
+.ond.dark-mode .oase-config-body .range ::-moz-range-thumb {
+background-color: #FFF;
+background-image: linear-gradient(#FFF,#EFEFEF);
+border: 2px solid #CCC;
+}
+/* IE11 */
+.ond.dark-mode .oase-config-body .range ::-ms-thumb {
+background-color: #FFF;
+background-image: linear-gradient(#FFF,#EFEFEF);
+border: 2px solid #CCC;
+}
+
+
+.ond.dark-mode .oase-modal-rule-table td.move:hover {
+background-color: #444;
+}
+.ond.dark-mode .authority-group-list {
+border-color: #000;
+}
+.ond.dark-mode .authority-group-list dt {
+background-image: linear-gradient( #444,#333);
+border-color: #000;
+color: #DDD;
+}
+.ond.dark-mode .authority-group-list dt:hover {
+background-image: linear-gradient( #555,#444);
+}
+.ond.dark-mode .rule-authority em {
+border-color: #000;
+box-shadow: 0 0 0 1px #555;
+}
+.ond.dark-mode .oase-modal-rule-table-footer,
+.ond.dark-mode .authority-group-list dd {
+background-color: #333;
+border-color: #000;
+}
+.ond.dark-mode .authority-table .level1 em {
+color: #1E80FF;
+}
+.ond.dark-mode .rule-authority em.level1,
+.ond.dark-mode .oase-modal .oase-modal-table .authority-table .level1 input[type="radio"]:checked ~ .radio::after {
+background-color: #1E80FF;
+}

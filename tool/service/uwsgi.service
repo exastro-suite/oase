@@ -1,0 +1,16 @@
+[Unit]
+Description=uWSGI
+After=syslog.target network.target mysqld.service
+
+[Service]
+ExecStart=/usr/bin/uwsgi --ini /home/centos/OASE/oase-root/uwsgi.ini
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -INT $MAINPID
+Restart=always
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target
+

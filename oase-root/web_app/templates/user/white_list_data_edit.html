@@ -1,0 +1,65 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+<table id="white_list">
+  <thead class="user-data-head">
+    <tr>
+      <th class="error-icon-area" style="display:none;"></th>{# エラー表示用 #}
+      <th class="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00030' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="address input"><div class="cell-inner">{% get_message 'MOSJA00027' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+      <th class="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="add-modified date"><div class="cell-inner">{% get_message 'MOSJA00029' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="row-delete"><div class="cell-inner"><em class="owf owf-cross"></em><span class="tooltip help" title="{% get_message 'MOSJA00031' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+    </tr>
+
+  </thead>
+  <tbody id="white_list_data" class="list user-data-body">
+    {% for white in white_list %}
+    <tr id="{{white.white_list_id}}">
+      <td class="error-icon-area" style="display:none;"></td>
+      <td class="operation-menu"><div class="cell-inner"><div class="select">
+        <select class="update" id="selModify{{white.white_list_id}}">
+          <option value="{{opelist_non.v}}" selected>{{opelist_non.k}}</option>
+          <option value="{{opelist_up.v}}" >{{opelist_up.k}}</option>
+          <option value="{{opelist_del.v}}" >{{opelist_del.k}}</option>
+        </select>
+      </div></div></td>
+      <td class="address input"><div class="cell-inner"><input type="text" data-type="ip" id="ipaddr{{white.white_list_id}}" value="{{white.ipaddr}}" class="validation-input"></div></td>
+      <td class="last-update-user"><div class="cell-inner">{{white.upd_user}}</div></td>
+      <td class="add-modified"><div class="cell-inner"><time datetime="{{ white.updated|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{white.updated|timezone:'Asia/Tokyo'}}</time></div></td>
+      <td class="row-delete blank"><div class="cell-inner"></div></td>
+    </tr>
+    {% endfor %}
+    <tr id="white_list_dummy" class="filter-hide-list" style="display:none;">
+      <td class="error-icon-area" style="display:none;"></td>
+      <td class="operation-menu blank"><div class="cell-inner""><select id="" style="display:none;" selected><option value="1"></option></select></div></td>
+      <td class="address input"><div class="cell-inner"><input type="text" id="" data-type="ip" value="" class="validation-input"></div></td>
+      <td class="last-update-user blank"><div class="cell-inner"></div></td>
+      <td class="add-modified blank"><div class="cell-inner"></div></td>
+      <td class="row-delete"><div class="cell-inner"><button class="oase-mini-button" onClick="tableRowRemove( this );"><em class="owf owf-cross"></em></button></div></td>
+    </tr>
+  </tbody>
+</table>
+
+{% if not white_list|length %}
+<script type="text/javascript">
+<!--
+addList('white_list_data','white_list_dummy');
+-->
+</script>
+{% endif %}
