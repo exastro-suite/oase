@@ -1,0 +1,248 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load common %}
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <!-- <h1>リクエスト履歴</h1> -->
+            <h1>{% get_message 'MOSJA36001' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+
+      <section>
+        {% if table_list %}
+        <div class="oase-table">
+          <div class="oase-table-load loading">
+            <div class="oase-table-loader-inner">
+              <em class="owf owf-update"></em>
+            </div>
+          </div>
+          
+          <div class="oase-table-inner">
+            <table class="oase-filter oase-sort">
+              <thead><!-- カラムタイトル ここから -->
+                <tr>
+                  <th class="status filter sort" filter-label="status" filter-type="select">
+                    <!-- <div class="cell-inner">状態</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36003' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="request-type filter sort" filter-label="request-type" filter-type="common">
+                     <!-- <div class="cell-inner">リクエスト種別</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36004' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="rule-type filter sort" filter-label="rule-type" filter-type="common">
+                     <!-- <div class="cell-inner">ルール種別</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36005' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="request-reception-date filter sort" filter-label="request-reception-date" filter-type="date">
+                    <!-- <div class="cell-inner">リクエスト受信日時</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36006' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="event-information filter sort" filter-label="event-information" filter-type="common">
+                    <!-- <div class="cell-inner">イベント情報</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36007' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="event-date filter sort" filter-label="event-date" filter-type="date">
+                    <!-- <div class="cell-inner">イベント発生日時</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36008' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="trace-id filter sort" filter-label="trace-id" filter-type="common">
+                    <!-- <div class="cell-inner">トレースID</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36009' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                </tr>
+              </thead><!-- カラムタイトル ここまで -->
+
+              <tbody><!-- テーブルデータ表示 ここから -->
+              {% for history in table_list %}
+              <tr class="{{ history.class_info.status }}">
+                <th class="status">
+                  <div class="cell-inner">
+                      <span class="tooltip">
+                        <em class="owf {{ history.class_info.name }}"></em>
+                        <span>{{ history.class_info.description }}</span>
+                      </span>
+                  </div>
+                </th>
+                <td class="request-type">
+                  <div class="cell-inner">{{ history.request_name }}</div>
+                </td>
+                <td class="rule-type">
+                  <div class="cell-inner">{{ history.rule_name }}</div>
+                </td>
+                <td class="request-reception-date">
+                  <div class="cell-inner">
+                    <time datetime="{{ history.request_reception_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ history.request_reception_time|timezone:'Asia/Tokyo' }}</time>
+                  </div>
+                </td>
+                <td class="event-information">
+                  <div class="cell-inner">{{ history.event_info }}</div>
+                </td>
+                <td class="event-date">
+                  <div class="cell-inner">
+                    <time datetime="{{ history.event_to_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ history.event_to_time|timezone:'Asia/Tokyo' }}</time>
+                  </div>
+                </td>
+                <td class="trace-id">
+                  <div class="cell-inner">{{ history.trace_id }}</div>
+                </td>
+              {% endfor %}
+              </tbody><!-- テーブルデータ表示 ここまで -->
+            </table>
+          </div><!-- /.oase-table-inner -->
+
+
+          <div class="oase-table-footer">
+            <ul class="button-group">
+              <li>
+                <dl>
+                  <!-- <dt>件数</dt> -->
+                  <dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt>
+                  <dd class="rowCount">0</dd>
+                </dl>
+              </li>
+              <li>
+                <dl>
+                  <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+                  <dd>
+                    <select class="rowShowNum">
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50" selected>50</option>
+                      <option value="100">100</option>
+                      
+                    </select>
+                  </dd>
+                </dl>
+              </li>
+
+              <li>
+                <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                <input class="pagingNow" type="text"> / <span class="pagingMax">0</span>
+                <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+              </li>
+
+              <li>
+                <button class="scrollTop button tooltip">
+                  <em class="owf owf-up-on"></em>
+                  <!-- <span>最上部へ移動</span> -->
+                  <span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="scrollBottom button tooltip">
+                  <em class="owf owf-down-on"></em>
+                  <!-- <span>最下部へ移動</span> -->
+                  <span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="colToggle button tooltip">
+                  <em class="owf owf-square"></em>
+                  <!-- <span>列表示・非表示</span> -->
+                  <span>{% get_message 'MOSJA36010' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+                <div class="collToggleList"></div>
+                <style class="collToggleStyle"></style>
+              </li>
+            </ul>
+          </div><!-- /."oase-table-footer -->
+        </div><!-- /.oase-table -->
+        <script>
+        $(function(){
+
+
+        $('.colToggle').on('click', function(){
+
+          if( $(this).is('.on') ) {
+        $( this ).removeClass('on');
+
+        $('.collToggleList').html('');
+        $('.collToggleStyle').html('');
+
+          } else {
+
+          $( this ).addClass('on');
+
+          let colListHTML = '<ul>';
+          $( this ).closest('.oase-table').find('.oase-table-inner thead').eq(0).find(' .cell-inner').each( function( i ){
+            colListHTML += '<li><input class="ignore-change-value" type="checkbox" name="colList' + i + '" value="' + $( this ).closest('th').attr('filter-label') + '" checked>' + $( this ).text() + '</li>';
+          });
+          colListHTML += '</ul>';
+          $('.collToggleList').html( colListHTML );
+          $('.collToggleList').find('input').on('change', function(){
+            let collToggleStyle = '';
+            $('.collToggleList').find('input').each(function(){
+              if( !$( this ).prop('checked') ) {
+                collToggleStyle += '.' + $( this ).val() + '{display:none;}';
+              }
+            });
+            $('.collToggleStyle').html( collToggleStyle );
+            $( window ).resize();
+          });
+          }
+        });
+
+
+        });
+        </script>
+        <style>
+
+        .collToggleList ul {
+        position: fixed;
+        height: auto!important;
+        z-index: 99999999999;
+        top: 0;
+        left: 0;
+        }
+        .collToggleList ul li {
+        display: block!important;
+        }
+
+        </style>
+
+
+        {% else %}
+        <div class="oase-none">
+          <!-- <p>リクエスト履歴はありません。</p> -->
+          <p>{% get_message 'MOSJA36002' request.user.get_lang_mode showMsgId=False %}</p>
+        </div><!-- /.oase-none -->
+        {% endif %}
+      </section>
+      <div class="oase-confirm-overlay"></div>
+
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+
+{% endblock %}

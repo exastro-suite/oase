@@ -1,0 +1,295 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript" src="{% static "vendor/jquery/js/list.min.js" %}" charset="UTF-8"></script>
+<script type="text/javascript">
+<!--
+var driverDic = [];
+{% for some_driver in driver_list %}
+driverDic[{{ some_driver.driver_id }}] = "{{ some_driver.name }}";
+{% endfor %}
+
+$(function(){
+// ページ遷移の警告を出さないようにする
+    beforeunloadThroughFlag = true;
+});
+
+function actionModalClear(selector)
+{
+    var $targetModal = $(selector);
+
+    var $elements = $targetModal.find('input:not([name^=csrf])');
+
+    $elements.each(function(index, element) {
+        element.value = "";
+    });
+
+    var $selectObj = $targetModal.find('select');
+    $selectObj.prop("selectedIndex", 0);
+
+    clearErrorMsg();
+}
+
+////////////////////////////////////////////////
+// 子画面のキャンセル、閉じるボタンクリック時に
+// 入力内容を消去して閉じる。
+////////////////////////////////////////////////
+function actionModalClose(selector1, selector2) {
+    if(modalClose(selector1)){
+        actionModalClear(selector1);
+        $(selector2).prop("disabled", true);
+    }
+}
+
+
+////////////////////////////////////////////////
+// ドライバー追加子画面の戻るボタンクリック時に
+// 入力内容を消去して閉じる。
+// selector1に入力削除したい子画面のselectorを指定する
+////////////////////////////////////////////////
+function actionModalChange(selector1, selector2, selector3) {
+    if(modalChange(selector1, selector2)){
+        actionModalClear(selector1);
+        $(selector3).prop("disabled", true);
+    }
+}
+////////////////////////////////////////////////
+// 編集メニュー用 ドライバー共通
+////////////////////////////////////////////////
+function renderErrorMsg(selector,errorMsg)
+{
+    var errorHTML = "";
+
+    if(errorMsg){
+        $errInput = $(selector).parent().parent();
+        $errInput.addClass('error');
+        // ここで補足されたエラーには sub_errorというnameをつける
+        errorHTML = '<ul class="error-list">';
+        errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" data-tooltip="' + errorMsg + '"><em class="owf owf-question"></em></span></li>';
+        errorHTML += '</ul>';
+        $(selector).after( errorHTML );
+    }
+}
+
+////////////////////////////////////////////////
+// 追加メニュー用 ドライバー共通
+////////////////////////////////////////////////
+function renderErrorMsg2(selector,errorMsg)
+{
+    var errorHTML = "";
+
+    if(errorMsg){
+        $errInput = $(selector).parent();
+        $errInput.addClass('error');
+        // ここで補足されたエラーには sub_errorというnameをつける
+        errorHTML = '<ul class="error-list">';
+        errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" data-tooltip="' + errorMsg + '"><em class="owf owf-question"></em></span></li>';
+        errorHTML += '</ul>';
+        $(selector).after( errorHTML );
+    }
+}
+
+////////////////////////////////////////////////
+// 追加メニュー用 ドライバー共通
+////////////////////////////////////////////////
+function clearErrorMsg()
+{
+    // 前回エラー表記削除
+    $('.error').removeClass('error');
+    $('.error-list').remove();
+}
+
+var renderNoError = function(){}
+
+////////////////////////////////////////////////
+// 追加 編集 削除のpost requestを送る
+////////////////////////////////////////////////
+function post(postdata, btnId, render_func, req_mode) {
+
+    $postForm = $('#toPostForm');
+    $json_str = $('<input type="hidden" name="json_str" value="" />');
+    $json_str.val(JSON.stringify({'json_str': postdata}));
+    $postForm.append($json_str);
+
+
+    var errorMsg = "";
+    $.ajax({
+        type : "POST",
+        url  : "action/modify",
+        data : $postForm.serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            alert(getMessage("MOSJA27118", false));
+            $(btnId).prop("disabled", false);
+            beforeunloadThroughFlag = true;
+            location.href = response_json.redirect_url;
+        }
+        else {
+            if(response_json.msg) {
+                alert(response_json.msg);
+            }else{
+                alert(getMessage("MOSJA27003", true));
+            }
+
+            // エラーメッセージの表示
+            if(response_json["error_msg"]){
+                render_func(response_json["error_msg"], null, req_mode);
+            }
+
+            $(btnId).prop("disabled", false);
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            $(btnId).prop("disabled", false);
+            beforeunloadThroughFlag = true;
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage("MOSJA27005", true) + "\n" + respdata.responseText);
+            $(btnId).prop("disabled", false);
+        }
+    });
+
+}
+-->
+</script>
+
+{% endblock %}
+{% block maincontent %}
+<!-- 自動入力機能回避用ダミーインプット -->
+<div id="dummy-login-form" style="display: none;">
+  <input type="text" name="login_id" disabled>
+  <input type="password" name="password" disabled>
+</div>
+
+{% if driver_list %}
+<div class="oase-main oase-tab-table">
+{% else %}
+<div class="oase-main oase-tab-table oase-tab-table-no">
+{% endif %}
+<main class="oase-main-inner">
+
+<div class="oase-main-header">
+  <div class="oase-main-header-inner">
+
+    <div class="oase-main-title">
+      <div class="oase-main-title-inner">
+        <h1>{% get_message 'MOSJA27015' request.user.get_lang_mode showMsgId=False %}</h1>
+      </div><!-- /.oase-main-title-inner -->
+    </div><!-- /.oase-main-title -->
+
+    {% if editable_user %}
+    <div class="oase-main-menu">
+      <div class="oase-main-menu-inner">
+        <ul class="oase-button-group">
+          {% if driver_list|length %}
+          <li><button class="oase-button" onclick="modalOpen('#modal-add-driver');"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA27016' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          {% endif %}
+        </ul>
+      </div><!-- /.oase-main-menu-inner -->
+    </div><!-- /.oase-main-menu -->
+    {% endif %}
+
+  </div><!-- /.oase-main-header-inner -->
+</div><!-- /.oase-main-header -->
+
+
+<div class="oase-main-body">
+<div class="oase-main-body-inner">
+{% if driver_list|length %}
+<!--py側から取得したドライバ名表示、id転用時にはスペースをハイフォンに置換するslugifyを使用-->
+<div class="oase-tab-menu">
+<div class="oase-tab-menu-inner">
+  <ul>
+    {% for some_driver in driver_list %}
+    <li><a href="#{{some_driver.name|slugify}}">{{some_driver.name}}</a></li>
+    {% endfor %}
+  </ul>
+</div>
+</div>
+
+
+{# 各ドライバーの一覧画面読み込み #}
+{% for some_driver in driver_list %}
+  {% include some_driver.driver_template_file with driver_id=some_driver.driver_id driver_name=some_driver.name info_list=some_driver.info_list defines=some_driver.define %}
+{% endfor %}
+<form id="toPostForm" method="post" action="action">
+  {% csrf_token %}
+</form>
+
+
+<!-- ドライバの選択 -->
+<div id="modal-add-driver" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-plus"></em><span>{% get_message 'MOSJA27016' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
+          <button class="oase-modal-close" onclick="modalClose('#modal-add-driver');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+            <h3>{% get_message 'MOSJA27017' request.user.get_lang_mode showMsgId=False %}</h3>
+            <ul class="driver-select">
+              {% for some_driver in driver_list %}
+              <li><button onclick="modalChange('#modal-add-driver', '#modal-{{some_driver.name|slugify}}-add');setbeforeunloadThroughFlag(false);"><em class="owf {{some_driver.icon_name}}"></em><span>{{some_driver.name}}</span></button></li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="modalClose('#modal-add-driver');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="oase-modal-overlay"></div>
+
+
+{% else %}
+<section>
+<div class="oase-none">
+<p>{% autoescape off %}{% get_message 'MOSJA27013' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+</div>
+</section>
+{% endif %}
+
+</div><!-- /.oase-main-body-inner -->
+</div><!-- /.oase-main-body -->
+
+</main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+
+{% endblock %}
+

@@ -1,0 +1,97 @@
+{% extends "top/login_logout_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+
+{% block myheader %}
+<script type="text/javascript">
+<!--
+function resetPW() {
+
+    var reset_url = "{{ pass_init_url }}";
+    // 入力なければそのまま遷移
+    if( document.getElementById("login_id").value == "" & document.getElementById("password").value == "" ) {
+        window.location.href = reset_url;
+    }
+    else{
+        if(confirm(getMessage('MOSJA32029', false))) {
+            window.location.href = reset_url;
+        }
+    }
+}
+-->
+</script>
+
+    <script type="text/javascript" src="{% static "web_app/js/login.js" %}" charset="UTF-8"></script>
+{% endblock %}
+
+{% block maincontent %}
+
+        {% if msg %}
+        <div class="oase-login-error">
+            <p>
+                <em class="owf owf-attention"></em>
+                {% autoescape off %}{% get_message msg %}{% endautoescape %}
+            </p>
+        </div>
+        {% endif %}
+
+        <div class="oase-login-form">
+            <form id="formLogin" action="{% url 'web_app:top:login_auth' %}" method="POST">
+            {% csrf_token %}
+                <dl><dt><em class="owf owf-user"></em></dt>
+                    <dd class="input">
+                        <input type="text" placeholder="Login ID" class="login_form" id="login_id" name="login_id">
+                    </dd>
+                </dl>
+                <dl><dt><em class="owf owf-lock"></em></dt>
+                    <dd class="input">
+                        <input type="password" placeholder="Password" class="login_form" id="password" name="password">
+                    </dd>
+                    <dd class="open-pass">
+                        <em class="owf owf-eye-close"></em>
+                    </dd>
+                </dl>
+            </form>
+        </div>
+        
+        <div class="oase-login-btn">
+            <button type="submit" value="Login" class="btn-login" onclick="login_auth('formLogin')" id="login">
+                <span><em class="owf owf-login"></em> Login</span>
+            </button>
+        </div>
+        
+        <div class="oase-login-footer">
+            <ul>
+                {% if ad_collabo == 0 %}
+                <li class="oase-login-forgot">
+                    <button class="reset-btn-link reset-pass-btn" onclick="resetPW();">
+                        <em class="owf owf-question"></em>{% get_message 'MOSJA00236' showMsgId=False %}
+
+                    </button>
+                </li>
+                {% endif %}
+                <li>
+                  <a href="mailto:abc@sample.com;def@sample.com">
+                    <em class="owf owf-mail"></em>{% get_message 'MOSJA00073' showMsgId=False %}
+                  </a>
+                </li>
+            </ul>
+        </div>
+
+{% endblock%}
