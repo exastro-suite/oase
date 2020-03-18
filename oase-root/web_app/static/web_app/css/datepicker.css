@@ -1,0 +1,148 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- *
+ *
+ *    Date Picker
+ *
+ * -------------------------------------------------- */
+.ond .oase-datepicker {
+    position: fixed;
+    z-index: 9999;
+    width: 240px;
+    padding: 12px;
+    background-color: #FFF;
+    border: 1px solid #CCC;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 4px 8px rgba( 0,0,0,0.3 );
+}
+.ond .oase-datepicker table {
+    border-collapse: collapse;
+}
+.ond .oase-datepicker-calender-body table {
+    table-layout: fixed;
+    width: 100%;
+    margin-bottom: 8px;
+    background-color: transparent;
+}
+.ond .oase-datepicker-calender-body th,
+.ond .oase-datepicker-calender-body td {
+    border: 2px solid #FFF;
+    line-height: 1.1;
+    color: #333;
+    text-align: center;
+    vertical-align: middle;
+}
+.ond .oase-datepicker-calender-body th {
+    padding: 4px 0;
+    background-color: #00B5B8;
+    font-size: 10px;
+    font-weight: normal;
+    color: #FFF;
+}
+.ond .oase-datepicker-calender-body .num {
+    display: block;
+    padding: 4px;
+    background-color: #F3F3F3;
+    background-image: linear-gradient( #F3F3F3, #DDD );
+    box-shadow: 0 1px 0 1px rgba( 255,255,255,0.6 ) inset;
+    border: 1px solid #CCC;
+    text-align: center;
+    vertical-align: middle;
+    line-height: 1;
+    color: #555;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+}
+.ond .oase-datepicker-calender-body span.select-date {
+    padding: 2px;
+    border-color: #009093;
+    border-width: 3px;
+    font-weight: bold;
+}
+.ond .oase-datepicker-calender-body td.today span {
+    font-weight: bold;
+    color: #009093;
+}
+.ond .oase-datepicker-calender-body .num:hover {
+    background-image: linear-gradient( #EEE, #CCC );
+    box-shadow: 0 1px 0 1px rgba( 255,255,255,0.8 ) inset;
+    color: #333;
+}
+.ond .oase-datepicker-calender-body .num:active {
+    background-image: linear-gradient( #EEE, #CCC );
+    box-shadow: 0 0 4px rgba( 0,0,0,0.2 ) inset;
+    border-color: #BBB;
+    outline: none;
+}
+.ond .oase-datepicker-calender-body td.off {
+    background-color: #DDD;
+}
+.ond .oase-datepicker table.form {
+    width: 100%;
+    margin-bottom: 8px;
+}
+.ond .oase-datepicker table.form th,
+.ond .oase-datepicker table.form td {
+    border: 1px solid #CCC;
+    vertical-align: middle;
+}
+.ond .oase-datepicker table.form th {
+    width: 24px;
+    background-color: #00B5B8;
+    color: #FFF;
+    font-size: 10px;
+    font-weight: normal;
+}
+.ond .oase-datepicker table.form button {
+    display: block;
+    width: 24px; height: 24px;
+    padding: 0;
+    border: none;
+    vertical-align: bottom;
+    cursor: pointer;
+}
+.ond .oase-datepicker table.form input,
+.ond .oase-datepicker table.form select {
+    display: block;
+    width: 100%; height: 24px;
+    border: none;
+    text-align: center;
+    font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+    color: #333;
+    vertical-align: bottom;
+}
+.ond .oase-datepicker table.form em {
+    vertical-align: 0;
+}
+.ond .oase-datepicker table.menu {
+    table-layout: fixed;
+    width: 100%;
+}
+.ond .oase-datepicker table.menu td {
+    padding: 4px;
+}
+.ond .oase-datepicker table.menu button {
+    width: 100%;
+    padding: 8px 0;
+    font-size: 11px;
+}

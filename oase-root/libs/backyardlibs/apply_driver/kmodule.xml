@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kmodule xmlns="http://www.drools.org/xsd/kmodule">
+    <kbase default="true" equalsBehavior="identity" eventProcessingMode="stream" name="dtables" packages="">
+        <ksession clockType="pseudo" default="true" name="ksession-dtables" type="stateless" />
+    </kbase>
+</kmodule>

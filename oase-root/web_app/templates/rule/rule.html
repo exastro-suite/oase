@@ -1,0 +1,146 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+
+{% block myheader %}
+    <script type="text/javascript" src="{% static 'web_app/js/rule.js' %}?ver=201911281715" charset="UTF-8"></script>
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main division-2">
+  <main class="oase-main-inner">
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA00089' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body">
+      <div class="oase-main-body-inner">
+        <section class="oase-rule-staging">
+          <div class="oase-section-title">
+            <div class="oase-section-title-inner">
+
+              {% if permission_type_stg != 3 %}<!-- ステージング適用ルール 参照or更新 -->
+              <div class="oase-section-title-table">
+                <h2>{% get_message 'MOSJA12034' request.user.get_lang_mode showMsgId=False %}</h2>
+              </div>
+
+                <div class="oase-section-title-menu">
+                  <ul class="oase-button-group">
+                    {% if pseudo_rule_manage_id_dic|length > 0 %}
+                    <li id="liTestRequest">
+                      <a href="#modal_staging_pseudo" class="modalOpen" onClick="modalTabOpen('#modal-tab');stopAutoReload();">
+                        <button class="tooltip test oase-button" title="{% get_message 'MOSJA12157' request.user.get_lang_mode showMsgId=False %}">
+                          <em class="owf owf-check"></em><span>{% get_message 'MOSJA12035' request.user.get_lang_mode showMsgId=False %}</span>
+                        </button>
+                      </a>
+                    </li>
+                    {% else %}
+                    <li id="liTestRequest">
+                      <button class="tooltip test oase-button" title="{% get_message 'MOSJA12157' request.user.get_lang_mode showMsgId=False %}" disabled>
+                        <em class="owf owf-check"></em>
+                        <span>{% get_message 'MOSJA12035' request.user.get_lang_mode showMsgId=False %}</span>
+                      </button>
+                    </li>
+                    {% endif %}
+                  {% if permission_type_stg == 1 %}<!-- 更新可能 -->
+                    <li>
+                      <button class="tooltip oase-button" title="{% get_message 'MOSJA12158' request.user.get_lang_mode showMsgId=False %}" onClick="$('#fileRule').click();">
+                        <em class="owf owf-xls-add"></em><span>{% get_message 'MOSJA12036' request.user.get_lang_mode showMsgId=False %}
+                          <em class="file-name" id="filename">{% get_message 'MOSJA12037' request.user.get_lang_mode showMsgId=False %}</em>
+                        </span>
+                      </button>
+                    </li>
+                    <li>
+                      <button class="tooltip oase-button" id="btnUpload" title="{% get_message 'MOSJA12159' request.user.get_lang_mode showMsgId=False %}" onClick="uploadRuleFile();" disabled>
+                        <em class="owf owf-upload"></em><span>{% get_message 'MOSJA12038' request.user.get_lang_mode showMsgId=False %}</span>
+                      </button>
+                    </li>
+                  {% endif %}
+                  {% if staging_list|length > 0 %}
+                  <li>
+                    <button id="show-sta-history" class="tooltip oase-button switch" title="{% get_message 'MOSJA12160' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-switchback"></em><span>{% get_message 'MOSJA12039' request.user.get_lang_mode showMsgId=False %}</span><span class="on-off"></span>
+                    </button>
+                  </li>
+                  {% endif %}
+                  </ul>
+                </div><!-- /.oase-section-title-menu -->
+                <form id="frmUpload" action="rule/upload" enctype="multipart/form-data" method="post" hidden>
+                  {% csrf_token %}
+                  <input id="fileRule" type="file" class="defaultFileButton" accept="application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" name="rulefile" onChange="selectFile(this);"/>
+                </form>
+              {% endif %}
+            </div><!-- /.oase-section-title-inner -->
+          </div><!-- /.oase-section-title -->
+
+        {% if permission_type_stg != 3 %}
+          {% if staging_list|length %}
+            {% include 'rule/rule_staging_data.html' %}
+          {% else %}
+            <div class="oase-none">
+              <p>{% get_message 'MOSJA12040' request.user.get_lang_mode showMsgId=False %}</p>
+            </div>
+          {% endif %}
+        {% endif %}
+      </section><!-- ステージング適用ルール -->
+
+      <!-- プロダクション適用ルール -->
+      <section class="oase-rule-production">
+        <div class="oase-section-title">
+          <div class="oase-section-title-inner">
+            <div class="oase-section-title-table">
+              <h2>{% get_message 'MOSJA12041' request.user.get_lang_mode showMsgId=False %}</h2>
+            </div>
+            <div class="oase-section-title-menu">
+              <ul class="oase-button-group">
+
+                {% if product_list|length != 0 %}
+                <li>
+                  <button id="show-pro-history" class="tooltip oase-button switch" title="{% get_message 'MOSJA12160' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-switchback"></em><span>{% get_message 'MOSJA12039' request.user.get_lang_mode showMsgId=False %}</span><span class="on-off"></span>
+                  </button>
+                </li>
+                {% endif %}
+
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {% if permission_type_prd != 3 %}
+          {% if product_list|length %}
+            {% include 'rule/rule_production_data.html' %}
+          {% else %}
+            <div class="oase-none">
+              <p>{% get_message 'MOSJA12040' request.user.get_lang_mode showMsgId=False %}</p>
+            </div>
+          {% endif %}
+        {% endif %}
+      </section>
+
+        </div><!-- /.oase-main-body-inner -->
+      </div><!-- /.oase-main-body -->
+    </main><!-- /.oase-main-inner -->
+  </div><!-- /.oase-main -->
+{% csrf_token %}
+{% endblock%}

@@ -1,0 +1,262 @@
+{% load tz %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load common %}
+<div id="productionTableOuter" class="oase-table">
+  <div class="oase-table-load loading">
+    <div class="oase-table-loader-inner">
+      <em class="owf owf-update"></em>
+    </div>
+  </div>
+  <div class="oase-table-inner">
+    <table id="productionTable" class="oase-filter oase-sort">
+      <thead>
+        <tr>
+          <th class="operation-menu" filter-label="operation-menu">
+            <div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          <th class="rule-type sort filter" filter-type="common" filter-label="rule-type">
+            <div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          <th class="rule-file sort filter" filter-type="common" filter-label="rule-file">
+            <div class="cell-inner">{% get_message 'MOSJA12049' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          <th class="operation-status sort filter" filter-type="common" filter-label="operation-status">
+            <div class="cell-inner">{% get_message 'MOSJA12050' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          <th class="work-status sort filter" filter-type="common" filter-label="work-status">
+            <div class="cell-inner">{% get_message 'MOSJA12051' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user">
+            <div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+          <th class="last-modified sort filter" filter-type="date" filter-label="last-modified">
+            <div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div>
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+      <!-- プロダクション適用中のルール -->
+      {% for rule in product_list %}
+        <tr>
+          <!-- download -->
+          <td class="operation-menu">
+            <div class="cell-inner">
+              <ul>
+                <li>
+                  <button type="button" id="btnProDl{{rule.rule_manage_id}}" class="tooltip oase-mini-button" title="{% get_message 'MOSJA12161' request.user.get_lang_mode showMsgId=False %}" onclick="downloadProAction('{{rule.rule_manage_id}}');">
+                    <em class="owf owf-download"></em>
+                    <span>{% get_message 'MOSJA00077' request.user.get_lang_mode showMsgId=False %}</span>
+                  </button>
+                </li>
+                <li>
+                  {% if permission_type_prd == 1 %}
+                    <a href="#modal3_{{rule.rule_manage_id}}" class="modalOpen">
+                      <button class="tooltip oase-mini-button" title="{% get_message 'MOSJA12178' request.user.get_lang_mode showMsgId=False %}" disabled><!-- 適用中なのでdisabled -->
+                        <em class="owf owf-switchback"></em>
+                        <span>{% get_message 'MOSJA12046' request.user.get_lang_mode showMsgId=False %}</span>
+                      </button>
+                    </a>
+                  {% endif %}
+                </li>
+              </ul>
+            </div>
+          </td>
+          <!-- ルール種別 -->
+          <td class="rule-type">
+            <div class="cell-inner">{{rule.rule_type_name}}</div>
+          </td>
+          <!-- ルールファイル -->
+          <td class="rule-file">
+            <div class="cell-inner">{{rule.filename}}</div>
+          </td>
+          <!-- 運用ステータス -->
+          <td class="operation-status">
+            <div class="cell-inner">{{rule.operation_status_str}}</div>
+          </td>
+          <!-- 作業ステータス -->
+          <td class="work-status" data-rulestatusid="{{rule.system_status_id}}">
+            <div class="cell-inner">{{rule.system_status_str}}</div>
+          </td>
+          <!-- 最終更新者 -->
+          <td class="last-update-user">
+            <div class="cell-inner">{{rule.last_update_user_name}}</div>
+          </td>
+          <!-- 最終更新日時 -->
+          <td class="last-modified">
+            <div class="cell-inner">
+              <time datetime="{{ rule.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}</time>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+
+        <!-- プロダクション適用ルール履歴 -->
+        {% for rule in history_list %}
+          <tr id="switchback{{rule.rule_manage_id}}" class="tr-switchback display-none filter-hide-list">
+            <td class="operation-menu">
+              <div class="cell-inner">
+                <ul>
+                  <li>
+                    <a href="rule/download/{{rule.rule_manage_id}}/">
+                      <button class="tooltip oase-mini-button" title="{% get_message 'MOSJA12161' request.user.get_lang_mode showMsgId=False %}">
+                        <em class="owf owf-download"></em>
+                        <span>{% get_message 'MOSJA00077' request.user.get_lang_mode showMsgId=False %}</span>
+                      </button>
+                    </a>
+                  </li>
+                  <li>
+                    {% if rule.rule_type_id in rule_ids_prd %}
+                        <button class="tooltip oase-mini-button" title="{% get_message 'MOSJA12178' request.user.get_lang_mode showMsgId=False %}" onClick="modalOpen('#modal-switch-back');switchbackData({{rule.rule_manage_id}});" {% if not rule.is_switchback %}disabled{% endif %}>
+                          <em class="owf owf-switchback"></em>
+                          <span>{% get_message 'MOSJA12046' request.user.get_lang_mode showMsgId=False %}</span>
+                        </button>
+                    {% endif %}
+                  </li>
+                </ul>
+              </div>
+            </td>
+            <!-- ルール種別 -->
+            <td class="rule-type">
+              <div class="cell-inner">{{rule.rule_type_name}}</div>
+            </td>
+            <!-- ルールファイル -->
+            <td class="rule-file">
+              <div class="cell-inner">{{rule.filename}}</div>
+            </td>
+            <!-- 運用ステータス -->
+            <td class="operation-status">
+              <div class="cell-inner">{{rule.operation_status_str}}</div>
+            </td>
+            <!-- 作業ステータス -->
+            <td class="work-status" data-rulestatusid="{{rule.system_status_id}}">
+              <div class="cell-inner">{{rule.system_status_str}}</div>
+            </td>
+            <!-- 最終更新者 -->
+            <td class="last-update-user">
+              <div class="cell-inner">{{rule.last_update_user_name}}</div>
+            </td>
+            <!-- 最終更新日時 -->
+            <td class="last-modified">
+              <div class="cell-inner">
+                <time datetime="{{ rule.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}</time>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+
+      </tbody>
+    </table>
+  </div>
+
+  <div id="productionFooter" class="oase-table-footer">
+    <ul class="button-group">
+      <li>
+        <dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl>
+      </li>
+      <li>
+        <dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+          <select class="rowShowNum">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </dd></dl>
+      </li>
+      <li>
+        <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+        <input class="pagingNow" type="text"> /
+        <span class="pagingMax">0</span>
+        <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+      </li>
+      <li>
+        <button class="scrollTop button tooltip">
+          <em class="owf owf-up-on"></em>
+          <span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span>
+        </button>
+      </li>
+      <li>
+        <button class="scrollBottom button tooltip">
+          <em class="owf owf-down-on"></em>
+          <span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<!-- 切り戻しモーダル -->
+<div id="modal-switch-back" class="oase-modal">
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title">
+            <h2><em class="owf owf-switchback"></em><span>{% get_message 'MOSJA12047' request.user.get_lang_mode showMsgId=False %}</span></h2>
+          </div>
+          <button class="tooltip oase-modal-close" title="{% get_message 'MOSJA12179' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-switch-back');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+            <h3>{% get_message 'MOSJA12048' request.user.get_lang_mode showMsgId=False %}</h3>
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA12045' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li>
+              <button class="tooltip oase-button" title="{% get_message 'MOSJA12179' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-switch-back');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span>
+              </button>
+            </li>
+            <li>
+              <button class="tooltip oase-button" id="btnSwitchBack" data-rule_manage_id="" title="{% get_message 'MOSJA12180' request.user.get_lang_mode showMsgId=False %}" onClick="switchBack();"><em class="owf owf-switchback"></em><span>{% get_message 'MOSJA12046' request.user.get_lang_mode showMsgId=False %}</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+

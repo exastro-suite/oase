@@ -1,0 +1,316 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+
+<script type="text/javascript">
+<!--
+
+
+/* ユーザ行 追加HTML */
+var groupListRow = heredocHTML( function(){/*
+  <tr>
+    <td><div class="cell-inner"><input type="text" data-initial-value=""></div></td>
+    <td><div class="cell-inner"><input type="text"></div></td>
+    <td class="delete"><div class="cell-inner"><button class="oase-mini-button" onClick="tableRowRemove( this );"><em class="owf owf-cross"></em></button></div></td>
+  </tr>
+*/});
+
+-->
+</script>
+{% endblock %}
+{% block maincontent %}
+
+<div class="oase-main config">
+  <main class="oase-main-inner">
+  
+  <div class="oase-main-header">
+    <div class="oase-main-header-inner">
+    
+      <div class="oase-main-title">
+        <div class="oase-main-title-inner">
+          <h1>{% get_message 'MOSJA22044' request.user.get_lang_mode showMsgId=False %}</h1>
+        </div><!-- /.oase-main-title-inner -->
+      </div><!-- /.oase-main-title -->
+    
+      {% if edit %}
+      <div class="oase-main-menu">
+        <div class="oase-main-menu-inner">
+          <ul class="oase-button-group">
+            <li><button class="oase-button" id="btnEdit" onclick="_changeModeToEdit('{% url "web_app:system:system_conf_edit" %}', '#btnEdit')"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div><!-- /.oase-main-menu-inner -->
+      </div>
+      {% endif %}
+
+    </div><!-- /.oase-main-header-inner -->
+  </div><!-- /.oase-main-header -->
+
+  <div class="oase-main-body">
+    <div class="oase-main-body-inner">
+    
+      <div class="oase-config">
+      
+        <div class="oase-config-menu">
+          <ul>
+            <li><a href="#oase-config-log">{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</a></li>
+            <li><a href="#oase-config-authentication">{% get_message 'MOSJA22046' request.user.get_lang_mode showMsgId=False %}</a></li>
+            {% if pass_flag == 0 %}
+            <li><a href="#oase-config-password">{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</a></li>
+            {% endif %}
+            <li><a href="#oase-config-active-directory">{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</a></li>
+          </ul>
+        </div><!-- /.oase-config-menu -->
+
+        <div class="oase-config-main">
+
+          <section id="oase-config-log">
+          
+            <div class="oase-config-header">
+              <h3>{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</h3>
+            </div>
+          
+            <div class="oase-config-body">
+          
+              <div class="oase-config-item">
+                <h4>{% get_message 'MOSJA22049' request.user.get_lang_mode showMsgId=False %}</h4>
+                <table>
+                  <tbody>
+                    {% for s in system_log_list %}
+                    {% if s.category == "LOG_STORAGE_PERIOD" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner"><span>{{s.value}} {% get_message 'MOSJA22050' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                    {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div><!-- /.oase-config-item -->
+          
+            </div><!-- /.oase-config-body -->
+          
+            <div class="oase-config-footer">
+            </div>
+          
+          </section>
+
+
+
+          <section id="oase-config-authentication">
+          
+            <div class="oase-config-header">
+              <h3>{% get_message 'MOSJA22046' request.user.get_lang_mode showMsgId=False %}</h3>
+            </div>
+          
+            <div class="oase-config-body">
+          
+              <div class="oase-config-item">
+                <h4>{% get_message 'MOSJA22051' request.user.get_lang_mode showMsgId=False %}</h4>
+                <table>
+                  <tbody>
+                    {% for s in system_session_list %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner"><span>{{s.value}} {% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              
+            </div>
+            
+            <div class="oase-config-footer">
+            </div>
+          
+          </section>
+
+          {% if pass_flag == 0 %}
+          <section id="oase-config-password">
+          
+            <div class="oase-config-header">
+              <h3>{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</h3>
+            </div>
+          
+            <div class="oase-config-body">
+          
+              <div class="oase-config-item">
+                <h4>{% get_message 'MOSJA22053' request.user.get_lang_mode showMsgId=False %}</h4>
+                <table>
+                  <tbody>
+                    {% for s in system_password_list %}
+                      {% if s.config_id == "Pass_Valid_Period" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22054' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                        {% elif s.config_id == "Pass_generate_manage" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22055' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                        {% elif s.config_id == "PASS_ERROR_THRESHOLD" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                        {% elif s.config_id == "ACCOUNT_LOCK_PERIOD" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                        {% elif s.config_id == "INITIAL_PASS_VALID_PERIOD" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22057' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                        {% elif s.config_id == "ACCOUNT_LOCK_MAX_TIMES" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      </tr>
+                        {% elif s.config_id == "IPADDR_LOGIN_RETRY_MAX" %}
+                      <tr>
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        {% if not disabled_flag %}
+                        <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                        {% else %}
+                        <td><div class="cell-inner">{% get_message 'MOSJA22072' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                        {% endif %}
+                      </tr>
+                        {% elif s.config_id == "NOTIFICATION_DESTINATION_TYPE" %}
+                      <tr id="nd" data-value="{{s.value}}">
+                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td><div class="cell-inner">
+                        {% if s.value == "0" %}
+                          {% get_message 'MOSJA22058' request.user.get_lang_mode showMsgId=False %}
+                        {% elif s.value == "1" %}
+                          {% get_message 'MOSJA22059' request.user.get_lang_mode showMsgId=False %}
+                        {% else %}
+                          {% get_message 'MOSJA22060' request.user.get_lang_mode showMsgId=False %}
+                        {% endif %}</div></td>
+                      </tr>
+                        {% elif s.config_id == "NOTIFICATION_DESTINATION" %}
+                      <tr>
+                        <th id="notification-destination-name"><div class="cell-inner">{{s.config_name}}</div></th>
+                        <td id="notification-destination-value"><div class="cell-inner">{{s.value|default:''}}</div></td>
+                      </tr>
+                        {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+              
+            </div>
+            
+            <div class="oase-config-footer">
+            </div>
+          
+          </section>
+          {% endif %}
+
+          <section id="oase-config-active-directory">
+          
+            <div class="oase-config-header">
+              <h3>{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</h3>
+            </div>
+            
+            <div class="oase-config-body">
+              <div class="oase-config-item">
+                <h4>{% get_message 'MOSJA22061' request.user.get_lang_mode showMsgId=False %}</h4>
+                <table>
+                {% for s in system_actdir_list %}
+                  {% if s.config_id == "ADCOLLABORATION" %}
+                  <thead>
+                    <tr>
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td><div class="cell-inner">{%if s.value == "0"%}{% get_message 'MOSJA22062' request.user.get_lang_mode showMsgId=False %}{% else %}{% get_message 'MOSJA22063' request.user.get_lang_mode showMsgId=False %}{% endif %}</div></td>
+                    </tr>
+                  </thead>
+                  {% endif %}
+                  {% if output_flag %}
+                  <tbody>
+                    <tr>
+                      {% if s.config_id == "ADMINISTRATOR_USER" %}
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td><div class="cell-inner">{{s.value}}</div></td>
+                      {% elif s.config_id == "ACCESS_POINT" %}
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td><div class="cell-inner">{{s.value}}</div></td>
+                      {% elif s.config_id == "AD_LINKAGE_TIMER" %}
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td><div class="cell-inner">{{s.value}}</div></td>
+                      {% elif s.config_id == "CONNECTION_TIMEOUT" %}
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      {% elif s.config_id == "READ_TIMEOUT" %}
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></div></td>
+                      {% elif s.config_id == "AUTHSERVER_SEARCH_CHAR" %}
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td><div class="cell-inner">{{s.value}}</div></td>
+                      {% elif s.config_id == "TARGET_GROUP_LIST" %}
+                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <td class="target-group-list"><div class="cell-inner">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th><div class="cell-inner">{% get_message 'MOSJA22064' request.user.get_lang_mode showMsgId=False %}</div></th>
+                              <th><div class="cell-inner">{% get_message 'MOSJA22065' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                          {% for dict_item in system_targro_list %}
+                            {% for k,v in dict_item.items %}
+                            <tr>
+                              <td><div class="cell-inner">{{k}}</div></td>
+                              <td><div class="cell-inner">{{v}}</div></td>
+                            </tr>
+                            {% endfor %}
+                          {% endfor %}
+                          </tbody>
+                        </table>
+                      </div></td>
+                      {% endif %}
+                    </tr>
+                  </tbody>
+                  {% endif %}
+                {% endfor %}
+                </table>
+              </div>
+            </div>
+            
+            <div class="oase-config-footer">
+            </div>
+          
+          </section>
+
+        </div><!-- /.oase-config-main -->
+      </div><!-- /.oase-config -->
+
+      <div class="oase-modal-overlay"></div>
+
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load common %}
+{% block maincontent %}
+
+
+<div class="oase-main none">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA10028' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body">
+      <div class="oase-main-body-inner">
+
+        <section>
+          <div class="oase-none">
+            <p>{% get_message 'MOSJA10029' request.user.get_lang_mode showMsgId=False %}</p>
+          </div>
+        </section>
+
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock %}

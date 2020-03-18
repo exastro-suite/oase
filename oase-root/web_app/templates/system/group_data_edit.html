@@ -1,0 +1,77 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% if msg %}
+  {{msg}}
+{% else %}
+<div class="group-data-table-wrapper">
+  <table class="tab_layout">
+    <thead class="group-data-head">
+      <tr>
+        <th class="error-icon-area"></th>{% comment %} エラー表示用 {% endcomment %}
+        <th class="update_th group-col-update">{% get_message 'MOSJA23008' request.user.get_lang_mode showMsgId=False %}</th>
+        <th class="group-col-no" hidden>No</th>
+        <th class="group-col-name">{% get_message 'MOSJA23003' request.user.get_lang_mode showMsgId=False %}<sup class="required">*</sup></th>
+        <th class="group-col-summary">{% get_message 'MOSJA23004' request.user.get_lang_mode showMsgId=False %}</th>
+        <th class="group-col-user">{% get_message 'MOSJA23005' request.user.get_lang_mode showMsgId=False %}</th>
+        <th class="group-col-datetime">{% get_message 'MOSJA23006' request.user.get_lang_mode showMsgId=False %}</th>
+      </tr>
+    </thead>
+    <tbody id="tbodyGroup" class="group-data-body">
+      {% for group in group_list %}
+      <tr id="{{ group.group_id }}">
+        <td class="error-icon-area"></td>
+        <td class="group-col-update">
+          <select id="selModify{{ group.group_id }}" name="selModify{{ group.group_id }}">
+            {% for o in opelist_mod %}
+              {% if forloop.first %}
+            <option value="{{o.v}}" selected>{{o.k}}</option>
+              {% else %}
+            <option value="{{o.v}}">{{o.k}}</option>
+              {% endif %}
+            {% endfor %}
+          </select>
+        </td>
+        <td class="num group-col-no" hidden>{{ group.group_id }}</td>
+        <td id="tdName{{ group.group_id }}" class="group-col-name"><input type="text" name="nameModify{{ group.group_id }}" value ="{{ group.group_name }}" /></td>
+        <td id="tdSummary{{ group.group_id }}" class="group-col-summary"><textarea name="summaryModify{{ group.group_id }}">{{  group.summary }}</textarea></td>
+        <td class="uneditable group-col-user">{{ group.last_update_user }}</td>
+        <td class="uneditable group-col-datetime">{{ group.last_timestamp|timezone:'Asia/Tokyo' }}</td>
+      </tr>
+      {% endfor %}
+      <tr id="trDummy" style="display:none;">
+        <td class="error-icon-area"></td>
+        <td class="group-col-update"></td>
+        <td class="num group-col-no" hidden></td>
+        <td class="group-col-name"><input type="text" value="" /></td>
+        <td class="group-col-summary"><textarea></textarea></td>
+        <td class="uneditable group-col-user">{% get_message 'MOSJA00071' request.user.get_lang_mode showMsgId=False %}</td>
+        <td class="uneditable group-col-datetime">{% get_message 'MOSJA00071' request.user.get_lang_mode showMsgId=False %}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+  {% if not group_list|length %}
+<script type="text/javascript">
+<!--
+addList('tbodyGroup', 'trDummy');
+-->
+</script>
+  {% endif %}
+{% endif %}

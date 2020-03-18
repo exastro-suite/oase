@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% comment %}
+一番簡素なベース
+{% endcomment %}
+{% load static %}
+{% load common %}
+<html lang="ja" class="ond "><!-- font-size-small dark-mode font-size-large layout-width-1024 table-width-auto ita-mode -->
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta charset="utf-8">
+    <meta name="description" content="NEC-Operation-Autonomy-Support-Engine">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="theme-color" content="#00CED1">
+    <title>{% get_message 'MOSJA10030' lang_mode showMsgId=False %}</title>
+    <link rel="icon" type="image/x-icon" href="{% static "posts/favicon.ico" %}">
+    <link rel="shortcut icon" href="{% static "posts/favicon.ico" %}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static "posts/apple-touch-icon.png" %}">
+
+    <link rel="stylesheet" href="{% static "web_app/css/button.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/common.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/datepicker.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/footer.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/header.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/table.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/tooltip.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/modal.css" %}">
+
+    <link rel="stylesheet" href="{% static "web_app/css/page-config.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/page-dashboard.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/page-login.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/page-rule.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/page-system-action.css" %}">
+    <link rel="stylesheet" href="{% static "web_app/css/driver-adapter.css" %}">
+    
+    <link rel="stylesheet" href="{% static "web_app/css/thema.css" %}">
+
+    <script type="text/javascript" src="{% static "vendor/jquery/js/jquery-3.3.1.min.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase_messageid.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase_base.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-table.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-rule-table.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-tooltip.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-date-picker.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-common.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-modal.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-validation.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-config.js" %}" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static "web_app/js/oase-ajax-download.js" %}" charset="UTF-8"></script>
+    {% block myheader %}
+    {% endblock %}
+  </head>
+  <body>
+    <span id="lang" style="display: none;">{{ lang_mode }}</span>
+    <div id="container">
+        {% block header %}
+        {% endblock %}
+
+        {% block login_body %}
+        {% endblock %}
+        
+        {% block body %}
+        {% endblock %}
+
+        {% block footer %}
+        {% endblock %}
+    </div>
+  </body>
+</html>
