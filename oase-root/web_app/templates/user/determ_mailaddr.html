@@ -1,0 +1,84 @@
+{% extends "common/plain_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+
+{% block myheader %}
+{% endblock %}
+
+{% block login_body %}
+
+<style>
+.ond .oase-message {
+  max-width: 640px;
+  margin: 0 auto; padding: 32px;
+  background-color: #FFF;
+  border-radius: 16px;
+  box-shadow: 0 0 8px rgba( 0,0,0,0.1 );
+  animation: showMessage 0.3s;
+}
+@keyframes showMessage {
+  0% { transform: scale( 0.8 ); }
+100% { transform: scale( 1   ); }
+}
+.ond .oase-message-body h1 {
+  display: block;
+  margin-bottom: 16px; padding: 0 0 8px;
+  border-bottom: 1px solid #00B5B8;
+  text-align: left;
+  font-size: 20px;
+}
+.ond .oase-message-body p {
+  margin-bottom: 24px;
+  text-align: left;
+  line-height: 1.75;
+  font-size: 14px;
+  color: #333;
+}
+.ond .oase-message-body .oase-button-group {
+  text-align: left;
+}
+
+@media screen and ( max-width: 656px ){
+
+.ond .oase-message {
+  max-width: none;
+  margin: 0 8px;
+}
+
+}
+</style>
+<div class="oase-login-container">
+  <div class="oase-login">
+    <main class="oase-login-inner">
+      <section class="oase-message">
+        <div class="oase-message-body">
+          <h1>{% get_message 'MOSJA10035' showMsgId=False %}</h1>
+          <p>{% get_message 'MOSJA10036' showMsgId=False %}</p>
+          <ul class="oase-button-group">
+            <li><a href="/oase_web/top/login" class="oase-button"><em class="owf owf-login"></em><span>{% get_message 'MOSJA10037' showMsgId=False %}</span></a></li>
+          </ul>
+        </div>
+      </section>
+    </main>
+  </div>
+  <div class="login-footer"><span class="exastro"><em class="owf owf-exastro"></em>{% get_message 'MOSJA10023' showMsgId=False %}</span>{% get_message 'MOSJA10024' showMsgId=False %}</div>
+</div>
+{% endblock %}
+{% block footer %}
+{% endblock %}

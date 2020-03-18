@@ -1,0 +1,164 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript" src="{% static "vendor/jquery/js/list.min.js" %}" charset="UTF-8"></script>
+<script type="text/javascript" src="{% static "web_app/js/oase-table-edit.js" %}" charset="UTF-8"></script>
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  編集モードへ移行する
+//  tbodyID(string) : tbodyのid
+//  formId(string)  : postするformのId
+////////////////////////////////////////////////
+function changeModeToEdit(tbodyId, formId) {
+
+    $("#btnEdt").prop("disabled", true);
+
+    var tblData = document.getElementById(tbodyId);
+    var editForm = document.getElementById(formId);
+    var pkList = {};
+    pkList["pk"] = {};
+    pkList["pk"]["LIST"] = new Array();
+
+    if(tblData){
+        for (var i = 0, r = tblData.rows.length; i < r; i++) {
+            pkList["pk"]["LIST"].push(tblData.rows[i].id);
+        }
+    }
+    // csrf_token の次にあるinput要素のvalueにデータを挿入
+    editForm.children[1].value = JSON.stringify(pkList);
+
+    editForm.submit();
+
+}
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+          <h1>{% get_message 'MOSJA24024' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        {% if hasUpdateAuthority %}
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" type="button" id="btnEdt" onClick="changeModeToEdit('user_data', 'toEditForm');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            </ul>
+            <form id="toEditForm" method="post" action="{% url 'web_app:system:user_edit' %}">
+              {% csrf_token %}
+              <input type="hidden" name="filters" value="" />
+            </form>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+        {% endif %}
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+        <section>
+        {% if user_list|length %}
+          <div class="oase-table">
+            <div class="oase-table-load loading"><div class="oase-table-loader-inner"><em class="owf owf-update"></em></div></div>
+            <div class="oase-table-inner">
+              <div id="userList">
+                {% include 'system/user_data_disp.html' %}
+              </div>
+            </div>
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+                  <select class="rowShowNum">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                  </select>
+                </dd></dl></li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> /
+                  <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+                <li><button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+          </div>
+        {% else %}
+        <div class="oase-none">
+          {% if msg %}
+            {{msg}}
+          {% elif actdirflg == '0' %}
+          <p>{% autoescape off %}{% get_message 'MOSJA24010' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+          {% else %}
+          {% autoescape off %}{% get_message 'MOSJA24009' request.user.get_lang_mode %}{% endautoescape %}
+          {% endif %}
+        </div>
+        {% endif %}
+        </section>
+
+        <!-- 所属グループ全て確認 -->
+        <div id="modal-group-list" class="oase-modal">
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+                  <div class="oase-modal-title">
+                    <h2><em class="owf owf-user"></em><span>{% get_message 'MOSJA24028' request.user.get_lang_mode showMsgId=False %}</span></h2>
+                  </div>
+                  <button class="oase-modal-close" onclick="modalClose('#modal-group-list');"><em class="owf owf-cross"></em></button>
+                </div>
+
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA24026' request.user.get_lang_mode showMsgId=False %}<em id="userGroupUserName"></em></h3>
+                    <ul class="group-list"></ul>
+                  </div>
+                </div>
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onclick="modalClose('#modal-group-list');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-overlay"></div>
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+{% endblock%}

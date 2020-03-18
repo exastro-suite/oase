@@ -1,0 +1,1063 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- *
+ *
+ *    Table
+ *
+ * -------------------------------------------------- */
+.ond .oase-table {
+    position: relative;
+    max-width: 1280px;
+    margin: 0 auto;
+}
+.ond.layout-width-100p .oase-table { max-width: none; }
+.ond.layout-width-1600 .oase-table { max-width: 1600px; }
+.ond.layout-width-1024 .oase-table { max-width: 1024px; }
+
+.ond .full-table .oase-table {
+    height: 100%;
+}
+.ond .division-2 .oase-table {
+    height: calc( 100% - 60px );
+}
+.ond .oase-table-inner {
+    height: calc( 100% - 40px );
+    background-color: #FCFCFC;
+    background-image: repeating-linear-gradient( 0deg, #FCFCFC 0, #FCFCFC 1px, #F5F5F5 2px, #F5F5F5 3px);
+    overflow-y: scroll;
+}
+
+/* for IE11 */
+.ond .oase-table-header-fixed {
+    width: 100%;
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 200;
+    overflow: hidden;
+}
+.ond.table-width-auto .oase-table-header-fixed {
+    width: auto;
+}
+.ond .oase-table-header-fixed-inner {
+    width: 100%;
+    overflow: hidden;
+}
+
+
+.ond .oase-table table {
+    width: 100%;
+    background-color: #DDD;
+    border-collapse: separate;
+    border-spacing: 1px;
+    font-size: 1rem;
+}
+.ond.table-width-auto .oase-table table {
+    width: auto;
+}
+
+.ond .oase-table th,
+.ond .oase-table td {
+    vertical-align: middle;
+    font-weight: normal;
+}
+.ond .oase-table th {
+    box-shadow: 0 0 0 1px #DDD;
+}
+.ond .oase-table thead th {
+    position: sticky;
+    top: 1px;
+    z-index: 98;
+    background-color: #00B5B8;
+    white-space: nowrap;
+    vertical-align: top;
+}
+.ond .oase-table thead .status  {
+    left: 1px;
+    z-index: 100;
+}
+.ond .oase-table tbody .status {
+    position: sticky;
+    left: 1px;
+    z-index: 95;
+}
+.ond .oase-table thead .cell-inner {
+    overflow: hidden;
+    position: relative;
+    padding: 16px 24px;
+    background-color: #00B5B8;
+    color: #FFF;
+    line-height: 1.25;
+    font-weight: normal;
+    user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+}
+.ond .oase-table tbody .cell-inner {
+    position: relative;
+    padding: 4px 16px;
+    color: #444;
+    line-height: 1.5;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.ond .oase-table tbody td .cell-inner {
+    width: 100%; /* max-width: 480px; */
+    overflow: hidden;
+}
+.ond .oase-table tbody td .cell-inner.paragrap {
+    max-width: none;
+    padding: 0;
+}
+.ond .oase-table tbody .cell-inner.paragrap p {
+    overflow: auto;
+    min-width: 240px; max-height: 6em;
+    padding: 4px 16px;
+    white-space: normal;
+}
+.ond .oase-table tbody .cell-inner time {
+    padding: 0 8px;
+}
+.ond .oase-table thead .status {
+    width: 80px;
+}
+.ond .oase-table tbody .status .cell-inner {
+    margin: 4px; padding: 0;
+    background-color: rgba( 255,255,255,0.3 );
+}
+.ond .oase-table tbody .status .cell-inner .tooltip {
+    padding: 0 16px;
+    border-radius: 4px;
+}
+.ond .oase-table tbody .status .cell-inner .tooltip span {
+    display: none;
+}
+.ond .oase-table tbody tr { background-color: #FDFDFD; }
+.ond .oase-table tbody tr:nth-of-type(even) { background-color: #F2F2F2; }
+
+.ond .oase-table tbody tr:hover th,
+.ond .oase-table tbody tr:hover td {
+background-color: #FFFFDD;
+}
+.ond .oase-table tbody tr:hover th.error,
+.ond .oase-table tbody tr:hover td.error {
+background-color: #FFE2DD!important;
+}
+/* セルの幅を最小にする */
+.ond .oase-table thead .operation-menu,
+.ond .oase-table thead .add-type,
+.ond .oase-table thead .date,
+.ond .oase-table thead .row-delete,
+.ond .oase-table thead .input,
+.ond .oase-table thead .textarea,
+.ond .oase-table thead th[filter-type="date"] {
+    width: 8px!important;
+}
+
+
+
+
+
+
+/* -------------------------------------------------- *
+ *
+ *    ソート
+ *
+ * -------------------------------------------------- */
+.ond .oase-table thead th.sort .cell-inner {
+    cursor: pointer;
+}
+.ond .oase-table thead th.sort .cell-inner:hover {
+    background-color: #009093;
+}
+.ond .oase-table thead th.sort .cell-inner::after,
+.ond .oase-table thead th.sort .cell-inner::before {
+    font-family:oase-web-font!important;
+    content: '\e92c';
+    display: block;
+    position: absolute;
+    right: 5px; top: 50%;
+    width: 16px; height: 16px;
+    margin-top: -14px;
+    font-size: 10px;
+    line-height: 16px;
+    transition-duration: 0.3s;
+    color: #FFF;
+    opacity: 0.3;
+}
+.ond .oase-table thead th.sort .cell-inner::before {
+    content: '\e92d';
+    top: auto; bottom: 50%;
+    margin-bottom: -14px;
+}
+.ond .oase-table thead th.sort.asc .cell-inner::before {
+    opacity: 1;
+    transform: translateY( 2px );
+}
+.ond .oase-table thead th.sort.desc .cell-inner::after {
+    opacity: 1;
+    transform: translateY( -2px );
+}
+.ond .oase-table .blank,
+.ond .oase-modal-table .blank {
+    text-align: center!important;
+    vertical-align: middle!important;
+}
+.ond .oase-modal-table .blank {
+    background-color: #FDFDFD!important;
+}
+.ond .oase-table .blank .cell-inner::after,
+.ond .oase-modal-table .blank .cell-inner::after {
+    content: '';
+    display: inline-block;
+    width: calc( 100% - 16px ); height: 1px;
+    background-color: #CCC;
+    vertical-align: 4px;
+}
+
+
+
+/* -------------------------------------------------- *
+ *
+ *    アクション履歴　状態アイコン
+ *
+ * -------------------------------------------------- */
+.ond .oase-table tbody tr:hover th.status,
+.ond .oase-table tbody tr:hover {
+    background-color: #FFFFBB!important;
+}
+.ond .oase-table tbody .status {
+    font-size: 2rem;
+}
+.ond .oase-table tbody .status em {
+    display: inline-block;
+}
+/* 完了など */
+.ond .oase-table tbody .complete .status .cell-inner { color: #60c60d; }
+.ond .oase-table tbody .complete .status { background-color: #EFF9E7; }
+.ond .oase-table tbody .complete:nth-of-type(even) .status { background-color: #E7F6DB; }
+
+/* エラーなど */
+.ond .oase-table tbody .error .status .cell-inner { color: #F00; }
+.ond .oase-table tbody .error .status  { background-color: #FFE6E6; }
+.ond .oase-table tbody .error:nth-of-type(even) .status { background-color: #FFD9D9; }
+.ond .oase-table tbody .error .status em {
+animation: st-error 2s linear infinite;
+}
+@keyframes st-error {
+0% { transform: scale( 1.2 ); }
+4% { transform: scale( 1.3 ); }
+8% { transform: scale( 1.1 ); }
+12% { transform: scale( 1.2 ); }
+16% { transform: scale( 1 ); }
+100% { transform: scale( 1 ); }
+}
+
+/* 対処済など */
+.ond .oase-table tbody .addressed .status .cell-inner { color: #CCC; }
+.ond .oase-table tbody .addressed .status  { background-color: #F2F2F2; }
+.ond .oase-table tbody .addressed:nth-of-type(even) .status { background-color: #EFEFEF; }
+
+/* 警告 */
+.ond .oase-table tbody .warning .status .cell-inner { color: #F90; }
+.ond .oase-table tbody .warning .status  { background-color: #FF9; }
+.ond .oase-table tbody .warning:nth-of-type(even) .status { background-color: #FF6; }
+.ond .oase-table tbody .warning .status em {
+transform-origin: bottom center;
+animation: st-warning 2s linear infinite;
+}
+@keyframes st-warning {
+  0% { transform: rotate( 16deg ); }
+ 50% { transform: rotate(-16deg ); }
+100% { transform: rotate( 16deg ); }
+}
+
+/* 実行中など*/
+.ond .oase-table tbody .running .status .cell-inner { color: #335581; }
+.ond .oase-table tbody .running .status  { background-color: #E5EAEF; }
+.ond .oase-table tbody .running:nth-of-type(even) .status { background-color: #D9DFE7; }
+.ond .oase-table tbody .running .status em {
+animation: st-running 3s linear infinite;
+}
+@keyframes st-running {
+0% { transform: rotate( 0 ); }
+100% { transform: rotate( 360deg )}
+}
+
+/* 注意など */
+.ond .oase-table tbody .attention .status .cell-inner { color: #FFA500; }
+.ond .oase-table tbody .attention .status { background-color: #FFF6E6; }
+.ond .oase-table tbody .attention:nth-of-type(even) .status { background-color: #FFF2D9; }
+.ond .oase-table tbody .attention .status em {
+animation: st-attention 2s infinite;
+}
+@keyframes st-attention {
+0% { opacity: 0.2; }
+50% { opacity: 1; }
+100% { opacity: 0.2; }
+}
+
+/* 停止中など */
+.ond .oase-table tbody .stop .status .cell-inner { color: #8A2BE2; }
+.ond .oase-table tbody .stop .status { background-color: #E8D5F9; }
+.ond .oase-table tbody .stop:nth-of-type(even) .status { background-color: #DCBFF6; }
+.ond .oase-table tbody .stop .status em {
+animation: st-stop 2s infinite;
+}
+@keyframes st-stop {
+0% { opacity: 0.2; }
+50% { opacity: 1; }
+100% { opacity: 0.2; }
+}
+
+/* 抑止中など */
+.ond .oase-table tbody .prevent .status .cell-inner { color: #CCC; }
+.ond .oase-table tbody .prevent .status  { background-color: #F2F2F2; }
+.ond .oase-table tbody .prevent:nth-of-type(even) .status { background-color: #EFEFEF; }
+
+/*
+.ond .oase-table tbody .prevent .status .cell-inner { color: #F00; }
+.ond .oase-table tbody .prevent .status  { background-color: #FFE6E6; }
+.ond .oase-table tbody .prevent:nth-of-type(even) .status { background-color: #FFD9D9; }
+.ond .oase-table tbody .prevent .status em {
+animation: st-prevent 2s linear infinite;
+}
+@keyframes st-prevent {
+0% { opacity: 0.2; }
+50% { opacity: 1; }
+100% { opacity: 0.2; }
+}
+*/
+
+
+/* -------------------------------------------------- *
+ *
+ *    Table 操作メニュー
+ *
+ * -------------------------------------------------- */
+.ond .oase-table thead .operation-menu .cell-inner {
+    padding: 16px 8px;
+}
+.ond .oase-table tbody .operation-menu .cell-inner {
+    padding: 4px 8px;
+    text-align: center;
+}
+.ond .oase-table tbody .operation-menu ul {
+    display: inline-block;
+    text-align: left;
+    white-space: nowrap;
+    letter-spacing: -0.4em;
+}
+.ond .oase-table tbody .operation-menu li {
+    display: inline-block;
+    font-size: 1.67rem;
+    letter-spacing: normal;
+    margin-right: 8px;
+}
+.ond .oase-table tbody .operation-menu li button { 
+    font-size: 1.67rem; 
+}
+.ond .oase-table tbody .operation-menu li span {
+    display: none;
+}
+.ond .oase-table tbody .operation-menu li:last-child {
+    margin-right: 0;
+}
+.ond .oase-table tbody .operation-menu .select {
+    min-width: 4.5em;
+}
+
+
+
+
+/* -------------------------------------------------- *
+ *
+ *    フィルターメニュー
+ *
+ * -------------------------------------------------- */
+.ond .oase-filter-menu {
+    display: none;
+    width: calc( 100% - 8px );
+    margin: 0 4px;
+    box-shadow: 0 2px 8px rgba( 0,0,0,0.3 );
+}
+.ond .oase-filter-menu .oase-filter-tab-menu {
+    letter-spacing: -0.4em;
+    background-color: #CCC;
+    border-top: 1px solid #CCC;
+    border-left: 1px solid #CCC;
+    text-align: left;
+}
+.ond .oase-filter-menu .oase-filter-tab-menu li {
+    display: inline-block;
+    letter-spacing: normal;
+    vertical-align: top;
+}
+.ond .oase-filter-menu .oase-filter-tab-menu a {
+    display: block;
+    width: 24px; height: 24px;
+    background-color: #DDD;
+    border-right: 1px solid #CCC;
+    line-height: 24px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 1.34rem;
+    color: #666;
+}
+.ond .oase-filter-menu .oase-filter-tab-menu a:hover {
+    background-color: #EFEFEF;
+}
+.ond .oase-filter-menu .oase-filter-tab-menu a.selected {
+    background-color: #EFEFEF;
+    cursor: default;
+}
+.ond .oase-filter-menu .oase-filter-tab-body {
+    display: none;
+    overflow: hidden;
+    background-color: #EFEFEF;
+}
+.ond .oase-filter-menu .oase-filter-tab-body.selected {
+    display: block;
+}
+.ond .oase-table .oase-filter-switch {
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 24px; height: 24px;
+    text-align: center;
+    line-height: 24px;
+    opacity: 0.3;
+    transition-duration: 0.3s;
+    cursor: pointer;
+    user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+}
+.ond .oase-table .oase-filter-switch.menu:hover {
+    opacity: 0.6;
+}
+.ond .oase-table .oase-filter-switch.menu.on {
+    opacity: 1;
+}
+.ond .oase-table .oase-filter-switch.clear {
+    display: none;
+    top: 0; bottom: auto;
+    opacity: 1;
+    color: #FF0;
+}
+.ond .oase-table .oase-filter-menu .filter-text input[type="text"],
+.ond .oase-table .oase-filter-menu .filter-date input {
+    display: inline-block;
+    width: calc( 100% - 24px ); height: 24px;
+    margin: 0; padding: 4px;
+    border: 1px solid #CCC;
+    outline: none;
+    font-family: oase-web-font, "sans-serif";
+    vertical-align: bottom;
+    font-size: 0.92rem;
+    color: #333;
+}
+.ond .oase-table .oase-filter-menu .filter-date dl {
+    margin-bottom: 1px;
+    border: 1px solid #CCC;
+    border-bottom: none;
+}
+.ond .oase-table .oase-filter-menu .filter-date dt {
+    display: block;
+    float: left;
+    width: 24px; height: 24px;
+    background-color: #EFEFEF;
+    border-right: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+    line-height: 24px;
+    color: #666;
+    font-weight: bold;
+}
+.ond .oase-table .oase-filter-menu .filter-date dd {
+    display: block;
+    height: 24px;
+    margin-left: 24px;
+}
+.ond .oase-table .oase-filter-menu .filter-date input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #CCC;
+    font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+    font-size: 1rem;
+}
+.ond .oase-table .oase-filter-menu .filter-date .select {
+    display: inline-block;
+    width: calc( 100% - 24px );
+}
+.ond .oase-table .oase-filter-menu .filter-date select {
+    display: inline-block;
+    width: 100%;
+    height: 24px;
+    margin: 0; padding: 4px;
+    background-color: #FFF;
+    border: 1px solid #CCC;
+    outline: none;
+    font-size: 11px;
+    color: #333;
+}
+.ond .oase-table .oase-filter-menu button {
+    overflow: hidden;
+    display: inline-block;
+    width: 24px; height: 24px;
+    margin: 0; padding: 0;
+    background-color: #EFEFEF;
+    border: 1px solid #CCC;
+    border-left: none;
+    text-align: center;
+    vertical-align: bottom;
+    cursor: pointer;
+}
+.ond .oase-table .oase-filter-menu button:hover {
+    background-color: #DDD;
+}
+.ond .oase-table .oase-filter-menu button em {
+    display: inline-block;
+    line-height: 24px;
+    vertical-align: 2px;
+}
+.ond .oase-table .oase-filter-menu button:active em {
+    transform: translateY( 1px );
+}
+.ond .oase-table .oase-filter-menu .filter-text li {
+    width: 100%;
+    list-style: none;
+}
+.ond .oase-table .oase-filter-menu .filter-text li label {
+    display: block;
+    width: 100%;
+    padding: 4px;
+    background-color: #EFEFEF;
+    border: 1px solid #CCC;
+    border-top: none;
+    font-size: 11px;
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.ond .oase-table .oase-filter-menu .filter-text li label:hover {
+    background-color: #DDD;
+}
+.ond .oase-table .oase-filter-menu .filter-text li label.disabled {
+    background-color: #CCC;
+    color: #999;
+    cursor: default;
+}
+.ond .oase-table .oase-filter-menu .filter-text li label input {
+    display: inline-block;
+    margin-right: 4px;
+    vertical-align: -3px;
+}
+.ond .oase-table .filter-select select {
+    display: block;
+    width: 100%; height: 120px;
+    margin: 0; padding: 4px;
+    border: 1px solid #CCC;
+    outline: none;
+}
+/* スクロールバー非表示 */
+/* IE11 Edge */
+.ond .oase-table .filter-select select.no-scrollbar {
+    -ms-overflow-style:none;
+}
+/* webkit */
+.ond .oase-table .filter-select select.no-scrollbar::-webkit-scrollbar{
+     display:none;
+}
+
+
+.ond .oase-table .oase-filter-menu input:focus,
+.ond .oase-table .oase-filter-menu select:focus {
+    background-color: #FFC;
+}
+.ond .oase-table .oase-filter-menu select option {
+    padding: 4px;
+    outline: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #333
+}
+.ond .paging-hide,
+.ond .oase-table tr.filter-hide-0,
+.ond .oase-table tr.filter-hide-1,
+.ond .oase-table tr.filter-hide-2,
+.ond .oase-table tr.filter-hide-3,
+.ond .oase-table tr.filter-hide-4,
+.ond .oase-table tr.filter-hide-5,
+.ond .oase-table tr.filter-hide-6,
+.ond .oase-table tr.filter-hide-7,
+.ond .oase-table tr.filter-hide-8,
+.ond .oase-table tr.filter-hide-9,
+.ond .oase-table tr.filter-hide-10,
+.ond .oase-table tr.filter-hide-11,
+.ond .oase-table tr.filter-hide-12 {
+    display: none;
+}
+.ond .search-text {
+    background-color: #FF0;
+    color: #333;
+}
+.ond .oase-table tbody .group li.list-filter-on {
+    display: inline-block!important;
+    color: #FF0;
+}
+.ond .oase-table.resize table {
+    opacity: 0;
+}
+.ond .oase-table.resize tr {
+    display: table-row;
+}
+.ond .oase-table thead .row-delete .cell-inner {
+    padding: 16px 8px;
+}
+.ond .oase-table tbody .row-delete .cell-inner {
+    padding: 8px;
+    text-align: center;
+}
+
+.ond .oase-table tbody .group .cell-inner {
+    overflow: visible;
+    max-width: none;
+    padding: 2px 4px;
+    white-space: normal;
+}
+.ond .oase-table tbody .group ul {
+    display: inline;
+    letter-spacing: -0.4em;
+}
+.ond .oase-table tbody .group li,
+.ond .oase-table tbody .group .all {
+    display: inline-block;
+    margin: 2px 4px 2px 0; padding: 4px 8px;
+    background-color: #666666;
+    border-radius: 4px;
+    white-space: nowrap;
+    color: #FFF;
+    letter-spacing: normal;
+}
+.ond .oase-table tbody .group .all {
+    display: inline-block;
+    background-color: #F2F2F2;
+    border: 1px solid #CCC;
+    color: #333;
+    cursor: pointer;
+}
+.ond .oase-table tbody .group .all:hover {
+    background-color: #DDD;
+}
+.ond .oase-table tbody .group.all-show .all {
+display: none;
+}
+.ond .oase-table tbody .group.edit .cell-inner {
+    padding-left: 48px;
+}
+.ond .oase-table tbody .group.edit button {
+    position: absolute;
+    top: 50%; left: 8px;
+    transform: translateY( -50% );
+    font-size: 1.67rem;
+}
+.ond .oase-table tbody .group.edit p {
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 4px; padding: 4px 8px;
+    background-color: #CCC;
+    border-radius: 4px;
+    text-align: center;
+    font-size: 0.84rem;
+    color: #FFF;
+}
+
+/* -------------------------------------------------- **
+
+    OASE TABLE form
+    
+** -------------------------------------------------- */
+.ond .oase-table tbody .input .cell-inner,
+.ond .oase-table tbody .textarea .cell-inner {
+    overflow: inherit;
+    padding: 8px;
+    text-align: center;
+}
+.ond .oase-table tbody .input .cell-inner input[type="text"],
+.ond .oase-table tbody .textarea .cell-inner textarea {
+    width: 100%;
+    margin: 0;
+    padding: 6px 8px 5px;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    line-height: 1.1;
+    vertical-align: top;
+    font-size: 1rem;
+    font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+    color: #333;
+}
+.ond .oase-table tbody .uneditable .cell-inner {
+    min-width: 152px;
+}
+.ond .oase-table tbody .input .cell-inner input[type="text"] {
+    min-width: 120px;
+}
+.ond .oase-table tbody .textarea .cell-inner textarea {
+    width: 400px;
+    min-height: 7em;
+    line-height: 1.5;
+    resize: vertical;
+}
+.ond .oase-table thead .check .cell-inner {
+    padding: 16px 8px;
+}
+.ond .oase-table tbody .input .cell-inner input[type="checkbox"] {
+    width: 24px; height: 24px;
+    vertical-align: bottom;
+    cursor: pointer;
+}
+/* -------------------------------------------------- **
+
+    Table Edit Update
+    
+** -------------------------------------------------- */
+.ond .oase-table tbody tr.update .select::after {
+    color: #60C60D;
+}
+.ond .oase-table tbody tr.update select.update {
+    background-color: #EFF9E7;
+    border-color: #60C60D;
+    color: #60C60D;
+}
+.ond .oase-table tbody tr.delete .select::after {
+    color: #FF0000!important;
+}
+.ond .oase-table tbody tr.delete select.update {
+    background-color: #FFE6E6!important;
+    border-color: #FF0000!important;
+    color: #FF0000!important;
+}
+.ond .oase-table .add-type .cell-inner {
+    text-align: center;
+}
+.ond .oase-table .add-type-text em {
+font-size: 1.34rem;
+vertical-align: -2px;
+}
+.ond .oase-table .add-type-text span {
+padding-left: 8px;
+}
+.ond .oase-table .add-type-text.auto {
+color: #002B62;
+}
+.ond .oase-table .add-type-text.manual {
+color: #FF640A;
+}
+/* -------------------------------------------------- **
+
+    min width
+    
+** -------------------------------------------------- */
+/* グループ名 */
+.ond .oase-table tbody .group-name.input .cell-inner input { min-width: 200px; }
+/* ユーザ名、メールアドレス */
+.ond .oase-table tbody .user-name.input .cell-inner input,
+.ond .oase-table tbody .mail-address.input .cell-inner input { min-width: 160px; }
+
+
+
+
+
+
+
+
+
+
+/* -------------------------------------------------- **
+
+    Table Footer
+    
+** -------------------------------------------------- */
+.ond .oase-table .oase-table-footer {
+overflow: hidden;
+}
+.ond .oase-table .oase-table-footer ul {
+height: 40px;
+padding: 0 8px;
+background-color: #EFEFEF;
+border: 1px solid #CCC;
+line-height: 38px;
+color: #333;
+white-space: nowrap;
+letter-spacing: -0.4em;
+}
+.ond .oase-table .oase-table-footer li {
+display: inline-block;
+padding: 0 4px;
+letter-spacing: normal;
+}
+.ond .oase-table .oase-table-footer dl {
+display: inline-block;
+vertical-align: middle;
+letter-spacing: -0.4em;
+}
+.ond .oase-table .oase-table-footer dt,
+.ond .oase-table .oase-table-footer dd {
+display: inline-block;
+height: 24px;
+border: 1px solid #666;
+letter-spacing: normal;
+vertical-align: middle;
+line-height: 24px;
+}
+.ond .oase-table .oase-table-footer dt {
+padding: 0 8px;
+background-color: #666;
+color: #CCC;
+}
+.ond .oase-table .oase-table-footer dd {
+border-left: none;
+background-color: #FFF;
+}
+.ond .oase-table .oase-table-footer dd.rowCount {
+padding: 0 8px;
+}
+.ond .oase-table .oase-table-footer button {
+height: 24px;
+padding: 0;
+border: 1px solid #CCC;
+background-color: #EFEFEF;
+background-image: linear-gradient( #FDFDFD, #F2F2F2 );
+line-height: 24px;
+vertical-align: middle;
+font-size: 10px;
+cursor: pointer;
+}
+.ond .oase-table .oase-table-footer button em {
+display: block;
+width: 24px; height: 22px;
+line-height: 22px;
+}
+.ond .oase-table .oase-table-footer button span {
+display: none;
+}
+.ond .oase-table .oase-table-footer button:hover {
+background-image: linear-gradient( #EFEFEF, #EEE );
+}
+.ond .oase-table .oase-table-footer button:disabled {
+background: #DDD;
+color: #999;
+cursor: default;
+}
+.ond .oase-table .oase-table-footer input {
+width: 3em; height: 24px;
+padding: 0 8px;
+border: 1px solid #CCC;
+text-align: center;
+line-height: 24px;
+color: #333;
+vertical-align: middle;
+}
+.ond .oase-table .oase-table-footer select {
+height: 22px;
+padding: 0 8px;
+border: none;
+cursor: pointer;
+vertical-align: top;
+  -moz-appearance: none;
+  -webkit-appearance: none;
+  appearance: none;
+direction: rtl;
+}
+.ond .oase-table .oase-table-footer select::-ms-expand {
+display: none;
+}
+.ond .oase-table .oase-table-footer em {
+vertical-align: 0;
+}
+.ond .oase-table tbody select {
+height: 24px;
+border: 1px solid #CCC;
+border-radius: 4px;
+color: #333;
+}
+
+
+
+
+
+/* -------------------------------------------------- **
+
+    Table Loading
+    
+** -------------------------------------------------- */
+.ond .oase-table-load {
+display: none;
+}
+.ond .oase-table-load.loading {
+display: table;
+position: absolute;
+top: 0;
+z-index: 9999;
+width: 100%; height: 100%;
+}
+.ond .oase-table-load .oase-table-loader-inner {
+display: table-cell;
+width: 100%; height: 100%;
+vertical-align: middle;
+text-align: center;
+font-size: 64px;
+}
+.ond .oase-table-load .oase-table-loader-inner em {
+display: inline-block;
+animation: loading 1s linear infinite;
+color: #666;
+}
+@keyframes loading {
+0% { transform: rotate( 0 ); }
+100% { transform: rotate( 360deg ); }
+}
+
+
+
+/* -------------------------------------------------- **
+
+    Rule Table
+    
+** -------------------------------------------------- */
+.ond .oase-modal-rule-table {
+    position: relative;
+}
+.ond .oase-modal-rule-table-inner {
+}
+.ond .oase-modal-rule-table table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 1px;
+    background-color: #CCC;
+}
+.ond .oase-modal-rule-table th,
+.ond .oase-modal-rule-table td {
+    background-color: #FFF;
+    text-align: center;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+.ond .oase-modal-rule-table th {
+    box-shadow: 0 0 0 1px #CCC;
+}
+.ond .oase-modal-rule-table thead th {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    width: 50%;
+    background-color: #00B5B8;
+    font-weight: normal;
+    color: #FFF;
+    white-space: nowrap;
+}
+.ond .oase-modal-rule-table th.move,
+.ond .oase-modal-rule-table th.row-delete {
+    width: 8px;
+}
+.ond .oase-modal-rule-table td.row-delete {
+    background-color: #EFEFEF;
+}
+.ond .oase-modal-rule-table tr:first-of-type td.row-delete button {
+    visibility: hidden;
+}
+.ond .oase-modal-rule-table td.row-delete em {
+    font-size: 16px;
+}
+.ond .oase-modal-rule-table td.move {
+    background-color: #EFEFEF;
+    font-size: 20px;
+    color: #CCC;
+    cursor: s-resize;
+    user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+}
+.ond .oase-modal-rule-table td.input,
+.ond .oase-modal-rule-table td.select {
+    vertical-align: top;
+}
+.ond .oase-modal-rule-table td.move:hover {
+    background-color: #E6E6E6;
+}
+.ond .oase-modal-rule-table .hide {
+    opacity: 0.3;
+}
+.ond .oase-modal-rule-table-footer {
+    height: 40px;
+    padding: 0 8px;
+    background-color: #EFEFEF;
+    border: 1px solid #CCC;
+    line-height: 38px;
+    color: #333;
+    text-align: center;
+}
+
+.ond .oase-modal .oase-modal-drag {
+width: 100%; height: 100%;
+}
+.ond .oase-modal .oase-modal-drag .oase-modal-rule-table {
+overflow: hidden;
+width: 100%; height: 100%;
+max-height: none;
+position: relative;
+}
+.ond .drag-move {
+    display: none;
+}
+.ond .drag-move * {
+    cursor: s-resize;
+}
+.ond .drag-move {
+    display: table;
+    border-collapse: separate;
+    border-spacing: 1px;
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 19999;
+    box-shadow: 0 0 16px rgba( 0,0,0,0.3 );
+    transform: scale(1.01);
+}
+.ond .drag-move td {
+    display: table-cell;
+    background-color: #FFF;
+    box-shadow: 0 0 0 1px #CCC;
+}
+/* pointer-events: none 対応 */
+@supports (pointer-events: none) {
+    .ond .drag-move {
+        display: table;
+        pointer-events: none;
+    }
+}
+/* IE 11 */
+@media all and (-ms-high-contrast:none){
+    *::-ms-backdrop, .ond .drag-move {
+        display: table;
+        pointer-events: none;
+    }
+}
