@@ -1,0 +1,586 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript">
+<!--
+function mailSetDetail( modalId, recordId ) {
+
+    var $dataContainer = $(recordId);
+    var $targetModal = $(modalId);
+
+    $targetModal.find('input[name=template_id]').val($dataContainer.data('id'));
+
+    $targetModal.find('h3[name=mail_template_name]').text($dataContainer.data('mail_template_name'));
+    $targetModal.find('div[name=subject]').text($dataContainer.data('subject'));
+    $targetModal.find('div[name=destination]').text($dataContainer.data('destination'));
+    $targetModal.find('div[name=cc]').text($dataContainer.data('cc'));
+    $targetModal.find('div[name=bcc]').text($dataContainer.data('bcc'));
+    $targetModal.find('div[name=content]').html(textEntities($dataContainer.data('content')).replace(/\r?\n/g, '<br>'));
+}
+
+function mailSetEdit( fromModalId, toModalId ) {
+
+    var id = $(fromModalId).find('input[name=template_id]').val();
+    var $dataContainer = $('#No-' + id);
+    var $targetModal = $(toModalId);
+
+    $targetModal.find('input[name=template_id]').val($dataContainer.data('id'));
+
+    $targetModal.find('input[name=mail_template_name]').val($dataContainer.data('mail_template_name'));
+    $targetModal.find('input[name=subject]').val($dataContainer.data('subject'));
+    $targetModal.find('input[name=destination]').val($dataContainer.data('destination'));
+    $targetModal.find('input[name=cc]').val($dataContainer.data('cc'));
+    $targetModal.find('input[name=bcc]').val($dataContainer.data('bcc'));
+    $targetModal.find('textarea[name=content]').val($dataContainer.data('content'));
+}
+
+function mailModalClear( modalId, selector) {
+
+    if (!modalClose(modalId)){
+        return false
+    }
+
+    var $targetModal = $(modalId);
+    var $elements = $targetModal.find('input:not([name^=csrf]), textarea');
+
+    $elements.each(function(index, element) {
+        element.value = "";
+    });
+
+    $(selector).prop("disabled", true);
+
+    // 旧エラー表記削除
+    $('.error').removeClass('error');
+    $('.error-list').remove();
+}
+
+function mailCreate( modalId ) {
+
+    $("#btnCreate").prop("disabled", true);
+
+    var $targetForm = $(modalId).find('form');
+    var data = {};
+    var formData = $targetForm.serializeArray();
+    formData.forEach(function(iter) {
+        data[iter["name"]] = iter["value"];
+    });
+    data["template_id"]  = "New1";
+
+     $("#addJsonStr").val(JSON.stringify({"json_str":data}));
+
+    if(confirm(getMessage("MOSJA25036", false)) == true){
+
+        // 旧エラー表記削除
+        $('.error').removeClass('error');
+        $('.error-list').remove();
+
+        $.ajax({
+            type : "POST",
+            url  : "mail/create",
+            data : $targetForm.serialize(),
+            dataType: "json",
+        })
+        .done(function(response_json) {
+            if(response_json.status == 'success') {
+                alert(getMessage("MOSJA00011", false));
+                $("#btnCreate").prop("disabled", false);
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/system/mail";
+            }
+            else {
+                alert(getMessage("MOSJA25017", true));
+
+                _dispError(response_json.error_msg, modalId);
+            }
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                alert(getMessage("MOSJA25018", true));
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage("MOSJA25018", true) + "\n" + respdata.responseText);
+            }
+        });
+    } else {
+        $("#btnCreate").prop("disabled", false);
+    }
+}
+
+function mailUpdate( modalId ) {
+
+    $("#btnUpdate").prop("disabled", true);
+
+    var $targetForm = $(modalId).find('form');
+    var formData = $targetForm.serializeArray();
+    var data = {};
+
+    formData.forEach(function(iter) {
+        data[iter["name"]] = iter["value"];
+    });
+
+    $("#editJsonStr").val(JSON.stringify({"json_str":data}));
+
+    if(confirm(getMessage("MOSJA25036", false)) == true){
+
+        // 旧エラー表記削除
+        $('.error').removeClass('error');
+        $('.error-list').remove();
+
+        $.ajax({
+            type : "POST",
+            url  : "mail/update",
+            data : $targetForm.serialize(),
+            dataType: "json",
+        })
+        .done(function(response_json) {
+            if(response_json.status == 'success') {
+                alert(getMessage("MOSJA00011", false));
+                $("#btnUpdate").prop("disabled", false);
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/system/mail";
+            }
+            else {
+                alert(getMessage("MOSJA25017", true));
+
+                _dispError(response_json.error_msg, modalId);
+            }
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                alert(getMessage("MOSJA25018", true));
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage("MOSJA25018", true) + "\n" + respdata.responseText);
+            }
+        });
+    } else {
+        $("#btnUpdate").prop("disabled", false);
+    }
+}
+
+function mailDelete( modalId ) {
+
+    $("#btnDelete").prop("disabled", true);
+
+    var $targetForm = $(modalId).find('form');
+
+    if(confirm(getMessage("MOSJA25037", false)) == true){
+
+        // 旧エラー表記削除
+        $('.error').removeClass('error');
+        $('.error-list').remove();
+
+        $.ajax({
+            type : "POST",
+            url  : "mail/delete",
+            data : $targetForm.serialize(),
+            dataType: "json",
+        })
+        .done(function(response_json) {
+            if(response_json.status == 'success') {
+                alert(getMessage("MOSJA00200", false));
+            }
+            else {
+                alert(getMessage("MOSJA25001", true))
+            }
+            $("#btnDelete").prop("disabled", false);
+            beforeunloadThroughFlag = true;
+            window.location.href =  "/oase_web/system/mail";
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                alert(getMessage("MOSJA25018", true));
+                $("#btnDelete").prop("disabled", false);
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage("MOSJA25018", true) + "\n" + respdata.responseText);
+                $("#btnDelete").prop("disabled", false);
+            }
+        });
+    } else {
+        $("#btnDelete").prop("disabled", false);
+    }
+}
+
+function _dispError(errorArray, modalId) {
+
+        Object.keys(errorArray).forEach(function(tag) {
+
+            errorStr = errorArray[tag]
+            if(!errorStr || errorStr.length == 0) {
+                return true;
+            }
+
+            // 今回エラーを表記
+            $errInput = $(modalId).find('[name=' + tag + ']');
+            $errInput.parents('th, td').addClass('error');
+            var errorHTML = '<ul class="error-list">';
+            errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+            errorHTML += '</ul>';
+            $errInput.after( errorHTML );
+        });
+}
+
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA00201' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" onclick="window.location.href='{% url "web_app:system:action" %}?opentab=mail-driver'"><em class="owf owf-prev"></em><span>{% get_message 'MOSJA25026' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              {% if editable_user %}
+              <li><button class="oase-button" onclick="modalOpen('#modal-mail');"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              {% endif %}
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+
+        <section>
+          {% if mail_list|length %}
+          <div class="oase-table">
+            <div class="oase-table-load loading">
+              <div class="oase-table-loader-inner"><em class="owf owf-update"></em></div>
+            </div>
+
+            <div class="oase-table-inner">
+              <table class="oase-filter oase-sort">
+                <thead>
+                  <tr>
+                    <th class="operation-menu" filter-label="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="template-name sort filter" filter-type="common" filter-label="template-name"><div class="cell-inner">{% get_message 'MOSJA00201' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="title sort filter" filter-type="common" filter-label="title"><div class="cell-inner">{% get_message 'MOSJA25027' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="last-modified sort filter" filter-type="date" filter-label="last-modified"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  {% for mail in mail_list %}
+                  <tr id="No-{{ mail.pk }}"
+                    data-id           = "{{ mail.template_id }}"
+                    data-mail_template_name = "{{ mail.mail_template_name }}"
+                    data-subject      = "{{ mail.subject }}"
+                    data-destination  = "{{ mail.destination }}"
+                    data-cc           = "{{ mail.cc }}"
+                    data-bcc          = "{{ mail.bcc }}"
+                    data-content      = "{{ mail.content }}">
+                    <td class="operation-menu">
+                      <div class="cell-inner">
+                        <ul>
+                          <li><button class="tooltip detail oase-mini-button" onclick="mailSetDetail('#modal-mail-detail', '#No-{{ mail.pk }}');modalOpen('#modal-mail-detail');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                        </ul>
+                      </div>
+                    </td>
+                    <td class="template-name"><div class="cell-inner">{{ mail.mail_template_name }}</div></td>
+                    <td class="title"><div class="cell-inner">{{ mail.subject }}</div></td>
+                    <td class="last-update-user"><div class="cell-inner">{{ mail.last_update_user }}</div></td>
+                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ mail.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s.u' }}">{{ mail.last_update_timestamp|timezone:'Asia/Tokyo' }}</time></div></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li>
+                  <dl>
+                    <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+                    <dd><select class="rowShowNum">
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50" selected>50</option>
+                      <option value="100">100</option>
+                    </select></dd>
+                  </dl>
+                </li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> / <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+                <li><button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+          </div>
+          {% else %}
+          <div class="oase-none">
+            <p>{% autoescape off%}{% get_message 'MOSJA25000' request.user.get_lang_mode %}{% endautoescape %}</p>
+          </div>
+          {% endif %}
+        </section>
+
+
+<div id="modal-mail" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title">
+            <h2><em class="owf owf-plus"></em><span>{% get_message 'MOSJA25028' request.user.get_lang_mode showMsgId=False %}</span></h2>
+          </div>
+          <button class="oase-modal-close" onclick="mailModalClear('#modal-mail');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+            <form>
+              {% csrf_token %}
+              <input id="addJsonStr" type="hidden" name="json_str" />
+              <h3>
+                <div class="oase-modal-table">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA25029' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                        <td><div class="cell-inner"><input type="text" data-maxlength="64" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00102' request.user.get_lang_mode showMsgId=False %}" name="mail_template_name" /></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </h3>
+              <div class="oase-modal-table">
+                <table>
+                  <tbody>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25030' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="512" data-type="multiaddress" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="destination" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25031' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="512" data-type="multiaddress" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="cc" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25032' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="512" data-type="multiaddress" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="bcc" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25027' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="128" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00113' request.user.get_lang_mode showMsgId=False %}" name="subject" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25033' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                      <td><div class="cell-inner"><textarea data-maxlength="512" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="content"></textarea></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button" onclick="mailModalClear('#modal-mail', '#btnCreate');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="mailCreate('#modal-mail');" id="btnCreate"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div><!-- /.oase-modal-content -->
+
+    </div><!-- /.oase-modal-inner -->
+  </div><!-- /.oase-modal-main -->
+
+</div><!-- /.oase-modal -->
+
+
+<div id="modal-mail-detail" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title">
+            <h2><em class="owf owf-details"></em><span>{% get_message 'MOSJA25034' request.user.get_lang_mode showMsgId=False %}</span></h2>
+          </div>
+          <button class="oase-modal-close" onclick="modalClose('#modal-mail-detail');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+            <form>
+              {% csrf_token %}
+              <input type="hidden" name="template_id" />
+            </form>
+            <h3 name="mail_template_name"></h3>
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA25030' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner" name="destination"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA25031' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner" name="cc"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA25032' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner" name="bcc"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA25027' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner" name="subject"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA25033' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner" name="content"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button" onclick="modalClose('#modal-mail-detail');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            {% if editable_user %}
+            <li><button class="oase-button" onclick="mailDelete('#modal-mail-detail');" id="btnDelete"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="mailSetEdit('#modal-mail-detail', '#modal-mail-edit');modalChange('#modal-mail-detail', '#modal-mail-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            {% endif %}
+          </ul>
+        </div>
+
+      </div><!-- /.oase-modal-content -->
+
+    </div><!-- /.oase-modal-inner -->
+  </div><!-- /.oase-modal-main -->
+
+</div><!-- /.oase-modal -->
+
+
+<div id="modal-mail-edit" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title">
+            <h2><em class="owf owf-edit"></em><span>{% get_message 'MOSJA25035' request.user.get_lang_mode showMsgId=False %}</span></h2>
+          </div>
+          <button class="oase-modal-close" onclick="mailModalClear('#modal-mail-edit');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+            <form>
+              {% csrf_token %}
+              <input type="hidden" name="template_id" />
+              <input id="editJsonStr" type="hidden" name="json_str" />
+              <h3>
+                <div class="oase-modal-table">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA25029' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                        <td><div class="cell-inner"><input type="text" data-maxlength="64" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00102' request.user.get_lang_mode showMsgId=False %}" name="mail_template_name" /></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </h3>
+              <div class="oase-modal-table">
+                <table>
+                  <tbody>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25030' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="512" data-type="multiaddress" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="destination" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25031' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="512" data-type="multiaddress" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="cc" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25032' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="512" data-type="multiaddress" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="bcc" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25027' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                      <td><div class="cell-inner"><input type="text" data-maxlength="128" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00113' request.user.get_lang_mode showMsgId=False %}" name="subject" /></div></td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA25033' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                      <td><div class="cell-inner"><textarea data-maxlength="512" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA00112' request.user.get_lang_mode showMsgId=False %}" name="content"></textarea></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button" onclick="mailModalClear('#modal-mail-edit', '#btnUpdate');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="mailUpdate('#modal-mail-edit');" id="btnUpdate"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div><!-- /.oase-modal-content -->
+
+    </div><!-- /.oase-modal-inner -->
+  </div><!-- /.oase-modal-main -->
+
+</div><!-- /.oase-modal -->
+
+
+<div class="oase-modal-overlay"></div>
+{% csrf_token %}
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock %}

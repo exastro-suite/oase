@@ -1,0 +1,630 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- **
+
+ システム設定
+
+** -------------------------------------------------- */
+.ond .oase-config {
+    max-width: 1280px;
+    height: 100%;
+    margin: 0 auto; padding: 8px 0;
+}
+/*
+
+メニュー
+
+*/
+.ond .oase-config-menu {
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 25%; height: 100%;
+    float: left;
+    direction: rtl;
+}
+.ond .oase-config-menu ul {
+    height: 100%;
+    padding: 78px 0 0 0;
+    border-right: 1px solid #CCC;
+    direction: ltr;
+}
+.ond .oase-config-menu li {
+    position: relative;
+    height: 60px;
+    margin-bottom: 4px;
+}
+.ond .oase-config-menu a {
+    overflow: hidden;
+    display: block;
+    position: absolute;
+    right: 0;
+    z-index: 10;
+    width: 100%; height: 60px;
+    padding: 16px 16px 16px 48px;
+    background-color: #00B5B8;
+    border: 1px solid #00B5B8;
+    border-right: none;
+    border-radius: 30px 0 0 30px;
+    text-align: right;
+    font-size: 1.34rem;
+    color: #FFF;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.ond .oase-config-menu a:hover {
+    background-color: #009C9F;
+}
+.ond .oase-config-menu a::after {
+    content: '\e91b';
+    font-family: oase-web-font!important;
+    display: block;
+    position: absolute;
+    top: 50%; left: 16px;
+    z-index: -1;
+    transform: translateY( -50% );
+    font-size: 2.34rem;
+    opacity: 0.3;
+}
+.ond .oase-config-menu a.open {
+    right: -1px;
+    background-color: #FDFDFD;
+    border-color: #CCC;
+    color: #00B5B8;
+    cursor: default;
+}
+.ond .oase-config-menu a.open::after {
+    opacity: 1;
+    color: #CCC;
+    animation: configSetting 5s linear infinite;
+}
+@keyframes configSetting {
+0% { transform: translateY( -50% ) rotate( 0 ); }
+100% { transform: translateY( -50% ) rotate( 360deg )}
+}
+
+/*
+
+メイン
+
+*/
+.ond .oase-config-main {
+    height: 100%;
+    margin: 0 0 0 25%;
+    background-color: #FDFDFD;
+    border-right: 1px solid #CCC;
+    border-bottom: 1px solid #CCC;
+}
+.ond .oase-config-main section {
+    height: 100%;
+    padding: 0;
+    background-color: #FDFDFD;
+}
+.ond .oase-config-header h3 {
+    height: 64px;
+    padding: 0 16px;
+    background-image: linear-gradient( #FFF, #F2F2F2 );
+    border-top: 2px solid #00B5B8;
+    border-bottom: 1px solid #DDD;
+    box-shadow: 0 2px 2px rgba( 0,0,0,0.1 );
+    line-height: 64px;
+    font-size: 1.34rem;
+    color: #666;
+}
+.ond .oase-config-footer {
+    height: 64px;
+    padding: 12px 32px 0;
+    background-image: linear-gradient( #FFF, #F2F2F2 );
+    border-top: 1px solid #EEE;
+}
+.ond .oase-config-body {
+    overflow-y: scroll;
+    height: calc( 100% - 128px );
+    padding: 16px;
+}
+.ond .oase-config-body h4 {
+    margin-top: 24px; padding: 16px 8px;
+    line-height: 1.5;
+    font-size: 1.34rem;
+    color: #666;
+}
+.ond .oase-config-body p,
+.ond .oase-config-body ul {
+margin: 24px 0 16px; padding: 0 8px;
+line-height: 1.75;
+font-size: 1.17rem;
+color: #666;
+}
+.ond .oase-config-body ul li {
+margin-left: 2em;
+list-style: disc;
+}
+.ond .oase-config-body h4:first-child,
+.ond .oase-config-body p:first-child,
+.ond .oase-config-body ul:first-child {
+    margin-top: 0;
+}
+.ond .oase-config-body table {
+    width: 100%;
+    border-top: 1px solid #CCC;
+    border-collapse: collapse;
+}
+.ond .oase-config-body table .cell-inner {
+    display: inline-block;
+    position: relative;
+    padding: 8px 16px;
+    vertical-align: top;
+}
+.ond .oase-config-body table td .cell-inner {
+    padding: 8px;
+}
+.ond .oase-config-body th,
+.ond .oase-config-body td {
+    border-bottom: 1px solid #CCC;
+    background-color: #FFF;
+    vertical-align: middle;
+    line-height: 1.5;
+    font-size: 1.17rem;
+}
+.ond .oase-config-body th {
+    width: 30%;
+    background-color: #EFEFEF;
+    text-align: left;
+    line-height: 2;
+    font-weight: normal;
+    color: #333;
+    white-space: nowrap;
+}
+.ond .oase-config-body th.button {
+width: 8px;
+}
+.ond .oase-config-body th.button .cell-inner {
+padding: 2px 0 2px 8px;
+font-size: 1.67rem;
+}
+.ond .oase-config-body table.authority-table {
+}
+.ond .oase-config-body table.authority-table th,
+.ond .oase-config-body table.authority-table td {
+width: auto;
+border: 1px solid #CCC;
+}
+.ond .oase-config-body table.authority-table thead th {
+background-color: #00B5B8;
+text-align: center;
+color: #FFF;
+}
+.ond .oase-config-body table.authority-table td.authority-type {
+text-align: center;
+}
+.ond .oase-config-body table.authority-table .blank {
+background-color: #FDFDFD!important;
+}
+.ond .oase-config-body table.authority-table .blank .cell-inner {
+width: 100%;
+text-align: center;
+}
+.ond .oase-config-body table.authority-table .blank .cell-inner::after {
+    content: '';
+    display: inline-block;
+    width: calc( 100% - 16px );
+    height: 1px;
+    background-color: #CCC;
+    vertical-align: 4px;
+}
+
+.ond .oase-config-body .select::after {
+    top: 4px;
+}
+.ond .oase-config-body select {
+    height: 32px;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    color: #333;
+}
+.ond .oase-config-body option {
+    color: #333;
+}
+.ond .oase-config-body label {
+    display: inline-block;
+    height: 32px;
+    white-space: nowrap;
+}
+.ond .oase-config-body input {
+    display: inline-block;
+    height: 32px;
+    padding: 8px;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    font-size: 1.34rem;
+    color: #333;
+    vertical-align: bottom;
+    line-height: 1;
+}
+.ond .oase-config-body .password {
+    display: inline-block;
+}
+.ond .oase-config-body div.password-show {
+    height: 32px;
+}
+.ond .oase-config-body div.password-show::after {
+    font-size: 1.34rem;
+}
+.ond .oase-config-body label input {
+    border-radius: 4px 0 0 4px;
+}
+.ond .oase-config-body label input:disabled {
+    background-color: #EEE!important;
+    color: #CCC!important;
+}
+.ond .oase-config-body span {
+    padding-left: 0.5em;
+    font-size: 0.92rem;
+}
+.ond .oase-config-body label span {
+    display: inline-block;
+    height: 32px;
+    padding: 0 8px;
+    background-color: #F2F2F2;
+    border: 1px solid #CCC;
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    vertical-align: bottom;
+    line-height: 32px;
+    font-size: 1rem;
+    color: #666;
+}
+.ond .oase-config-body label input.change-value ~ span {
+    background-color: #CFEEB6;
+    border-color: #60C60D;
+}
+.ond .oase-config-body label input:disabled ~ span {
+    background-color: #E6E6E6;
+    color: #CCC;
+}
+.ond .oase-config-body input[type="number"] {
+    width: 80px;
+    text-align: right;
+}
+.ond .oase-config-body .active-directory-setting input[type="number"] {
+    width: 88px;
+}
+
+
+.ond .oase-config-body .change-edit-table {
+border-top: none;
+}
+.ond .oase-config-body .change-edit-table thead th {
+background-color: transparent;
+}
+.ond .oase-config-body .change-edit-table thead th.edit {
+    width: 8px;
+    vertical-align: bottom;
+    text-align: center;
+}
+.ond .oase-config-body .change-edit-table thead th.edit .cell-inner {
+    width: 100%;
+    padding: 4px 0;
+    font-weight: bold;
+    font-soze: 12px;
+    color: #666;
+}
+.ond .oase-config-body tr.update th {
+    background-color: #E6E6E6;
+}
+.ond .oase-config-body tr.update td {
+    background-color: #FDFDFD;
+}
+/*
+
+無効・有効スイッチ
+
+*/
+.ond .config-switch {
+    width: 8px;
+}
+.ond .oase-config-body input.config-switch-input {
+    position: absolute;
+    left: -9999px;
+}
+.ond .config-switch-label {
+    display: block;
+    position: relative;
+    width: 64px;
+    height: 32px;
+    background-color: #EFEFEF;
+    border: 1px solid #CCC;
+    border-radius: 32px;
+    vertical-align: middle;
+    cursor: pointer;
+    user-select: none;
+      -moz-user-select: none;
+      -webkit-user-select: none;
+      -ms-user-select: none;
+}
+.ond .config-switch-label::before {
+    content: 'OFF';
+    display: block;
+    position: absolute;
+    top: 6px; left: 8px;
+    font-size: 1rem;
+    color: #CCC;
+}
+.ond .config-switch-label::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 3px; right: 4px;
+    width: 24px; height: 24px;
+    background-color: #CCC;
+    border-radius: 50%;
+    transition-duration: 0.1s;
+}
+.ond .config-switch-input:focus ~ .config-switch-label {
+box-shadow: 0 0 2px 1px #CCC;
+}
+.ond .config-switch-input:checked ~ .config-switch-label {
+    background-color: #88D44A;
+    border-color: #78CF31;
+}
+.ond .config-switch-input:checked ~ .config-switch-label::before {
+    content: 'ON';
+    left: 32px;
+    color: #FFF;
+}
+.ond .config-switch-input:checked ~ .config-switch-label::after {
+    right: 34px;
+    background-color: #FFF;
+}
+/*
+
+Active Directory 対象グループリスト
+
+*/
+.ond .oase-config-body .target-group-list .cell-inner {
+    width: 100%;
+    padding: 0;
+}
+.ond .oase-config-body .target-group-list table .cell-inner {
+    padding: 8px;
+}
+.ond .target-group-list table {
+    width: 100%;
+    border: none;
+}
+.ond .target-group-list th,
+.ond .target-group-list td {
+    border: none;
+    text-align: center;
+    font-size: 1rem;
+}
+.ond .target-group-list thead th {
+    width: 50%;
+}
+.ond .target-group-list thead th.delete {
+    width: 8px;
+}
+.ond .target-group-list input {
+    width: 100%;
+}
+.ond .active-directory-setting {
+    display: none;
+}
+.ond .target-group-list table tr:first-child button {
+display: none;
+}
+/*
+
+Radioボタンセット
+
+*/
+.ond .oase-config-body .radio-set {
+overflow: hidden;
+border: 1px solid #CCC;
+border-radius: 4px;
+}
+.ond .oase-config-body .radio-set ul {
+display: table;
+margin: 0; padding: 0;
+}
+.ond .oase-config-body .radio-set li {
+display: table-cell;
+overflow: hidden;
+position: relative;
+margin: 0; padding: 0;
+border-right: 1px solid #CCC;
+vertical-align: top;
+list-style: none;
+}
+.ond .oase-config-body .radio-set li:last-child {
+border: none;
+}
+.ond .oase-config-body .radio-set input {
+position: absolute;
+left: -9999px;
+}
+.ond .oase-config-body .radio-set label {
+display: inline-block;
+width: 100%; height: auto;
+padding: 8px 16px 8px;
+background-image: linear-gradient( #F3F3F3, #DDD );
+box-shadow: 0 2px 2px 0 rgba( 0,0,0,0.2 ), 0 1px 0 1px rgba( 255,255,255,0.6 ) inset;
+line-height: 1;
+cursor: pointer;
+color: #666;
+}
+.ond .oase-config-body .radio-set label:hover {
+background-image: linear-gradient( #EEE, #CCC );
+}
+.ond .oase-config-body .radio-set input:checked ~ label {
+padding: 9px 16px 7px;
+background-image: linear-gradient( #EFF9E7, #F7FCF3 );
+box-shadow: 0 1px 3px 0 rgba( 0,0,0,0.2 ) inset;
+color: #333;
+}
+
+
+
+
+
+
+
+
+
+
+.ond .oase-config-body .input-number {
+width: 8px;
+}
+.ond .oase-config-body .input-range .cell-inner {
+display: block;
+width: 100%; min-width: 160px;
+}
+.ond .oase-config-body .range {
+position: relative;
+width: 100%;
+}
+.ond .oase-config-body .range input[type="range"] {
+position: absolute;
+top: 50%; left: 0;
+z-index: 10;
+transform: translateY(-50%);
+width: 100%; height: 24px;
+margin: 0; padding: 0;
+border: none;
+outline: none;
+}
+/* Firefox Focus Outline none */
+.ond .oase-config-body .range input[type="range"]::-moz-focus-outer {
+border: 0;
+}
+.ond .oase-config-body .range::after,
+.ond .oase-config-body .range .range-lower,
+.ond .oase-config-body .range .range-thumb,
+.ond .oase-config-body .range .range-tooltip {
+content: '';
+display: block;
+position: absolute;
+top: 50%; left: 0;
+z-index: 5;
+transform: translateY(-50%);
+width: 100%; height: 4px;
+background-color: #DDD;
+border-radius: 2px;
+}
+.ond .oase-config-body .range .range-lower {
+z-index: 6;
+width: 1%;
+background-color: #AAA;
+transition-duration: 0.1s;
+transition-timing-function: linear;
+}
+.ond .oase-config-body .range .range-thumb {
+z-index: 7;
+width: 16px; height: 16px;
+background-color: #EFEFEF;
+border: 2px solid #AAA;
+border-radius: 50%;
+transform: translateY(-50%) translate(-8px);
+transition-duration: 0.1s;
+transition-timing-function: linear;
+}
+.ond .oase-config-body .range.move .range-thumb,
+.ond .oase-config-body .range.move .range-lower {
+transition-duration: 0s;
+}
+.ond .oase-config-body .range.move input[type="range"],
+.ond .oase-config-body .range.move .range-thumb,
+.ond .oase-config-body .range.move .range-lower {
+cursor: w-resize;
+}
+.ond .oase-config-body .range input[type="range"]:focus ~ .range-thumb {
+background-color: #CCC;
+}
+.ond .oase-config-body .range .range-tooltip {
+display: none;
+position: fixed;
+z-index: 8;
+width: 4em; height: 24px;
+background-color: #FFF;
+border: 1px solid #CCC;
+box-shadow: 0 0 4px rgba( 0,0,0,0.2 );
+transform: translateY(-50%) translate(-2em);
+line-height: 24px;
+text-align: center;
+font-size: 11px;
+pointer-events: none;
+}
+.ond .oase-config-body .range .range-tooltip::after {
+content: '';
+display: block;
+position: absolute;
+bottom: -5px; left: 50%;
+width: 7px; height: 7px;
+background-color: #FFF;
+border-left: 1px solid #CCC;
+border-bottom: 1px solid #CCC;
+transform: translateX(-4px) rotate(-45deg);
+pointer-events: none;
+}
+
+.ond .oase-config-body .range input[type=range] {
+width: 100%; height: 24px;
+margin: 0; padding: 0;
+-webkit-appearance: none;
+background-color: transparent;
+cursor: pointer;
+}
+
+.ond .oase-config-body .range input[type=range]:disabled,
+.ond .oase-config-body .range input[type=range]:disabled ~ .range-lower {
+cursor: default;
+}
+.ond .oase-config-body .range input[type=range]:disabled ~ .range-lower {
+background-color: #DDD;
+}
+.ond .oase-config-body .range input[type=range]:disabled ~ .range-thumb {
+display: none;
+}
+
+/* Chrome */
+.ond .oase-config-body .range ::-webkit-slider-thumb {
+-webkit-appearance: none;
+width: 0px; height: 1px;
+}
+/* Firefox */
+.ond .oase-config-body .range ::-moz-range-thumb {
+width: 0px; height: 1px;
+padding: 0;
+border: none;
+}
+/* IE11,Edge */
+.ond .oase-config-body .range ::-ms-track {
+background: transparent;
+border-color: transparent;
+color: transparent;
+}
+.ond .oase-config-body .range ::-ms-thumb {
+display: none;
+}
+.ond .oase-config-body .range ::-ms-fill-lower,
+.ond .oase-config-body .range ::-ms-fill-upper {
+background: transparent;
+}
+.ond .oase-config-body .range ::-ms-tooltip {
+  display: none;
+}

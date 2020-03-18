@@ -1,0 +1,214 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- **
+
+   DashBoard
+
+** -------------------------------------------------- */
+.ond .oase-dashboard-title {
+margin: 0 16px 16px; padding: 16px 0;
+background-color: #FFF;;
+background-image: linear-gradient( #FFF, #F9F9F9 );
+border: 1px solid #CCC;
+border-top: 8px solid #00B5B8;
+border-radius: 0 0 8px 8px;
+box-shadow: 2px 2px 4px rgba( 0,0,0,0.1 );
+text-align: center;
+font-size: 2rem;
+font-weight: normal;
+color: #00B5B8;
+white-space: nowrap;
+animation: dashboardList 1.2s forwards;
+}
+.ond .oase-dashboard-title .exastro {
+font-weight: bold;
+}
+.ond .oase-dashboard-title em {
+display: inline-block;
+font-size: 60px;
+}
+.ond .oase-dashboard-list {
+display: table;
+width: 100%;
+table-layout: fixed;
+border-collapse: separate;
+border-spacing: 16px;
+}
+.ond .oase-dashboard-login-user,
+.ond .oase-dashboard-list > li {
+display: table-cell;
+width: 33.33333%;
+padding: 24px 24px 16px;
+background-color: rgba( 255,255,255,0.8 );
+border: 1px solid #CCC;
+border-radius: 4px;
+box-shadow: 2px 2px 4px rgba( 0,0,0,0.1 );
+vertical-align: middle;
+transform: translateY( -20px ); opacity: 0;
+animation: dashboardList 1.2s forwards;
+}
+@keyframes dashboardList {
+0% { transform: translateY( -20px ); opacity: 0; }
+100% { transform: translateY( 0 ); opacity: 1; }
+}
+.ond .oase-dashboard-list > li:nth-of-type(1) { animation-delay: 0.4s; }
+.ond .oase-dashboard-list > li:nth-of-type(2) { animation-delay: 0.6s; }
+.ond .oase-dashboard-list > li:nth-of-type(3) { animation-delay: 0.8s; }
+.ond .oase-dashboard-list > li:nth-of-type(4) { animation-delay: 1.0s; }
+
+.ond .oase-dashboard-login-user {
+display: table;
+width: calc( 100% - 32px );
+margin: 0 auto; padding: 0;
+table-layout: auto;
+animation-delay: 0.2s;
+}
+.ond .oase-dashboard-login-user p {
+display: table-cell;
+padding: 24px;
+vertical-align: middle;
+font-size: 120%;
+}
+.ond .oase-dashboard-login-user p em {
+padding: 0 0.5em;
+font-size: 110%;
+font-style: normal;
+color: #00B5B8;
+}
+.ond .oase-dashboard-login-user p em.owf {
+padding: 0;
+vertical-align: -1px;
+font-size: 120%;
+color: #888;
+}
+.ond .oase-dashboard-login-user ul {
+display: table-cell;
+padding: 24px 16px 16px;
+text-align: right;
+vertical-align: middle;
+}
+.ond .oase-dashboard-list dl {
+display: table;
+table-layout: auto;
+border-collapse: collapse;
+border-spacing: 0;
+width: 100%;
+padding: 0;
+}
+.ond .oase-dashboard-list dl::after {
+content: '';
+display: block;
+clear: both;
+}
+.ond .oase-dashboard-list dt {
+display: table-cell;
+width: 80px;
+text-align: center;
+vertical-align: middle;
+}
+.ond .oase-dashboard-list dt em {
+font-size: 80px;
+color: #444;
+}
+.ond .oase-dashboard-list dt > span > span {
+display: block;
+overflow: hidden;
+width: 6.5em;
+margin: 0 auto; padding: 4px 0 0;
+line-height: 1.5;
+text-overflow: ellipsis;
+white-space: nowrap;
+font-weight: bold;
+color: #444;
+}
+.ond .oase-dashboard-list dd {
+display: table-cell;
+padding-left: 24px;
+vertical-align: middle;
+}
+.ond .oase-dashboard-menu {
+letter-spacing: -0.4em;
+}
+.ond .oase-dashboard-menu > li {
+display: inline-block;
+letter-spacing: normal;
+vertical-align: top;
+line-height: 1.1;
+}
+.ond .oase-dashboard-menu > li a {
+display: block;
+margin: 0 8px 8px 0; padding: 8px 12px;
+background-color: #00B5B8;
+border-radius: 4px;
+color: #EFEFEF;
+}
+.ond .oase-dashboard-menu > li a:hover {
+background-color: #009093;
+color: #DDD;
+}
+
+@media screen and ( max-width: 1200px ){
+
+.ond .oase-dashboard-login-user {
+width: 100%;
+margin: 0 0 16px;
+}
+.ond .oase-dashboard-title {
+margin: 0 0 24px;
+font-size: 2vw;
+}
+.ond .oase-dashboard-title em {
+font-size: 5vw;
+}
+.ond .oase-dashboard-list {
+display: block;
+}
+.ond .oase-dashboard-list > li {
+display: block;
+width: 100%;
+margin-bottom: 16px;
+}
+.ond .oase-dashboard-list dt {
+width: 48px;
+}
+.ond .oase-dashboard-list dt em {
+font-size: 48px;
+color: #444;
+}
+.ond .oase-dashboard-list dt > span > span {
+font-size: 10px;
+}
+
+}
+
+@media screen and ( max-width: 800px ){
+
+.ond .oase-dashboard-login-user {
+display: block;
+}
+.ond .oase-dashboard-login-user p,
+.ond .oase-dashboard-menu {
+display: block;
+padding: 16px 16px 0;
+}
+.ond .oase-dashboard-login-user ul {
+padding: 16px;
+}
+
+}

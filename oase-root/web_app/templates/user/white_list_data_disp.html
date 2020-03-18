@@ -1,0 +1,37 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+
+<table class="oase-filter oase-sort" id="user">
+  <thead class="user-data-head">
+    <tr>
+      <th class="address sort filter" filter-type="common" filter-label="address"><div class="cell-inner">{% get_message 'MOSJA00027' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="add-modified sort filter" filter-type="date" filter-label="add-modified"><div class="cell-inner">{% get_message 'MOSJA00029' request.user.get_lang_mode showMsgId=False %}</div></th>
+    </tr>
+  </thead>
+  <tbody id="white_list_data">
+    {% for white in white_list %}
+    <tr id="{{white.white_list_id}}">
+      <td class="address"><div class="cell-inner">{{ white.ipaddr }}</div></td>
+      <td class="last-update-user"><div class="cell-inner">{{ white.last_update_user }}</div></td>
+      <td class="add-modified"><div class="cell-inner"><time datetime="{{ white.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{white.last_update_timestamp|timezone:'Asia/Tokyo'}}</time></div></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

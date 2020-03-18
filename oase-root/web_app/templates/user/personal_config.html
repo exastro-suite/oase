@@ -1,0 +1,397 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load common %}
+
+{% block myheader %}
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  「パスワードをお忘れの場合」画面の表示制御
+////////////////////////////////////////////////
+function openDialog() {
+
+    var reset_url = "{{ pass_init_url }}";
+
+    window.location.href = reset_url;
+
+}
+
+
+////////////////////////////////////////////////
+//  パスワード変更の制御
+////////////////////////////////////////////////
+function changePW() {
+
+    $("#btnChPW").prop("disabled", true);
+
+    var old_password = document.getElementById("oldPw").value;
+    var new_password = document.getElementById("newPw").value;
+    var new_password_confirm = document.getElementById("newPwConf").value;
+
+    user_info = {};
+    user_info['oldPw']= old_password;
+    user_info['newPw']= new_password;
+    user_info['newPwConf']= new_password_confirm;
+
+    user_info['loginId'] = '';
+    var login_id_obj = document.getElementById("loginId");
+    if(login_id_obj) {
+        user_info['loginId'] = login_id_obj.value;
+    }
+
+    var json_str = JSON.stringify({"user_info": user_info});
+    document.getElementById("json_data").value = json_str;
+
+    var obj = document.getElementById("formPsData");
+    obj.submit();
+}
+
+function submitAction() {
+
+    var choice = confirm(getMessage("MOSJA31002", false));
+    if(choice == true) {
+
+        // 前回エラー表記削除
+        $('.error').removeClass('error');
+        $('.error-list').remove();
+
+        $.ajax({
+            type : "POST",
+            url  : "{% url 'web_app:top:pass_ch_exec' %}",
+            data : $("#formPsData").serialize(),
+            dataType: "json",
+            "csrfmiddlewaretoken" : document.getElementsByName("csrfmiddlewaretoken")[0].value
+        })
+        .done(function(response_json) {
+            if(response_json.status == 'success') {
+                alert(getMessage("MOSJA31040", false));
+                beforeunloadThroughFlag = true;
+                window.location.href = '/oase_web/top/pass_ch_logout';
+            }
+            else {
+                // 今回エラーを表記
+                msg_obj = response_json.error_msg;
+                Object.keys(msg_obj).forEach(function(key) {
+                    $errInput = $('#' + key);
+                    $errInput.parents('th, td').addClass('error');
+                    var errorHTML = '<ul class="error-list">';
+                    errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + msg_obj[key] + '"><em class="owf owf-question"></em></span></li>';
+                    errorHTML += '</ul>';
+                    $errInput.after( errorHTML );
+                });
+
+                if('oldPw' in msg_obj || 'newPw' in msg_obj || 'newPwConf' in msg_obj) {
+                    $('input[type=password]').val('');
+                }
+
+                if('db' in msg_obj) {
+                  alert(msg_obj['db'])
+                }
+
+                if('system' in msg_obj) {
+                    alert(msg_obj['system']);
+                }
+                $("#btnChPW").prop("disabled", false);
+            }
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage("MOSJA32008", false) +  respdata.responseText);
+                $("#btnChPW").prop("disabled", false);
+            }
+        });
+    }
+    else {
+        $("#btnChPW").prop("disabled", false);
+    }
+}
+
+
+////////////////////////////////////////////////
+//  メールアドレス変更
+////////////////////////////////////////////////
+//  メールアドレス変更ボタン押下時処理
+function ModifyMailAddress()
+{
+    $("#btnMailAddr").prop("disabled", true);
+
+    // 保存確認メッセージ
+    if(!confirm(getMessage("MOSJA31003", false))) {
+        $("#btnMailAddr").prop("disabled", false);
+        return;
+    }
+
+    // メールアドレス変更リクエスト送信
+    var url  = "{% url 'web_app:user:user_modify_mailaddr' %}";
+    var data = {
+        "password" : $("#mailPw").val(),
+        "mail" : $("#txtMailAddr").val(),
+        "csrfmiddlewaretoken" : document.getElementsByName("csrfmiddlewaretoken")[0].value
+    };
+
+    // 前回エラー表記削除
+    $('.error').removeClass('error');
+    $('.error-list').remove();
+
+    $.ajax({
+        type : "POST",
+        url  : url,
+        data : data,
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            msg_obj = response_json.msg;
+            if('system' in msg_obj) {
+                alert(msg_obj['system']);
+                beforeunloadThroughFlag = true;
+                window.location.href = '/oase_web/user/personal_config';
+            }
+        }
+        else {
+            // 今回エラーを表記
+            err_msg_obj = response_json.error_msg;
+            Object.keys(err_msg_obj).forEach(function(key) {
+                $errInput = $('#' + key);
+                $errInput.parents('th, td').addClass('error');
+                var errorHTML = '<ul class="error-list">';
+                errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + err_msg_obj[key] + '"><em class="owf owf-question"></em></span></li>';
+                errorHTML += '</ul>';
+                $errInput.after( errorHTML );
+            });
+
+            if('mailPw' in err_msg_obj) {
+                $('input[type=password]').val('');
+            }
+
+            if('db' in err_msg_obj) {
+              alert(err_msg_obj['db'])
+            }
+
+            if('system' in err_msg_obj) {
+                alert(err_msg_obj['system']);
+            }
+        }
+
+        $("#btnMailAddr").prop("disabled", false);
+    })
+    .fail(function(response_json, stscode, resp) {
+        alert(response_json.responseText);
+        beforeunloadThroughFlag = true;
+        window.location.href = "/oase_web/top/logout";
+    });
+}
+
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+<!-- 自動入力機能回避用ダミーインプット -->
+<div id="dummy-login-form" style="display: none;">
+  <input type="text" name="login_id" disabled>
+  <input type="password" name="password" disabled>
+</div>
+
+<div class="oase-main config">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA00032' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+    <div class="oase-main-body">
+      <div class="oase-main-body-inner">
+
+        <div class="oase-config">
+
+          <div class="oase-config-menu">
+            <ul>
+              <li><a href="#oase-config-user-account">{% get_message 'MOSJA31019' request.user.get_lang_mode showMsgId=False %}</a></li>
+              {% if not ad_flag %}
+              <li><a href="#oase-config-user-email">{% get_message 'MOSJA31020' request.user.get_lang_mode showMsgId=False %}</a></li>
+              <li><a href="#oase-config-user-password">{% get_message 'MOSJA31021' request.user.get_lang_mode showMsgId=False %}</a></li>
+              {% endif %}
+              {% comment %}
+              <li><a href="#oase-config-user-screen">画面設定（※まだいらない）</a></li>
+              {% endcomment %}
+            </ul>
+          </div>
+          <div class="oase-config-main">
+            <section id="oase-config-user-account">
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA31019' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+              <div class="oase-config-body">
+                <div class="oase-config-item">
+                  <h4>{% get_message 'MOSJA31023' request.user.get_lang_mode showMsgId=False %}</h4>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA00033' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner">{{ username }}</div></td>
+                      </tr>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA00034' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner">{{ login_id }}</div></td>
+                      </tr>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA00035' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner">{{ mail_address }}</div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="oase-config-footer">
+              </div>
+            </section>
+
+            {% if not ad_flag %}
+            <section id="oase-config-user-email">
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA31020' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+              <div class="oase-config-body">
+                <div class="oase-config-item">
+                  <p>{% get_message 'MOSJA31024' request.user.get_lang_mode showMsgId=False %}</p>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA31025' request.user.get_lang_mode showMsgId=False %}<br>
+                        <button class="oase-mini-button" onclick="openDialog()"><em class="owf owf-question"></em><span>{% get_message 'MOSJA00036' request.user.get_lang_mode showMsgId=False %}</span></button></div></th>
+                        <td colspan="2"><div class="cell-inner"><div class="password"><input type="password" id="mailPw" data-type="password" data-minlength="8" data-maxlength="64" class="validation-input"><div class="password-show"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <p>{% get_message 'MOSJA31027' request.user.get_lang_mode showMsgId=False %}<br>{% get_message 'MOSJA31039' request.user.get_lang_mode showMsgId=False %}</p>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA31028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td colspan="2"><div class="cell-inner"><input type="text" id="txtMailAddr" data-type="mail" data-maxlength="256" class="validation-input"></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button" id="btnMailAddr" onclick="ModifyMailAddress();" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA31029' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+            </section>
+
+            <section id="oase-config-user-password">
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA31021' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+              <div class="oase-config-body">
+                <div class="oase-config-item">
+                  <p>{% get_message 'MOSJA31030' request.user.get_lang_mode showMsgId=False %}</p>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA31031' request.user.get_lang_mode showMsgId=False %}<br>
+                        <button class="oase-mini-button" onclick="openDialog()"><em class="owf owf-question"></em><span>{% get_message 'MOSJA00036' request.user.get_lang_mode showMsgId=False %}</span></button></div></th>
+                        <td><div class="cell-inner"><div class="password"><input type="password" id="oldPw" class="tooltip-input validation-input" title="{% get_message 'MOSJA31026' request.user.get_lang_mode showMsgId=False %}"><div class="password-show"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <ul>
+                    <li>{% get_message 'MOSJA31032' request.user.get_lang_mode showMsgId=False %}</li>
+                    <li>{% get_message 'MOSJA31033' request.user.get_lang_mode showMsgId=False %}</li>
+                    <li>{% get_message 'MOSJA31034' request.user.get_lang_mode showMsgId=False %}{{ password_generation }}{% get_message 'MOSJA31035' request.user.get_lang_mode showMsgId=False %}</li>
+                  </ul>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA31036' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner"><div class="password"><input type="password" id="newPw" data-minlength="8" data-maxlength="64" data-type="password" class="tooltip-input validation-input" title="{% get_message 'MOSJA31026' request.user.get_lang_mode showMsgId=False %}"><div class="password-show"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA31037' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner"><div class="password"><input type="password" id="newPwConf" data-minlength="8" data-maxlength="64" data-type="password" class="tooltip-input validation-input" title="{% get_message 'MOSJA31026' request.user.get_lang_mode showMsgId=False %}"><div class="password-show"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button" id="btnChPW" onclick= "changePW()" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA31038' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+              <form id="formPsData" action="javascript:submitAction()" method="POST">
+                <input type="hidden" id="json_data" value="" name="user_info" />
+                {% csrf_token %}
+              </form>
+            </section>
+            {% endif %}
+
+            {% comment %}
+            <section id="oase-config-user-screen">
+              <div class="oase-config-header">
+                <h3>画面設定</h3>
+              </div>
+              <div class="oase-config-body">
+                <div class="oase-config-item">
+                  <h4>ユーザインターフェース</h4>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">カラーセット<span class="tooltip help" title="カラーセットを変更できます。"><em class="owf owf-question"></em></span></div></th>
+                        <td><div class="cell-inner"><div class="select">
+                          <select>
+                            <option value="#default" selected>OASE デフォルト</option>
+                            <option value="#dark">ダーク</option>
+                          </select>
+                        </div></div></td>
+                      </tr>
+                      <tr>
+                        <th><div class="cell-inner">アニメーション<span class="tooltip help" title="CSSやJavaScriptによるアニメーション動作を変更できます。"><em class="owf owf-question"></em></span></div></th>
+                        <td class="config-switch"><div class="cell-inner"><input data-switch="#password-validity-period" class="config-switch-input" type="checkbox" id="input-switch1" checked=""><label for="input-switch1" class="config-switch-label"></label></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button" disabled><em class="owf owf-save"></em><span>変更の保存</span></button></li>
+                </ul>
+              </div>
+            </section>
+            {% endcomment %}
+          </div>
+        </div>
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+{% endblock%}
