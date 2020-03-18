@@ -1,0 +1,14 @@
+[Unit]
+Description=OASE_ZABBIXMonitoringProcess
+After=syslog.target network.target mysqld.service
+
+[Service]
+EnvironmentFile=/etc/sysconfig/oase_env
+EnvironmentFile=/etc/sysconfig/ZABBIX_monitoring_env
+ExecStart=/bin/sh ${OASE_ROOT_DIR}/backyards/common/ky_loopcall-python-procedure.sh ${PYTHON_MODULE} ${PYTHON_MODULE} ${OASE_ROOT_DIR}/backyards/monitoring_adapter/ZABBIX_monitoring.py ${OASE_ROOT_DIR}/logs/backyardlogs/oase_monitoring ${RUN_INTERVAL} ${LOG_LEVEL} > /dev/null 2>&1
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+

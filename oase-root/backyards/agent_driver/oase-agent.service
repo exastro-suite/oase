@@ -1,0 +1,14 @@
+[Unit]
+Description=OASE_AgentDriverProcess
+After=syslog.target network.target mysqld.service jboss-eap-rhel.service
+
+[Service]
+EnvironmentFile=/etc/sysconfig/oase_env
+EnvironmentFile=/etc/sysconfig/oase_agent_env
+ExecStart=/bin/sh ${OASE_ROOT_DIR}/backyards/common/ky_loopcall-python-procedure.sh ${PYTHON_MODULE} ${PYTHON_MODULE} ${OASE_ROOT_DIR}/backyards/agent_driver/oase_agent.py ${OASE_ROOT_DIR}/logs/backyardlogs/agent_driver ${RUN_INTERVAL} ${LOG_LEVEL} > /dev/null 2>&1
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+

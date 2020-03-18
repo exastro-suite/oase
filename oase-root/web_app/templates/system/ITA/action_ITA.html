@@ -1,0 +1,658 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% block myheader %}
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  itaの詳細画面にデータをセット
+////////////////////////////////////////////////
+function setInfoInItaDetailView(idName) {
+
+    var trId = '#' + idName;
+    var name = $(trId).data('name');
+    var protocol = $(trId).data('protocol');
+    var host = $(trId).data('host');
+    var port = $(trId).data('port');
+    var username = $(trId).data('username');
+    var password = $(trId).data('password');
+    var updateuser = $(trId).data('updateuser');
+    var timestamp = $(trId).data('timestamp');
+
+    $('#viewItaDetail').attr('data-recordid', idName);
+    $('#viewItaName').text(name);
+    $('#viewItaProtocol').text(protocol);
+    $('#viewItaHost').text(host);
+    $('#viewItaPort').text(port);
+    $('#viewItaUsername').text(username);
+    $('#viewItaUpdateuser').text(updateuser);
+    $('#viewItaTimestamp').text(timestamp);
+
+}
+
+////////////////////////////////////////////////
+//  itaの編集画面にデータをセット
+////////////////////////////////////////////////
+function setInfoInItaEditView() {
+
+    beforeunloadThroughFlag = false;
+
+    var trId = '#' + $('#viewItaDetail').attr('data-recordid');
+    var name = $(trId).data('name');
+    var protocol = $(trId).data('protocol');
+    var host = $(trId).data('host');
+    var port = $(trId).data('port');
+    var username = $(trId).data('username');
+    var password = $(trId).data('password');
+    var updateuser = $(trId).data('updateuser');
+    var timestamp = $(trId).data('timestamp');
+
+    $('#editItaName').val(name);
+    $('#editItaProtocol').val(protocol);
+    $('#editItaHost').val(host);
+    $('#editItaPort').val(port);
+    $('#editItaUsername').val(username);
+    $('#editItaPass1').val(password);
+    $('#editItaUpdateuser').text(updateuser);
+    $('#editItaTimestamp').text(timestamp);
+}
+
+////////////////////////////////////////////////
+//  data取得して配列にセット
+////////////////////////////////////////////////
+function setITAInfo(drvInfo, idInfo) {
+
+    // 編集画面から値取得
+    var itaName = $(idInfo['ita_disp_name']).val();
+    var protocol = $(idInfo['protocol']).val();
+    var host = $(idInfo['hostname']).val();
+    var port = $(idInfo['port']).val();
+    var username = $(idInfo['username']).val();
+    var password = $(idInfo['password']).val();
+
+    drvInfo["driver_id"] = "1";
+    drvInfo["ita_disp_name"] = itaName;
+    drvInfo["protocol"] = protocol;
+    drvInfo["hostname"] = host;
+    drvInfo["port"] = String(port);
+    drvInfo["username"] = username;
+    drvInfo["password"] = password;
+
+}
+
+////////////////////////////////////////////////
+//  itaを追加
+////////////////////////////////////////////////
+function addItaDriver() {
+
+    var btnId = "#btnAddIta";
+    $(btnId).prop("disabled", true);
+
+    var confirmMsg = getMessage("MOSJA27001", false);
+
+    // 確認メッセージを表示
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    var idInfo = {
+            'ita_disp_name': "#addItaName",
+            'hostname': "#addItaHost",
+            'port': "#addItaPort",
+            'protocol': "#addItaProtocol",
+            'username': "#addItaUsername",
+            'password': "#addItaPass1",
+        }
+    var errorMsg = {};
+    var ope = "1"
+    var drvInfo = {};
+
+    // 編集画面から値取得
+    setITAInfo(drvInfo, idInfo);
+    drvInfo["ope"] = ope;
+    drvInfo["ita_driver_id"] = "0";
+
+    // バリデーションチェック
+    var objTBody = document.getElementById("tbodyActionInfo{{ driver_id }}");
+    errorMsg = validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo);
+
+    //エラーメッセージを表示
+    if(errorMsg['errorFlag']){
+        renderItaErrorMsg(errorMsg['errorMsg'], idInfo, 'add');
+        return;
+    }
+    post(drvInfo, btnId, renderItaErrorMsg, 'add');
+
+}
+
+////////////////////////////////////////////////
+//  itaを更新
+////////////////////////////////////////////////
+function updateItaDriver() {
+
+    var btnId = "#btnUpdIta";
+    $(btnId).prop("disabled", true);
+
+    var confirmMsg = getMessage("MOSJA27001", false);
+    // 確認メッセージを表示
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    var idInfo = {
+            'ita_disp_name': "#editItaName",
+            'hostname': "#editItaHost",
+            'port': "#editItaPort",
+            'protocol': "#editItaProtocol",
+            'username': "#editItaUsername",
+            'password': "#editItaPass1",
+        }
+    var errorMsg = {};
+    var ope = "2";
+    var drvInfo = {};
+
+    // 編集画面から値取得
+    setITAInfo(drvInfo, idInfo);
+    drvInfo["ope"] = ope;
+    drvInfo["ita_driver_id"] = $('#viewItaDetail').attr('data-recordid').replace("itadriver-", "");
+
+    // バリデーションチェック
+    var objTBody = document.getElementById("tbodyActionInfo{{ driver_id }}");
+    errorMsg = validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo);
+
+    //エラーメッセージを表示
+    if(errorMsg['errorFlag']){
+        renderItaErrorMsg(errorMsg['errorMsg'], idInfo, 'edit');
+        return;
+    }
+    post(drvInfo, btnId, renderItaErrorMsg, 'edit');
+}
+
+
+////////////////////////////////////////////////
+// 各レコードのエラーメッセージを調べて
+// エラーメッセージがあったらセルの下に表示する 
+////////////////////////////////////////////////
+var renderItaErrorMsg = function(errorMsg,idInfo, mode)
+{
+    alert(getMessage("MOSJA23014", false));
+
+    if((typeof idInfo == 'undefined') || (idInfo == null)) {
+        idInfo = {
+            'ita_disp_name' : '#' + mode + 'ItaName',
+            'hostname'      : '#' + mode + 'ItaHost',
+            'port'          : '#' + mode + 'ItaPort',
+            'protocol'      : '#' + mode + 'ItaProtocol',
+            'username'      : '#' + mode + 'ItaUsername',
+            'password'      : '#' + mode + 'ItaPass1',
+        }
+    }
+
+    clearErrorMsg(); // 前回エラーを削除
+    renderErrorMsg(idInfo['ita_disp_name'], errorMsg['ita_disp_name']);
+    renderErrorMsg(idInfo['hostname'], errorMsg['hostname']);
+    renderErrorMsg(idInfo['port'], errorMsg['port']);
+    renderErrorMsg(idInfo['protocol'], errorMsg['protocol']);
+    renderErrorMsg(idInfo['username'], errorMsg['username']);
+    renderErrorMsg(idInfo['password'], errorMsg['password']);
+}
+
+////////////////////////////////////////////////
+//  itaを削除
+////////////////////////////////////////////////
+function deleteItaDriver() {
+
+    var btnId = "#btnDelIta";
+    $(btnId).prop("disabled", true);
+
+    var confirmMsg = getMessage("MOSJA27026", false);
+
+    // 削除レコードの存在確認後に確認メッセージを表示する
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    var strId = $('#viewItaDetail').attr('data-recordid');
+    var itaDrvId = strId.replace("itadriver-", "");
+    var drvInfo = {
+            "ope" : "3",
+            "driver_id" : "1",
+            "ita_driver_id" : itaDrvId,
+        };
+    post(drvInfo, btnId, renderNoError, '');
+
+}
+
+var regexNum = new RegExp(/^[0-9]+$/);
+function validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo) {
+
+    var strID = "";
+    var itaName = drvInfo["ita_disp_name"];
+    var protocol = drvInfo["protocol"];
+    var host = drvInfo["hostname"];
+    var port = drvInfo["port"];
+    var username = drvInfo["username"];
+    var password = drvInfo["password"];
+    var errorFlag = false;
+    var errorMsg = {};
+    var chk_itaName = {};
+    var chk_host = {};
+
+    // 編集画面に表示されているITAドライバの名称・ホスト名をすべて保持
+    var selector = "";
+    if(objTBody != null){
+        for(var i = 0; i < objTBody.children.length; i++){
+            strID = objTBody.children[i].id.replace("itadriver-", "");
+            selector = "#" + objTBody.children[i].id;
+            // idが取得できた場合
+            if(selector != "#") {
+                chk_itaName[strID] = $(selector).data('name');
+                chk_host[strID] = $(selector).data('host');
+            }
+        }
+    }
+
+    // "更新"なら上書き、"追加"ならリストに追加される
+    strID = drvInfo["ita_driver_id"];
+    chk_itaName[strID] = itaName;
+    chk_host[strID] = host;
+
+    // 検査開始
+    errorMsg['ita_disp_name'] = "";
+    errorMsg['hostname'] = "";
+    errorMsg['port'] = "";
+    errorMsg['protocol'] = "";
+    errorMsg['username'] = "";
+    errorMsg['password'] = "";
+
+    if(!regexNum.test(port) || 0 > parseInt(port) || parseInt(port) > 65535) {
+        errorMsg["port"] += getMessage("MOSJA27106", false) + "\n";
+        errorFlag = true;
+    }
+
+    // drivernameの重複チェック
+    var match_line = Object.keys(chk_itaName).filter(function(key) {
+        if(strID != key && chk_itaName[key] == itaName){
+            return chk_itaName[key] === itaName;
+        }
+    });
+    if(match_line.length > 0){
+        errorMsg["ita_disp_name"] += getMessage("MOSJA27111", false) + "\n";
+        errorFlag = true;
+
+    }
+    // hostnameの重複チェック
+    match_line = Object.keys(chk_host).filter(function(key) {
+        if(strID != key && chk_host[key] == host){
+            return chk_host[key] === host;
+        }
+    });
+    if(match_line.length > 0){
+        errorMsg["hostname"] += getMessage("MOSJA27112", false) + "\n";
+        errorFlag = true;
+    }
+
+    var result = {
+        'errorFlag': errorFlag,
+        'errorMsg' : errorMsg,
+    }
+
+    return result;
+}
+
+
+-->
+</script>
+{% endblock %}
+
+
+<!-- ITA Driver 詳細 -->
+<div id="modal-ITA" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-details"></em><span>{{some_driver.name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="modalClose('#modal-ITA');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody id="viewItaDetail" data-recordid=''>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewItaName" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewItaProtocol" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27020' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewItaHost" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewItaPort" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewItaUsername" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewItaUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewItaTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="modalClose('#modal-ITA');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            {% if editable_user %}
+            <li><button class="oase-button" onclick="setInfoInItaEditView(); modalChange('#modal-ITA', '#modal-ITA-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
+            </button></li>
+            <li><button id="btnDelIta" class="oase-button" onclick="deleteItaDriver();"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            {% endif %}
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ITA Driver 追加 -->
+<div id="modal-{{some_driver.name|slugify}}-add" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-plus"></em><span>{{some_driver.name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="actionModalClose('#modal-{{some_driver.name|slugify}}-add');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addItaName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"><div class="select"><select id="addItaProtocol"><option>http</option><option>https</option></select></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27020' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00108' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addItaHost" data-maxlength="128" data-type="text" type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00109' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addItaPort" type="number" class="validation-input" value="" min="0" max="65535" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addItaUsername" data-maxlength="64" data-type="text" type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27023' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="addItaPass1" data-maxlength="64" type="password" class="validation-input" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="actionModalClose('#modal-{{some_driver.name|slugify}}-add', '#btnAddIta');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="actionModalChange('#modal-{{some_driver.name|slugify}}-add', '#modal-add-driver', '#btnAddIta');"><em class="owf owf-prev"></em><span>{% get_message 'MOSJA27024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" id="btnAddIta" onclick="addItaDriver();"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- ITA Driver 編集 -->
+<div id="modal-ITA-edit" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-edit"></em><span>{{some_driver.name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="actionModalClose('#modal-ITA-edit');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editItaName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="action43" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"><div class="select"><select id="editItaProtocol"><option>http</option><option>https</option></select></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27020' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00108' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editItaHost" data-maxlength="128" data-type="text" type="text" class="validation-input" value="nec-it-automation" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00109' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editItaPort" type="number" class="validation-input" min="0" max="65535" value="443" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editItaUsername" data-maxlength="64" data-type="text" type="text" class="validation-input" value="administrator" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27023' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="editItaPass1" data-maxlength="64" type="password" class="validation-input" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="editItaUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="editItaTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="actionModalClose('#modal-ITA-edit', '#btnUpdIta');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" id="btnUpdIta" onclick="updateItaDriver();"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<section id="{{some_driver.name|slugify}}">
+<div class="oase-section-title">
+    <div class="oase-section-title-inner">
+
+      <div class="oase-section-title-table">
+        <h2>{{some_driver.name}}</h2>
+      </div>
+
+    </div>
+  </div>
+
+{% if info_list|length %}
+<div class="oase-table">
+    <div class="oase-table-load loading">
+        <div class="oase-table-loader-inner">
+            <em class="owf owf-update"></em>
+        </div>
+    </div>
+
+    <div class="oase-table-inner">
+    <table>
+
+      <thead>
+      <tr>
+      <th class="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="action-name sort filter" filter-type="common" filter-label="action-name"><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="protocol sort filter" filter-type="common" filter-label="protocol"><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="host sort filter" filter-type="common" filter-label="host"><div class="cell-inner">{% get_message 'MOSJA27020' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="port sort filter" filter-type="common" filter-label="port"><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="user-name sort filter" filter-type="common" filter-label="user-name"><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="execution-date sort filter" filter-type="date" filter-label="execution-date"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+      </tr>
+      </thead>
+      <tbody id="tbodyActionInfo{{ driver_id }}">
+        {% for i in info_list %}
+        <tr id="itadriver-{{ i.ita_driver_id }}" data-name="{{ i.ita_disp_name }}" data-protocol="{{ i.protocol }}" data-host="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password }}">
+          <td class="operation-menu">
+            <div class="cell-inner"><ul>
+                <li><button class="tooltip detail oase-mini-button" onClick="setInfoInItaDetailView('itadriver-{{ i.ita_driver_id }}'); modalOpen('#modal-ITA');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul></div>
+          </td>
+          
+          <td class="action-name">
+            <div class="cell-inner">{{ i.ita_disp_name }}</div>
+          </td>
+          
+          <td class="protocol">
+            <div class="cell-inner">{{ i.protocol }}</div>
+          </td>
+
+          <td class="host">
+            <div class="cell-inner">{{ i.hostname }}</div>
+          </td>
+          
+          <td class="port">
+            <div class="cell-inner">{{ i.port }}</div>
+          </td>
+          
+          <td class="user-name">
+            <div class="cell-inner">{{ i.username }}</div>
+          </td>
+          
+          <td class="last-update-user">
+            <div class="cell-inner">{{ i.last_update_user }}</div>
+          </td>
+          
+          <td class="execution-date">
+            <div class="cell-inner">
+              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}</time>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="oase-table-footer">
+    <ul class="button-group">
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd class="rowCount">4</dd>
+        </dl>
+      </li>
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd>
+            <select class="rowShowNum">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </dd>
+        </dl>
+      </li>
+
+      <li>
+        <button class="pagingPrev button" disabled=""><em class="owf owf-minus"></em></button>
+        <input class="pagingNow" type="text"> / <span class="pagingMax">1</span>
+        <button class="pagingNext button" disabled=""><em class="owf owf-plus"></em></button>
+      </li>
+
+      <li>
+        <button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+      <li>
+        <button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+    </ul>
+  </div>
+
+</div>
+  
+{% else %} 
+<div class="oase-none">
+<p>{% autoescape off %}{% get_message 'MOSJA27014' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+</div>
+{% endif %}
+  
+</section>

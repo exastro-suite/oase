@@ -1,0 +1,923 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript" src="{% static "vendor/jquery/js/list.min.js" %}" charset="UTF-8"></script>
+<script type="text/javascript" src="{% static "web_app/js/oase-table-edit.js" %}" charset="UTF-8"></script>
+<script type="text/javascript">
+<!--
+var checkList = {};
+////////////////////////////////////////////////
+//  画面表示時の状態を保存
+////////////////////////////////////////////////
+$(function(){
+    var chkUrl = location.href
+
+    if (chkUrl.indexOf("edit") > 0){
+        var objTBody = document.getElementById("user_data");
+
+        for(var i = 0; i<objTBody.rows.length; i++) {
+            strID = objTBody.rows[i].id;
+            if(!strID || strID == "account_dummy") {
+                continue;
+            }
+            strUser      = document.getElementById("user_name" + strID).value;
+            strLoginID   = document.getElementById("login_id" + strID).value;
+            strMail      = document.getElementById("mail" + strID).value;
+            arrayGroupID = document.getElementById("hid" + strID).value.split(',');
+
+            insertInfo = {};
+            insertInfo["user_name"] = strUser;
+            insertInfo["login_id"]  = strLoginID;
+            insertInfo["mail"]      = strMail;
+            insertInfo["group_id"]  = arrayGroupID;
+            insertInfo["user_id"]   = strID;
+
+            checkList[strID] = insertInfo;
+
+        }
+    }
+});
+
+////////////////////////////////////////////////
+//  変更箇所有無確認
+//  true ：変更有り
+//  false：変更無し
+////////////////////////////////////////////////
+function isChanged(strID, listLength){
+
+    strUser       = document.getElementById("user_name" + strID).value;
+    strLoginID    = document.getElementById("login_id" + strID).value;
+    strMail       = document.getElementById("mail" + strID).value;
+    arrayGroupID  = document.getElementById("hid" + strID).value.split(',');
+    var chgFlag   = false;
+
+    obj    = document.getElementById("selModify" + strID);
+    strOpe = obj.options[obj.selectedIndex].value;
+
+    // 行追加があったら変更有り
+    if(Object.keys(checkList).length != listLength){
+        return true;
+    }
+
+    // ユーザ新規追加時変更確認
+    if(Object.keys(checkList).length == 1 && strID.indexOf("New") >= 0){
+        if(strOpe != 1 || strUser != "" || strLoginID != "" || strMail != "" || arrayGroupID[0] != "")
+        {
+            return true;
+        }
+        return false;
+    }
+
+    //既存ユーザ変更確認
+    // 更新欄が空白以外の場合変更有り
+    if(strOpe > 0){
+        return true;
+    }
+
+    var checkInfo = checkList[strID];
+    // ユーザ名、ログインID、メールアドレスはここで変更確認
+    if(checkInfo["user_name"] != strUser    ||
+       checkInfo["login_id"]  != strLoginID ||
+       checkInfo["mail"]      != strMail)
+    {
+        return true;
+    }
+
+    // グループはここで変更確認
+    if(checkInfo["group_id"].length != arrayGroupID.length ){
+        return true;
+    }
+
+    checkInfo["group_id"].forEach( function (key) {
+        if(arrayGroupID.indexOf(key) < 0 ){
+             chgFlag = true;
+        }
+    });
+    return chgFlag;
+}
+
+////////////////////////////////////////////////
+//  リセット処理
+////////////////////////////////////////////////
+function reset(tbodyID, formId){
+
+    $("#btnRes").prop("disabled", true);
+
+    var objTBody = document.getElementById(tbodyID);
+    var editForm = document.getElementById(formId);
+    var pkList = {};
+    pkList["pk"] = {};
+    pkList["pk"]["LIST"] = new Array();
+
+    // 先に既存ユーザIDをリストへ保存
+    if(objTBody){
+        for (var i = 0, r = objTBody.rows.length; i < r; i++) {
+            strID = objTBody.rows[i].id;
+            if(!strID || strID == "account_dummy") {
+                continue;
+            }
+            if(strID.indexOf("New") != 0) {
+                pkList["pk"]["LIST"].push(strID);
+            }
+        }
+    }
+    // csrf_token の次にあるinput要素のvalueにデータを挿入
+    editForm.children[1].value = JSON.stringify(pkList);
+
+    for(var i = 0; i<objTBody.rows.length; i++) {
+        strID = objTBody.rows[i].id;
+        if(!strID || strID == "account_dummy") {
+            continue;
+        }
+
+        // 変更確認
+        if(isChanged(strID, (objTBody.rows.length - 1))){
+            // 入力が有れば確認してから遷移
+            if(confirm(getMessage("MOSJA24020", false))) {
+                editForm.submit();
+            }
+            break;
+        }
+    }
+    $("#btnRes").prop("disabled", false);
+}
+
+////////////////////////////////////////////////
+//  リストへ行追加（編集モード）
+////////////////////////////////////////////////
+function addList(tbodyID, dummyID){
+
+    var objTBody  = document.getElementById(tbodyID);
+    var objDummy  = document.getElementById(dummyID);
+    var objTrAdd  = objDummy.cloneNode(true);
+    var objTr     = objTBody.rows[objTBody.rows.length - 1];
+    var iRowCount = objTBody.rows.length;
+    var strID     = "";
+
+    iRowCount++;
+    strID = "New" + iRowCount.toString();
+    objTrAdd.style.display = "";
+    objTrAdd.id = strID;
+
+    //  リスト追加
+    objTBody.insertBefore(objTrAdd, objDummy);
+    objTr = objTBody.rows[objTBody.rows.length - 2];
+    objTr.classList.remove('filter-hide-list');
+    objTr.classList.remove('paging-hide');
+    objTr.classList.add('added-row');
+
+    var sugFunc = 'setUserGroup("hid' + strID + '");';
+
+    //  更新メニューを追加
+    objTr.cells[1].children[0].children[0].id      = "selModify" + strID;
+    objTr.cells[2].children[0].children[0].id      = "user_name" + strID;
+    objTr.cells[3].children[0].children[0].id      = "login_id" + strID;
+    objTr.cells[4].children[0].children[0].id      = "mail" + strID;
+    objTr.cells[5].children[0].children[0].id      = "initial_value" + strID;
+    objTr.cells[5].children[0].children[0].value   = "new"
+    objTr.cells[5].children[0].children[1].id      = "hid" + strID;
+    objTr.cells[5].children[0].children[2].onclick = new Function(sugFunc);
+    objTr.cells[5].children[0].children[3].id      = "group_choice" + strID;
+    objTr.cells[5].children[0].children[4].id      = "group_name_join" + strID;
+    objTr.cells[5].children[0].id                  = "cell_inner" + strID;
+
+    tableRowCount();
+}
+
+////////////////////////////////////////////////
+//  DB登録（編集モード）
+////////////////////////////////////////////////
+function submitAccountData(tbodyID){
+    var objTBody = document.getElementById(tbodyID);
+    var strID = "";
+    var obj = null;
+
+    var insertList = new Array();
+    var updateList = new Array();
+    var delList = new Array();
+    var strOpe = "";
+    var strUserID = "";
+    var strUser = "";
+    var strLoginID = "";
+    var strMail = "";
+    var strGroupID = "";
+
+    var errorFlag = false;
+    var errMsgUserName  = {};
+    var errMsgLoginId   = {};
+    var errMsgMail      = {};
+    var errMsgUserGroup = {};
+
+    $("#btnUpd").prop("disabled", true);
+
+    // 保存確認メッセージ
+    if(!confirm(getMessage("MOSJA00002", false))){
+        $("#btnUpd").prop("disabled", false);
+        return;
+    }
+
+    // 前回エラー表記削除
+    $('.error').removeClass('error');
+    $('.error-list').remove();
+
+    // バリデーションクリア
+    var tableTrArray = objTBody.getElementsByTagName("tr");
+    Array.prototype.forEach.call(tableTrArray, function(objTr) {
+        if(objTr.id != null && objTr.id != "" && objTr.id != "account_dummy") {
+            objErrorCell = objTr.getElementsByClassName("error-icon-area")[0];
+
+            objTr.classList.remove("error-row");
+            var removeChildren = objErrorCell.getElementsByClassName("error-exists");
+            Array.prototype.forEach.call(removeChildren, function(objChild) {
+                objErrorCell.removeChild(objChild);
+            });
+        }
+    });
+
+    for(var i = 0; i<objTBody.rows.length; i++) {
+        strID = objTBody.rows[i].id;
+        if(!strID || strID == "account_dummy") {
+            continue;
+        }
+
+        obj = document.getElementById("selModify" + strID);
+        strOpe = obj.options[obj.selectedIndex].value;
+
+        // 更新しない or administratorのidが指定されている場合除外
+        if(parseInt(strOpe) <= 0 || strID == 1) {
+            continue;
+        }
+
+        strUserID = "0";
+        if(strID.indexOf("New") != 0) {
+            strUserID = strID;
+        }
+
+        strUser    = document.getElementById("user_name" + strID).value;
+        strLoginID = document.getElementById("login_id" + strID).value;
+        strMail    = document.getElementById("mail" + strID).value;
+        strGroupID = document.getElementById("hid" + strID).value.split(',');
+
+        var regexMail = new RegExp(/^([\w!#$%&'*+\-\/=?^`{|}~]+(\.[\w!#$%&'*+\-\/=?^`{|}~]+)*|"([\w!#$%&'*+\-\/=?^`{|}~. ()<>\[\]:;@,]|\\[\\"])+")@(([a-zA-Z\d\-]+\.)+[a-zA-Z]+|\[(\d{1,3}(\.\d{1,3}){3}|IPv6:[\da-fA-F]{0,4}(:[\da-fA-F]{0,4}){1,5}(:\d{1,3}(\.\d{1,3}){3}|(:[\da-fA-F]{0,4}){0,2}))\])$/);
+        var regexLoginID = new RegExp(/^[a-zA-Z0-9.@_\-]+$/);
+        errMsgUserName[strID]  = '';
+        errMsgLoginId[strID]   = '';
+        errMsgMail[strID]      = '';
+        errMsgUserGroup[strID] = '';
+
+        if(strUser == "") {
+            errMsgUserName[strID] += getMessage("MOSJA24005", true) + "\n";
+        }
+        if(strLoginID == "") {
+            errMsgLoginId[strID] += getMessage("MOSJA24006", true) + "\n";
+        }
+        if(strMail == "") {
+            errMsgMail[strID] += getMessage("MOSJA24007", true) + "\n";
+        }
+        if(strGroupID.length == 1 && strGroupID[0] == "" ) {
+            errMsgUserGroup[strID] += getMessage("MOSJA24008", true) + "\n";
+        }
+        if(strUser.length > 64) {
+            errMsgUserName[strID] += getMessage("MOSJA24011", true) + "\n";
+        }
+        if(strLoginID.length > 32) {
+            errMsgLoginId[strID] += getMessage("MOSJA24012", true) + "\n";
+        }
+        if(strLoginID.length > 0 && regexLoginID.test(strLoginID) == false) {
+            errMsgLoginId[strID] += getMessage("MOSJA24021", true) + "\n";
+        }
+        if(strMail.length > 256) {
+            errMsgMail[strID] += getMessage("MOSJA24013", true) + "\n";
+        }
+        if(strMail.length > 0 && regexMail.test(strMail) == false) {
+            errMsgMail[strID] += getMessage("MOSJA24014", true) + "\n";
+        }
+
+        if(errMsgUserName[strID] != ""){
+            errorFlag = true;
+        }else if(errMsgLoginId[strID] != ""){
+            errorFlag = true;
+        }else if(errMsgMail[strID] != ""){
+            errorFlag = true;
+        }else if(errMsgUserGroup[strID] != ""){
+            errorFlag = true;
+        }
+
+        var defaultGroupID = new Array();
+        if(strID.indexOf("New") != 0) {
+            defaultGroupID = document.getElementById("hid"+strUserID).dataset.userGroup.split(',');
+        }
+
+        var addGroupID = new Array();
+        var delGroupID = new Array();
+        // 追加されたグループと除外されたグループを検索
+        strGroupID.concat(defaultGroupID)
+            .forEach(function(item){
+                if (strGroupID.indexOf(item) >= 0 && defaultGroupID.indexOf(item) < 0) {
+                    addGroupID.push(item);
+                } else if (strGroupID.indexOf(item) < 0 && defaultGroupID.indexOf(item) >= 0) {
+                    delGroupID.push(item);
+                }
+            });
+
+        if(strOpe == String(OPE_INSERT)){
+            insertInfo = {};
+            insertInfo["user_name"] = strUser;
+            insertInfo["login_id"] = strLoginID;
+            insertInfo["mail"] = strMail;
+            insertInfo["add_group_id"] = addGroupID;
+            insertInfo["user_id"] = "0";
+            insertInfo["row_id"] = strID;
+
+            insertList.push(insertInfo);
+
+        }else if(strOpe == String(OPE_UPDATE)){
+            updateInfo = {};
+            updateInfo["user_name"] = strUser;
+            updateInfo["login_id"] = strLoginID;
+            updateInfo["mail"] = strMail;
+            updateInfo["add_group_id"] = addGroupID;
+            updateInfo["del_group_id"] = delGroupID;
+            updateInfo["user_id"] = strUserID;
+            updateInfo["row_id"] = strID;
+
+            updateList.push(updateInfo);
+
+        }else if(strOpe == String(OPE_DELETE)){
+            delInfo = {};
+            delInfo["user_id"] = strUserID;
+            delInfo["row_id"] = strID;
+
+            delList.push(delInfo);
+        }
+    }
+
+    if(errorFlag) {
+        alert(getMessage("MOSJA24004", true));
+
+        Object.keys(errMsgUserName).forEach(function(rowId) {
+
+            errorStr = errMsgUserName[rowId];
+
+            if(!errorStr || errorStr.length == 0) {
+                return true;
+            }
+
+            // 今回エラーを表記
+            $errInput = $('#' + 'user_name' + rowId);
+            $errInput.parents('th, td').addClass('error');
+            var errorHTML = '<ul class="error-list">';
+            errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+            errorHTML += '</ul>';
+            $errInput.after( errorHTML );
+        });
+
+        Object.keys(errMsgLoginId).forEach(function(rowId) {
+
+            errorStr = errMsgLoginId[rowId];
+
+            if(!errorStr || errorStr.length == 0) {
+                return true;
+            }
+
+            // 今回エラーを表記
+            $errInput = $('#' + 'login_id' + rowId);
+            $errInput.parents('th, td').addClass('error');
+            var errorHTML = '<ul class="error-list">';
+            errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+            errorHTML += '</ul>';
+            $errInput.after( errorHTML );
+        });
+
+        Object.keys(errMsgMail).forEach(function(rowId) {
+
+            errorStr = errMsgMail[rowId];
+
+            if(!errorStr || errorStr.length == 0) {
+                return true;
+            }
+
+            // 今回エラーを表記
+            $errInput = $('#' + 'mail' + rowId);
+            $errInput.parents('th, td').addClass('error');
+            var errorHTML = '<ul class="error-list">';
+            errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+            errorHTML += '</ul>';
+            $errInput.after( errorHTML );
+        });
+
+        Object.keys(errMsgUserGroup).forEach(function(rowId) {
+
+            errorStr = errMsgUserGroup[rowId];
+
+            if(!errorStr || errorStr.length == 0) {
+                return true;
+            }
+
+            // 今回エラーを表記
+            $errInput = $('#' + 'hid' + rowId);
+            $errInput.parents('th, td').addClass('error');
+            var errorHTML = '<ul class="error-list">';
+            errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false)+ '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+            errorHTML += '</ul>';
+            $errInput.after( errorHTML );
+        });
+
+        tableThFixedReset();
+        tableThFixed();
+
+        return;
+    }
+
+    if(insertList.length == 0 && updateList.length == 0 && delList.length == 0) {
+        alert(getMessage("MOSJA24003", true));
+        return;
+    }
+
+    var jstr = JSON.stringify({"insertInfo":insertList,"updateInfo":updateList,"delInfo":delList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    var objForm = document.getElementById("formUserData");
+    objForm.submit();
+}
+
+function submitAction() {
+
+    // 前回エラー表記削除
+    $('.error').removeClass('error');
+    $('.error-list').remove();
+
+    $.ajax({
+        type : "POST",
+        url  : "modify",
+        data : $("#formUserData").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            alert(getMessage("MOSJA00011", false));
+            beforeunloadThroughFlag = true;
+            $("#btnUpd").prop("disabled", false);
+            location.href = response_json.redirect_url;
+        }
+        else {
+            if(response_json.msg == "")
+                alert(getMessage("MOSJA24004", true));
+            else
+                alert(response_json.msg);
+
+            beforeunloadThroughFlag = true;
+            errorMsg = response_json.error_msg_user_name
+
+            Object.keys(errorMsg).forEach(function(rowId) {
+
+                errorStr = errorMsg[rowId];
+
+                if(!errorStr || errorStr.length == 0) {
+                    return true;
+                }
+
+                // 今回エラーを表記
+                $errInput = $('#' + 'user_name' + rowId);
+                $errInput.parents('th, td').addClass('error');
+                var errorHTML = '<ul class="error-list">';
+                errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+                errorHTML += '</ul>';
+                $errInput.after( errorHTML );
+            });
+
+            errorMsg = response_json.error_msg_login_id
+
+            Object.keys(errorMsg).forEach(function(rowId) {
+
+                errorStr = errorMsg[rowId];
+
+                if(!errorStr || errorStr.length == 0) {
+                    return true;
+                }
+
+                // 今回エラーを表記
+                $errInput = $('#' + 'login_id' + rowId);
+                $errInput.parents('th, td').addClass('error');
+                var errorHTML = '<ul class="error-list">';
+                errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false)+ '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+                errorHTML += '</ul>';
+                $errInput.after( errorHTML );
+            });
+
+            errorMsg = response_json.error_msg_mail
+
+            Object.keys(errorMsg).forEach(function(rowId) {
+
+                errorStr = errorMsg[rowId];
+
+                if(!errorStr || errorStr.length == 0) {
+                    return true;
+                }
+
+                // 今回エラーを表記
+                $errInput = $('#' + 'mail' + rowId);
+                $errInput.parents('th, td').addClass('error');
+                var errorHTML = '<ul class="error-list">';
+                errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+                errorHTML += '</ul>';
+                $errInput.after( errorHTML );
+            });
+
+            errorMsg = response_json.error_msg_user_group
+
+            Object.keys(errorMsg).forEach(function(rowId) {
+
+                errorStr = errorMsg[rowId];
+
+                if(!errorStr || errorStr.length == 0) {
+                    return true;
+                }
+
+                // 今回エラーを表記
+                $errInput = $('#' + 'hid' + rowId);
+                $errInput.parents('th, td').addClass('error');
+                var errorHTML = '<ul class="error-list">';
+                errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+                errorHTML += '</ul>';
+                $errInput.after( errorHTML );
+            });
+
+            tableThFixedReset();
+            tableThFixed();
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            beforeunloadThroughFlag = true;
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage("MOSJA24015", true) + "\n" + respdata.responseText);
+            beforeunloadThroughFlag = true;
+        }
+    });
+}
+
+////////////////////////////////////////////////
+//  参照モードへ戻す
+////////////////////////////////////////////////
+function changeModeToView(tbodyID) {
+
+    $("#btnCan").prop("disabled", true);
+    var objTBody = document.getElementById(tbodyID);
+    for(var i = 0; i<objTBody.rows.length; i++) {
+        strID = objTBody.rows[i].id;
+        if(!strID || strID == "account_dummy") {
+            continue;
+        }
+
+        // 既存ユーザの変更、追加ボタンの押下有無確認
+        if(isChanged(strID, (objTBody.rows.length - 1))){
+            if(!confirm(getMessage("MOSJA00001", false))) {
+                $("#btnCan").prop("disabled", false);
+                return;
+            }
+            break;
+        }
+    }
+    window.location.href = "../user";
+}
+
+////////////////////////////////////////////////
+//  グループ設定のデフォルト値をセットする
+////////////////////////////////////////////////
+function setUserGroupDefaultValue(id, user_name){
+
+    //「適用」ボタン非活性
+    $("#btnApp").prop("disabled", true);
+
+    //カンマ区切りの所属グループリストを取得してgroups配列に代入
+    var groupIds = document.getElementById(id).value.split(',');
+
+    // (編集時) idのhidを除外して数字部分とuser_nameを結合し
+    //フォームに入力された名前に変更する
+    var user_name_id = 'user_name' + id.slice(3);
+    if( document.getElementById(user_name_id) != null){
+        user_name = textEntities( document.getElementById(user_name_id).value );
+    }
+
+    document.getElementById('userGroup').innerHTML = user_name;
+
+    // サーバからgroup_listが取得できていなければ終了
+    if(!document.userGroupFormArea.group) {
+        return;
+    }
+
+    //すべてのチェックを外す処理
+    var initCheckBox = $(document.userGroupFormArea.group);
+    if(initCheckBox.length == 1){
+        //グループが1つのみの場合
+        document.userGroupFormArea.group.checked = false;
+    } else {
+        //グループが複数ある場合
+        for(var i = 0; i < document.userGroupFormArea.group.length; i++){
+            document.userGroupFormArea.group[i].checked = false;
+        }
+    }
+
+    //ユーザが所属しているグループにチェックを付ける
+    groupIds.forEach(function(groupId){
+        groupCheckBox = document.getElementById('modal-group-edit' + groupId);
+        if(groupCheckBox) {
+            groupCheckBox.checked = true;
+        }
+    });
+}
+
+////////////////////////////////////////////////
+//  適用ボタン制御（編集モード）
+////////////////////////////////////////////////
+function userGroupChange(){
+
+    //グループの選択があれば非活性解除
+    var group = document.getElementsByName("group");
+    var garry=[];
+    for(var i =0; i <group.length; i++){
+        if(group[i].checked){
+            garry.push(group[i].value);
+        }
+    }
+    if(garry.length > 0){
+        $("#btnApp").prop("disabled", false);
+    }
+    else{
+        $("#btnApp").prop("disabled", true);
+    }    
+}
+
+////////////////////////////////////////////////
+//  グループ設定反映（編集モード）
+////////////////////////////////////////////////
+function userGroupSave() {
+
+    if(!confirm(getMessage("MOSJA00013", false)))
+    {
+        return;
+    }
+
+    var inGroup = new Array();
+    var groups  = document.userGroupFormArea.group;
+    var uid     = document.getElementById("modal-group-edit").dataset.uid;
+    var initid  = 'initial_value' + uid.slice(3);
+    var values  = document.getElementById(initid).value;
+
+    //チェックされているgroup_idをリストに追加
+    if(typeof groups != 'undefined') {
+        if(typeof groups.length == 'undefined'){
+            if(groups.checked){
+                inGroup.push(groups.value);
+            }
+        }
+        else {
+            for(var i = 0; i < groups.length; i++){
+                if(groups[i].checked){
+                    inGroup.push(groups[i].value);
+                }
+            }
+        }
+    }
+
+    // グループ設定を更新
+    document.getElementById(uid).value = inGroup.join(',');
+
+    // (編集時) idのhidを除外して数字部分とuser_nameを結合し
+    //フォームに入力された名前に変更する
+    var groupNameJoinId = 'group_name_join' + uid.slice(3);
+    var name = document.getElementById(groupNameJoinId);
+
+    // 一覧画面のグループ名を変更する
+    var groupNameJoin = "";
+
+    for(var i = 0; i < inGroup.length; i++){
+        if ( i == 0 ){
+            groupNameJoin += '<ul>';
+        }
+        groupNameJoin += '<li>';
+        groupNameJoin += textEntities( document.getElementById('modal-group-edit'+inGroup[i]).dataset.groupname );
+        groupNameJoin += '</li>';
+        if ( i == inGroup.length -1 ){
+            groupNameJoin += '</ul>';
+        }
+    }
+
+    name.innerHTML = groupNameJoin;
+
+    // エラー文言削除
+    $( '#' + uid + ' + ul').remove();
+    target = document.getElementById(uid.slice(3));
+    target.children[5].className = "group edit"
+
+    if ( groupNameJoin != "" ) {
+        $( '#group_choice' + uid.slice(3) ).remove();
+        $( '#group_name_join' + uid.slice(3) + ' + div' ).remove();
+    } else {
+        var ptag = document.getElementById('group_choice'+uid.slice(3));
+
+        if ( ptag == null ){
+            var node         = document.getElementById('cell_inner'+uid.slice(3));
+            var newTag       = document.createElement("p");
+            newTag.innerHTML = getMessage("MOSJA24029", false);
+            newTag.id        = 'group_choice'+uid.slice(3);
+            node.appendChild(newTag);
+            $( '#group_name_join' + uid.slice(3) + ' + div' ).remove();
+        }
+    }
+
+    tableThFixedReset();
+    tableThFixed();
+
+    if ( values.toString() != inGroup.toString() ) {
+        $( '#' + uid ).addClass('change-value');
+    } else{
+        $( '#' + uid ).removeClass('change-value');
+    }
+
+    if ( $( '#' + uid ).parents('tr').find('.change-value').length ) {
+        $( '#' + uid ).parents('tr').find('select.update option[value="2"]').prop('selected', true ).change();
+        saveButtonJudgment ( $( '#' + uid ) );
+    } else {
+        $( '#' + uid ).parents('tr').find('select.update option[value="0"]').prop('selected', true ).change();
+    }
+
+    beforeunloadThroughFlag = true;
+    modalClose('#modal-group-edit');
+}
+
+////////////////////////////////////////////////
+//
+////////////////////////////////////////////////
+function setUserGroup(id, user_name) {
+
+    openDialog("modal-group-edit");
+    setUserGroupDefaultValue(id, user_name)
+
+    document.getElementById("modal-group-edit").dataset.uid = id;
+    document.getElementById("modal-group-edit").dataset.username = user_name;
+}
+
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA24024' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" id="btnCan" onClick="changeModeToView('user_data');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" id="btnRes" onClick="reset('user_data', 'toResetForm');"><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" id="btnAdd" onClick="addList('user_data','account_dummy');"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA00020' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" id="btnUpd" onClick="submitAccountData('user_data');"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+
+              <form id="toResetForm" method="post" action="{% url 'web_app:system:user_edit' %}">
+                {% csrf_token %}
+                <input type="hidden" name="filters" value="" />
+              </form>
+              <form id="formUserData" action="javascript:submitAction()" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="hidJsonStr" value="" name="json_str" />
+              </form>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+        <section>
+          <div class="oase-table">
+            <div class="oase-table-load loading"><div class="oase-table-loader-inner"><em class="owf owf-update"></em></div></div>
+            <div class="oase-table-inner">
+              <div id="userList">
+                {% include 'system/user_data_edit.html' %}
+              </div>
+            </div>
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+                  <select class="rowShowNum">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                  </select>
+                </dd></dl></li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> /
+                  <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+                <li><button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <div id="modal-group-edit" class="oase-modal">
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+                  <div class="oase-modal-title">
+                    <h2><em class="owf owf-plus"></em><span>{% get_message 'MOSJA24025' request.user.get_lang_mode showMsgId=False %}</span></h2>
+                  </div>
+                  <button class="oase-modal-close" onclick="modalClose('#modal-group-edit');"><em class="owf owf-cross"></em></button>
+                </div>
+
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <form name="userGroupFormArea">
+                      <input type="hidden" id="group_list" value="{{group_list}}" data-group-list=''/>
+                      <h3>{% get_message 'MOSJA24026' request.user.get_lang_mode showMsgId=False %}<em id="userGroup"></em></h3>
+                      <p>{% get_message 'MOSJA24027' request.user.get_lang_mode showMsgId=False %}</p>
+                      <ul class="group-list">
+                      {% for g in group_list %}
+                        <li><input id="modal-group-edit{{g.group_id}}" type="checkbox" name="group" onclick="userGroupChange();" value="{{g.group_id}}" data-groupname="{{g.group_name}}"><label for="modal-group-edit{{g.group_id}}">{{g.group_name}}</label></li>
+                      {% endfor %}
+                      </ul>
+                    </form>
+                  </div>
+                </div>
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onclick="modalClose('#modal-group-edit');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    <li><button id="btnApp" class="oase-button" onClick="userGroupSave();"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00069' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 所属グループ全て確認 -->
+        <div id="modal-group-list" class="oase-modal">
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+                <div class="oase-modal-header">
+                  <div class="oase-modal-title">
+                    <h2><em class="owf owf-user"></em><span>{% get_message 'MOSJA24028' request.user.get_lang_mode showMsgId=False %}</span></h2>
+                  </div>
+                  <button class="oase-modal-close" onclick="modalClose('#modal-group-list');"><em class="owf owf-cross"></em></button>
+                </div>
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA24026' request.user.get_lang_mode showMsgId=False %}<em id="userGroupUserName"></em></h3>
+                    <ul class="group-list"></ul>
+                  </div>
+                </div>
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onclick="modalClose('#modal-group-list');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-overlay"></div>
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+{% endblock%}

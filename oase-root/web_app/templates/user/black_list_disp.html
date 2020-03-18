@@ -1,0 +1,143 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  編集モードへ移行する
+//  tbodyID(string) : tbodyのid
+//  formId(string)  : postするformのId
+////////////////////////////////////////////////
+function changeModeToEdit(tbodyId, formId) {
+
+    $("#btnEdit").prop("disabled", true);
+
+    var tblData  = document.getElementById(tbodyId);
+    var editForm = document.getElementById(formId);
+    var pkList   = {};
+    pkList["pk"] = {};
+    pkList["pk"]["LIST"] = new Array();
+
+    if(tblData){
+        for (var i = 0, r = tblData.rows.length; i < r; i++) {
+            pkList["pk"]["LIST"].push(tblData.rows[i].id);
+        }
+    }
+
+    // csrf_token の次にあるinput要素のvalueにデータを挿入
+    editForm.children[1].value = JSON.stringify(pkList);
+
+    editForm.submit();
+
+}
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA34011' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        {% if not disabled_flag %}
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" type="button" id="btnEdit" onclick="changeModeToEdit('black_list_data', 'toEditForm');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <form id="toEditForm" method="post" action="{% url 'web_app:user:black_list_edit' %}">
+                {% csrf_token %}
+                <input type="hidden" name="filters" value="" />
+              </form>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+        {% endif %}
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+        <section>
+          {% if disabled_flag %}
+          <div class="oase-none">
+            <p>{% autoescape off %}{% get_message 'MOSJA34016' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+          </div>
+          <!-- ブラックリストテーブルにデータが存在 -->
+          {% elif black_list|length %}
+          <div class="oase-table">
+            <div class="oase-table-load loading">
+              <div class="oase-table-loader-inner">
+                <em class="owf owf-update"></em>
+              </div>
+            </div>
+            <div class="oase-table-inner">
+              <div class="sub-menu-data">
+                <div id="divBlackList">
+                  {% include 'user/black_list_data_disp.html' %}
+                </div>
+              </div>
+            </div><!-- /.oase-table-inner -->
+
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+                  <select class="rowShowNum">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                  </select>
+                </dd></dl></li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> /
+                  <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+
+                <li><button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul><!-- /.button-group -->
+            </div><!-- /.oase-table-footer -->
+          </div><!-- /.oase-table -->
+          {% else %}
+          <div class="oase-none">
+            <p>{% autoescape off %}{% get_message 'MOSJA34000' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+          </div>
+          {% endif %}
+        </section>
+
+        <div class="oase-modal-overlay"></div>
+
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock %}

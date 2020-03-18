@@ -1,0 +1,138 @@
+#Select install mode. ("Install" or "Uninstall")
+# e.g) install_mode:Install
+install_mode:Install
+
+
+##############################
+# RabbitMQ
+##############################
+# Decide the RabbitMQ_username.
+# e.g) RabbitMQ_username:sample_rabbitmq_username
+RabbitMQ_username:
+
+# Decide the RabbitMQ_password.
+# e.g) RabbitMQ_password:sample_rabbitmq_password
+RabbitMQ_password:
+
+
+# Decide the RabbitMQ_queuename.
+# e.g) RabbitMQ_queuename:oase
+RabbitMQ_queuename:
+
+# Enter IP address for RabbitMQ.
+# e.g) RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
+RabbitMQ_ipaddr:
+
+##############################
+# MySQL
+##############################
+# Enter the MySQL root user's password
+# e.g) db_root_password:sample_root_password
+db_root_password:
+
+# Decide the database name, username, and password for OASE.
+# e.g) db_name:sample_db_name
+db_name:
+# e.g) db_username:sample_db_username
+db_username:
+# e.g) db_password:sample_db_password
+db_password:
+
+# In uninstall mode,
+# Select "erase" or "leave" oase database
+# e.g) db_erase:erase
+db_erase:
+
+
+##############################
+# JBoss EAP
+##############################
+# Enter JBoss install directory.
+# e.g) jboss_root_directory:/exastro/JBoss/EAP-7.2.0
+jboss_root_directory:
+
+
+##############################
+# RHDM
+##############################
+# Decide the Administrator name, password.
+# e.g) rhdm_adminname:admin0000
+rhdm_adminname:
+# e.g) rhdm_password:password@1
+rhdm_password:
+
+# Enter IP address & port for Decision Manager.
+# e.g) dm_ipaddrport:localhost:8080
+dm_ipaddrport:
+
+
+##############################
+# RULEFILE
+##############################
+# Enter root path for RULEFILE.
+# e.g) rulefile_rootpath:/exastro/rule
+rulefile_rootpath:
+
+
+##############################
+# APPLY
+##############################
+# Enter IP address & port for APPLY SERVICE.
+# e.g) apply_ipaddrport:127.0.0.1:50001
+apply_ipaddrport:
+
+
+##############################
+# Maven
+##############################
+# Enter repository path for Maven.
+# e.g) mavenrep_path:/root/.m2/repository/com/oase/
+mavenrep_path:
+
+
+##############################
+# OASEメールSMTP設定
+##############################
+# Enter smtp settings.
+# e.g) oasemail_smtp:"{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}"
+oasemail_smtp:
+
+
+##############################
+# OASEインストールディレクトリ
+##############################
+# Enter OASE install directory.
+# e.g) oase_directory:/exastro
+oase_directory:
+
+
+##############################
+# settings.py
+##############################
+# Select Session management.("db" or "file" or "cache")
+# e.g) oase_session_engine:cache
+oase_session_engine:
+
+# Decide the EVTIMER SERVER location
+# e.g) ev_location:127.0.0.1
+ev_location:
+
+# Select language. ("en_us" or "ja")
+# e.g) oase_language:ja
+oase_language:ja
+
+# Select Operation System. ("RHEL6" or "RHEL7")
+# e.g) oase_os:RHEL7
+#oase_os:
+
+
+##############################
+# インストール対象選択
+##############################
+# Select targets you need to install.
+# yes : need
+# no  : no need
+oase_base:yes
+# ZABBIX_adapter:yes
+# ITA_driver:yes
+# mail_driver:yes

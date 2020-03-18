@@ -1,0 +1,344 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- **
+
+ 99:Login
+
+** -------------------------------------------------- */
+
+.ond .oase-login-container {
+    overflow: auto;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: url('/static/posts/backGround.png') left bottom no-repeat;
+    background-size: auto 100%;
+}
+.ond .oase-login {
+    display: table;
+    width: 100%; height: calc( 100% - 32px );
+}
+.ond .oase-login-inner {
+    display: table-cell;
+    width: 100%; height: 100%;
+    text-align: center;
+    vertical-align: middle;
+}
+.ond .oase-login-body {
+    max-width: 480px;
+    height: auto;
+    margin: 0 auto; padding: 16px;
+}
+.ond .oase-login h1 {
+    display: inline-block;
+    margin-bottom: 32px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #666;
+}
+.ond .oase-login h1 .logo {
+    display: block;
+    width: 50%;
+    margin: 0 auto 8px;
+}
+.ond .oase-login h1 .logo img {
+    width: 100%; height: auto;
+    animation: login-logo 1s ease-in-out;
+}
+.ond .oase-login h1 .exastro {
+    display: block;
+    margin-bottom: 8px;
+    animation: login-logo 1s ease-in-out forwards;
+}
+.ond .oase-login h1 .exastro img {
+    font-size: 150%;
+    width: 50%; height: auto;
+}
+@keyframes login-logo {
+  0% { opacity: 0; transform: translateY( -16px ); }
+100% { opacity: 1; transform: translateY(   0px ); }
+}
+.ond .oase-login h1 .nec {
+    font-size: 180%;
+    letter-spacing: 0.25em;
+}
+.ond .oase-login h1 span {
+    letter-spacing: 0.05em;
+}
+.ond .oase-login h1 .initial {
+    font-size: 200%;
+    font-style: normal;
+    /* vertical-align: -5px; */
+    color: #002b62;
+}
+.ond .oase-login h1 .word {
+    display: inline-block;
+    padding-right: 0.5em;
+    white-space: nowrap;
+}
+.ond .oase-login h1 .chara {
+    
+}
+.ond .oase-login h1  .word:last-child {
+padding-right: 0;
+}
+.ond .oase-login-form {
+    max-width: 320px;
+    margin: 0 auto 24px;
+}
+.ond .oase-login .oase-login-error {
+    display: inline-block;
+    margin: 0 0 16px; padding: 16px;
+    background-color: #FDF3F5;
+    border: 1px solid #DC143C;
+    border-radius: 4px;
+    animation: error 0.6s linear;
+}
+@keyframes error {
+  0% { transform: translateX(-15px); }
+ 10% { transform: translateX( 15px); }
+ 30% { transform: translateX(-10px); }
+ 50% { transform: translateX( 10px); }
+ 70% { transform: translateX( -5px); }
+ 85% { transform: translateX(  5px); }
+100% { transform: translateX(  0  ); }
+}
+.ond .oase-login .oase-login-error p {
+    line-height: 1.75;
+    font-size: 12px;
+    color: #DC143C;
+}
+.ond .oase-login-form dl {
+    position: relative;
+    overflow: hidden;
+    display: table;
+    width: 100%;
+    margin-bottom: 8px;
+    background-color: #FFF;
+    border: 1px solid #00B5B8;
+    border-radius: 4px;
+    box-shadow: 0 0 0 2px #FFF;
+}
+.ond .oase-login-form dt,
+.ond .oase-login-form dd.input {
+    display: table-cell;
+    vertical-align: middle;
+}
+.ond .oase-login-form dt {
+    width: 48px;
+    font-size: 20px;
+    background-color: #00B5B8;
+    color: #FFF;
+}
+.ond .oase-login-form dd.open-pass {
+    position: absolute;
+    top: 50%; right: 16px;
+    margin-top: -8px;
+    background-color: #FFF;
+    border-radius: 8px;
+    line-height: 16px;
+    font-size: 16px;
+    color: #999;
+    cursor: pointer;
+}
+.ond .oase-login-form dd.open-pass.hover {
+    color: #666;
+}
+.ond .oase-login-form dd input {
+    width: calc( 100% - 8px ); height: 40px;
+    margin: 4px; padding: 8px 12px 10px;
+    border: none;
+    letter-spacing: 0.03em;
+    font-size: 16px;
+    color: #333;
+    font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+}
+.ond .oase-login-form dd input::placeholder {
+    color: #CCC;
+    letter-spacing: 0.03em;
+}
+.ond .oase-login-form dd input:focus::placeholder {
+    color: #DFDFDF;
+}
+/* weblit */
+.ond .oase-login-form dd input::-webkit-input-placeholder {
+    color: #CCC;
+    letter-spacing: 0.03em;
+}
+/* IE 11 */
+.ond .oase-login-form dd input::-ms-clear,
+.ond .oase-login-form dd input::-ms-reveal {
+    visibility: hidden;
+}
+.ond .oase-login-form dd input:-ms-input-placeholder {
+    color: #CCC;
+    letter-spacing: 0.03em;
+}
+.ond .btn-login {
+    display: inline-block;
+    position: relative;
+    width: 180px; height: 40px;
+    margin: 0 0 32px; padding: 0;
+    border: 2px solid #00B5B8;
+    background: #FFF;
+    border-radius: 40px;
+    box-shadow: 0 0 0 2px #FFF;
+    line-height: 40px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    overflow: hidden;
+    -webkit-tap-highlight-color: rgba( 0, 0, 0, 0 );
+    }
+.ond .btn-login:active {
+    transform: translateY( 1px );
+}
+.ond .btn-login:focus:active {
+    outline: none;
+}
+.ond .btn-login span {
+    position: absolute;
+    top: 0; left: 0;
+    z-index: 2;
+    width: 100%;
+    color: #00B5B8;
+    font-size: 16px;
+    line-height: 36px;
+    text-align: center;
+    transition-duration: 0.3s;
+}
+.ond .btn-login em {
+    vertical-align: -1px;
+}
+.ond .btn-login::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: -100%; top: 0;
+    width: 100%; height: 100%;
+    background-color: #00B5B8;
+    transition-duration: 0.3s;
+}
+.ond .btn-login:hover {
+    color: #FFF;
+}
+.ond .btn-login:hover::after {
+    left: 0;
+}
+.ond .btn-login:hover span {
+    color: #FFF;
+}
+.ond .oase-login-forgot {
+    max-width: 320px;
+    margin: 0 auto;
+}
+.ond .oase-login-footer li {
+    display: inline-block;
+}
+.ond .oase-login-footer a,
+.ond .oase-login-footer button {
+    display: inline-block;
+    margin-bottom: 0; padding: 8px 16px;
+    background: #FFF;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #333;
+}
+.ond .oase-login-footer a:hover,
+.ond .oase-login-footer button:hover {
+    color: #666;
+    background-color: #EFEFEF;
+}
+.ond .oase-login-message {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 9999;
+    width: 100%;
+    padding: 16px 32px;
+    background-color: #333;
+    letter-spacing: 0.05em;
+    font-size: 16px;
+    color: #FFF;
+    text-align: center;
+    animation: message 3s linear forwards;
+}
+@keyframes message {
+  0% { transform: translateY( -100% ) }
+ 10% { transform: translateY(    0  ) }
+ 80% { opacity: 1; }
+100% { opacity: 0; }
+}
+.ond .oase-login-message em {
+    color: #CCC;
+    vertical-align: -1px;
+}
+.login-footer {
+  height: 32px;
+  padding: 0 16px;
+  line-height: 32px;
+  text-align: right;
+  font-size: 12px;
+  color: #00B5B8;
+}
+.login-footer .exastro {
+font-weight: bold;
+<<<<<<< HEAD
+}
+.login-footer em {
+vertical-align: -4px;
+font-size: 150%;
+}
+
+/*
+=======
+}
+.login-footer em {
+vertical-align: -4px;
+font-size: 150%;
+}
+
+
+
+
+>>>>>>> 67c83f063d7c898453914ac2c4191dcc7ec5250c
+.ond .oase-login-container {
+    background-image: none;
+}
+html.ond, .ond body {
+background-color: transparent;
+}
+.ond #oase-login-background {
+position: fixed;
+top: 0; left: 0;
+z-index: -1;
+width: 100%; height: 100%;
+    background-image: url("../../posts/oase_background.jpg");
+    background-size: cover;
+    background-position: center center;
+    animation: 6s backgroundFilter linear infinite;
+}
+@keyframes backgroundFilter {
+0% { filter: hue-rotate( 0deg); }
+100% { filter: hue-rotate( 360deg); }
+}
+<<<<<<< HEAD
+*/
+=======
+
+>>>>>>> 67c83f063d7c898453914ac2c4191dcc7ec5250c

@@ -1,0 +1,110 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load common %}
+
+{% block maincontent %}
+
+<div id="oase-dashboard" class="oase-main">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA10021' request.user.get_lang_mode showMsgId=False %}</h1> 
+            <p class="oase-main-description">{% get_message 'MOSJA10022' request.user.get_lang_mode showMsgId=False %}</p>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+  <div class="oase-main-body">
+    <div class="oase-main-body-inner">
+
+      <section>
+      
+        <h2 class="oase-dashboard-title"><span class="exastro"><em class="owf owf-exastro"></em>{% get_message 'MOSJA10023' request.user.get_lang_mode showMsgId=False %}</span>{% get_message 'MOSJA10024' request.user.get_lang_mode showMsgId=False %}</h2>
+        
+        <div class="oase-dashboard-login-user">
+          <p><em class="owf owf-user"></em><em>{{user_name}}</em>{% get_message 'MOSJA10025' request.user.get_lang_mode showMsgId=False %}</p>
+          <ul class="oase-dashboard-menu">
+            <li><a href="{% url 'web_app:user:personal_config' %}">{% get_message 'MOSJA10026' request.user.get_lang_mode showMsgId=False %}</a></li>
+            {% for mm in mainmenu_list %}
+              {% if mm.default and mm.caption != 'DashBoard' %}
+              <li>
+
+                {% if mm.selected == "logout" %}
+                <a href="{{mm.link}}" onclick="logout()">{{mm.caption}}</a>
+                {% elif mm.selected == "contact" %}
+                <a href="mailto:abc@sample.com;def@sample.com">{{mm.caption}}</a>
+                {%endif%}
+
+              </li>
+              {% endif %}
+           {% endfor %}
+          </ul>
+        </div>
+
+        <ul class="oase-dashboard-list">
+          {% for mm in mainmenu_list %}
+            {% if mm.default == False %}
+            <li>
+              <dl>
+                <dt>
+                  <span><em class="{{mm.classname}}"></em><span>{{mm.caption}}</span></span>
+                </dt>
+                <dd>
+                  {% if mm.menu_items|length %}
+                  <ul class="oase-dashboard-menu">
+                  {% for mi in mm.menu_items %}
+                    <li><a href="{{mi.link}}">{{mi.name}}</a></li>
+                  {% endfor %}
+                  </ul>
+                  {% endif %}
+                </dd>
+              </dl>
+            </li>
+            {% endif %}
+          {% endfor %}
+        </ul>
+
+      </section>
+
+    </div><!-- /.oase-main-body-inner -->
+  </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% comment %}
+<div class="tab">
+  <div class="sub_menu">◆OASE利用状況<br></div>
+  <div class="index_jnl">
+  <div class="added_logs2"></div>
+  <div class="added_logs"></div>
+    [10:30:00] このスペースには、ルールの適用状況、更新状況を通知します。<br>
+    [10:25:00] usernameがステージング環境へ「example5.xlsx」を適用しました。<br>
+    [10:23:42] usernameがプロダクション環境へ「example5.xlsx」を適用しました。<br>
+  </div>
+</div>
+<script>onload=function(){ index_log(); }</script>
+{% endcomment %}
+
+{% endblock %}

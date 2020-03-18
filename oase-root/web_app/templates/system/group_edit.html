@@ -1,0 +1,468 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript">
+/*グループ行 追加HTML */
+var groupRow = heredocHTML( function(){/*
+  <tr id="trDummy">
+    <td class="operation-menu blank"><div class="cell-inner"><input type="hidden" value="1"></div></td>
+    <td class="group-name input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="64" class="validation-input"></div></td>
+    <td class="overview textarea"><div class="cell-inner"><textarea data-type="text" data-maxlength="4000" class="validation-input"></textarea></div></td>
+    <td class="last-update-user blank"><div class="cell-inner"></div></td>
+    <td class="last-modified blank"><div class="cell-inner"><time datetime=""></time></div></td>
+    <td class="row-delete"><div class="cell-inner"><button class="oase-mini-button" onClick="tableRowRemove( this );"><em class="owf owf-cross"></em></button></div></td>
+  </tr>
+*/});
+<!--
+////////////////////////////////////////////////
+// 追加行のidを一意にしたり、付与する
+// idは重複しないようにNew + timestamp()にする
+////////////////////////////////////////////////
+function setNewId()
+{
+    var objTBody  = document.getElementById("tbodyGroup");
+    var objDummy  = document.getElementById("trDummy");
+    var date = new Date();
+    var strID = "New" + date.getTime();
+
+    objDummy.style.display = "";
+    objDummy.id = strID;
+    objDummy.cells[1].id = "tdName" + strID;
+    objDummy.cells[2].id = "tdSummary" + strID;
+
+}
+////////////////////////////////////////////////
+//  キャンセル処理
+////////////////////////////////////////////////
+function cancel()
+{
+    $("#btnCan").prop("disabled", true);
+    var choice = true;
+
+    // 変更が有れば確認する
+    if($('.change-value').length)
+    {
+        choice = confirm(getMessage("MOSJA23009", false));
+    }
+
+    // trueならキャンセルする
+    if(choice) {
+        beforeunloadThroughFlag = true;
+        window.location.href = '/oase_web/system/group';
+        return true;
+    }
+    $("#btnCan").prop("disabled", false);
+}
+
+////////////////////////////////////////////////
+//  リセット処理
+////////////////////////////////////////////////
+function reset()
+{
+    // 変更が無ければメッセージは表示しない
+    if($('.change-value').length == 0)
+    {
+        return true;
+    }
+
+    $("#btnRes").prop("disabled", true);
+
+    if(confirm(getMessage("MOSJA23010", false)))
+    {
+        beforeunloadThroughFlag = true;
+        $('#toResetForm').submit();
+    }
+    $("#btnRes").prop("disabled", false);
+}
+
+////////////////////////////////////////////////
+//  保存前処理
+////////////////////////////////////////////////
+function submitGroupData(tbodyID)
+{
+    var objTBody = document.getElementById(tbodyID);
+    var strID = "";
+    var obj = null;
+
+    var dicGroupInfo   = {};
+    var delGroupList   = new Array();
+    var a_dicGroupList = new Array();
+    var chk_strGroupName = {};
+
+    var strOpe          = "";
+    var strGroupID      = "";
+    var strGroupName    = "";
+    var strGroupSummary = "";
+
+    var errorFlag = false;
+    var errorMsg = {};
+    var confirmMsg = getMessage("MOSJA23016", false);
+
+    $("#btnUpd").prop("disabled", true);
+
+
+    // 編集画面に表示されているグループ名をすべて保持
+    for(var i = 0; i < objTBody.children.length; i++){
+        strID = objTBody.children[i].id;
+        strGroupName = document.getElementById("tdName" + strID).children[0].children[0].value;
+        chk_strGroupName[strID] = strGroupName;
+    }
+
+    for(var i = 0; i < objTBody.children.length; i++)
+    {
+        strID = objTBody.children[i].id;
+        if(strID.indexOf("New") == 0) {
+            // 追加
+            strOpe = 1;
+            strGroupID = "0";
+        }else{
+            // 更新か削除を調べる groupIdのセット
+            obj = document.getElementById("selModify" + strID);
+            strOpe = obj.options[obj.selectedIndex].value;
+            strGroupID = strID;
+        }
+
+        if(parseInt(strOpe) <= 0) {
+            continue;
+        }
+
+        strGroupName = document.getElementById("tdName" + strID).children[0].children[0].value;
+        strGroupSummary = document.getElementById("tdSummary" + strID).children[0].children[0].value;
+        
+        errorMsg[strID] = {};
+        errorMsg[strID]['group_name'] = '';
+        errorMsg[strID]['summary'] = '';
+
+        // 管理者グループ名のバリデーションチェック
+        if(parseInt(strGroupID) == 1 && strGroupName !=getMessage("MOSJA23034", false)){
+            errorMsg[strID]['group_name'] += getMessage("MOSJA23025", false) + "\n";
+            break;
+        }
+
+        // 未入力チェック
+        if(strGroupName == "") {
+            errorMsg[strID]['group_name'] += getMessage("MOSJA23011", false) + "\n";
+        }
+
+        // 入力値の重複チェック
+        var match_line = Object.keys(chk_strGroupName).filter(function(key) {
+            return chk_strGroupName[key] === strGroupName
+        });
+
+        for (var key in chk_strGroupName){
+            // 現在の行よりも前に重複している場合
+            if(match_line.indexOf(strID) > 0){
+                errorMsg[strID]['group_name'] += getMessage("MOSJA23020", false) + "\n";
+                break;
+            }
+            // 更新のみ現在の行よりも後に重複している場合をチェック
+            if(parseInt(strOpe) == 2 && match_line.length > 1 && match_line[1].indexOf("New") < 0){
+                errorMsg[strID]['group_name'] += getMessage("MOSJA23020", false) +"\n";
+                break;
+            }
+        }
+        if(errorMsg[strID]['group_name'] != "" || errorMsg[strID]['summary'] != "") {
+            errorFlag = true;
+        }
+
+        dicGroupInfo = {};
+        dicGroupInfo["ope"]         = strOpe;
+        dicGroupInfo["group_id"]    = strGroupID;
+        dicGroupInfo["group_name"]  = strGroupName;
+        dicGroupInfo["summary"]     = strGroupSummary;
+        dicGroupInfo["row_id"]      = strID;
+
+        a_dicGroupList.push(dicGroupInfo);
+
+        if(strOpe == OPE_DELETE){
+            delGroupList.push(strGroupName);
+        }
+    }
+
+    // 更新対象がなければメッセージを表示
+    if(a_dicGroupList.length <= 0)
+    {
+        alert(getMessage("MOSJA23015", false));
+        return;
+    }
+
+    // 削除するグループが存在する場合、保存ボタン押下時のメッセージを変更する
+    if(delGroupList.length > 0){
+        confirmMsg = delGroupList.join(',') + getMessage("MOSJA23023", false) ;
+    }
+    // 削除グループの存在確認後に確認メッセージを表示する
+    if(!confirm(confirmMsg)){
+        $("#btnUpd").prop("disabled", false);
+        return;
+    }
+
+    // 前回エラー表記削除
+    if($('[name=sub_error]').length){
+        $('.error').removeClass('error');
+        $('.error-list').remove();
+    }
+
+    // エラーがあればメッセージを表示 
+    if($('.error').length){
+        alert(getMessage("MOSJA23014", false));
+        return;
+    }
+
+    if(errorFlag) {
+        // エラーセルにエラーメッセージを表示する
+        renderErrorMsg(errorMsg);
+        return;
+    }
+
+    var jstr = JSON.stringify({"json_str":a_dicGroupList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    beforeunloadThroughFlag = true;
+    
+    var objForm = document.getElementById("formGroupData");
+    objForm.submit();
+}
+
+////////////////////////////////////////////////
+// 各レコードのエラーメッセージを調べて
+// エラーメッセージがあったらセルの下に表示する 
+////////////////////////////////////////////////
+function renderErrorMsg(errorMsg)
+{
+   alert(getMessage("MOSJA23014", false));
+
+   Object.keys(errorMsg).forEach(function(rowId) {
+
+       errorStr = errorMsg[rowId];
+       nameError = errorStr['group_name'];
+       summaryError = errorStr['summary'];
+
+       // グループ名エラーを表記
+       if(nameError.length) {
+           tdNameID = "#tdName" + rowId;
+           $errInput = $(tdNameID);
+           $errInput.addClass('error');
+           // ここで補足されたエラーには sub_errorというnameをつける
+           var errorHTML = '<ul class="error-list" name="sub_error">';
+           errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" data-tooltip="' + nameError + '"><em class="owf owf-question"></em></span></li>';
+           errorHTML += '</ul>';
+           $(tdNameID + " div input").after( errorHTML );
+       }
+
+       // 概要エラーを表記
+       if(summaryError.length){
+           tdSummaryID = "#tdSummary" + rowId;
+           $errInput = $(tdSummaryID);
+           $errInput.addClass('error');
+           // ここで補足されたエラーには sub_errorというnameをつける
+           var errorHTML = '<ul class="error-list" name="sub_error">';
+           errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" data-tooltip="' + summaryError + '"><em class="owf owf-question"></em></span></li>';
+           errorHTML += '</ul>';
+           $(tdSummaryID + " div textarea").after( errorHTML );
+       }
+
+   });
+}
+
+////////////////////////////////////////////////
+//  保存処理
+////////////////////////////////////////////////
+function submitAction()
+{
+    $.ajax({
+        type : "POST",
+        url  : "modify",
+        data : $("#formGroupData").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            alert(getMessage("MOSJA00011", false));
+            $("#btnUpd").prop("disabled", false);
+            location.href = response_json.redirect_url;
+        }
+        else {
+            // エラーメッセージを表示する
+            renderErrorMsg(response_json.error_msg);
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage("MOSJA23017", false) + "\n" + respdata.responseText);
+        }
+    });
+}
+
+-->
+</script>
+{% endblock %}
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+  
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+     
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA23000' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+        
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button id="btnCan" class="oase-button" onClick="cancel();"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button id="btnRes" class="oase-button" onClick="reset();"><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" onClick="tableRowAdd('#group', groupRow );setNewId();"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA00020' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button id="btnUpd" class="oase-button" onClick="submitGroupData('tbodyGroup');"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+    
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <form id="toResetForm" method="post" action="edit">
+      <input type="hidden" name="filters" value="{{ filters }}" />
+      {% csrf_token %}
+    </form>
+    <form id="formGroupData" action="javascript:submitAction()">
+      {% csrf_token %}
+      <input type="hidden" id="hidJsonStr" value="" name="json_str" />
+    </form>
+
+    
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+      
+        <section>
+        
+          <div class="oase-table">
+          
+            <div class="oase-table-load loading"><div class="oase-table-loader-inner"><em class="owf owf-update"></em></div></div>
+            
+            <div class="oase-table-inner">
+              <table id="group">
+            
+                <thead>
+                  <tr>
+                    <th class="operation-menu sort"><div class="cell-inner">{% get_message 'MOSJA00030' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="group-name input sort"><div class="cell-inner">{% get_message 'MOSJA23003' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" data-tooltip={% get_message 'MOSJA00102' request.user.get_lang_mode showMsgId=False %}><em class="owf owf-question"></em></span></div></th>
+                    <th class="overview textarea sort"><div class="cell-inner">{% get_message 'MOSJA23004' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" data-tooltip={% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}><em class="owf owf-question"></em></span></div></th>
+                    <th class="last-update-user sort"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="last-modified date sort"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="row-delete"><div class="cell-inner"><em class="owf owf-cross"></em><span class="tooltip help" title={% get_message 'MOSJA00031' request.user.get_lang_mode showMsgId=False %}><em class="owf owf-question"></em></span></div></th>
+                  </tr>
+                </thead>
+                
+                <tbody id="tbodyGroup">
+                {% for group in group_list %}
+                <tr id="{{ group.group_id }}">
+                  <td class="operation-menu"><div class="cell-inner"><div class="select">
+
+                    <select id="selModify{{ group.group_id }}" class="update">
+                    {% for o in opelist_mod %}
+                      {% if forloop.first %}
+                      <option value="{{o.v}}" selected>{{o.k}}</option>
+                      {% else %}
+                        {% if group.group_id == 1 %}
+                          {% if o.v == 2 %}
+                            <option value="{{o.v}}">{{o.k}}</option>
+                          {% endif %}
+                        {% else %}
+                          <option value="{{o.v}}">{{o.k}}</option>
+                        {% endif %}
+                      {% endif %}
+                    {% endfor %}
+                    </select>
+
+                  </div></div></td>
+          
+                  <td id="tdName{{ group.group_id }}" class="group-name input">
+                    <div class="cell-inner">
+                    {% if group.group_id == 1 %}
+                      <input type="text" data-type="text" value="{{ group.group_name }}" class="validation-input" disabled = true;>
+                    {% else %}
+                      <input type="text" data-type="text" value="{{ group.group_name }}" data-maxlength="64" class="validation-input">
+                    {% endif %}
+                    </div>
+                  </td>
+                    
+                  <td id="tdSummary{{ group.group_id }}" class="overview textarea"><div class="cell-inner"><textarea data-type="text" data-maxlength="4000" class="validation-input">{{ group.summary }}</textarea></div></td>
+                  <td class="last-update-user"><div class="cell-inner">{{ group.last_update_user }}</div></td>
+                  <td class="last-modified"><div class="cell-inner"><time datetime="{{ group.last_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ group.last_timestamp|timezone:'Asia/Tokyo' }}</time></div></td>
+                  <td class="row-delete blank"><div class="cell-inner"></div></td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            
+              </table>
+            
+            </div>
+            
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+                <select class="rowShowNum">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50" selected>50</option>
+                  <option value="100">100</option>
+                </select>
+                </dd></dl></li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> /
+                  <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+                <li><button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+        
+          </div>
+        </section>
+          
+        <div class="oase-modal-overlay"></div>
+      
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+  
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{# 登録件数0件なら1行レコードを追加する #}
+{% if not group_list|length %}
+<script type="text/javascript">
+<!--
+    tableRowAdd('#group', groupRow );
+    setNewId();
+-->
+</script>
+{% endif %}
+
+{% endblock %}
+
+
