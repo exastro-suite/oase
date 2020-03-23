@@ -59,7 +59,6 @@ except Exception as e:
 # パス追加
 # --------------------------------
 sys.path.append(oase_root_dir)
-config_file = oase_root_dir + '/confs/backyardconfs/'+ 'config.ini'
 
 # --------------------------------
 # django読み込み
