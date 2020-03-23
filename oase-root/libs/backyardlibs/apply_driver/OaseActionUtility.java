@@ -13,7 +13,7 @@
  limitations under the License.
 
 */
-package com.castlezone.mco_collaboration;
+package ;
 import java.util.List;
 import java.util.ArrayList;
 import java.lang.String;
