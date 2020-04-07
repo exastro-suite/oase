@@ -1,0 +1,48 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+<!-- 詳細画面 -->
+<h3>{% get_message 'MOSJA13001' request.user.get_lang_mode showMsgId=False %}</h3>
+<div class="oase-modal-table">
+{% if request_info_dict %}
+  <table>
+  {% for key, values in request_info_dict.items %}
+    <tr><th><div class="cell-inner">{{ key }}</div></th><td><div class="cell-inner">{{ values }}</div></td></tr>
+  {% endfor %}
+  </table>
+{% endif %}
+</div>
+<h3>{% get_message 'MOSJA13005' request.user.get_lang_mode showMsgId=False %}</h3>
+<div class="oase-modal-table">
+{% if action_info_dict %}
+  <table>
+  {% for key, values in action_info_dict.items %}
+    <tr><th><div class="cell-inner">{{ key }}</div></th><td><div class="cell-inner">{{ values|default_if_none:"" }}</div></td></tr>
+  {% endfor %}
+  </table>
+{% endif %}
+</div>
+<h3>{% get_message 'MOSJA13011' request.user.get_lang_mode showMsgId=False %}</h3>
+<div class="oase-modal-table">
+{% if action_log_list %}
+  <textarea class="ignore-change-value" readonly="readonly">
+  {% for values in action_log_list %}
+  {{ values }}
+  {% endfor %}
+  </textarea>
+{% endif %}
+</div>

@@ -1,0 +1,509 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript" src="{% static "web_app/js/oase-table-edit.js" %}" charset="UTF-8"></script>
+<script type="text/javascript">
+<!--
+var checkList = {};
+////////////////////////////////////////////////
+//  画面表示時の状態を保存
+////////////////////////////////////////////////
+$(function(){
+    var chkUrl = location.href
+
+    if (chkUrl.indexOf("edit") > 0){
+        var objTBody = document.getElementById("black_list_data");
+
+        for(var i = 0; i<objTBody.rows.length; i++) {
+            strID = objTBody.rows[i].id;
+            if(!strID || strID == "black_list_dummy") {
+                continue;
+            }
+            
+            strIpaddr = document.getElementById("ipaddr" + strID).value;
+
+            insertInfo = {};
+            insertInfo["ipaddr"] = strIpaddr;
+
+            checkList[strID] = insertInfo;
+
+        }
+    }
+});
+
+////////////////////////////////////////////////
+//  参照モードへ戻す（キャンセル）
+////////////////////////////////////////////////
+function changeModeToView(tbodyID) {
+
+    $("#btnCan").prop("disabled", true);
+    var objTBody = document.getElementById(tbodyID);
+    for(var i = 0; i<objTBody.rows.length; i++) {
+        strID = objTBody.rows[i].id;
+        if(!strID || strID == "black_list_dummy") {
+            continue;
+        }
+
+        // 既存の変更、追加ボタンの押下有無確認
+        if(isChanged(strID, (objTBody.rows.length - 1))){
+            if(!confirm(getMessage('MOSJA00001', false))) {
+
+                $("#btnCan").prop("disabled", false);
+                return;
+            }
+            break;
+        }
+    }
+    window.location.href = "../black_list";
+}
+
+////////////////////////////////////////////////
+//  変更箇所有無確認
+//  true ：変更有り
+//  false：変更無し
+////////////////////////////////////////////////
+function isChanged(strID, listLength){
+
+    strIpaddr     = document.getElementById("ipaddr" + strID).value;
+    var chgFlag   = false;
+
+    obj    = document.getElementById("selModify" + strID);
+    strOpe = obj.options[obj.selectedIndex].value;
+
+    // 行追加があったら変更有り
+    if(Object.keys(checkList).length != listLength){
+        return true;
+    }
+
+    // 新規追加時変更確認
+    if(Object.keys(checkList).length == 1 && strID.indexOf("New") >= 0){
+        if(strOpe != 1 || strIpaddr != "")
+        {
+            return true;
+        }
+        return false;
+    }
+
+    //既存データ変更確認
+    // 更新欄が空白以外の場合変更有り
+    if(strOpe > 0){
+        return true;
+    }
+
+    var checkInfo = checkList[strID];
+    // IPアドレスはここで変更確認
+    if(checkInfo["ipaddr"] != strIpaddr)
+    {
+        return true;
+    }
+
+    return chgFlag;
+}
+
+////////////////////////////////////////////////
+//  リセット処理
+////////////////////////////////////////////////
+function reset(tbodyID, formId){
+
+    $("#btnRes").prop("disabled", true);
+
+    var objTBody = document.getElementById(tbodyID);
+    var editForm = document.getElementById(formId);
+    var pkList = {};
+    pkList["pk"] = {};
+    pkList["pk"]["LIST"] = new Array();
+
+    // 先に既存ブラックリストIDをリストへ保存
+    if(objTBody){
+        for (var i = 0, r = objTBody.rows.length; i < r; i++) {
+            strID = objTBody.rows[i].id;
+            if(!strID || strID == "black_list_dummy") {
+                continue;
+            }
+            if(strID.indexOf("New") != 0) {
+                pkList["pk"]["LIST"].push(strID);
+            }
+        }
+    }
+    // csrf_token の次にあるinput要素のvalueにデータを挿入
+    editForm.children[1].value = JSON.stringify(pkList);
+
+    for(var i = 0; i<objTBody.rows.length; i++) {
+        strID = objTBody.rows[i].id;
+        if(!strID || strID == "black_list_dummy") {
+            continue;
+        }
+
+        // 変更確認
+        if(isChanged(strID, (objTBody.rows.length - 1))){
+            // 入力が有れば確認してから遷移
+            if(confirm(getMessage('MOSJA34001', false))) {
+                editForm.submit();
+            }
+            break;
+        }
+    }
+    $("#btnRes").prop("disabled", false);
+}
+
+////////////////////////////////////////////////
+//  リストへ行追加（編集モード）
+////////////////////////////////////////////////
+function addList(tbodyID, dummyID){
+
+    var objTBody  = document.getElementById(tbodyID);
+    var objDummy  = document.getElementById(dummyID);
+    var objTrAdd  = objDummy.cloneNode(true);
+    var objTr     = objTBody.rows[objTBody.rows.length - 1];
+    var iRowCount = objTBody.rows.length;
+    var strID     = "";
+
+    iRowCount++;
+    strID = "New" + iRowCount.toString();
+    objTrAdd.style.display = "";
+    objTrAdd.id = strID;
+
+    //  リスト追加
+    objTBody.insertBefore(objTrAdd, objDummy);
+    objTr = objTBody.rows[objTBody.rows.length - 2];
+    objTr.classList.remove('filter-hide-list');
+    objTr.classList.remove('paging-hide');
+    objTr.classList.add('added-row');
+
+    //  更新メニューを追加
+    objTr.cells[1].children[0].children[0].id = "selModify" + strID;
+    objTr.cells[3].children[0].children[0].id = "ipaddr" + strID;
+
+    tableRowCount();
+}
+
+////////////////////////////////////////////////
+//  DB登録（編集モード）
+////////////////////////////////////////////////
+function submitAccountData(tbodyID){
+
+    var objTBody         = document.getElementById(tbodyID);
+    var strID            = "";
+    var obj              = null;
+
+    var chk_strIpAddress = {};
+    var insertList       = new Array();
+    var updateList       = new Array();
+    var delList          = new Array();
+    var ipaddrlList      = new Array();
+    var strOpe           = "";
+    var strIpaddr        = "";
+
+    var errorFlag        = false;
+    var errorMsg         = {};
+
+    $("#btnUpd").prop("disabled", true);
+
+    // 保存確認メッセージ
+    if(!confirm(getMessage('MOSJA00002', false))) {
+        $("#btnUpd").prop("disabled", false);
+        return;
+    }
+
+    // 前回エラー表記削除
+    $('.error').removeClass('error');
+    $('.error-list').remove();
+
+    // バリデーションクリア
+    var tableTrArray = objTBody.getElementsByTagName("tr");
+    Array.prototype.forEach.call(tableTrArray, function(objTr) {
+        if(objTr.id != null && objTr.id != "" && objTr.id != "black_list_dummy") {
+            objErrorCell = objTr.getElementsByClassName("error-icon-area")[0];
+
+            objTr.classList.remove("error-row");
+            var removeChildren = objErrorCell.getElementsByClassName("error-exists");
+            Array.prototype.forEach.call(removeChildren, function(objChild) {
+                objErrorCell.removeChild(objChild);
+            });
+        }
+    });
+
+    // 編集画面に表示されている手動登録したIPアドレスをすべて保持
+    for(var i = 0; i < objTBody.rows.length; i++) {
+        var strManual;
+        strID = objTBody.rows[i].id;
+
+        if(!strID || strID == "black_list_dummy" ) {
+            continue;
+        }
+
+        if(strID.indexOf("New") != 0) {
+            strManual  = document.getElementById("manual" + strID).innerText;
+            if(strManual === getMessage('MOSJA34015', false)){
+                continue;
+            }
+        }
+
+        strIp = document.getElementById("ipaddr" + strID).value;
+        chk_strIpAddress[strID] = strIp;
+    }
+
+    for(var i = 0; i<objTBody.rows.length; i++) {
+        strID = objTBody.rows[i].id;
+        if(!strID || strID == "black_list_dummy") {
+            continue;
+        }
+
+        obj = document.getElementById("selModify" + strID);
+        strOpe = obj.options[obj.selectedIndex].value;
+
+        if(parseInt(strOpe) <= 0) {
+            continue;
+        }
+
+        strIpaddr_ID = "0";
+        if(strID.indexOf("New") != 0) {
+            strIpaddr_ID = strID;
+        }
+
+        strIpaddr = document.getElementById("ipaddr" + strID).value;
+
+        // バリデーション
+        errorMsg[strID] = '';
+
+        var regexIPaddr = new RegExp(/^(([\*]|[1-9]?[0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[\*0-9]|1[0-9][\*0-9]|2[0-4][\*0-9]|25[\*0-5])$/);
+
+        // 入力値の重複チェック
+        var match_line = Object.keys(chk_strIpAddress).filter(function(key) {
+            return chk_strIpAddress[key] === strIpaddr
+        });
+
+        if(strIpaddr == "") {
+            errorMsg[strID] = errorMsg[strID] + getMessage('MOSJA34002', true) + "\n";
+
+        }else{
+            for (var key in chk_strIpAddress){
+                // 現在の行よりも前に重複している場合
+                if(match_line.indexOf(strID) > 0){
+                    errorMsg[strID] = errorMsg[strID] + getMessage('MOSJA34006', true) + "\n";
+                    break;
+                }
+                // 更新のみ現在の行よりも後に重複している場合をチェック
+                if(parseInt(strOpe) == 2 && match_line.length > 1 && match_line[1].indexOf("New") < 0){
+                    errorMsg[strID] = errorMsg[strID] + getMessage('MOSJA34006', true) + "\n";
+                    break;
+                }
+            }
+            if( strIpaddr.length > 0 && regexIPaddr.test(strIpaddr) == false) {
+                errorMsg[strID] = errorMsg[strID] + getMessage('MOSJA34003', true) + "\n";
+            }
+        }
+
+        if(errorMsg[strID] != ""){
+            errorFlag = true;
+        }
+
+        if(strOpe == String(OPE_INSERT)){
+            insertInfo = {};
+            insertInfo["ipaddr"] = strIpaddr;
+            insertInfo["row_id"] = strID;
+
+            insertList.push(insertInfo);
+
+        }else if(strOpe == String(OPE_UPDATE)){
+            updateInfo = {};
+            updateInfo["ipaddr"] = strIpaddr;
+            updateInfo["row_id"] = strID;
+
+            updateList.push(updateInfo);
+
+        }else if(strOpe == String(OPE_DELETE)){
+            delInfo = {};
+            delInfo["ipaddr"] = strIpaddr;
+            delInfo["row_id"] = strID;
+
+            delList.push(delInfo);
+        }
+    }
+
+    if(errorFlag) {
+        alert(getMessage('MOSJA34004', true));
+
+        Object.keys(errorMsg).forEach(function(rowId) {
+
+            errorStr = errorMsg[rowId];
+
+            if(!errorStr || errorStr.length == 0) {
+                return true;
+            }
+            // 今回エラーを表記
+            $errInput = $('#' + 'ipaddr' + rowId);
+            $errInput.parents('th, td').addClass('error');
+            var errorHTML = '<ul class="error-list">';
+            errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage('MOSJA00026', false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+            errorHTML += '</ul>';
+            $errInput.after( errorHTML );
+        });
+
+        return;
+    }
+
+    if(insertList.length == 0 && updateList.length == 0 && delList.length == 0) {
+        alert(getMessage('MOSJA34005', true));
+        $("#btnUpd").prop("disabled", false);
+        return;
+    }
+
+    var jstr = JSON.stringify({"insertInfo":insertList,"updateInfo":updateList,"delInfo":delList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    var objForm = document.getElementById("formBlackListData");
+    objForm.submit();
+}
+
+function submitAction() {
+
+  // 前回エラー表記削除
+  $('.error').removeClass('error');
+  $('.error-list').remove();
+
+    $.ajax({
+        type : "POST",
+        url  : "modify",
+        data : $("#formBlackListData").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            alert(getMessage('MOSJA00011', false));
+            beforeunloadThroughFlag = true;
+            $("#btnUpd").prop("disabled", false);
+            location.href = response_json.redirect_url;
+        }
+        else {
+            if(response_json.msg == "")
+                alert(getMessage('MOSJA34004', true));
+            else
+                alert(response_json.msg);
+
+            errorMsg = response_json.error_msg
+
+            Object.keys(errorMsg).forEach(function(rowId) {
+
+                errorStr = errorMsg[rowId];
+
+                if(!errorStr || errorStr.length == 0) {
+                    return true;
+                }
+                // 今回エラーを表記
+                $errInput = $('#' + 'ipaddr' + rowId);
+                $errInput.parents('th, td').addClass('error');
+                var errorHTML = '<ul class="error-list">';
+                errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage('MOSJA00026', false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
+                errorHTML += '</ul>';
+                $errInput.after( errorHTML );
+            });
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage('MOSJA34003', true) + "\n" + respdata.responseText);
+        }
+    });
+}
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA34011' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" id="btnCan" onclick="changeModeToView('black_list_data');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" id="btnRes" onclick="reset('black_list_data', 'toResetForm');"><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" id="btnAdd" onclick="addList('black_list_data','black_list_dummy');"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA00020' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" id="btnUpd" onclick="submitAccountData('black_list_data');"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+
+              <form id="toResetForm" method="post" action="{% url 'web_app:user:black_list_edit' %}">
+                {% csrf_token %}
+                <input type="hidden" name="filters" value="" />
+              </form>
+
+              <form id="formBlackListData" action="javascript:submitAction()" method="POST">
+                {% csrf_token %}
+                <input type="hidden" id="hidJsonStr" value="" name="json_str" />
+              </form>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+        <section>
+          <div class="oase-table">
+            <div class="oase-table-load loading">
+              <div class="oase-table-loader-inner"><em class="owf owf-update"></em></div></div>
+            <div class="oase-table-inner">
+              <div id="blackList">
+                {% include 'user/black_list_data_edit.html' %}
+              </div>
+              <div id="innerData" style="display:none;"></div>
+            </div><!-- /.oase-table-inner -->
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+                  <select class="rowShowNum">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                  </select>
+                </dd></dl></li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> /
+                  <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+                <li><button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul><!-- /.button-group -->
+
+            </div><!-- /.oase-table-footer -->
+          </div><!-- /.oase-table -->
+        </section>
+        <div class="oase-modal-overlay"></div>
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock %}

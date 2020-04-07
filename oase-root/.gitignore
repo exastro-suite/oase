@@ -1,0 +1,4 @@
+*.pyc
+web_app/migrations
+confs/frameworkconfs/settings.py
+logs/**/*.log*
