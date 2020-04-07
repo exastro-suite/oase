@@ -204,6 +204,14 @@ def menu_id_check(menu_id, check_info, conditions, message_list):
         logger.logic_log('LOSM00023', menu_id)
         message_list.append({'id': 'MOSJA03137', 'param': 'MENU_ID'})
 
+    if 'CONVERT_FLG' not in check_info:
+        logger.logic_log('LOSM00028', check_info)
+        message_list.append({'id': 'MOSJA03143', 'param': None})
+
+    elif check_info['CONVERT_FLG'] == '':
+        logger.logic_log('LOSM00029', check_info)
+        message_list.append({'id': 'MOSJA03144', 'param': None})
+
     return message_list
 
 

@@ -504,7 +504,7 @@ class MENU_CATEGORY():
         2141001008 : {'name':'MOSJA00091', 'url':'web_app:rule:request_history'},  # リクエスト履歴
         2141001003 : {'name':'MOSJA00092', 'url':'web_app:rule:action_history'},   # アクション履歴
 
-        2141002001 : {'name':'MOSJA00237', 'url':'web_app:system:service'},        # サービス状況
+        #2141002001 : {'name':'MOSJA00237', 'url':'web_app:system:service'},        # サービス状況
         2141002002 : {'name':'MOSJA23031', 'url':'web_app:system:system_conf'},    # システム設定
         2141002003 : {'name':'MOSJA00037', 'url':'web_app:system:group'},          # グループ
         2141002004 : {'name':'MOSJA23032', 'url':'web_app:system:user'},           # ユーザ

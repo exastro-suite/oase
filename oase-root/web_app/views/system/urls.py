@@ -22,7 +22,7 @@
 
 
 from django.urls import path, re_path
-from . import system_conf, mail_template, monitoring, action, group, user
+from . import system_conf, mail_template, monitoring, action, group, user, ITA_paramsheet
 
 app_name = 'system'
 urlpatterns = [
@@ -60,4 +60,9 @@ urlpatterns = [
     path('mail/create', mail_template.create, name='mail_create'),
     path('mail/update', mail_template.update, name='mail_update'),
     path('mail/delete', mail_template.delete, name='mail_delete'),
+
+    # パラメーターシート連携(仮)
+    path('paramsheet/<int:version>/', ITA_paramsheet.index, name='paramsheet'),
+    path('paramsheet/edit/<int:version>/', ITA_paramsheet.edit, name='paramsheet_edit'),
+    path('paramsheet/modify/<int:version>/', ITA_paramsheet.modify, name='paramsheet_modify'),
 ]

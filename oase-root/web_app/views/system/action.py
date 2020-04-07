@@ -55,6 +55,7 @@ class ActionDriverSupportTool():
         clazz_info['info_list'] = clazz.get_info_list()
         clazz_info['define'] = clazz.get_define()
         clazz_info['icon_name'] = clazz.get_icon_name()
+        clazz_info['ver'] = driver_info['ver']
 
         return clazz_info
 

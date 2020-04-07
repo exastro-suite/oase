@@ -318,7 +318,15 @@ function validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo) {
     return result;
 }
 
+////////////////////////////////////////////////
+//  メッセージ解析画面へ遷移する
+////////////////////////////////////////////////
+function moveMessageAnalysis(version) {
 
+    $("#btnMessageAnalysis").prop("disabled", true);
+
+    window.location.href = 'paramsheet/' + String( version );
+}
 -->
 </script>
 {% endblock %}
@@ -533,6 +541,12 @@ function validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo) {
 
       <div class="oase-section-title-table">
         <h2>{{some_driver.name}}</h2>
+      </div>
+
+      <div class="oase-section-title-menu">
+        <ul class="oase-button-group">
+          <li><button class="oase-button" id="btnMessageAnalysis" onclick="moveMessageAnalysis({{some_driver.ver}})"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00241' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+        </ul>
       </div>
 
     </div>

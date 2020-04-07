@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #     http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,10 +16,11 @@
 import json
 
 from django import template
-register = template.Library()
-
 from django.db.models.query import QuerySet
 from libs.messages.oase_messageid import OASEMessageID
+
+register = template.Library()
+
 
 class SetVarNode(template.Node):
 
@@ -133,6 +134,7 @@ def change_lang(msgid, lang, sindex):
 
     return msgid
 
+
 @register.filter
 def index(list_, i):
     """リストの要素をindexを指定して取得する"""
@@ -143,12 +145,14 @@ def index(list_, i):
 def change_datestyle(changetime, lang):
     """言語によって表示方法を変える"""
     if lang == "EN":
-        datetime = changetime.strftime('%Y, %m, %d, %H:%M')
-    elif lang =="JA":
-        datetime = changetime.strftime(u'%Y年 %m月 %d日 %H:%M')
-    return datetime
+        return changetime.strftime('%Y, %m, %d, %H:%M')
+    elif lang == "JA":
+        return changetime.strftime(u'%Y年 %m月 %d日 %H:%M')
+    else:
+        return changetime
 
-@register.filter( is_safe=True )
+
+@register.filter(is_safe=True)
 def jsonify(object):
 
     if isinstance(object, QuerySet):
