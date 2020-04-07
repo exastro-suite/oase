@@ -110,6 +110,12 @@ class ConstantModules:
     BAPL_LAST_UPDATE_USER             =  9
     TBL_BAPL_MAX                      =  BAPL_LAST_UPDATE_USER + 1
 
+    ## E_ANSIBLE_xxx_PATTERN
+    EAP_PATTERN_ID                    = 2
+    EAP_LEGACY_VAR_COUNT              = 10
+    EAP_PIONEER_VAR_COUNT             = 8
+    EAP_LEGACYROLE_VAR_COUNT          = 10
+
     #OASE_T_RHDM_RESPONSE
     OTRR_RESPONSE_ID                  = 2
     OTRR_REQUEST_TYPE_ID              = 5

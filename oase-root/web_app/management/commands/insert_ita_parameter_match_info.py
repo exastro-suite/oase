@@ -45,8 +45,8 @@ class Command(BaseCommand):
         """コマンド実行時の処理"""
 
         values = options['values']
-        if len(values) != 7:
-            print('[ERROR] 引数が不正です。 引数は7個必要です。')
+        if len(values) != 8:
+            print('[ERROR] 引数が不正です。 引数は8個必要です。')
             return
 
         self.insert(values)
@@ -61,13 +61,14 @@ class Command(BaseCommand):
                 module = import_module('web_app.models.ITA_models')
                 ItaParameterMatchInfo = getattr(module, 'ItaParameterMatchInfo')
                 ItaParameterMatchInfo(
-                    menu_group_id=values[0],
-                    menu_id=values[1],
-                    parameter_name=values[2],
-                    order=values[3],
-                    conditional_name=values[4],
-                    extraction_method1=values[5],
-                    extraction_method2=values[6],
+                    ita_driver_id=values[0],
+                    menu_group_id=values[1],
+                    menu_id=values[2],
+                    parameter_name=values[3],
+                    order=values[4],
+                    conditional_name=values[5],
+                    extraction_method1=values[6],
+                    extraction_method2=values[7],
                     last_update_timestamp=datetime.datetime.now(pytz.timezone('UTC')),
                     last_update_user='administrator',
                 ).save()
