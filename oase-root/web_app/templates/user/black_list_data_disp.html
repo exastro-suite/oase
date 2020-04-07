@@ -1,0 +1,50 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+
+<table class="oase-filter oase-sort" id="black_list">
+  <thead class="user-data-head">
+    <tr>
+      <th class="add-type sort filter" filter-type="select" filter-label="add-type">
+        <div class="cell-inner">{% get_message 'MOSJA34012' request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA34013' request.user.get_lang_mode showMsgId=False %}">
+          <em class="owf owf-question"></em></span></div>
+      </th>
+      <th class="address sort filter" filter-type="common" filter-label="address"><div class="cell-inner">{% get_message 'MOSJA00027' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="add-modified sort filter" filter-type="date" filter-label="add-modified"><div class="cell-inner">{% get_message 'MOSJA00029' request.user.get_lang_mode showMsgId=False %}</div></th>
+    </tr>
+  </thead>
+  <tbody id="black_list_data">
+    {% for black in black_list %}
+    <tr id="{{black.black_list_id}}">
+      <td class="add-type">
+        <div class="cell-inner">
+          {% if black.manual_reg_flag %}
+            <div class="add-type-text manual"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA34014' request.user.get_lang_mode showMsgId=False %}</span></div>
+          {% elif not black.manual_reg_flag %}
+            <div class="add-type-text auto"><em class="owf owf-update"></em><span>{% get_message 'MOSJA34015' request.user.get_lang_mode showMsgId=False %}</span></div>
+          {% endif %}
+        </div>
+      </td>
+      <td class="address"><div class="cell-inner">{{ black.ipaddr }}</div></td>
+      <td class="last-update-user"><div class="cell-inner">{{black.last_update_user}}</div></td>
+      <td class="add-modified"><div class="cell-inner"><time datetime="{{ black.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{black.last_update_timestamp|timezone:'Asia/Tokyo'}}</time></div></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

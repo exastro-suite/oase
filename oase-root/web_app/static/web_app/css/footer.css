@@ -1,0 +1,47 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- **
+
+    Footer
+    
+** -------------------------------------------------- */
+.ond .oase-footer {
+position: fixed;
+bottom: 0;
+z-index: 100;
+width: 100%; height: 40px;
+background-color: rgba( 255,255,255,1 );
+box-shadow: 0 0 8px rgba( 0,0,0,0.3 );
+}
+.ond .oase-footer p {
+padding: 0 16px;
+line-height: 40px;
+letter-spacing: 0.05em;
+text-align: right;
+font-size: 14px;
+color: #00B5B8;
+}
+.ond .oase-footer .exastro {
+font-weight: bold;
+/* color: #002b62; */
+}
+.ond .oase-footer em {
+font-size: 24px;
+vertical-align: middle;
+}

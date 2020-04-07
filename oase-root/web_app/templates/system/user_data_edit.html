@@ -1,0 +1,94 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+<table class="oase-filter oase-sort" id="user">
+  <thead class="user-data-head">
+    <tr>
+      <th class="error-icon-area" style="display:none;"></th>{# エラー表示用 #}
+      <th class="operation-menu sort"><div class="cell-inner">{% get_message 'MOSJA00030' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="user-name sort"><div class="cell-inner">{% get_message 'MOSJA00033' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00102' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+      <th class="login-id sort"><div class="cell-inner">{% get_message 'MOSJA00034' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00100' request.user.get_lang_mode showMsgId=False %}&#x0a;{% get_message 'MOSJA00101' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question sort"></em></span></div></th>
+      <th class="mail-addressv sort"><div class="cell-inner">{% get_message 'MOSJA00035' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00103' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+      <th class="group"><div class="cell-inner">{% get_message 'MOSJA00037' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA24023' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+      <th class="last-update-user sort"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="last-modified sort"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="row-delete"><div class="cell-inner"><em class="owf owf-cross"></em><span class="tooltip help" title="{% get_message 'MOSJA00031' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+    </tr>
+  </thead>
+  <tbody id="user_data" class="list user-data-body">
+    {% for user in user_list %}
+    <tr id="{{user.user_id}}">
+      <td class="error-icon-area" style="display:none;"></td>
+      <td class="operation-menu"><div class="cell-inner"><div class="select">
+        <select class="update" id="selModify{{user.user_id}}">
+          {% for o in opelist_mod %}
+            {% if forloop.first %}
+          <option value="{{o.v}}" selected>{{o.k}}</option>
+            {% else %}
+          <option value="{{o.v}}">{{o.k}}</option>
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div></div></td>
+      <td class="user-name input"><div class="cell-inner"><input type="text" data-type="text" id="user_name{{user.user_id}}" value="{{user.user_name}}" data-maxlength="64" class="validation-input" /></div></td>
+      <td class="login-id input"><div class="cell-inner"><input type="text" data-type="loginID" id="login_id{{user.user_id}}" value="{{user.login_id}}" data-maxlength="32" class="validation-input" /></div></td>
+      <td class="mail-address input"><div class="cell-inner"><input type="text" data-type="mail" id="mail{{user.user_id}}" value="{{user.mail}}" data-maxlength="256" class="validation-input" /></div></td>
+      <td class="group edit">
+        <div class="cell-inner" id="cell_inner{{user.user_id}}">
+          <input type="hidden" id="initial_value{{user.user_id}}" value='{{user.group_id|join:","}}' data-user-group='{{user.group_id|join:","}}' />
+          <input type="hidden" id="hid{{user.user_id}}" value='{{user.group_id|join:","}}' data-user-group='{{user.group_id|join:","}}' />
+          <button class="oase-mini-button tooltip" title={% get_message 'MOSJA24025' request.user.get_lang_mode showMsgId=False %} onClick="setUserGroup('hid{{user.user_id}}', '{{user.user_name|escapejs}}');"><em class="owf owf-gear"></em></button>
+          <ul id="group_name_join{{user.user_id}}">
+            <li>{{user.group_name|join:"</li><li>"}}</li>
+          </ul>
+        </div>
+      </td>
+      <td class="last-update-user"><div class="cell-inner">{{user.upd_user_name}}</div></td>
+      <td class="last-modified"><div class="cell-inner"><time datetime="{{ user.updated|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{user.updated|timezone:'Asia/Tokyo'}}</time></div></td>
+      <td class="row-delete blank"><div class="cell-inner"></div></td>
+    </tr>
+    {% endfor %}
+    <tr id="account_dummy" class="filter-hide-list" style="display:none;">
+      <td class="error-icon-area" style="display:none;"></td>
+      <td class="operation-menu blank"><div class="cell-inner""><select id="" style="display:none;" selected><option value="1"></option></select></div></td>
+      <td class="user-name input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="64" class="validation-input"></div></td>
+      <td class="login-id input"><div class="cell-inner"><input type="text" data-type="id" value="" data-maxlength="32" class="validation-input"></div></td>
+      <td class="mail-address input"><div class="cell-inner"><input type="text" data-type="mail" value="" data-maxlength="256" class="validation-input"></div></td>
+      <td class="group edit">
+        <div class="cell-inner" id="">
+          <input type="hidden" id="" value="" data-user-group="" />
+          <input type="hidden" id="" value="" data-user-group="" />
+          <button class="oase-mini-button tooltip" title={% get_message 'MOSJA24025' request.user.get_lang_mode showMsgId=False %} onClick="modalOpen('#modal-group-edit')"><em class="owf owf-gear"></em></button>
+          <p id="">{% get_message 'MOSJA24029' request.user.get_lang_mode showMsgId=False %}</p>
+          <ul id=""></ul>
+        </div>
+      </td>
+      <td class="last-update-user blank"><div class="cell-inner"></div></td>
+      <td class="last-modified blank"><div class="cell-inner"><time datetime=""></time></div></td>
+      <td class="row-delete"><div class="cell-inner"><button class="oase-mini-button" onClick="tableRowRemove( this );"><em class="owf owf-cross"></em></button></div></td>
+    </tr>
+  </tbody>
+</table>
+
+{% if not user_list|length %}
+<script type="text/javascript">
+<!--
+addList('user_data','account_dummy');
+-->
+</script>
+{% endif %}

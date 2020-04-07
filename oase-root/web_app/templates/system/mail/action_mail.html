@@ -1,0 +1,679 @@
+{% load tz %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+// プロトコルの文字をIdに変換する 
+////////////////////////////////////////////////
+function getProtocolId(protocol) {
+
+    var result = "";
+    if(protocol == "smtp"){
+        result = "1";
+    }else if(protocol == "smtp_auth"){
+        result = "2";
+    }
+    return result;
+}
+
+
+////////////////////////////////////////////////
+//  mailの詳細画面にデータをセット
+////////////////////////////////////////////////
+function setInfoInMailDetailView(idName) {
+
+    var trId = '#' + idName;
+    var name = $(trId).data('name');
+    var protocol = $(trId).data('protocol');
+    var server = $(trId).data('server');
+    var port = $(trId).data('port');
+    var username = $(trId).data('username');
+    var password = $(trId).data('password');
+    var updateuser = $(trId).data('updateuser');
+    var timestamp = $(trId).data('timestamp');
+
+    $('#viewMailDetail').attr('data-recordid', idName);
+    $('#viewMailName').text(name);
+    $('#viewMailProtocol').text(protocol);
+    $('#viewMailServer').text(server);
+    $('#viewMailPort').text(port);
+    $('#viewMailUsername').text(username);
+    $('#viewMailUpdateuser').text(updateuser);
+    $('#viewMailTimestamp').text(timestamp);
+
+}
+
+
+////////////////////////////////////////////////
+//  mailの編集画面にデータをセット
+////////////////////////////////////////////////
+function setInfoInMailEditView() {
+
+    beforeunloadThroughFlag = false;
+
+    var trId = '#' + $('#viewMailDetail').attr('data-recordid');
+    var name = $(trId).data('name');
+    var protocol = $(trId).data('protocol');
+    var server = $(trId).data('server');
+    var port = $(trId).data('port');
+    var username = $(trId).data('username');
+    var password = $(trId).data('password');
+    var updateuser = $(trId).data('updateuser');
+    var timestamp = $(trId).data('timestamp');
+
+    $('#editMailName').val(name);
+    $('#editMailProtocol').val(protocol);
+    $('#editMailServer').val(server);
+    $('#editMailPort').val(port);
+    $('#editMailUsername').val(username);
+    $('#editMailPass1').val(password);
+    $('#editMailUpdateuser').text(updateuser);
+    $('#editMailTimestamp').text(timestamp);
+
+}
+
+////////////////////////////////////////////////
+//  dataを取得して連想配列にセット 
+////////////////////////////////////////////////
+function setMailInfo(drvInfo, idInfo) {
+
+    // 編集画面から値取得
+    var mailName = $(idInfo['mail_disp_name']).val();
+    var protocol = $(idInfo['protocol']).val();
+    var server = $(idInfo['smtp_server']).val();
+    var port = $(idInfo['port']).val();
+    var username = $(idInfo['user']).val();
+    var password = $(idInfo['password']).val();
+
+    drvInfo["driver_id"] = "2";
+    drvInfo["mail_disp_name"] = mailName;
+    drvInfo["protocol"] = getProtocolId(protocol);
+    drvInfo["smtp_server"] = server;
+    drvInfo["port"] = String(port);
+    drvInfo["user"] = username;
+    drvInfo["password"] = password;
+}
+////////////////////////////////////////////////
+//  maildriverを追加する
+////////////////////////////////////////////////
+function addMailDriver() {
+
+    var btnId ="#btnAddMail";
+    $(btnId).prop("disabled", true);
+
+    var confirmMsg = getMessage("MOSJA27001", false);
+    // 確認メッセージを表示
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    var idInfo = {
+            'mail_disp_name':'#addMailName',
+            'protocol':'#addMailProtocol',
+            'smtp_server':'#addMailServer',
+            'port':'#addMailPort',
+            'user':'#addMailUsername',
+            'password':'#addMailPass1',
+    }
+    var ope ="1";
+    var drvInfo = {};
+
+    setMailInfo(drvInfo, idInfo);
+    drvInfo["ope"] = ope;
+    drvInfo["mail_driver_id"] = "0";
+
+    var objTBody = document.getElementById("tbodyActionInfo{{ driver_id }}");
+    error = validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo);
+
+    // エラー表示
+    if(error['errorFlag']){
+        clearErrorMsg();
+        renderMailErrorMsg(error['errorMsg'], idInfo, 'add');
+        return;
+    }
+    post(drvInfo, btnId, renderMailErrorMsg, 'add');
+}
+
+
+////////////////////////////////////////////////
+//  詳細画面に表示されたitaを編集する
+////////////////////////////////////////////////
+function updateMailDriver() {
+    
+    var btnId ="#btnUpdMail";
+    $(btnId).prop("disabled", true);
+
+    var confirmMsg = getMessage("MOSJA27001", false);
+
+    // 確認メッセージを表示
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    var idInfo = {
+            'mail_disp_name':'#editMailName',
+            'protocol':'#editMailProtocol',
+            'smtp_server':'#editMailServer',
+            'port':'#editMailPort',
+            'user':'#editMailUsername',
+            'password':'#editMailPass1',
+    }
+    var drvInfo = {};
+    var ope = "2";
+
+    setMailInfo(drvInfo, idInfo);
+    drvInfo["ope"] = ope;
+    drvInfo["mail_driver_id"] = $('#viewMailDetail').attr('data-recordid').replace("maildriver-", "");;
+
+    // バリデーションチェック
+    var objTBody = document.getElementById("tbodyActionInfo{{ driver_id }}");
+    error = validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo);
+
+    // エラーメッセージ表示
+    if(error['errorFlag']){
+        clearErrorMsg();
+        renderMailErrorMsg(error['errorMsg'], idInfo, 'edit');
+        return;
+    }
+
+    post(drvInfo, btnId, renderMailErrorMsg, 'edit');
+
+}
+
+
+////////////////////////////////////////////////
+// mail driverを削除する
+////////////////////////////////////////////////
+function deleteMailDriver() {
+
+    var btnId ="#btnDelMail";
+    $(btnId).prop("disabled", true);
+
+    var confirmMsg = getMessage("MOSJA27026", false);
+
+    // 削除レコードの存在確認後に確認メッセージを表示する
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    var strId = $('#viewMailDetail').attr('data-recordid');
+    var mailDrvId = strId.replace("maildriver-", "");
+    var drvInfo = {
+            "ope" : "3",
+            "driver_id" : "2",
+            "mail_driver_id" : mailDrvId,
+        };
+    post(drvInfo, btnId, renderNoError, '');
+
+}
+
+////////////////////////////////////////////////
+// 各レコードのエラーメッセージを調べて
+// エラーメッセージがあったらセルの下に表示する 
+////////////////////////////////////////////////
+var renderMailErrorMsg = function(errorMsg, idInfo, mode)
+{
+    alert(getMessage("MOSJA23014", false));
+
+    if((typeof idInfo == 'undefined') || (idInfo == null)) {
+        idInfo = {
+            'mail_disp_name' : '#' + mode + 'MailName',
+            'protocol'       : '#' + mode + 'MailProtocol',
+            'smtp_server'    : '#' + mode + 'MailServer',
+            'port'           : '#' + mode + 'MailPort',
+            'user'           : '#' + mode + 'MailUsername',
+            'password'       : '#' + mode + 'MailPass1',
+        }
+    }
+
+    clearErrorMsg();// 前回エラーを削除
+    renderErrorMsg(idInfo['mail_disp_name'], errorMsg['mail_disp_name']);
+    renderErrorMsg(idInfo['smtp_server'], errorMsg['smtp_server']);
+    renderErrorMsg(idInfo['port'], errorMsg['port']);
+    renderErrorMsg(idInfo['name'], errorMsg['name']);
+    renderErrorMsg(idInfo['password'], errorMsg['password']);
+}
+
+var regexNum = new RegExp(/^[0-9]+$/);
+function validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo) {
+
+    var strID = "";
+    var mailName = drvInfo["mail_disp_name"];
+    var protocol = drvInfo["protocol"];
+    var host = drvInfo["smtp_server"];
+    var port = drvInfo["port"];
+    var username = drvInfo["user"];
+    var password = drvInfo["password"];
+    var errorFlag = false;
+    var errorMsg = {};
+    var chk_mailName = {};
+
+    // 編集画面に表示されているメールドライバの名称をすべて保持
+    var selector = "";
+    if(objTBody != null) {
+        for(var i = 0; i < objTBody.children.length; i++){
+            strID = objTBody.children[i].id.replace("maildriver-","");
+            selector = "#" + objTBody.children[i].id;
+            if(!selector) {
+                continue;
+            }
+            chk_mailName[strID] = $(selector).data('name');
+        }
+    }
+
+    // "更新"なら上書き、"追加"ならリストに追加される
+    strID = drvInfo["mail_driver_id"];
+    chk_mailName[strID] = mailName;
+
+    // 検査開始
+    errorMsg['mail_disp_name'] = "";
+    errorMsg['smtp_server'] = "";
+    errorMsg['port'] = "";
+    errorMsg['username'] = "";
+    errorMsg['password'] = "";
+
+    if(!regexNum.test(port) || 0 > parseInt(port) || parseInt(port) > 65535) {
+        errorMsg["port"] += getMessage("MOSJA27206", false) + "\n";
+        errorFlag = true;
+    }
+
+    // drivernameの重複チェック
+    var match_line = Object.keys(chk_mailName).filter(function(key) {
+        if(strID != key && chk_mailName[key] == mailName){
+            return chk_mailName[key] === mailName;
+        }
+    });
+
+    if(match_line.length > 0){
+        errorMsg["mail_disp_name"] += getMessage("MOSJA27209", false) + "\n";
+        errorFlag = true;
+    }
+
+    result = {
+        'errorFlag': errorFlag,
+        'errorMsg' : errorMsg,
+    }
+
+    return result;
+}
+
+////////////////////////////////////////////////
+//  メールテンプレート一覧画面へ遷移する
+////////////////////////////////////////////////
+function moveMailTemplate() {
+
+    $("#btnMailTemplate").prop("disabled", true);
+
+    window.location.href = 'mail';
+}
+-->
+</script>
+{% endblock %}
+
+
+<!-- Mail Driver 詳細 -->
+<div id="modal-mail" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-details"></em><span>{{some_driver.name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="modalClose('#modal-mail');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody id="viewMailDetail" data-recordid=''>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewMailName" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewMailProtocol" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27025' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewMailServer" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewMailPort" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewMailUsername" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewMailUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewMailTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="modalClose('#modal-mail');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            {% if editable_user %}
+            <li><button class="oase-button" onclick="setInfoInMailEditView(); modalChange('#modal-mail', '#modal-mail-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
+            </button></li>
+            <li><button class="oase-button" id="btnDelMail" onclick="deleteMailDriver();"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            {% endif %}
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- Mail Driver 追加 -->
+<div id="modal-{{some_driver.name|slugify}}-add" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-plus"></em><span>{{some_driver.name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="actionModalClose('#modal-{{some_driver.name|slugify}}-add');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addMailName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"><div class="select"><select id="addMailProtocol"><option>smtp</option><option>smtp_auth</option></select></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27025' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00108' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addMailServer" data-maxlength="128" data-type="text" type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00109' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th><td>
+                      <div class="cell-inner"><input id="addMailPort" type="number" class="validation-input" value="" min="0" max="65535" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addMailUsername" data-maxlength="64" data-type="text" type="text" class="validation-input" value=""></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27023' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="addMailPass1" data-maxlength="64" type="password" class="validation-input" value=""><div class="password-show"></div></div></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="actionModalClose('#modal-{{some_driver.name|slugify}}-add', '#btnAddMail');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="actionModalChange('#modal-{{some_driver.name|slugify}}-add', '#modal-add-driver', '#btnAddMail');"><em class="owf owf-prev"></em><span>{% get_message 'MOSJA27024' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" id="btnAddMail" onclick="addMailDriver();"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<!-- Mail Driver 編集 -->
+<div id="modal-mail-edit" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-edit"></em><span>{{some_driver.name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="actionModalClose('#modal-mail-edit');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editMailName" data-maxlength="64" data-type="text" class="validation-input" type="text" title="64文字以内" value="action43" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"><div class="select"><select id="editMailProtocol"><option>smtp</option><option>smtp_auth</option></select></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27025' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00108' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editMailServer" data-maxlength="128" data-type="text" type="text" class="validation-input" value="nec-it-automation" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00109' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editMailPort" type="number" class="validation-input" min="0" max="65535" value="443" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editMailUsername" data-maxlength="64" data-type="text" type="text" class="validation-input" value="administrator"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA27023' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="editMailPass1" data-maxlength="64" type="password" class="validation-input" value=""><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="editMailUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="editMailTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="actionModalClose('#modal-mail-edit', '#btnUpdMail');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" id="btnUpdMail" onclick="updateMailDriver();"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
+<section id="{{some_driver.name|slugify}}">
+<div class="oase-section-title">
+    <div class="oase-section-title-inner">
+
+      <div class="oase-section-title-table">
+        <h2>{{some_driver.name}}</h2>
+      </div>
+      
+      <div class="oase-section-title-menu">
+        <ul class="oase-button-group">
+          <li><button class="oase-button" id="btnMailTemplate" onclick="moveMailTemplate()"><em class="owf owf-mail"></em><span>{% get_message 'MOSJA00201' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+        </ul>
+      </div>
+
+    </div>
+</div>
+
+{% if info_list|length %}
+<div class="oase-table">
+  <div class="oase-table-load loading">
+    <div class="oase-table-loader-inner">
+      <em class="owf owf-update"></em>
+    </div>
+  </div>
+
+  <div class="oase-table-inner">
+    <table class="oase-filter oase-sort">
+      
+      <thead>
+      <tr>
+      <th class="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="action-name sort filter" filter-type="common" filter-label="action-name"><div class="cell-inner">{% get_message 'MOSJA27018' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="protocol sort filter" filter-type="common" filter-label="protocol"><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="smtp sort filter" filter-type="common" filter-label="smtp"><div class="cell-inner">{% get_message 'MOSJA27025' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="port sort filter" filter-type="common" filter-label="port"><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="user-name sort filter" filter-type="common" filter-label="user-name"><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="execution-date sort filter" filter-type="date" filter-label="execution-date"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+      </tr>
+      </thead>
+
+      <tbody id="tbodyActionInfo{{ driver_id }}">
+        {% for i in info_list %}
+        <tr id="maildriver-{{ i.mail_driver_id }}" data-name="{{ i.mail_disp_name }}" data-protocol="{{ i.protocol_str }}" data-server="{{ i.smtp_server }}" data-port="{{ i.port }}" data-username="{{ i.user }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password|default:"" }}">
+          <td class="operation-menu">
+            <div class="cell-inner">
+              <ul>
+                  <li><button class="tooltip detail oase-mini-button" onClick="setInfoInMailDetailView('maildriver-{{ i.mail_driver_id }}'); modalOpen('#modal-mail');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+          </td>
+          
+          <td class="action-name">
+            <div class="cell-inner">{{ i.mail_disp_name }}</div>
+          </td>
+          
+          <td class="protocol">
+            <div class="cell-inner">{{ i.protocol_str }}</div>
+          </td>
+
+          <td class="smtp">
+            <div class="cell-inner">{{ i.smtp_server }}</div>
+          </td>
+          
+          <td class="port">
+            <div class="cell-inner">{{ i.port }}</div>
+          </td>
+          
+          <td class="user-name">
+            <div class="cell-inner">{{ i.user }}</div>
+          </td>
+          
+          <td class="last-update-user">
+            <div class="cell-inner">{{ i.last_update_user }}</div>
+          </td>
+          
+          <td class="execution-date">
+            <div class="cell-inner">
+              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}</time>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+    
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="oase-table-footer">
+    <ul class="button-group">
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd class="rowCount">4</dd>
+        </dl>
+      </li>
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd>
+            <select class="rowShowNum">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </dd>
+        </dl>
+      </li>
+
+      <li>
+        <button class="pagingPrev button" disabled=""><em class="owf owf-minus"></em></button>
+        <input class="pagingNow" type="text"> / <span class="pagingMax">1</span>
+        <button class="pagingNext button" disabled=""><em class="owf owf-plus"></em></button>
+      </li>
+
+      <li>
+        <button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+      <li>
+        <button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+    </ul>
+  </div>
+
+</div>
+
+{% else %}
+<div class="oase-none">
+<p>{% autoescape off %}{% get_message 'MOSJA27014' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+</div>
+{% endif %}
+
+</section>
+
+
+
