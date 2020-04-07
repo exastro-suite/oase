@@ -1,0 +1,88 @@
+Copyright 2019 NEC Corporation
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+
+The following components are included in this product:
+
+
+configparser
+https://docs.python.org/ja/3/library/configparser.html
+Copyright Jason R. Coombs
+Licensed under the MIT license
+see licenses/configparser.txt for license details
+
+fasteners
+https://pypi.org/project/fasteners/
+Licensed under the Apache License 2.0
+see licenses/fasteners.txt for license details
+
+ldap3
+https://pypi.org/project/ldap3/
+Copyright 2013 - 2018 Giovanni Cannata
+Licensed under the LGPL v3 license
+see licenses/ldap3.txt for license details
+
+openpyxl
+https://openpyxl.readthedocs.io/en/stable/#
+Copyright (c) 2010 openpyxl
+Licensed under the MIT/Expat
+see licenses/openpyxl.txt for license details
+
+pytz
+https://pypi.org/project/pytz/
+Copyright (c) 2003-2019 Stuart Bishop <stuart@stuartbishop.net>
+Licensed under the MIT license
+see licenses/pytz.txt for license details
+
+pycrypto
+https://pypi.org/project/pycrypto/
+Licensed under the Public Domain©
+see licenses/pycrypto.txt for license details
+
+retry
+https://pypi.org/project/retry/
+Copyright 2014 invl
+Licensed under the Apache License 2.0
+see licenses/retry.txt for license details
+
+xlrd
+https://xlrd.readthedocs.io/en/latest/index.html
+Portions copyright (c) 2005-2009, Stephen John Machin, Lingfo Pty Ltd All rights reserved
+Licensed under the three-clause BSD license
+see licenses/xlrd.txt for license details
+
+Django
+https://www.djangoproject.com/
+Copyright (c) Django Software Foundation and individual contributors
+Licensed under the three-clause BSD license
+see licenses/Django.txt for license details
+
+djangorestframework
+https://www.django-rest-framework.org/
+Copyright (c) 2011-present, Encode OSS Ltd
+Licensed under the ENCODE OSS ltd
+see licenses/djangorestframework.txt for license details
+
+jQuery
+https://jquery.com/
+Copyright JS Foundation and other contributors, https://js.foundation/
+Licensed under the MIT License
+see licenses/jQuery.txt for license details
+
+ress
+https://ress-css.surge.sh/
+Copyright (c) 2016 Filipe Linhares
+Licensed under the MIT License
+see licenses/ress.txt for license details
+
