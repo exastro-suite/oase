@@ -702,6 +702,7 @@ display: none;
     text-align: center;
 }
 .ond .oase-table tbody .input .cell-inner input[type="text"],
+.ond .oase-table tbody .input .cell-inner input[type="number"],
 .ond .oase-table tbody .textarea .cell-inner textarea {
     width: 100%;
     margin: 0;
@@ -714,12 +715,26 @@ display: none;
     font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
     color: #333;
 }
-.ond .oase-table tbody .uneditable .cell-inner {
-    min-width: 152px;
-}
 .ond .oase-table tbody .input .cell-inner input[type="text"] {
     min-width: 120px;
 }
+.ond .oase-table tbody .input .cell-inner input[type="number"] {
+    text-align: right;
+}
+
+/* type="number" 矢印ボタン非表示 */
+.ond .oase-table tbody .input .cell-inner input[type="number"] {
+    -moz-appearance:textfield;
+}
+.ond .oase-table tbody .input .cell-inner input[type="number"]::-webkit-outer-spin-button,
+.ond .oase-table tbody .input .cell-inner input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+}
+
+.ond .oase-table tbody .uneditable .cell-inner {
+    min-width: 152px;
+}
+
 .ond .oase-table tbody .textarea .cell-inner textarea {
     width: 400px;
     min-height: 7em;

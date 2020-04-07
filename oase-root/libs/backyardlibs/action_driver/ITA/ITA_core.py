@@ -808,7 +808,7 @@ class ITA1Core(DriverCore):
                     return ret
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
-        return True
+        return 0
 
 
     def insert_operation(self, configs):
@@ -870,36 +870,33 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
 
-    def insert_c_parameter_sheet(self, host_name, operation_id, operation_name, exec_schedule_date, parameter_list):
+    def insert_c_parameter_sheet(self, host_name, operation_id, operation_name, exec_schedule_date, parameter_list, menu_id='0000000001'):
         """
         [概要]
         パラメーターシート登録メソッド
         """
         logger.logic_log('LOSI00001', 'trace_id: %s' % self.trace_id)
-        # TODO 紐づけテーブルができたらそれを参照するよう修正する
-        self.restobj.menu_id = '0000000001'
-        row_data_000001 = {}
-        row_data_000001[Cstobj.COL_FUNCTION_NAME] = '登録'
-        row_data_000001[Cstobj.COL_HOSTNAME] = host_name
-        row_data_000001[Cstobj.COL_OPERATION_ID] = operation_id
-        row_data_000001[Cstobj.COL_OPERATION_NAME_PARAM] = operation_name
-        row_data_000001[Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME] = exec_schedule_date
-        # TODO 将来的にはfor文で回して設定する予定
-        row_data_000001[Cstobj.COL_PARAMETER] = parameter_list[0]
+        self.restobj.menu_id = menu_id
+        row_data_000001 = {
+            Cstobj.COL_FUNCTION_NAME: '登録',
+            Cstobj.COL_HOSTNAME: host_name,
+            Cstobj.COL_OPERATION_ID: operation_id,
+            Cstobj.COL_OPERATION_NAME_PARAM: operation_name,
+            Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME: exec_schedule_date,
+        }
+        for i, p in enumerate(parameter_list):
+            row_data_000001[Cstobj.COL_PARAMETER + i] = p
 
-        ary_result = {}
-        ret = self.restobj.rest_insert(row_data_000001, ary_result)
+        result = {}
+        ret = self.restobj.rest_insert(row_data_000001, result)
         if not ret:
             target_table = 'C_PARAMETER_SHEET'
-            logger.system_log('LOSE01021', self.trace_id,
-                              target_table, self.response_id, self.execution_order)
-            logger.system_log('LOSE01000', self.trace_id,
-                              target_table, 'Insert', ary_result['status'])
+            logger.system_log('LOSE01021', self.trace_id, target_table, self.response_id, self.execution_order)
+            logger.system_log('LOSE01000', self.trace_id, target_table, 'Insert', result['status'])
             ActionDriverCommonModules.SaveActionLog(
                 self.response_id, self.execution_order, self.trace_id, 'MOSJA01066')
             return Cstobj.RET_REST_ERROR
-        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' %
-                         (self.trace_id, 'True'))
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
 
     def _insert_b_ansible_pho_link(self, target_table, insert_row_data):
@@ -978,3 +975,38 @@ class ITA1Core(DriverCore):
             logger.system_log('LOSE01025', self.trace_id, self.restobj.menu_id, 'Filter', ary_result['status'])
             ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01065')
             return None
+
+    def select_e_movent_list(self, config, movement_ids, orch_id, menu_id, target_table, target_col, var_count):
+        """
+        [概要]
+          ムーブメント一覧ビュー検索メゾット
+        """
+
+        logger.logic_log('LOSI00001', 'trace_id: %s, movement_ids: %s, menu_id: %s, target_table: %s, target_col: %s' % (self.trace_id, movement_ids, menu_id, target_table, target_col))
+
+        config['menuID'] = menu_id
+        self.restobj.rest_set_config(config)
+
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            Cstobj.EAP_PATTERN_ID: {'LIST': movement_ids}
+        }
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter,ary_result)
+        if ret:
+            num = 0
+            row_count = self.restobj.rest_get_row_count(ary_result)
+            if row_count > 0:
+                row_data = self.restobj.rest_get_row_data(ary_result)
+                for r in row_data:
+                    num += int(r[target_col])
+            var_count[orch_id] += num
+        else:
+            logger.system_log('LOSE01000', self.trace_id, target_table, 'Filter', ary_result['status'])
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id, self.execution_order, self.trace_id, 'MOSJA01021')
+            return Cstobj.RET_REST_ERROR
+
+        return 0
+
