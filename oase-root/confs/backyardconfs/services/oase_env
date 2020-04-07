@@ -1,0 +1,17 @@
+# Enter the root directory path for OASE.
+# (The root directory name must be "oase-root".)
+# (link file /etc/sysconfig/oase_env)
+# e.g) OASE_ROOT_DIR=/nec/ita-oase
+OASE_ROOT_DIR=/home/centos/OASE/oase-root
+
+# Enter the python module path
+# e.g) PYTHON_MODULE=/usr/bin/python3
+PYTHON_MODULE=/usr/bin/python3
+PYTHONPATH=OASE_ROOT_DIR
+
+# DM settings
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk
+PATH=/opt/apache-maven/bin:JAVA_HOME/bin:/usr/bin
+CLASSPATH=JAVA_HOME/jre/lib:JAVA_HOME/lib:JAVA_HOME/lib/tools.jar
+M2_HOME=/opt/apache-maven-3.6.0
+JBOSS_HOME=/home/mas/JBoss/EAP-7.1.0

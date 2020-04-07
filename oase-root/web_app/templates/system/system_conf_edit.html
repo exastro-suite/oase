@@ -1,0 +1,853 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+
+
+{% block myheader %}
+
+<script type="text/javascript">
+<!--
+
+////////////////////////////////////////////////
+//  更新制御
+////////////////////////////////////////////////
+// ログ保存期間設定
+function submitSystemLog(){
+
+    $("#system").prop("disabled", true);
+    if(!confirm(getMessage("MOSJA22000", false))) {
+        $("#system").prop("disabled", false);
+        return;
+    }
+
+    var a_dicSystemList = new Array();
+
+    var strItemId  = "";
+    var strConName = "";
+    var strValue   = "";
+
+    {% for system in system_log_list %}
+        strItemId  = {{system.item_id}};
+        strConName = "{{system.config_name}}";
+        strValue   = document.getElementsByName("{{system.config_id}}");
+
+        dicSystemInfo                     = {};
+        dicSystemInfo["item_id"]          = strItemId;
+        dicSystemInfo["config_name"]      = strConName;
+        dicSystemInfo["category"]         = "{{system.category}}";
+        dicSystemInfo["config_id"]        = "{{system.config_id}}";
+        dicSystemInfo["value"]            = strValue[0].value;
+        dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+        a_dicSystemList.push(dicSystemInfo);
+
+    {% endfor %}
+
+    if ( a_dicSystemList.length <= 0 ){
+        alert(getMessage("MOSJA22013", true));
+        $("#system").prop("disabled", false);
+        return;
+    }
+
+    var jstr = JSON.stringify({"json_str":a_dicSystemList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    submitAction("#system");
+}
+
+// セッション設定
+function submitSystemSession(){
+
+    $("#session").prop("disabled", true);
+    if(!confirm(getMessage("MOSJA22000", false))) {
+        $("#session").prop("disabled", false);
+        return;
+    }
+
+    var a_dicSystemList = new Array();
+
+    var strItemId  = "";
+    var strConName = "";
+    var strValue   = "";
+
+    {% for system in system_session_list %}
+
+        strItemId  = {{system.item_id}};
+        strConName = "{{system.config_name}}";
+        strValue   = document.getElementsByName("{{system.config_id}}");
+
+        dicSystemInfo                     = {};
+        dicSystemInfo["item_id"]          = strItemId;
+        dicSystemInfo["config_name"]      = strConName;
+        dicSystemInfo["category"]         = "{{system.category}}";
+        dicSystemInfo["config_id"]        = "{{system.config_id}}";
+        dicSystemInfo["value"]            = strValue[0].value;
+        dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+        a_dicSystemList.push(dicSystemInfo);
+
+    {% endfor %}
+
+    if ( a_dicSystemList.length <= 0 ){
+        alert(getMessage("MOSJA22013", true));
+        $("#session").prop("disabled", false);
+        return;
+    }
+
+    var jstr = JSON.stringify({"json_str":a_dicSystemList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    submitAction("#session");
+}
+
+// パスワード設定
+function submitSystemPassword(){
+
+    $("#password").prop("disabled", true);
+    if(!confirm(getMessage("MOSJA22000", false))) {
+        $("#password").prop("disabled", false);
+        return;
+    }
+
+    var a_dicSystemList = new Array();
+
+    var strItemId  = "";
+    var strConName = "";
+    var strValue   = "";
+    var login_id_flag = false; //ログインID自由記述フラグ
+
+    {% for system in system_password_list %}
+
+        strItemId  = {{system.item_id}};
+        strConName = "{{system.config_name}}";
+        strValue   = document.getElementsByName("{{system.config_id}}");
+        
+        // OFFの場合
+        if ( strValue[0].disabled) {
+            // valueに0（無効）を設定
+            strValue[0].value = 0;
+        }
+
+        {% if system.config_id == "NOTIFICATION_DESTINATION_TYPE" %}
+            selected_value = document.getElementById("nd").value;
+            if (!(selected_value == 0 || selected_value == 1 || selected_value == 2)) {
+                alert(getMessage("MOSJA22031", true));
+                $("#password").prop("disabled", false);
+                return;
+            }
+            if (selected_value == 2){
+                login_id_flag = true;
+            }
+        {% elif system.config_id == "NOTIFICATION_DESTINATION" %}
+            if (!login_id_flag){
+                // メール通知先記述欄を空にする
+                strValue[0].value = '';
+            }
+        {% elif system.config_id == "IPADDR_LOGIN_RETRY_MAX" %}
+            {% if disabled_flag %}
+                strValue[0].value = '0';
+            {% endif %}
+        {% endif %}
+
+        dicSystemInfo                     = {};
+        dicSystemInfo["item_id"]          = strItemId;
+        dicSystemInfo["config_name"]      = strConName;
+        dicSystemInfo["category"]         = "{{system.category}}";
+        dicSystemInfo["config_id"]        = "{{system.config_id}}";
+        dicSystemInfo["value"]            = strValue[0].value;
+        dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+        a_dicSystemList.push(dicSystemInfo);
+
+    {% endfor %}
+
+    if ( a_dicSystemList.length <= 0 ){
+        alert(getMessage("MOSJA22013", true));
+        $("#password").prop("disabled", false);
+        return;
+    }
+
+    var jstr = JSON.stringify({"json_str":a_dicSystemList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    submitAction("#password");
+}
+
+
+////////////////////////////////////////////////
+// AD連携設定
+////////////////////////////////////////////////
+function submitSystemActdir(){
+
+    var a_dicSystemList = new Array();
+    var a_dicTargetList = new Array();
+
+    var strItemId  = "";
+    var strConName = "";
+    var strValue   = "";
+    var checkflg   = 0;
+
+
+    {% for system in system_actdir_list %}
+
+        strItemId  = {{system.item_id}};
+        strConName = "{{system.config_name}}";
+        strValue   = document.getElementsByName("{{system.config_id}}");
+
+        {% if system.config_id == "ADCOLLABORATION" %}
+            
+            if ( parseInt(strValue[0].value) == 0 ){
+                {% if system.value == "1" %}
+                    if(!confirm(getMessage("MOSJA22026", false))) {
+                        adNgClose();
+                        return;
+                    }
+                {% else %}
+                    if(!confirm(getMessage("MOSJA22000", false))) {
+                        adNgClose();
+                        return;
+                    }
+                {% endif %}
+
+                dicSystemInfo                     = {};
+                dicSystemInfo["item_id"]          = strItemId;
+                dicSystemInfo["config_name"]      = strConName;
+                dicSystemInfo["category"]         = "{{system.category}}";
+                dicSystemInfo["config_id"]        = "{{system.config_id}}";
+                dicSystemInfo["value"]            = strValue[0].value;
+                dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+                a_dicSystemList.push(dicSystemInfo);
+                checkflg = 1;
+
+            } else {
+                {% if system.value == "0" %}
+                if(!confirm(getMessage("MOSJA22040", false))) {
+                    adNgClose();
+                    return;
+                }
+                {% else %}
+                if(!confirm(getMessage("MOSJA22000", false))) {
+                    adNgClose();
+                    return;
+                }
+                {% endif %}
+            }
+
+        {% endif %}
+        if ( checkflg != 1) {
+
+            {% if system.config_id == "ADMINISTRATOR_PW" %}
+                strValue = document.getElementById("{{system.config_id}}").value;
+
+                // password のチェックはすべてサーバ側で行う
+
+                dicSystemInfo                     = {};
+                dicSystemInfo["item_id"]          = strItemId;
+                dicSystemInfo["config_name"]      = strConName;
+                dicSystemInfo["category"]         = "{{system.category}}";
+                dicSystemInfo["config_id"]        = "{{system.config_id}}";
+                dicSystemInfo["value"]            = strValue;
+                dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+                a_dicSystemList.push(dicSystemInfo);
+
+
+            {% elif system.config_id == "TARGET_GROUP_LIST" %}
+                for ( i=0; i < strValue.length; i+=2){
+                    dicTargetInfo = {};
+
+                    key   = strValue[i].value;
+                    value = strValue[i+1].value;
+
+                    dicTargetInfo[key] = value;
+                    a_dicTargetList.push(dicTargetInfo);
+                }
+
+                dicSystemInfo                     = {};
+                dicSystemInfo["item_id"]          = strItemId;
+                dicSystemInfo["config_name"]      = strConName;
+                dicSystemInfo["category"]         = "{{system.category}}";
+                dicSystemInfo["config_id"]        = "{{system.config_id}}";
+                dicSystemInfo["value"]            = a_dicTargetList;
+                dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+                a_dicSystemList.push(dicSystemInfo);
+            {% else %}
+                dicSystemInfo                     = {};
+                dicSystemInfo["item_id"]          = strItemId;
+                dicSystemInfo["config_name"]      = strConName;
+                dicSystemInfo["category"]         = "{{system.category}}";
+                dicSystemInfo["config_id"]        = "{{system.config_id}}";
+                dicSystemInfo["value"]            = strValue[0].value;
+                dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+                a_dicSystemList.push(dicSystemInfo);
+            {% endif %}
+        }
+    {% endfor %}
+
+    if ( a_dicSystemList.length <= 0 ){
+        alert(getMessage("MOSJA22013", true));
+        adNgClose();
+        return;
+    }
+
+    var jstr = JSON.stringify({"json_str":a_dicSystemList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    submitAction("#actdir");
+}
+
+
+function submitAction(id) {
+    // バリデーションエラー初期化
+    $(".error-list").remove();
+    $("td").removeClass("error");
+
+    $.ajax({
+        type : "POST",
+        url  : "{% url 'web_app:system:system_modify' %}",
+        data : $("#formSystemData").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            if(response_json.adflg == '1') {
+                $('#ad-check p').html(getMessage("MOSJA22033", false));
+                runAD(response_json.adflg);
+            } else if(response_json.adflg == '2') {
+                $('#ad-check p').html(getMessage("MOSJA22037", false));
+                runAD(response_json.adflg);
+            } else {
+                alert(getMessage("MOSJA22018", false));
+                submitRedirect();
+            }
+        }
+        else {
+            adNgClose();
+            // 今回エラーを表記
+            msg_obj = response_json.error_msg;
+            Object.keys(msg_obj).forEach(function(key) {
+                if(key == "alertMsg" ){
+                    alert(msg_obj[key]);
+                }
+                // 対象グループリストの場合
+                if(key == "TARGET_GROUP_LIST" ){
+                    $errInput = $("*[name=" + key + "]");
+                    for ( i=0; i < $errInput.length; i++){
+                        target_obj = msg_obj[key];
+                        Object.keys(target_obj).forEach(function(key) {
+                            if ( key === i.toString()){
+                                $errInput[i].closest('td').setAttribute('class', 'error');
+                                var errorHTML  = '<input class="validation-input change-value" data-maxlength="40" type="text" name="TARGET_GROUP_LIST" value="' + $errInput[i].value + '" maxlength="40" required="" data-initial-value="" tabindex="-1">';
+                                errorHTML     += '<ul class="error-list">';
+                                errorHTML     += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA22071", false) + '<span class="tooltip help" title="' + target_obj[key] + '"><em class="owf owf-question"></em></span></li>';
+                                errorHTML     += '</ul>';
+                                $errInput[i].closest('.cell-inner').innerHTML = errorHTML;
+                                saveButtonJudgment($errInput);
+                            }
+                        });
+                    }
+                }
+                else{
+                    $errInput = $("*[name=" + key + "]");
+                    $errInput.parents('th , td').addClass('error');
+                    var errorHTML = '<ul class="error-list">';
+                    errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA22071", false) + '<span class="tooltip help" title="' + msg_obj[key] + '"><em class="owf owf-question"></em></span></li>';
+                    errorHTML += '</ul>';
+                    $errInput.closest('.cell-inner').append( errorHTML );
+                    saveButtonJudgment($errInput);
+                }
+            });
+        }
+        $(id).prop("disabled", false);
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            $(id).prop("disabled", false);
+            adNgClose();
+            beforeunloadThroughFlag = true;
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage("MOSJA22019", true) + "\n" + respdata.responseText);
+            $(id).prop("disabled", false);
+            adNgClose();
+        }
+    });
+}
+
+// AD連携実行ボタン AD連携からOASEに戻す際に使用
+function runAD(adflg) {
+    $.ajax({
+        type : "POST",
+        url  : "{% url 'web_app:system:run_ad' %}",
+        data : $("#formSystemData").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        mySleep(2).done(function() {
+            if(response_json.status != 'success') {
+                $('#ad-check .running-bar').hide();
+                if(adflg == '1') {
+                    $('#ad-check p').html(getMessage("MOSJA22038", false) + '<br>' + response_json.error_msg);
+                } else if(adflg == '2') {
+                    $('#ad-check p').html(getMessage("MOSJA22039", false) + '<br>' + response_json.error_msg);
+                }
+                $("#actdir").prop("disabled", false);
+                $('#ad-check .oase-button-group').html('<li><button class="oase-button" onClick="confirmClose(\'#ad-check\');submitRedirect()"><em class="owf owf-check"></em><span>OK</span></button></li>');
+            } else {
+                $('#ad-check p').html(getMessage("MOSJA22034", false));
+                adClose();
+            }
+        });
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            $("#system").prop("disabled", false);
+            beforeunloadThroughFlag = true;
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage("MOSJA22019", true) + "\n" + respdata.responseText);
+        }
+        adNgClose()
+    })
+}
+
+// スリープ
+function mySleep(sec){
+    var objDef = new $.Deferred;
+    setTimeout(function(){ objDef.resolve(sec); }, sec * 1000);
+    return objDef.promise();
+}
+
+// 対象グループリスト追加処理
+var groupListRow = heredocHTML( function(){/*
+  <tr>
+    <td><div class="cell-inner"><input class="validation-input" data-maxlength="40" type="text" name="TARGET_GROUP_LIST" value="" required ></div></td>
+    <td><div class="cell-inner"><input class="validation-input" data-maxlength="40" type="text" name="TARGET_GROUP_LIST" value="" required ></div></td>
+    <td class="delete"><div class="cell-inner"><button class="oase-mini-button" onClick="tableRowRemove( this );"><em class="owf owf-cross"></em></button></div></td>
+  </tr>
+*/});
+
+
+// 連携実行
+function adRunning() {
+    $("#actdir").prop("disabled", true);
+    confirmOpen('#ad-check');
+    $('#ad-check button').prop('disabled', true );
+    $('#ad-check .running-bar').show();
+    $('#ad-check p').html(getMessage("MOSJA22041", false));
+    submitSystemActdir();
+}
+
+// 連携実行完了
+function adClose(){
+    $('#ad-check .running-bar').hide();
+    $('#ad-check p').html(getMessage("MOSJA22034", false));
+    $('#ad-check button').prop('disabled', false );
+    $("#actdir").prop("disabled", true);
+    $('#ad-check .oase-button-group').html('<li><button class="oase-button" onClick="confirmClose(\'#ad-check\');submitRedirect()"><em class="owf owf-check"></em><span>OK</span></button></li>');
+}
+
+// 連携失敗
+function adNgClose(){
+    $('#ad-check .running-bar').hide();
+    $('#ad-check p').html(getMessage("MOSJA22042", false));
+    $("#actdir").prop("disabled", false);
+    $('#ad-check .oase-button-group').html('<li><button class="oase-button" onClick="confirmClose(\'#ad-check\')"><em class="owf owf-check"></em><span>OK</span></button></li>');
+}
+
+function submitRedirect(){
+    beforeunloadThroughFlag = true;
+    location.href = "/oase_web/system/system_conf";
+}
+
+
+-->
+</script>
+{% endblock %}
+
+{% block maincontent %}
+
+<!-- 自動入力機能回避用ダミーインプット -->
+<div id="dummy-login-form" style="display: none;">
+  <input type="text" name="login_id" disabled>
+  <input type="password" name="password" disabled>
+</div>
+
+
+<div class="oase-main config">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA22044' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" onclick="_cancel('{% url "web_app:system:system_conf" %}', '#btnCan', '{% get_message "MOSJA22043" request.user.get_lang_mode showMsgId=False %}')"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" onclick="pageReset();"><em class="owf owf-reset"></em><span>{% get_message 'MOSJA22067' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body">
+      <div class="oase-main-body-inner">
+
+        <div class="oase-config">
+
+          <div class="oase-config-menu">
+            <ul>
+              <li><a href="#oase-config-log">{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</a></li>
+              <li><a href="#oase-config-authentication">{% get_message 'MOSJA22046' request.user.get_lang_mode showMsgId=False %}</a></li>
+              {% if pass_flag == 0 %}
+              <li><a href="#oase-config-password">{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</a></li>
+              {% endif %}
+              <li><a href="#oase-config-active-directory">{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</a></li>
+            </ul>
+          </div><!-- /.oase-config-menu -->
+
+          <div class="oase-config-main">
+
+            <section id="oase-config-log">
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+
+              <div class="oase-config-body">
+
+                <div class="oase-config-item">
+                  <h4>{% get_message 'MOSJA22049' request.user.get_lang_mode showMsgId=False %}</h4>
+                  <table>
+                    <tbody>
+                    {% for system in system_log_list %}
+                    {% if system.category == "LOG_STORAGE_PERIOD" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00114' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="input-number"><div class="cell-inner"><label><input class="log-input validation-input" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="7" maxlength="1" required ><span>{% get_message 'MOSJA22050' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input type="range" min="1" max="7" value="{{system.value}}"></div></div></td>
+                      </tr>
+                    {% endif %}
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- /.oase-config-item -->
+
+              </div><!-- /.oase-config-body -->
+
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button reset" disabled><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button save" id="system" onClick="submitSystemLog();" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+            </section>
+
+            <section id="oase-config-authentication">
+
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA22046' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+
+              <div class="oase-config-body">
+
+                <div class="oase-config-item">
+                  <h4>{% get_message 'MOSJA22051' request.user.get_lang_mode showMsgId=False %}</h4>
+                  <table>
+                    <tbody>
+                    {% for system in system_session_list %}
+                    {% if system.category == "SESSION_TIMEOUT" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00115' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="input-number"><div class="cell-inner"><label><input class="session-input validation-input" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="60" maxlength="2" required ><span>{% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input type="range" min="1" max="60" value="{{system.value}}"></div></div></td>
+                      </tr>
+                    {% endif %}
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- /.oase-config-item -->
+                
+              </div><!-- /.oase-config-body -->
+              
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button reset" disabled><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button save" id="session" onClick="submitSystemSession();" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+
+            </section>
+
+            {% if pass_flag == 0 %}
+            <section id="oase-config-password">
+
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+
+              <div class="oase-config-body">
+
+                <div class="oase-config-item">
+                  <h4>{% get_message 'MOSJA22053' request.user.get_lang_mode showMsgId=False %}</h4>
+                  <table>
+                    <tbody>
+                    {% for system in system_password_list %}
+                    {% if system.category == "PASSWORD" %}
+                      <tr>
+                      {% if system.config_id == "Pass_Valid_Period" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00116' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="config-switch"><div class="cell-inner"><input data-switch="#password-validity-period" class="config-switch-input" type="checkbox" id="input-switch1" {% if system.value != "0" %} checked {% endif %}><label for="input-switch1" class="config-switch-label"></label></div></td>
+                        <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="password-validity-period" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="180" maxlength="3" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22054' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input id="password-validity-period-range" type="range" min="1" max="180" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
+                      {% elif system.config_id == "Pass_generate_manage" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00117' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="config-switch"><div class="cell-inner"><input data-switch="#password-generations" class="config-switch-input" type="checkbox" id="input-switch2" {% if system.value != "0" %} checked {% endif %}><label for="input-switch2" class="config-switch-label"></label></div></td>
+                        <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="password-generations" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="5" maxlength="1" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22055' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input id="password-generations-range" type="range" min="1" max="5" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
+                      {% elif system.config_id == "PASS_ERROR_THRESHOLD" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00118' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="config-switch"><div class="cell-inner"><input data-switch="#password-error-threshold" class="config-switch-input" type="checkbox" id="input-switch3" {% if system.value != "0" %} checked {% endif %}><label for="input-switch3" class="config-switch-label"></label></div></td>
+                        <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="password-error-threshold" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="10" maxlength="2" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input id="password-error-threshold-range" type="range" min="1" max="10" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
+                      {% elif system.config_id == "ACCOUNT_LOCK_PERIOD" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00119' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="config-switch"><div class="cell-inner"></div></td>
+                        <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="account-lock-duration" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="120" maxlength="3" required ><span>{% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input id="account-lock-duration-range" type="range" min="1" max="120" value="{{system.value}}"></div></div></td>
+                      {% elif system.config_id == "INITIAL_PASS_VALID_PERIOD" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00120' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="config-switch"><div class="cell-inner"><input data-switch="#one-time-password" class="config-switch-input" type="checkbox" id="input-switch4" {% if system.value != "0" %} checked {% endif %}><label for="input-switch4" class="config-switch-label"></label></div></td>
+                        <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="one-time-password" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="72" maxlength="2" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22057' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input id="one-time-password-range" type="range" min="1" max="72" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
+                      {% elif system.config_id == "ACCOUNT_LOCK_MAX_TIMES" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00121' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="config-switch"><div class="cell-inner"><input data-switch="#account-lock-limit" class="config-switch-input" type="checkbox" id="input-switch5" {% if system.value != "0" %} checked {% endif %}><label for="input-switch5" class="config-switch-label"></label></div></td>
+                        <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="account-lock-limit" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="10" maxlength="2" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input id="account-lock-limit-range" type="range" min="1" max="10" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
+                      {% elif system.config_id == "IPADDR_LOGIN_RETRY_MAX" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00122' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        {% if not disabled_flag %}
+                        <td class="config-switch"><div class="cell-inner"><input data-switch="#login-attempt-limit" class="config-switch-input" type="checkbox" id="input-switch6" {% if system.value != "0" and not disabled_flag %} checked {% endif %} {% if disabled_flag %} disabled {% endif %}><label for="input-switch6" class="config-switch-label"></label></div></td>
+                        <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="login-attempt-limit" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="1000" maxlength="4" {% if system.value == "0" or disabled_flag %} disabled {% endif %} required ><span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input id="login-attempt-limit-range" type="range" min="1" max="1000" data-step="10" value="{{system.value}}" {% if system.value == "0" or disabled_flag %} disabled {% endif %}></div></div></td>
+                        {% else %}
+                        <td class="config-switch"><div class="cell-inner"></div></td>
+                        <td class="input-number"><div class="cell-inner" name="{{system.config_id}}" value="">{% get_message 'MOSJA22072' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range"><div class="cell-inner"></div></td>.
+                        {% endif %}
+                      {% elif system.config_id == "NOTIFICATION_DESTINATION_TYPE" %}
+                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00123' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td colspan="3"><div class="cell-inner"><div class="select">
+                          <select id="nd" name="{{system.config_id}}" value="{{system.value}}" onclick="controlMailForm()" data-value="{{system.value}}">
+                            <option value="0"{% if system.value == "0" %} selected {% endif %}>{% get_message 'MOSJA22058' request.user.get_lang_mode showMsgId=False %}</option>
+                            <option value="1"{% if system.value == "1" %} selected {% endif %}>{% get_message 'MOSJA22059' request.user.get_lang_mode showMsgId=False %}</option>
+                            <option value="2"{% if system.value == "2" %} selected {% endif %}>{% get_message 'MOSJA22060' request.user.get_lang_mode showMsgId=False %}</option>
+                          </select>
+                        </div></div></td>
+                      {% elif system.config_id == "NOTIFICATION_DESTINATION" %}
+                        <th id="notification-destination-name"><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00124' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td colspan="3" id="notification-destination-value"><div class="cell-inner"><input class="validation-input" name="{{system.config_id}}" type="text" data-type="loginIDs" data-maxlength="4000" value="{{system.value|default:''}}" placeholder="{% get_message 'MOSJA00125' request.user.get_lang_mode showMsgId=False %}" ></div></td>
+                      {% endif %}
+                    {% endif %}
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- /.oase-config-item -->
+                
+              </div><!-- /.oase-config-body -->
+              
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button reset" disabled><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button save" id="password" onClick="submitSystemPassword();" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+
+            </section>
+            {% endif%}
+
+            <section id="oase-config-active-directory">
+
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+
+              <div class="oase-config-body">
+
+                <div class="oase-config-item">
+                  <h4>{% get_message 'MOSJA22061' request.user.get_lang_mode showMsgId=False %}</h4>
+                  <table>
+                  {% for system in system_actdir_list %}
+                  {% if system.category == "ACTIVE_DIRECTORY" %}
+                    {% if forloop.first %}
+                    {% if system.config_id == "ADCOLLABORATION" %}
+                    <thead>
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}</div></th>
+                        <td class="config-switch"><div class="cell-inner"><input data-switch=".active-directory-setting" class="config-switch-input" name="{{system.config_id}}" type="checkbox" id="input-switch7"  value={% if system.value == "0" %} "0" {% else %} "1" checked {% endif %} required ><label for="input-switch7" class="config-switch-label"></label></div></td>
+                        <td colspan="2"><div class="cell-inner"></div></td>
+                      </tr>
+                    </thead>
+                    {% endif %}
+                    <tbody class="active-directory-setting">
+                    {% endif%}
+                    {% if system.config_id == "ADMINISTRATOR_USER" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00126' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="64" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
+                      </tr>
+                    {% elif system.config_id == "ADMINISTRATOR_PW" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00127' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td colspan="3"><div class="cell-inner"><div class="password"><input class="validation-input" type="password" id="{{system.config_id}}" name="{{system.config_id}}" value="{{system.value|default:""}}" required ><div class="password-show"></div></div></div></td>
+                      </tr>
+                    {% elif system.config_id == "ACCESS_POINT" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00128' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="512" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
+                      </tr>
+                    {% elif system.config_id == "AD_LINKAGE_TIMER" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00129' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="80" data-type="adLinkageTimer" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
+                      </tr>
+                    {% elif system.config_id == "CONNECTION_TIMEOUT" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00130' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="input-number"><div class="cell-inner"><label><input class="validation-input" data-maxlength="5" class="lifetime-input" type="number" name="{{system.config_id}}" min="1" max="99999" value="{{system.value}}" maxlength="5" required ><span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range" colspan="2"><div class="cell-inner"><div class="range"><input type="range" min="1" max="99999" data-step="60" value="{{system.value}}"></div></div></td>
+                      </tr>
+                    {% elif system.config_id == "READ_TIMEOUT" %}
+                       <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00131' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="input-number"><div class="cell-inner"><label><input class="validation-input lifetime-input" data-maxlength="5" type="number" name="{{system.config_id}}"  min="1" max="99999" value="{{system.value}}" maxlength="5" required ><span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
+                        <td class="input-range" colspan="2"><div class="cell-inner"><div class="range"><input type="range" min="1" max="99999" data-step="60" value="{{system.value}}"></div></div></td>
+                      </tr>
+                    {% elif system.config_id == "AUTHSERVER_SEARCH_CHAR" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00132' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="256" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
+                      </tr>
+                    {% elif system.config_id == "TARGET_GROUP_LIST" %}
+                      <tr>
+                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00133' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span><br><button class="oase-mini-button"  onClick="tableRowAdd('.target-group-list table', groupListRow, 30 );"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA22068' request.user.get_lang_mode showMsgId=False %}</span></button></div></th>
+                        <td colspan="3" class="target-group-list"><div class="cell-inner">
+                          <table>
+                            <thead>
+                              <tr>
+                                <th><div class="cell-inner">{% get_message 'MOSJA22064' request.user.get_lang_mode showMsgId=False %}</div></th>
+                                <th><div class="cell-inner">{% get_message 'MOSJA22065' request.user.get_lang_mode showMsgId=False %}</div></th>
+                                <th class="delete"><div class="cell-inner">{% get_message 'MOSJA22069' request.user.get_lang_mode showMsgId=False %}</div></th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                            {% if system_targro_list|length %}
+                              {% for dict_item in system_targro_list %}
+                                {% for key, value in dict_item.items %}
+                                  <tr>
+                                    <td><div class="cell-inner"><input class="validation-input" data-maxlength="40" type="text" name="{{system.config_id}}" value="{{key}}" required  ></div></td>
+                                    <td><div class="cell-inner"><input class="validation-input" data-maxlength="40" type="text" name="{{system.config_id}}" value="{{value}}" required  ></div></td>
+                                    <td class="delete"><div class="cell-inner"><button class="oase-mini-button" onClick="saveBtnOn();tableRowRemove( this );"><em class="owf owf-cross"></em></button></div></td>
+                                  </tr>
+                                {% endfor %}
+                              {% endfor %}
+                            {% else %}
+                                  <tr>
+                                    <td><div class="cell-inner"><input class="validation-input" data-maxlength="40" type="text" name="{{system.config_id}}" value="" required  ></div></td>
+                                    <td><div class="cell-inner"><input class="validation-input" data-maxlength="40" type="text" name="{{system.config_id}}" value="" required  ></div></td>
+                                    <td class="delete"><div class="cell-inner"><button class="oase-mini-button" onClick="saveBtnOn();tableRowRemove( this );"><em class="owf owf-cross"></em></button></div></td>
+                                  </tr>
+                            {% endif %}
+                            </tbody>
+                          </table>
+                        </div></td>
+                      </tr>
+                    {% endif %}
+                    {% if forloop.last %}
+                    </tbody>
+                    {% endif %}
+                  {% endif %}
+                  {% endfor %}
+                  </table>
+                </div><!-- /.oase-config-item -->
+                
+              </div><!-- /.oase-config-body -->
+              
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button reset" disabled><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button" id="actdir" onClick="adRunning();" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+
+            </section>
+            
+            <form id="formSystemData" method="post">
+              {% csrf_token %}
+              <input type="hidden" id="hidJsonStr" value="" name="json_str" />
+            </form>
+
+            <!-- ポップアップ画面 -->
+            <div id="ad-check" class="oase-confirm">
+              <div class="oase-confirm-main">
+                <div class="oase-confirm-inner">
+                  <div class="oase-confirm-content">
+                    <div class="oase-confirm-content">
+
+                      <div class="oase-confirm-header">
+                        <div class="oase-confirm-title"><em class="owf owf-info"></em> {% get_message 'MOSJA22070' request.user.get_lang_mode showMsgId=False %}</div>
+                      </div>
+
+                      <div class="oase-confirm-body">
+                        <p></p>
+                        <div class="running-bar" style="display: none;"></div>
+                      </div>
+
+                      <div class="oase-confirm-footer">
+                        <ul class="oase-button-group">
+                        </ul>
+                      </div>
+
+                    </div><!-- /.oase-confirm-content -->
+                  </div><!-- /.oase-confirm-content -->
+                </div><!-- /.oase-confirm-inner -->
+              </div><!-- /.oase-confirm-main -->
+            </div><!-- /.oase-confirm -->
+
+            <div class="oase-confirm-overlay"></div>
+          </div><!-- /.oase-config-main -->
+        </div><!-- /.oase-config -->
+      </div><!-- /.oase-main-body-inner -->
+
+    </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock%}

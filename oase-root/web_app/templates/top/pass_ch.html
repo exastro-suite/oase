@@ -1,0 +1,310 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+
+{% load common %}
+
+{% block myheader %}
+
+
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  パスワード変更画面の表示制御
+////////////////////////////////////////////////
+function changePW() {
+
+    $("#btnUpd").prop("disabled", true);
+
+    var old_password = document.getElementById("oldPw").value;
+    var new_password = document.getElementById("newPw").value;
+    var new_password_confirm = document.getElementById("newPwConf").value;
+
+    user_info = {};
+    user_info['oldPw'] = old_password;
+    user_info['newPw'] = new_password;
+    user_info['newPwConf'] = new_password_confirm;
+
+    user_info['loginId'] = '';
+    var login_id_obj = document.getElementById("loginId");
+    if(login_id_obj) {
+        user_info['loginId'] = login_id_obj.value;
+    }
+
+    var json_str = JSON.stringify({"user_info": user_info});
+    document.getElementById("json_data").value = json_str;
+
+    var obj = document.getElementById("formPsData");
+    obj.submit();
+}
+
+function cancel() {
+
+    $("#btnCan").prop("disabled", true);
+
+    // 入力なければそのまま遷移
+    if( document.getElementById("oldPw").value == "" &&
+        document.getElementById("newPw").value == "" &&
+        document.getElementById("newPwConf").value == "" ) {
+        beforeunloadThroughFlag = true;
+        window.location.href = '/oase_web/top/logout';
+    }
+    else {
+        var choice = confirm(getMessage("MOSJA32033", false));
+        if(choice == true) {
+            beforeunloadThroughFlag = true;
+            window.location.href = '/oase_web/top/logout';
+        }
+    }
+
+    $("#btnCan").prop("disabled", false);
+}
+
+function resetPW() {
+
+    $("#btnRes").prop("disabled", true);
+
+    var reset_url = "{{ pass_init_url }}";
+
+    // 入力なければそのまま遷移
+    if( document.getElementById("oldPw").value == "" &&
+        document.getElementById("newPw").value == "" &&
+        document.getElementById("newPwConf").value == "" ) {
+        beforeunloadThroughFlag = true;
+        window.location.href = reset_url;
+    }
+    else {
+        var choice = confirm(getMessage("MOSJA32029", false));
+        if(choice == true) {
+            beforeunloadThroughFlag = true;
+            window.location.href = reset_url;
+        }
+    }
+
+    $("#btnRes").prop("disabled", false);
+}
+
+function submitAction() {
+
+    $('span.pass_ch_err').text('');
+
+    var choice = confirm(getMessage("MOSJA32006", false));
+    if(choice == true) {
+
+        // 旧エラー表記削除
+        $('.error').removeClass('error');
+        $('.error-list').remove();
+
+        $.ajax({
+            type : "POST",
+            url  : "{% url 'web_app:top:pass_ch_exec' %}",
+            data : $("#formPsData").serialize(),
+            dataType: "json",
+            "csrfmiddlewaretoken" : document.getElementsByName("csrfmiddlewaretoken")[0].value
+        })
+        .done(function(response_json) {
+            if(response_json.status == 'success') {
+                alert(getMessage("MOSJA32007", false));
+                beforeunloadThroughFlag = true;
+                location.href = "{% url 'web_app:top:pass_ch_logout' %}";
+            }
+            else {
+                // 今回エラーを表記
+                msg_obj = response_json.error_msg;
+                Object.keys(msg_obj).forEach(function(key) {
+                    $errInput = $('#' + key);
+                    $errInput.parents('th, td').addClass('error');
+                    var errorHTML = '<ul class="error-list">';
+                    errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + msg_obj[key] + '"><em class="owf owf-question"></em></span></li>';
+                    errorHTML += '</ul>';
+                    $errInput.after( errorHTML );
+                });
+
+                if('oldPw' in msg_obj || 'newPw' in msg_obj || 'newPwConf' in msg_obj) {
+                    $('input[type=password]').val('');
+                }
+                if('db' in msg_obj) {
+                    alert(msg_obj['db']);
+                }
+                if('system' in msg_obj) {
+                    alert(msg_obj['system']);
+                }
+                $("#btnUpd").prop("disabled", false);
+            }
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage("MOSJA32008", true) + "\n" + respdata.responseText);
+                $("#btnUpd").prop("disabled", false);
+            }
+        });
+    }
+    else {
+        $("#btnUpd").prop("disabled", false);
+    }
+}
+
+$(function(){
+
+    modalOpen('#modal');
+
+});
+-->
+</script>
+
+{% endblock %}
+
+{% block maincontent %}
+
+<div class="oase-main">
+<main class="oase-main-inner">
+
+<div class="oase-main-body">
+<div class="oase-main-body-inner">
+
+<div id="modal" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-lock"></em><span>{% get_message 'MOSJA32000' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+            <h3>
+            {% if passCon == "period" %}
+              {# 有効期限切れ #}
+              <div>{% get_message 'MOSJA32001' request.user.get_lang_mode showMsgId=False %}</div>
+              <div>{% get_message 'MOSJA32002' request.user.get_lang_mode showMsgId=False %}</div>
+              <br />
+            {% elif passCon == "initial" %}
+              {# 初期パスワード #}
+              <div>{% get_message 'MOSJA32020' request.user.get_lang_mode showMsgId=False %}</div>
+              <div>{% get_message 'MOSJA32021' request.user.get_lang_mode showMsgId=False %}</div>
+              <br />
+            {% elif passCon == "onetime" %}
+              {# ワンタイムパスワード #}
+              <div>{% get_message 'MOSJA32034' request.user.get_lang_mode showMsgId=False %}</div>
+              <div>{% get_message 'MOSJA32035' request.user.get_lang_mode showMsgId=False %}</div>
+              <br />
+            {% endif %}
+              <div>{% get_message 'MOSJA32022' request.user.get_lang_mode showMsgId=False %}</div>
+            </h3>
+            <ul class="rule-list">
+              <li>{% get_message 'MOSJA32003' request.user.get_lang_mode showMsgId=False %}</li>
+              <li>{% get_message 'MOSJA32004' request.user.get_lang_mode showMsgId=False %}</li>
+            {% if passCon == "period" or passCon == "passch" or passCon == "onetime" %}
+              {% if passGen > 0 %}
+              <li>{% get_message 'MOSJA32005' request.user.get_lang_mode strConName=passGen showMsgId=False %}</li>
+              {% endif %}
+            {% endif %}
+            </ul>
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00034' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">{{loginId}}</div></td>
+                  </tr>
+                  <tr>
+                    <th>
+                      <div class="cell-inner">{% get_message 'MOSJA32039' request.user.get_lang_mode showMsgId=False %}</div>
+                    </th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="password">
+                          <input type="password" class="tooltip-input validation-input" id="oldPw" title="{% get_message 'MOSJA00104' request.user.get_lang_mode showMsgId=False %}" />
+                          <div class="password-show"></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+              <table>
+                <tbody>
+                  <tr>
+                    <th>
+                      <div class="cell-inner">{% get_message 'MOSJA32040' request.user.get_lang_mode showMsgId=False %}</div>
+                    </th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="password">
+                          <input type="password" data-minlength="8" data-maxlength="64" data-type="password" class="tooltip-input validation-input" id="newPw" title="{% get_message 'MOSJA00104' request.user.get_lang_mode showMsgId=False %}" />
+                          <div class="password-show"></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>
+                      <div class="cell-inner">{% get_message 'MOSJA32041' request.user.get_lang_mode showMsgId=False %}</div>
+                    </th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="password">
+                          <input type="password" data-minlength="8" data-maxlength="64" data-type="password" class="tooltip-input validation-input" id="newPwConf" title="{% get_message 'MOSJA00104' request.user.get_lang_mode showMsgId=False %}" />
+                          <div class="password-show"></div>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+
+                </tbody>
+              </table>
+            </div>
+
+            {% if passCon == "period" or passCon == "passch" %}
+            <p style="text-align: right"><button class="oase-mini-button" id="btnRes" onclick="resetPW();"><em class="owf owf-question"></em><span>{% get_message 'MOSJA00036' request.user.get_lang_mode showMsgId=False %}</span></button></p>
+            {% endif%}
+
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button id="btnCan" class="oase-button cancel" onclick="cancel();" ><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button id="btnUpd" class="oase-button ok" onclick="changePW();"><em class="owf owf-check"></em><span>{% get_message 'MOSJA32042' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+        <form id="formPsData" action="javascript:submitAction()" method="POST">
+          <input type="hidden" id="json_data" value="" name="user_info" />
+          {% csrf_token %}
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="oase-modal-overlay"></div>
+
+</div>
+
+</div><!-- /.oase-main-body-inner -->
+</div><!-- /.oase-main-body -->
+
+</main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+{% endblock%}

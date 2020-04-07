@@ -1,0 +1,32 @@
+- model: web_app.System
+  pk: 26
+  fields:
+    config_name: DMリクエスト送信先
+    category: DMSETTINGS
+    config_id: DM_IPADDRPORT
+    value: localhost:8080
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 27
+  fields:
+    config_name: DMユーザID
+    category: DMSETTINGS
+    config_id: DM_USERID
+    value: admin0000
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 28
+  fields:
+    config_name: DMパスワード
+    category: DMSETTINGS
+    config_id: DM_PASSWD
+    value: 1uYOKF1YUbjD+ollGhObnlyZrzbwLpffUkmYxtE/3bVSRsYj6FoE3JAt6fI1TT2LjVaaHqf2rDsyx8Fd5/8v++5wVDxHebIjIEFJkPu/t7c=
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者

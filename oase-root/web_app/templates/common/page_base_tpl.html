@@ -1,0 +1,112 @@
+{% extends "common/plain_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load common %}
+{% comment %}
+一般ページのベース
+page_base_tpl.html
+{% endcomment %}
+
+{% block header %}
+  <div class="oase-header">
+    <header class="oase-header-inner">
+      <div class="oase-nav">
+        <nav class="oase-nav-inner">
+            <!-- Menu Ber -->
+            {% for mm in mainmenu_list %}
+              {% if mm.caption == 'DashBoard' %}
+              <ul class="oase-header-main-menu"> <!-- Main Menu Left -->
+              {% elif mm.selected == 'contact' %}
+              <ul class="oase-header-sub-menu"> <!-- Main Menu Right -->
+              {% endif %}
+
+              <!-- Main Menu Title (Dashboarb,Rule,System,User) -->
+              {% if mm.default == False or mm.caption == 'DashBoard' %}
+              <li class="menu-parent {{mm.selected}}">
+                {% if mm.link %}
+                <a href="{{mm.link}}">
+                  <em class="{{mm.classname}}"></em>{{mm.caption}}
+                </a>
+                {% else %}
+                <span class="menu-title">
+                  <em class="{{mm.classname}}"></em>{{mm.caption}}
+                </span>
+                {% endif %}
+              <!-- Main Menu Title (Contact,Logout) -->
+              {% elif mm.default %}
+              <li class="{{mm.selected}}">
+
+                {% if mm.selected == "logout" %}
+                <a href="{{mm.link}}" title="{{mm.caption}}" class="tooltip" onclick="logout()">
+                {% elif mm.selected == "contact" %}
+                <a href="mailto:abc@sample.com;def@sample.com" title="{{mm.caption}}" class="tooltip">
+                {%endif%}
+
+                  <em class="{{mm.classname}}"></em>
+                </a>
+              {% endif %}
+
+                <!-- Child Menu Name-->
+                {% if mm.menu_items|length %}
+                <ul class="menu-child">
+                {% for mi in mm.menu_items %}
+                  <li><a href="{{mi.link}}">{{mi.name}}</a></li>
+                {% endfor %}
+                </ul>
+                {% endif %}
+              </li>
+
+             {% if forloop.counter == mainmenu_list|length|add:"-2" or mm.selected == 'logout' %}
+             </ul><!-- /Main Menu -->
+             {% endif %}
+
+           {% endfor %}
+        </nav>
+      </div><!-- oase-nav -->
+
+      <div class="oase-header-user">
+        <div class="oase-header-user-inner">
+          <dl>
+            <dt class="user-name"><em class="owf owf-user"></em><span>{{user_name}}</span></dt>
+            <dd class="user-setting"><a href="{% url 'web_app:user:personal_config' %}" class="tooltip" title="{% get_message 'MOSJA00032' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-gear"></em></a></dd>
+          </dl>
+        </div>
+      </div>
+
+    </header>
+  </div>
+{% endblock %}
+
+{% block body %}
+<div class="oase-body">
+    {% block maincontent %}
+    {% endblock%}
+</div>
+{% endblock %}
+
+{% block footer %}
+<div class="oase-footer">
+    <footer class="oase-footer-inner">
+        <div class="oase-footer-switch"></div>
+        <p>
+            <small>
+                <span class="exastro"><em class="owf owf-exastro"></em>{% get_message 'MOSJA10023' request.user.get_lang_mode showMsgId=False %}</span>{% get_message 'MOSJA10024' request.user.get_lang_mode showMsgId=False %}
+            </small>
+        </p>
+    </footer>
+</div>
+{% endblock %}

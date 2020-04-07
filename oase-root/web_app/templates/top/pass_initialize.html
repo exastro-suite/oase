@@ -1,0 +1,230 @@
+{% extends "top/login.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+
+{% load common %}
+
+{% block myheader %}
+
+
+<script type="text/javascript">
+<!--
+
+////////////////////////////////////////////////
+//  input初期化
+////////////////////////////////////////////////
+window.onpageshow = function() {
+    $("#loginId,#mailAddr").each(function(){
+        $(this).val("");
+    });
+}
+
+////////////////////////////////////////////////
+//  キャンセル処理
+////////////////////////////////////////////////
+function cancel() {
+
+    $("#btnCan").prop("disabled", true);
+
+    var redirect_url = "{{ redirect_url }}";
+
+    // 入力なければそのまま遷移
+    if( document.getElementById("loginId").value == "" &&
+        document.getElementById("mailAddr").value == "" ) {
+         window.location.href = redirect_url;
+    }
+    else{
+        var choice = confirm(getMessage("MOSJA32030", false));
+        if(choice == true) {
+            window.location.href = redirect_url;
+        }
+    }
+
+    $("#btnCan").prop("disabled", false);
+}
+
+function resetPW() {
+
+    $("#btnUpd").prop("disabled", true);
+
+    var login_id = document.getElementById("loginId").value;
+    var mail_addr = document.getElementById("mailAddr").value;
+
+    document.getElementById("loginId").style.backgroundColor = '';
+    document.getElementById("mailAddr").style.backgroundColor = '';
+
+    user_info = {};
+    user_info['loginId']= login_id;
+    user_info['mailAddr']= mail_addr;
+
+    var json_str = JSON.stringify({"user_info": user_info});
+    document.getElementById("json_data").value = json_str;
+
+    var obj = document.getElementById("formResetData");
+    obj.submit();
+}
+
+function submitAction() {
+
+    $('div.reset-pass-caution').text('');
+
+    var choice = confirm(getMessage("MOSJA32036", false));
+
+
+    if(choice == true) {
+
+      // 旧エラー表記削除
+      $('.error').removeClass('error');
+      $('.error-list').remove();
+
+        $.ajax({
+            type : "POST",
+            url  : "onetime_pass_exec",
+            data : $("#formResetData").serialize(),
+            dataType: "json",
+        })
+        .done(function(response_json) {
+            if(response_json.status == 'success') {
+                alert(getMessage("MOSJA32037", false));
+                location.href = 'pass_ch_logout';
+            }
+            else {
+                msg_obj = response_json.error_msg;
+                Object.keys(msg_obj).forEach(function(key) {
+                    $errInput = $('#' + key);
+                    $errInput.parents('th, td').addClass('error');
+                    var errorHTML = '<ul class="error-list">';
+                    errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + msg_obj[key] + '"><em class="owf owf-question"></em></span></li>';
+                    errorHTML += '</ul>';
+                    $errInput.after( errorHTML );
+
+                    if('db' == key ||'mail' == key ){
+                        alert(msg_obj[key]);
+                    }
+                });
+                $("#btnUpd").prop("disabled", false);
+            }
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage("MOSJA32008", true) + "\n" + respdata.responseText);
+                $("#btnUpd").prop("disabled", false);
+            }
+        });
+    }
+    else {
+        $("#btnUpd").prop("disabled", false);
+    }
+}
+
+$(function(){
+
+    modalOpen('#modal')
+
+});
+
+-->
+</script>
+
+{% endblock %}
+
+{% block password-reset %} 
+
+  <div id="modal" class="oase-modal">
+
+    <div class="oase-modal-main">
+      <div class="oase-modal-inner">
+        <div class="oase-modal-content">
+
+          <div class="oase-modal-header">
+            <div class="oase-modal-title">
+              <h2><em class="owf owf-reset"></em>{% get_message 'MOSJA32024' request.user.get_lang_mode showMsgId=False %}</h2>
+            </div>
+          </div>
+
+          <div class="oase-modal-body">
+            <div class="oase-modal-block">
+              <h3>{% get_message 'MOSJA32025' request.user.get_lang_mode showMsgId=False %}</h3>
+              <p>{% get_message 'MOSJA32026' request.user.get_lang_mode showMsgId=False %}<br>
+                {% if passInit != 0 %}
+                  {% get_message 'MOSJA32027' strConName=passInit showMsgId=False %}<br>
+                  {% get_message 'MOSJA32028' strConName=passInit showMsgId=False %}<br>
+                {% endif %}
+              </p>
+              <div class="oase-modal-table">
+                <table>
+                  <tbody>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA00034' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td>
+                        <div class="cell-inner">
+                          <input type="text" data-type="loginID" data-maxlength="32" class="validation-input" id="loginId">
+                        </div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA00035' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td>
+                        <div class="cell-inner">
+                          <input type="text" data-maxlength="256" data-type="mail" class="validation-input" id="mailAddr" />
+                        </div>
+                      </td>
+                    </tr>   
+                  </tbody>
+                </table>
+              </div><!-- /.oase-modal-table -->
+
+              <p>{% get_message 'MOSJA32043' request.user.get_lang_mode showMsgId=False %}<br>
+                <a class="oase-mini-button" href="mailto:abc@sample.com;def@sample.com">
+                  <em class="owf owf-mail"></em><span>{% get_message 'MOSJA00073' request.user.get_lang_mode showMsgId=False %}</span>
+                </a>
+              </p>
+
+            </div> <!-- /.oase-modal-block -->
+          </div><!-- /.oase-modal-body -->
+ 
+         <div class="oase-modal-footer">
+            <ul class="oase-button-group">
+              <li>
+                 <button class="oase-button cancel" id="btnCan" onclick="cancel();" >
+                  <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+              <li>
+                <button class="oase-button ok" id="btnUpd" onclick="resetPW();">
+                  <em class="owf owf-check"></em><span>{% get_message 'MOSJA32044' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+              <form id="formResetData" action="javascript:submitAction()" method="POST">
+                <input type="hidden" id="json_data" value="" name="user_info" />
+                {% csrf_token %}
+              </form>
+
+            </ul>
+          </div><!-- /.oase-modal-footer -->
+
+        </div><!-- /.oase-modal-content -->
+      </div><!-- /.oase-modal-inner -->    
+    </div><!-- /.oase-modal-main -->
+
+  </div><!-- /.oase-modal -->
+
+  <div class="oase-modal-overlay"></div>
+
+{% endblock%}

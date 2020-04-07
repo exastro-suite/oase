@@ -1,0 +1,50 @@
+{% load common %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+<table class="oase-filter oase-sort" id="user">
+  <thead class="user-data-head">
+    <tr>
+      <th class="user-name sort filter" filter-type="common" filter-label="user-name"><div class="cell-inner">{% get_message 'MOSJA00033' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="login-id sort filter" filter-type="common" filter-label="login-id"><div class="cell-inner">{% get_message 'MOSJA00034' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="mail-address sort filter" filter-type="common" filter-label="mail-address"><div class="cell-inner">{% get_message 'MOSJA00035' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="group filter" filter-type="select" filter-label="group"><div class="cell-inner">{% get_message 'MOSJA00037' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="last-modified sort filter" filter-type="date" filter-label="last-modified"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+    </tr>
+  </thead>
+  <tbody id="user_data">
+    {% for user in user_list %}
+    <tr id="{{user.user_id}}">
+      <td class="user-name"><div class="cell-inner">{{user.user_name|search_red:search_info.user_name}}</div></td>
+      <td class="login-id"><div class="cell-inner">{{user.login_id|search_red:search_info.login_id}}</div></td>
+      <td class="mail-address"><div class="cell-inner">{{user.mail|search_red:search_info.mail_address}}</div>
+      <td class="group">
+        <div class="cell-inner">
+          <input type="hidden" id="hid{{user.user_id}}" value='{{user.group_id|join:","}}' data-user-group='{{user.group_id|join:","}}' />
+          <span style="display:none;">{{user.group_name|join:","}}</span>
+          <ul>
+            <li>{{user.group_name|join:"</li><li>"}}</li>
+          </ul>
+        </div>
+      </td>
+      <td class="last-update-user"><div class="cell-inner">{{user.upd_user_name|search_red:search_info.last_update_user}}</div></td>
+      <td class="last-modified"><div class="cell-inner"><time datetime="{{ user.updated|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{user.updated|timezone:'Asia/Tokyo'}}</time></div></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>

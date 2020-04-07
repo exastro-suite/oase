@@ -1,0 +1,125 @@
+################################
+# システム設定
+################################
+- model: web_app.System
+  pk: 2
+  fields:
+    config_name: ルールファイル設置ルートパス
+    category: RULE
+    config_id: RULEFILE_ROOTPATH
+    value: /home/centos/work/rule/
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 26
+  fields:
+    config_name: DMリクエスト送信先
+    category: DMSETTINGS
+    config_id: DM_IPADDRPORT
+    value: 
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 27
+  fields:
+    config_name: DMユーザID
+    category: DMSETTINGS
+    config_id: DM_USERID
+    value: 
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 28
+  fields:
+    config_name: DMパスワード
+    category: DMSETTINGS
+    config_id: DM_PASSWD
+    value: 
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 29
+  fields:
+    config_name: 適用君待ち受け情報
+    category: APPLYSETTINGS
+    config_id: APPLY_IPADDRPORT
+    value: 127.0.0.1:50001
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 31
+  fields:
+    config_name: OASEメールSMTP
+    category: OASE_MAIL
+    config_id: OASE_MAIL_SMTP
+    value: {"IPADDR":"127.0.0.1","PORT":25,"AUTH":False}
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 32
+  fields:
+    config_name: Maven repositoryパス
+    category: RULE
+    config_id: MAVENREP_PATH
+    value: /root/.m2/repository/com/oase/
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 50
+  fields:
+    config_name: RabbitMQユーザID
+    category: RABBITMQ
+    config_id: MQ_USER_ID
+    value: 
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 51
+  fields:
+    config_name: RabbitMQパスワード
+    category: RABBITMQ
+    config_id: MQ_PASSWORD
+    value: 
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 52
+  fields:
+    config_name: RabbitMQIPアドレス
+    category: RABBITMQ
+    config_id: MQ_IPADDRESS
+    value: 
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 53
+  fields:
+    config_name: RabbitMQキュー名
+    category: RABBITMQ
+    config_id: MQ_QUEUE_NAME
+    value: 
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+

@@ -1,0 +1,200 @@
+
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  フィルターの表示制御
+////////////////////////////////////////////////
+function dispPulldown(strLinkID, strMultiID)
+{
+    document.getElementById(strLinkID).style.display = "none";
+    document.getElementById(strMultiID).style.visibility = "visible";
+}
+
+function clearFilter(no)
+{
+    var obj;
+
+    {% for fil in filter_list %}
+      {% if fil.like %}
+    document.getElementById("like" + no + "_{{fil.colno}}").value = "";
+      {% endif %}
+
+      {% if fil.fromto %}
+    document.getElementById("from" + no + "_{{fil.colno}}").value = "";
+    document.getElementById("to" + no + "_{{fil.colno}}").value = "";
+      {% endif %}
+
+      {% if fil.pulldown|length %}
+    document.getElementById("pdlink" + no + "_{{fil.colno}}").style.display = "block";
+    document.getElementById("pdsel" + no + "_{{fil.colno}}").style.visibility = "hidden";
+    obj = document.getElementById("pdsel" + no + "_{{fil.colno}}");
+    obj.selectedIndex = 0;
+      {% endif %}
+
+      {% if fil.calendar %}
+    document.getElementById("periodfrom" + no + "_{{fil.colno}}").value = "";
+    document.getElementById("periodto" + no + "_{{fil.colno}}").value = "";
+      {% endif %}
+    {% endfor %}
+}
+
+function submitFilter(item_data_uri, target_id, no)
+{
+    $("#btnFilter" + no).prop("disabled", true);
+
+    var obj = null;
+    var dicFilterInfo   = {};
+    var a_dicFilterList = new Array();
+
+    {% for fil in filter_list %}
+      dicFilterInfo["{{fil.colno}}"] = {};
+  
+      {% if fil.like %}
+        if(document.getElementById("like" + no + "_{{fil.colno}}").value != "")
+        {
+            dicFilterInfo["{{fil.colno}}"]["LIKE"] = document.getElementById("like" + no + "_{{fil.colno}}").value;
+        }
+      {% endif %}
+  
+      {% if fil.fromto %}
+        if(document.getElementById("from" + no + "_{{fil.colno}}").value != "")
+        {
+            dicFilterInfo["{{fil.colno}}"]["START"] = document.getElementById("from" + no + "_{{fil.colno}}").value;
+        }
+  
+        if(document.getElementById("to" + no + "_{{fil.colno}}").value != "")
+        {
+            dicFilterInfo["{{fil.colno}}"]["END"] = document.getElementById("to" + no + "_{{fil.colno}}").value;
+        }
+      {% endif %}
+  
+      {% if fil.pulldown|length %}
+        a_dicFilterList = new Array();
+        obj = document.getElementById("pdsel" + no + "_{{fil.colno}}");
+        for(var i = 0; i < obj.options.length; i++)
+        {
+            if(obj.options[i].selected == true && obj.options[i].value != "")
+            {
+                a_dicFilterList.push(obj.options[i].value);
+            }
+        }
+  
+        if(a_dicFilterList.length > 0)
+        {
+            dicFilterInfo["{{fil.colno}}"]["LIST"] = a_dicFilterList;
+        }
+      {% endif %}
+  
+      {% if fil.calendar %}
+        if(document.getElementById("periodfrom" + no + "_{{fil.colno}}").value != "")
+        {
+            dicFilterInfo["{{fil.colno}}"]["FROM"] = document.getElementById("periodfrom" + no + "_{{fil.colno}}").value;
+        }
+  
+        if(document.getElementById("periodto" + no + "_{{fil.colno}}").value != "")
+        {
+            dicFilterInfo["{{fil.colno}}"]["TO"] = document.getElementById("periodto" + no + "_{{fil.colno}}").value;
+        }
+      {% endif %}
+    {% endfor %}
+
+    var data = {
+        "filters"             : JSON.stringify(dicFilterInfo),
+        "csrfmiddlewaretoken" : document.getElementsByName("csrfmiddlewaretoken")[0].value
+    }
+
+    $.ajax({
+        type : "POST",
+        url  : item_data_uri,
+        data : data,
+    })
+    .done(function(respdata, stscode, res) {
+        $("#" + target_id).html(respdata);
+    })
+    .fail(function(respdata, stscode, res) {
+        alert("エラーが発生しました");
+        window.location.href = "/oase_web/top/logout";
+    })
+    .always(function(respdata, stscode, res) {
+        $("#btnFilter" + no).prop("disabled", false);
+    });
+}
+-->
+</script>
+
+        <dt class="collapsible"><span class="collapsed">フィルタ</span></dt>
+        <dd class="inner" style="display: none;">
+          <table border="1" class="tab_layout" style="width:95%;">
+            <tr>
+              {% for fil in filter_list %}
+              <th>{{fil.caption}}</th>
+              {% endfor %}
+            </tr>
+            <tr>
+              {% for fil in filter_list %}
+              <td>
+                {% if fil.like %}
+                  {% if fil.like == 'readonly' %}
+                <input type="text" id="like{{ parts_no|default_if_none:'' }}_{{fil.colno}}" value="" style="width:120px;" disabled="disabled" /><br />
+                  {% else %}
+                <input type="text" id="like{{ parts_no|default_if_none:'' }}_{{fil.colno}}" value="" style="width:120px;" /><br />
+                  {% endif %}
+                {% endif %}
+
+                {% if fil.fromto %}
+                <input type="text" id="from{{ parts_no|default_if_none:'' }}_{{fil.colno}}" value="" style="width:80px;" />～
+                <input type="text" id="to{{ parts_no|default_if_none:'' }}_{{fil.colno}}"   value="" style="width:80px;" /><br />
+                {% endif %}
+
+                {% if fil.pulldown|length %}
+                <div id="pdlink{{ parts_no|default_if_none:'' }}_{{fil.colno}}" style="font-size:11px; display:block;" onClick=" dispPulldown('pdlink{{ parts_no|default_if_none:'' }}_{{fil.colno}}', 'pdsel{{ parts_no|default_if_none:'' }}_{{fil.colno}}');">プルダウン検索</div>
+                <select id="pdsel{{ parts_no|default_if_none:'' }}_{{fil.colno}}" size="5" style="width:80%; height:85px; visibility:hidden;" multiple>
+                  {% for pd in fil.pulldown %}
+                    {% if forloop.first %}
+                    <option value="{{pd.v}}" selected>{{pd.k}}</option>
+                    {% else %}
+                    <option value="{{pd.v}}">{{pd.k}}</option>
+                    {% endif %}
+                  {% endfor %}
+                </select>
+                {% endif %}
+
+                {% if fil.calendar %}
+                <input type="date" id="periodfrom{{ parts_no|default_if_none:'' }}_{{fil.colno}}" value="" style="width:120px;" />～
+                <input type="date" id="periodto{{ parts_no|default_if_none:'' }}_{{fil.colno}}"   value="" style="width:120px;" /><br />
+                {% endif %}
+              </td>
+              {% endfor %}
+            </tr>
+          </table>
+
+          <div class="filter-footer clearfix">
+            <div class="flter-apply-items">
+            <div style="display:inline-flex">
+            <div class="panel">
+              <button id="btnFilter{{ parts_no|default_if_none:'' }}" class="btn-filter btn" value="フィルタ" onClick="submitFilter('{{ item_data_uri }}', '{{ target_id }}', {% if parts_no %}'{{parts_no}}'{% else %}''{% endif %});" >フィルタ</button>
+            </div>
+            <div class="panel">
+              <button id="btnClearFilter{{ parts_no|default_if_none:'' }}" class="btn-filter-clear btn" value="  フィルタクリア" onClick="clearFilter({% if parts_no %}'{{parts_no}}'{% else %}''{% endif %});" >フィルタクリア</button>
+            </div>
+            </div>
+            </div>
+          </div>
+          {% csrf_token %}
+        </dd>

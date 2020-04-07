@@ -1,0 +1,329 @@
+/* Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+*/
+@charset "utf-8";
+/* CSS Document */
+
+/* -------------------------------------------------- *
+ *
+ *    Mini Button
+ *
+ * -------------------------------------------------- */
+.ond .oase-mini-button {
+    display: inline-block;
+    padding: 4px;
+    background-color: #F3F3F3;
+    background-image: linear-gradient( #F3F3F3, #DDD );
+    box-shadow: 0 2px 2px 0 rgba( 0,0,0,0.2 ), 0 1px 0 1px rgba( 255,255,255,0.6 ) inset;
+    border: 1px solid #CCC;
+    border-radius: 4px;
+    text-decoration: none;
+    text-align: center;
+    text-shadow: 0 1px 1px rgba( 255,255,255,0.8 ), 0 -1px 1px rgba( 0,0,0,0.3 );
+    vertical-align: middle;
+    line-height: 1;
+    color: #555;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.ond .oase-mini-button em {
+    display: inline-block;
+    vertical-align: -1px;
+    pointer-events: none;
+    color: #555;
+}
+.ond .oase-mini-button span {
+    display: inline-block;
+    padding-left: 0.5em;
+    pointer-events: none;
+    color: #555;
+}
+.ond .oase-mini-button:hover {
+    background-image: linear-gradient( #EEE, #CCC );
+    box-shadow: 0 2px 2px 0 rgba( 0,0,0,0.4 ), 0 1px 0 1px rgba( 255,255,255,0.8 ) inset;
+    color: #333;
+}
+.ond .oase-mini-button:active {
+    background-image: linear-gradient( #EEE, #CCC );
+    box-shadow: 0 0 4px rgba( 0,0,0,0.2 ) inset;
+    border-color: #BBB;
+    outline: none;
+}
+.ond .oase-mini-button:active em,
+.ond .oase-mini-button:active span {
+    transform: translateY( 1px );
+}
+
+
+
+
+
+/* -------------------------------------------------- *
+ *
+ *    Button
+ *
+ * -------------------------------------------------- */
+.ond .oase-button,
+.ond .oase-button-set {
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+    margin: 0; padding: 0;
+    border: 1px solid #999;
+    border-radius: 32px;
+    background-color: #F3F3F3;
+    background-image:  linear-gradient( #F3F3F3, #DDD );
+    box-shadow: 0 2px 2px 0 rgba( 0,0,0,0.2 ), 0 1px 0 1px rgba( 255,255,255,0.6 ) inset;
+    vertical-align: middle;
+    color: #555;
+    text-shadow: 0 1px 1px rgba( 255,255,255,0.9 ), 0 -1px 1px rgba( 0,0,0,0.3 );
+    text-decoration: none;
+    text-align: center;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+        -moz-user-select: none;
+        -webkit-user-select: none;
+        -ms-user-select: none;
+}
+.ond .oase-button-set {
+    padding-right: 16px;
+    cursor: default;
+}
+.ond .oase-button-set::after {
+    content: '';
+    display:　block;
+    position: absolute;
+    right: 0;
+    width: 15px; height: 100%;
+    border-left: 1px solid #CCC;
+}
+.ond .oase-button-set .oase-button {
+    border: none;
+    border-right: 1px solid #FFF;
+    border-radius: 0;
+    box-shadow: none;
+}
+.ond .oase-button em,
+.ond .oase-button span,
+.ond .oase-button-set em {
+    display: inline-block;
+    vertical-align: middle;
+    pointer-events: none;
+}
+.ond .oase-button em,
+.ond .oase-button-set em {
+    padding: 4px 6px 4px 12px;
+    border-right: 1px solid #FFF;
+    font-size: 1.67rem;
+}
+.ond .oase-button span {
+    padding: 8px 16px 8px 12px;
+    border-left: 1px solid #CCC;
+    font-size: 1rem;
+}
+.ond .oase-button-set span {
+    padding: 8px;
+}
+.ond .oase-button:hover,
+.ond .oase-button:focus {
+    background-image: linear-gradient( #EEE, #CCC );
+    color: #555;
+}
+.ond .oase-button:hover {
+    outline: none;
+}
+.ond .oase-button:hover em,
+.ond .oase-button:focus em {
+    border-color: #F2F2F2;
+}
+.ond .oase-button:hover span,
+.ond .oase-button:focus span {
+    border-color: #CCC;
+}
+.ond .oase-button:active {
+    background-image: linear-gradient( #EEE, #CCC );
+    border-color: #888;
+    box-shadow: none;
+    outline: none;
+}
+.ond .oase-button:active::after {
+    content: '';
+    display: block;
+    width: 100%; height: calc( 100% + 3px );
+    position: absolute;
+    left: 0; top: -3px;
+    border-radius: 32px;
+    box-shadow: 0 4px 6px 0 rgba( 0,0,0,0.4 ) inset;
+    pointer-events: none;
+}
+.ond .oase-button-set .oase-button:active::after {
+    border-radius: 0;
+}
+.ond .oase-button:active em {
+    padding: 5px 6px 3px 12px;
+    border-color: #E6E6E6;
+}
+.ond .oase-button:active span {
+    padding: 9px 16px 7px 12px;
+    border-color: #BFBFBF;
+}
+.ond .oase-button-set .oase-button:active span {
+    padding: 9px 8px 7px;
+
+}
+
+
+
+.ond .oase-button.switch .on-off {
+overflow: hidden;
+position: relative;
+display: inline-block;
+width: 48px; height: 24px;
+margin-right: 4px;
+background-color: #999;
+border: 1px solid #CCC;
+border-radius: 24px;
+box-shadow: 0 0 8px rgba( 0,0,0,0.3 ) inset;
+}
+.ond .oase-button.switch.on .on-off {
+background-color: #60C60D;
+}
+.ond .oase-button.switch:active .on-off {
+transform: translateY( 1px );
+}
+.ond .oase-button.switch .on-off::after {
+content: '';
+display: block;
+position: absolute;
+right: 4px; top: 3px;
+z-index: 10;
+width: 16px; height: 16px;
+background-color: #CCC;
+border-radius: 50%;
+box-shadow: 0 0 8px rgba( 0,0,0,0.2 );
+transition-duration: 0.3s;
+}
+.ond .oase-button.on .on-off::after {
+right: 25px;
+background-color: #EFF9E7;
+}
+.ond .oase-button.switch .on-off::before {
+content: 'OFF';
+display: block;
+position: absolute;
+left: 4px; top: 7px;
+z-index: 5;
+font-size: 10px;
+transform: scale( 0.8 );
+text-shadow: none;
+font-weight: bold;
+color: #CCC;
+transition-duration: 0.3s;
+}
+.ond .oase-button.switch.on .on-off::before {
+content: 'ON';
+left: 25px;
+color: #FFF;
+}
+
+
+.ond .oase-button-group li {
+    display: inline-block;
+    padding: 4px;
+}
+.ond .oase-button-group .file-name {
+    display: inline-block;
+    max-width: 200px;
+    overflow: hidden;
+    vertical-align: middle;
+    text-overflow: ellipsis;
+    color: #666;
+    font-size: 0.84rem;
+    text-shadow: none;
+    font-style: normal;
+}
+.ond .oase-button.disabled,
+.ond .oase-mini-button.disabled,
+.ond .oase-button:disabled,
+.ond .oase-button:disabled:hover,
+.ond .oase-button:disabled:focus,
+.ond .oase-button:disabled:active,
+.ond .oase-mini-button:disabled,
+.ond .oase-mini-button:disabled:hover,
+.ond .oase-mini-button:disabled:focus,
+.ond .oase-mini-button:disabled:active {
+    background-color: #EFEFEF!important;
+    border-color: #CCC!important;
+    background-image: none!important;
+    box-shadow: none!important;
+    cursor: not-allowed!important;
+    pointer-events: none;
+}
+.ond .oase-button.disabled em,
+.ond .oase-button:disabled em,
+.ond .oase-button:disabled:hover em,
+.ond .oase-button:disabled:focus em,
+.ond .oase-button:disabled:active em {
+    padding: 4px 6px 4px 12px!important;
+    color: #DDD!important;
+    border-color: #EEE!important;
+    text-shadow: none;
+}
+.ond .oase-mini-button.disabled span,
+.ond .oase-mini-button:disabled span,
+.ond .oase-mini-button:disabled:hover span,
+.ond .oase-mini-button:disabled:focus span,
+.ond .oase-mini-button:disabled:active span {
+    color: #DDD!important;
+    border-color: #DDD!important;
+    text-shadow: none;
+}
+.ond .oase-mini-button.disabled em,
+.ond .oase-mini-button:disabled em,
+.ond .oase-mini-button:disabled:hover em,
+.ond .oase-mini-button:disabled:focus em,
+.ond .oase-mini-button:disabled:active em {
+    color: #DDD!important;
+    border-color: #EEE!important;
+    text-shadow: none;
+}
+.ond .oase-button.disabled span,
+.ond .oase-button:disabled span,
+.ond .oase-button:disabled:hover span,
+.ond .oase-button:disabled:focus span,
+.ond .oase-button:disabled:active span {
+    padding: 8px 16px 8px 12px!important;
+    color: #DDD!important;
+    border-color: #DDD!important;
+    text-shadow: none;
+}
+.ond .oase-button:disabled:active::after {
+    display: none;
+}
+.ond .oase-button:disabled .file-name {
+    color: #DDD!important;
+}
+
+
+
+
+
+/* Button color */
+/*
+.ond .oase-button.delete em,
+.ond .oase-mini-button.delete em { color: #DC143C; }
+*/
