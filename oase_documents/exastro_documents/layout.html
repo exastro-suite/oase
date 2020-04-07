@@ -1,0 +1,145 @@
+{#
+    exastro_documents/layout.html
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    Sphinx layout template for the "Exastro documents" theme.
+
+#}
+{%- extends "basic/layout.html" %}
+
+{%- block htmltitle %}
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    {{ super() }}
+{%- endblock %}
+
+{%- block scripts %}
+    {{ super() }}
+  
+    <script type="text/javascript" src="{{ pathto('_static/exastro_documents.js', 1) }}"></script>
+{%- endblock %}
+
+{%- block body_tag %}
+<body {% if pagename == 'index' %}id="index" {% else %}id="page" {% endif %}class="{{ language }}">
+{% endblock %}
+
+{%- block header %}
+<div id="container">
+
+<div id="header">
+  <header class="divInner">
+    <!-- Exastro logo -->
+    <div id="logo"><img src="{{ pathto('_static/img/exastro.png', 1) }}" alt="Exastro"></div>
+    <!-- Project name -->
+    <div id="projectName"><a href="{{ pathto( master_doc ) }}">{{ project }}</a></div>
+    <!-- Heaedr navigation -->
+    <div id="headerSearch">
+      <form class="search" action="{{ pathto('search') }}" method="get">
+        <input type="text" name="q" aria-labelledby="searchlabel">
+        <button type="submit" value="{{ _('Go') }}"><img src="{{ pathto('_static/img/search.png', 1) }}" alt="{{ _('Go') }}"></button>
+      </form>
+    </div>
+  </header>
+</div><!-- End #header -->
+{% endblock %}
+
+{%- block relbar1 %}{% endblock %}
+
+{%- block content %}
+
+{%- block sidebar1 %}{% endblock %}
+
+<div id="toolbar">
+  <div class="divInner">
+    
+    <div id="documentVersion">
+      <dl>
+        <dt>Document version</dt>
+        <dd>{{release}}</dd>
+      </dl>
+    </div>
+    
+    <div id="toolbarNavigation">
+      <ul>
+        {%- if prev %}
+        <li class="prev"><a href="{{ prev.link|e }}" title="{{ prev.title }}">前へ</a></li>
+        {%- endif %}
+        {%- if next %}
+        <li class="next"><a href="{{ next.link|e }}" title="{{ next.title }}">次へ</a></li>
+        {%- endif %}
+      </ul>
+    </div>
+    
+  </div>
+</div><!-- End #toolbar -->
+
+<div id="sideMenu">
+
+  <div id="menuButton"></div>
+  
+  <aside class="divInner">
+    {{ toctree( collapse=true, maxdepth=3 ) }}
+  </aside>
+</div><!-- End #sideMenu -->
+
+<div id="contents">
+<main class="divInner">
+
+{% if pagename != 'index' %}
+<div id="breadcrumbs">
+  <ul>
+    <li><a href="{{ pathto( master_doc ) }}">HOME</a></li>
+    {% for doc in parents %}<li><a href="{{ doc.link|e }}">{{ doc.title }}</a></li>
+    {% endfor %}
+    <li>{{ title }}</li>
+  </ul>
+</div>
+{% endif %}
+
+<div id="article">
+<article class="divInner">
+
+{%- block document %}
+<div class="body" role="main">
+{% block body %} {% endblock %}
+</div>
+{%- endblock %}
+
+{% if pagename != 'index' %}
+<div id="articleNavigation">
+  <ul>
+    {%- if prev %}
+    <li class="prev"><a href="{{ prev.link|e }}" title="{{ _('previous chapter') }}"><span>{{ _('Previous topic') }}</span>{{ prev.title }}</a></li>
+    {%- endif %}
+    {%- if next %}
+    <li class="next"><a href="{{ next.link|e }}" title="{{ _('next chapter') }}"><span>{{ _('Next topic') }}</span>{{ next.title }}</a></li>
+    {%- endif %}
+  </ul>
+</div>
+{% endif %}
+
+<div id="pageTopLink">
+  <a href="#container"><i>↑</i> Page Top</a>
+</div>
+
+</article>
+</div>
+{%- block sidebar2 %}{% endblock %}
+</main>
+</div><!-- End #contents -->
+{%- endblock %}
+
+{%- block relbar2 %}{% endblock %}
+
+{%- block footer %}
+<div id="footer">
+  <footer class="divInner">
+    <small>Copyright © {{ copyright }}</small>
+  </footer>
+</div><!-- End #footer -->
+
+<div id="overlay"></div>
+
+</div><!-- End #container -->
+{%- endblock %}
