@@ -87,7 +87,7 @@ class ItaParameterMatchInfo(models.Model):
 
     class Meta:
         db_table = 'OASE_T_ITA_PARAMETER_MATCH_INFO'
-        unique_together = (('driver_name', 'menu_group_id', 'menu_id', 'order'), )
+        unique_together = (('ita_driver_id', 'menu_group_id', 'menu_id', 'order'), )
 
     def __str__(self):
         return str(self.match_id)
