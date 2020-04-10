@@ -194,7 +194,7 @@
 ------------------------
 | ログ設定を編集することができます。
 
-入力覧
+入力欄
 ^^^^^^
 .. figure:: ../images/system_config/logs_column_edit.png
    :scale: 100%
@@ -239,13 +239,13 @@
 -------------------------
 | 認証設定を編集することができます。
 
-入力覧
+入力欄
 ^^^^^^
 .. figure:: ../images/system_config/authentication_column_edit.png
    :scale: 100%
    :align: center
 
-   図 2.2-6-1 ログ設定編集画面の各項目
+   図 2.2-6-1 認証設定編集画面の各項目
 
 .. csv-table:: 表 2.2-6-1 機能説明
    :header: No., 構成要素, 説明
@@ -289,7 +289,7 @@
 -------------------------------
 | パスワード設定を編集することができます。
 
-入力覧
+入力欄
 ^^^^^^
 .. figure:: ../images/system_config/password_column_edit.png
    :scale: 100%
@@ -343,14 +343,14 @@
 
 .. note::
 
-    AD未連携時は「表 2.6-1-1 機能説明」の2～8は表示されません。
+    AD未連携時は「表 2.2-9-1 機能説明」の2～8は表示されません。
 
 
 (10)Active Directory設定タブ (編集時)
 --------------------------------------
 | Active Directory設定を編集することができます。
 
-入力覧
+入力欄
 ^^^^^^
 .. figure:: ../images/system_config/ADLinkage_column_edit.png
    :scale: 100%
