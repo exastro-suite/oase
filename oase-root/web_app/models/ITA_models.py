@@ -23,6 +23,7 @@ from django.utils import timezone
  DOSL07001:ITAアクションマスタ
  DOSL07004:ITAパラメータ抽出条件管理
  DOSL07005:ITAパラメータ実行管理
+ DOSL07006:ITAメニュー名管理
 """
 
 
@@ -111,3 +112,23 @@ class ItaParametaCommitInfo(models.Model):
 
     def __str__(self):
         return str(self.commit_id)
+
+
+class ItaMenuName(models.Model):
+    """
+    DOSL07006:ITAメニュー名管理
+    """
+    ita_menu_name_id = models.AutoField("ITAメニュー名ID", primary_key=True)
+    ita_driver_id = models.IntegerField("ITAドライバID")
+    menu_group_id = models.IntegerField("メニューグループID")
+    menu_id = models.IntegerField("メニューID")
+    menu_group_name = models.CharField("メニューグループ名", max_length=64)
+    menu_name = models.CharField("メニュー名", max_length=64)
+    last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
+    last_update_user = models.CharField("最終更新者", max_length=64)
+
+    class Meta:
+        db_table = 'OASE_T_ITA_MENU_NAME'
+
+    def __str__(self):
+        return str(self.match_id)
