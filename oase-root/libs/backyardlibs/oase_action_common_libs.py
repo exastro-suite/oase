@@ -121,6 +121,12 @@ class ConstantModules:
     FCMI_TARGET                       = 4
     FCMI_MENUGROUP                    = 9
 
+    ## A_MENU_LIST
+    AML_MENU_ID                       = 2
+    AML_MENU_GROUP_ID                 = 3
+    AML_MENU_GROUP_NAME               = 4
+    AML_MENU_NAME                     = 6
+
     #OASE_T_RHDM_RESPONSE
     OTRR_RESPONSE_ID                  = 2
     OTRR_REQUEST_TYPE_ID              = 5
