@@ -71,8 +71,11 @@ except Exception as e:
 from libs.commonlibs.oase_logger import OaseLogger
 logger = OaseLogger.get_instance()
 
+from libs.backyardlibs.action_driver.ITA.ITA_core import ITA1Core
 from libs.commonlibs import define as defs
+from libs.commonlibs.aes_cipher import AESCipher
 from web_app.models.models import User
+from web_app.models.ITA_models import ItaDriver, ItaMenuName
 
 
 #-------------------
@@ -86,23 +89,52 @@ class ITAParameterSheetMenuManager:
         ITAパラメーターシートメニュー管理クラス
     """
 
-    def __init__(self):
+    def __init__(self, drv_info):
         """
         [概要]
         コンストラクタ
+        [引数]
+        drv_info : dict : ITAアクション設定
         """
 
-        pass
+        cipher = AESCipher(settings.AES_KEY)
+
+        self.drv_id = drv_info['ita_driver_id']
+        self.ita_config = {}
+        self.ita_config['Protocol'] = drv_info['protocol']
+        self.ita_config['Host'] = drv_info['hostname']
+        self.ita_config['PortNo'] = drv_info['port']
+        self.ita_config['user'] = drv_info['username']
+        self.ita_config['password'] = cipher.decrypt(drv_info['password'])
+        self.ita_config['menuID'] = '2100160001'
 
     def get_menu_list(self):
         """
         [概要]
         パラメーターシートメニューの情報リストを取得
+        [戻り値]
+        flg       : bool : True=成功、False=失敗
+        menu_list : list : パラメーターシートメニューの情報リスト
         """
 
-        pass
+        logger.logic_log('LOSI00001', 'メニューリスト取得処理開始 drv_id=%s' % (self.drv_id))
 
-    def save_menu_info(self):
+        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+        flg, menu_list = ita_core.select_create_menu_info_list(
+            self.ita_config,
+            'パラメータシート'  # TODO : 多言語対応
+        )
+
+        logger.logic_log(
+            'LOSI00002',
+            'メニューリスト取得処理終了 drv_id=%s, result=%s, count=%s' % (
+                self.drv_id, flg, len(menu_list)
+            )
+        )
+
+        return flg, menu_list
+
+    def save_menu_info(self, menu_list):
         """
         [概要]
         パラメーターシートメニューの情報を保存
@@ -116,19 +148,25 @@ class ITAParameterSheetMenuManager:
         ITAからパラメーターシートメニューの情報を取得して保存
         """
 
-        pass
+        try:
+            flg, menu_list = self.get_menu_list()
+            if flg:
+                self.save_menu_info(menu_list)
+
+        except Exception as e:
+            pass
 
 
 if __name__ == '__main__':
 
     try:
         # ドライバー設定情報取得
-        rset = []
+        rset = ItaDriver.objects.all().values('ita_driver_id', 'hostname', 'username', 'password', 'protocol', 'port')
 
         # アクション先ごとに情報を取得
         for rs in rset:
             # パラメーターシート用メニュー情報を取得
-            cls = ITAParameterSheetMenuManager()
+            cls = ITAParameterSheetMenuManager(rs)
             cls.execute()
 
     except Exception as e:
