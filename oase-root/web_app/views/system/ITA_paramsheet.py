@@ -128,7 +128,7 @@ def _get_param_match_info(version, request=None):
     menu_list = ItaMenuName.objects.all().values('menu_group_id', 'menu_id', 'menu_group_name', 'menu_name')
     for menu in menu_list:
         menu_ids.append(menu['menu_id'])
-        value = '%s:%s:%s:%s' % (menu['menu_group_id'], menu['menu_id'], menu['menu_group_name'], menu['menu_name'])
+        value = '%s:%s:%s:%s' % (menu['menu_group_id'], menu['menu_group_name'], menu['menu_id'], menu['menu_name'])
         menu_info[menu['menu_id']] = value
 
     # メッセージ解析情報取得
@@ -168,6 +168,7 @@ def _get_param_match_info(version, request=None):
             data_list.append(data_info)
 
     logger.logic_log('LOSI00002', 'drv_ids:%s, data_count:%s' % (drv_ids, len(data_list)), request=request)
+    logger.logic_log('LOSI00002', menu_info, request=request)
 
     return data_list, drv_info, menu_info
 
