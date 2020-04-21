@@ -127,14 +127,28 @@ def _get_param_match_info(version, request=None):
             logger.user_log('LOSI27001', module_name, request=request)
             raise Http404
 
+        module_name2 = '%sMenuName' % (drv_name)
+        ItaMenuName = getattr(module, module_name2, None)
+        if not ItaMenuName:
+            logger.user_log('LOSI27001', module_name2, request=request)
+            raise Http404
+
         rset = drv_module.objects.filter(ita_driver_id__in=drv_ids)
+        Itaname_dict = ItaMenuName.objects.values('ita_driver_id', 'menu_group_id', 'menu_id', 'menu_group_name', 'menu_name')
+
         for r in rset:
             data_info = {}
             data_info['match_id'] = r.match_id
             data_info['ita_driver_id'] = r.ita_driver_id
             data_info['ita_driver_name'] = drv_info[r.ita_driver_id] if r.ita_driver_id in drv_info else ''
-            data_info['menu_group_id'] = r.menu_group_id
             data_info['menu_id'] = r.menu_id
+
+            disp_name = _make_disp_name(Itaname_dict, r.ita_driver_id, r.menu_id)
+
+            if not disp_name:
+                continue
+
+            data_info['disp_name'] = disp_name
             data_info['parameter_name'] = r.parameter_name
             data_info['order'] = r.order
             data_info['conditional_name'] = r.conditional_name
@@ -147,6 +161,27 @@ def _get_param_match_info(version, request=None):
     logger.logic_log('LOSI00002', 'drv_ids:%s, data_count:%s' % (drv_ids, len(data_list)), request=request)
 
     return data_list, drv_info
+
+
+def _make_disp_name(Itaname_dict, ita_driver_id, menu_id):
+    """
+    [メソッド概要]
+      
+    [引数]
+      Itaname_dict : ITAメニュー名管理データ
+      ita_driver_id : ITAドライバーID
+      menu_id : メニューID
+    [戻り値]
+      disp_name : string : 結合文字列
+      (メニューグループID:メニューグループ名:メニューID:メニュー名)
+    """
+
+    for r in Itaname_dict:
+        if r['ita_driver_id'] == ita_driver_id and r['menu_id'] == menu_id:
+            disp_name = '%s:%s:%s:%s' % (r['menu_group_id'], r['menu_group_name'], r['menu_id'], r['menu_name'])
+            return disp_name
+
+    return None
 
 
 @check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
