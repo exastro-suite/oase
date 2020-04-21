@@ -20,8 +20,7 @@ Copyright 2019 NEC Corporation
   <thead>
     <tr>
       <th class="ita-driver-name sort filter" filter-type="common" filter-label="ita-driver-name"><div class="cell-inner">{% get_message 'MOSJA27301' request.user.get_lang_mode showMsgId=False %}</div></th>
-      <th class="menu-group-id sort filter" filter-type="common" filter-label="menu-group-id"><div class="cell-inner">{% get_message 'MOSJA27302' request.user.get_lang_mode showMsgId=False %}</div></th>
-      <th class="menu-id sort filter" filter-type="common" filter-label="menu-id"><div class="cell-inner">{% get_message 'MOSJA27303' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="menu-id sort filter" filter-type="common" filter-label="menu-id"><div class="cell-inner">{% get_message 'MOSJA27329' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="parameter-name sort filter" filter-type="common" filter-label="parameter-name"><div class="cell-inner">{% get_message 'MOSJA27304' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="order sort filter" filter-type="common" filter-label="order"><div class="cell-inner">{% get_message 'MOSJA27305' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="conditional-name sort filter" filter-type="common" filter-label="conditional-name"><div class="cell-inner">{% get_message 'MOSJA27306' request.user.get_lang_mode showMsgId=False %}</div></th>
@@ -35,8 +34,7 @@ Copyright 2019 NEC Corporation
     {% for params in param_list %}
     <tr>
       <td class="ita-driver-name"><div class="cell-inner">{{params.ita_driver_name}}</div></td>
-      <td class="menu-group-id"><div class="cell-inner">{{params.menu_group_id}}</div></td>
-      <td class="menu-id"><div class="cell-inner">{{params.menu_id}}</div></td>
+      <td class="menu-id"><div class="cell-inner">{{params.disp_name}}</div></td>
       <td class="parameter-name"><div class="cell-inner">{{params.parameter_name}}</div></td>
       <td class="order"><div class="cell-inner">{{params.order}}</div></td>
       <td class="conditional-name"><div class="cell-inner">{{params.conditional_name}}</div></td>
