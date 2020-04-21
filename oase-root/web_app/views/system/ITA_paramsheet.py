@@ -115,6 +115,22 @@ def _get_param_match_info(version, request=None):
         drv_ids.append(drv['ita_driver_id'])
         drv_info[drv['ita_driver_id']] = drv['ita_disp_name']
 
+    #　ITAメニュー名称を取得
+    module_name2 = '%sMenuName' % (drv_name)
+    ItaMenuName = getattr(module, module_name2, None)
+    if not ItaMenuName:
+        logger.user_log('LOSI27001', module_name2, request=request)
+        raise Http404
+
+    menu_ids = []
+    menu_info = {}
+
+    menu_list = ItaMenuName.objects.all().values('menu_group_id', 'menu_id', 'menu_group_name', 'menu_name')
+    for menu in menu_list:
+        menu_ids.append(menu['menu_id'])
+        value = '%s:%s:%s:%s' % (menu['menu_group_id'], menu['menu_id'], menu['menu_group_name'], menu['menu_name'])
+        menu_info[menu['menu_id']] = value
+
     # メッセージ解析情報取得
     data_list = []
     if len(drv_ids) > 0:
@@ -125,12 +141,6 @@ def _get_param_match_info(version, request=None):
         drv_module = getattr(module, module_name, None)
         if not drv_module:
             logger.user_log('LOSI27001', module_name, request=request)
-            raise Http404
-
-        module_name2 = '%sMenuName' % (drv_name)
-        ItaMenuName = getattr(module, module_name2, None)
-        if not ItaMenuName:
-            logger.user_log('LOSI27001', module_name2, request=request)
             raise Http404
 
         rset = drv_module.objects.filter(ita_driver_id__in=drv_ids)
@@ -144,7 +154,6 @@ def _get_param_match_info(version, request=None):
             data_info['menu_id'] = r.menu_id
 
             disp_name = _make_disp_name(Itaname_dict, r.ita_driver_id, r.menu_id)
-
             if not disp_name:
                 continue
 
@@ -160,7 +169,7 @@ def _get_param_match_info(version, request=None):
 
     logger.logic_log('LOSI00002', 'drv_ids:%s, data_count:%s' % (drv_ids, len(data_list)), request=request)
 
-    return data_list, drv_info
+    return data_list, drv_info, menu_info
 
 
 def _make_disp_name(Itaname_dict, ita_driver_id, menu_id):
@@ -202,7 +211,7 @@ def index(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names = _get_param_match_info(version, request)
+        data_list, driver_id_names, ita_name_list = _get_param_match_info(version, request)
 
     except Http404:
         raise Http404
@@ -241,8 +250,8 @@ def edit(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names = _get_param_match_info(version, request)
-
+        data_list, driver_id_names, ita_name_list = _get_param_match_info(version, request)
+        logger.logic_log('LOSI00001', ita_name_list, request=request)
     except Http404:
         raise Http404
 
@@ -254,6 +263,7 @@ def edit(request, version):
         'param_list' : data_list,
         'version' : version,
         'driver_id_names' : driver_id_names,
+        'ita_name_list' : ita_name_list,
         'opelist_add' : defs.DABASE_OPECODE.OPELIST_ADD,
         'opelist_mod' : defs.DABASE_OPECODE.OPELIST_MOD,
         'mainmenu_list' : request.user_config.get_menu_list(),
@@ -327,7 +337,6 @@ def modify(request, version):
                     continue
 
                 match_id_list_mod[0].ita_driver_id = rq['ita_driver_id']
-                match_id_list_mod[0].menu_group_id=rq['menu_group_id']
                 match_id_list_mod[0].menu_id=rq['menu_id']
                 match_id_list_mod[0].parameter_name=rq['parameter_name']
                 match_id_list_mod[0].order=rq['order']
@@ -344,7 +353,6 @@ def modify(request, version):
             for rq in ins_data:
                 match_info = ItaParameterMatchInfo(
                     ita_driver_id=rq['ita_driver_id'],
-                    menu_group_id=rq['menu_group_id'],
                     menu_id=rq['menu_id'],
                     parameter_name=rq['parameter_name'],
                     order=rq['order'],
@@ -420,7 +428,6 @@ def _validate(records, version, request=None):
         # エラーメッセージ初期化
         error_msg[r['row_id']] = {
             'ita_driver_id' : '',
-            'menu_group_id' : '',
             'menu_id' : '',
             'parameter_name' : '',
             'order' : '',
@@ -436,7 +443,6 @@ def _validate(records, version, request=None):
         # 入力値チェック
         data = {
             'ita_driver_id' : r['ita_driver_id'],
-            'menu_group_id' : r['menu_group_id'],
             'menu_id' : r['menu_id'],
             'parameter_name' : r['parameter_name'],
             'order' : r['order'],
@@ -467,18 +473,16 @@ def _validate(records, version, request=None):
 
         # 入力エラーがなければ重複チェック
         if r['ita_driver_id'] in match_info \
-        and r['menu_group_id'] in match_info[r['ita_driver_id']] \
-        and r['menu_id'] in match_info[r['ita_driver_id']][r['menu_group_id']] \
-        and r['order'] in match_info[r['ita_driver_id']][r['menu_group_id']][r['menu_id']]:
-            match_info[r['ita_driver_id']][r['menu_group_id']][r['menu_id']][r['order']] += 1
+        and r['menu_id'] in match_info[r['ita_driver_id']] \
+        and r['order'] in match_info[r['ita_driver_id']][r['menu_id']]:
+            match_info[r['ita_driver_id']][r['menu_id']][r['order']] += 1
             logger.user_log(
                 'LOSI27010',
                 r['row_id'],
                 r['ita_driver_id'],
-                r['menu_group_id'],
                 r['menu_id'],
                 r['order'],
-                match_info[r['ita_driver_id']][r['menu_group_id']][r['menu_id']][r['order']],
+                match_info[r['ita_driver_id']][r['menu_id']][r['order']],
                 request=request
             )
             error_flag = True
@@ -488,13 +492,10 @@ def _validate(records, version, request=None):
         if r['ita_driver_id'] not in match_info:
             match_info[r['ita_driver_id']] = {}
 
-        if r['menu_group_id'] not in match_info[r['ita_driver_id']]:
-            match_info[r['ita_driver_id']][r['menu_group_id']] = {}
+        if r['menu_id'] not in match_info[r['ita_driver_id']]:
+            match_info[r['ita_driver_id']][r['menu_id']] = {}
 
-        if r['menu_id'] not in match_info[r['ita_driver_id']][r['menu_group_id']]:
-            match_info[r['ita_driver_id']][r['menu_group_id']][r['menu_id']] = {}
-
-        if r['order'] not in match_info[r['ita_driver_id']][r['menu_group_id']][r['menu_id']]:
-            match_info[r['ita_driver_id']][r['menu_group_id']][r['menu_id']][r['order']] = 1
+        if r['order'] not in match_info[r['ita_driver_id']][r['menu_id']]:
+            match_info[r['ita_driver_id']][r['menu_id']][r['order']] = 1
 
     return error_flag, error_msg
