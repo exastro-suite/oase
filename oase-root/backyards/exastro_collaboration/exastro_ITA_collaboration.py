@@ -71,6 +71,7 @@ except Exception as e:
 from libs.commonlibs.oase_logger import OaseLogger
 logger = OaseLogger.get_instance()
 
+from libs.backyardlibs.oase_action_common_libs import ConstantModules as Cstobj
 from libs.backyardlibs.action_driver.ITA.ITA_core import ITA1Core
 from libs.commonlibs import define as defs
 from libs.commonlibs.aes_cipher import AESCipher
@@ -89,7 +90,7 @@ class ITAParameterSheetMenuManager:
         ITAパラメーターシートメニュー管理クラス
     """
 
-    def __init__(self, drv_info):
+    def __init__(self, drv_info, user_name, now=None):
         """
         [概要]
         コンストラクタ
@@ -99,6 +100,8 @@ class ITAParameterSheetMenuManager:
 
         cipher = AESCipher(settings.AES_KEY)
 
+        self.now = now if now else datetime.datetime.now()
+        self.user_name = user_name
         self.drv_id = drv_info['ita_driver_id']
         self.ita_config = {}
         self.ita_config['Protocol'] = drv_info['protocol']
@@ -106,7 +109,7 @@ class ITAParameterSheetMenuManager:
         self.ita_config['PortNo'] = drv_info['port']
         self.ita_config['user'] = drv_info['username']
         self.ita_config['password'] = cipher.decrypt(drv_info['password'])
-        self.ita_config['menuID'] = '2100160001'
+        self.ita_config['menuID'] = ''
 
     def get_menu_list(self):
         """
@@ -120,10 +123,43 @@ class ITAParameterSheetMenuManager:
         logger.logic_log('LOSI00001', 'メニューリスト取得処理開始 drv_id=%s' % (self.drv_id))
 
         ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+
+        # メニュー作成情報取得
+        self.ita_config['menuID'] = '2100160001'
         flg, menu_list = ita_core.select_create_menu_info_list(
             self.ita_config,
             'パラメータシート'  # TODO : 多言語対応
         )
+
+        # メニュー作成情報取得エラー
+        if not flg:
+            logger.system_log('LOSMメニュー作成情報取得エラー')
+            return False, []
+
+        # メニュー管理取得用の条件を作成
+        menu_names = []
+        group_names = []
+        for menu in menu_list:
+            if menu[Cstobj.FCMI_MENU_NAME]:
+                menu_names.append(menu[Cstobj.FCMI_MENU_NAME])
+
+            if menu[Cstobj.FCMI_MENUGROUP]:
+                group_names.append(menu[Cstobj.FCMI_MENUGROUP])
+
+        # メニュー管理取得
+        self.ita_config['menuID'] = '2100000205'
+        flg, menu_list = ita_core.select_menu_list(
+            self.ita_config,
+            menu_names=menu_names,
+            group_names=group_names,
+            range_start=1,
+            range_end=2000000000
+        )
+
+        # メニュー管理取得エラー
+        if not flg:
+            logger.system_log('LOSMメニュー管理取得エラー')
+            return False, []
 
         logger.logic_log(
             'LOSI00002',
@@ -138,9 +174,79 @@ class ITAParameterSheetMenuManager:
         """
         [概要]
         パラメーターシートメニューの情報を保存
+        ※try句内で呼び出すこと
         """
 
-        pass
+        # ITAから取得したメニュー情報を作成
+        ita_data = {}
+        ita_set = set()
+        for menu in menu_list:
+            group_id = int(menu[Cstobj.AML_MENU_GROUP_ID])
+            menu_id = int(menu[Cstobj.AML_MENU_ID])
+            group_name = menu[Cstobj.AML_MENU_GROUP_NAME]
+            menu_name = menu[Cstobj.AML_MENU_NAME]
+
+            group_menu_tpl = (group_id, menu_id)
+            ita_set.add(group_menu_tpl)
+            ita_data[group_menu_tpl] = {
+                'group_name' : group_name,
+                'menu_name' : menu_name,
+            }
+
+        # OASEが保持しているメニュー情報を作成
+        oase_data = {}
+        oase_set = set()
+        rset = ItaMenuName.objects.select_for_update().filter(ita_driver_id=self.drv_id)
+        rset = rset.values('ita_menu_name_id', 'menu_group_id', 'menu_id')
+        for rs in rset:
+            group_menu_tpl = (rs['menu_group_id'], rs['menu_id'])
+            oase_set.add(group_menu_tpl)
+            oase_data[group_menu_tpl] = rs['ita_menu_name_id']
+
+        # OASEには存在する／ITAには存在しない情報は削除
+        del_ids = []
+        del_set = oase_set - ita_set
+        for d in del_set:
+            if d in oase_data:
+                del_ids.append(oase_data[d])
+
+        if len(del_ids) > 0:
+            ItaMenuName.objects.filter(ita_menu_name_id__in=del_ids).delete()
+
+        # OASEにも存在する／ITAにも存在する情報は更新
+        upd_set = oase_set & ita_set
+        for u in upd_set:
+            if u not in oase_data or u not in ita_data:
+                continue
+
+            pkey = oase_data[u]
+            group_name = ita_data[u]['group_name']
+            menu_name = ita_data[u]['menu_name']
+            ItaMenuName.objects.filter(ita_menu_name_id=pkey).update(
+                menu_group_name = group_name,
+                menu_name = menu_name,
+                last_update_timestamp = self.now,
+                last_update_user = self.user_name
+            )
+
+        # OASEには存在しない／ITAには存在する情報は挿入
+        reg_list = []
+        reg_set = ita_set - oase_set
+        for r in reg_set:
+            reg_list.append(
+                ItaMenuName(
+                    ita_driver_id = self.drv_id,
+                    menu_group_id = r[0],
+                    menu_id = r[1],
+                    menu_group_name = ita_data[r]['group_name'],
+                    menu_name = ita_data[r]['menu_name'],
+                    last_update_timestamp = self.now,
+                    last_update_user = self.user_name
+                )
+            )
+
+        if len(reg_list) > 0:
+            ItaMenuName.objects.bulk_create(reg_list)
 
     def execute(self):
         """
@@ -151,22 +257,26 @@ class ITAParameterSheetMenuManager:
         try:
             flg, menu_list = self.get_menu_list()
             if flg:
-                self.save_menu_info(menu_list)
+                with transaction.atomic():
+                    self.save_menu_info(menu_list)
 
         except Exception as e:
-            pass
+            traceback.print_exc()
 
 
 if __name__ == '__main__':
 
     try:
+        now = datetime.datetime.now()
+        user_name = User.objects.get(user_id=DB_OASE_USER).user_name
+
         # ドライバー設定情報取得
         rset = ItaDriver.objects.all().values('ita_driver_id', 'hostname', 'username', 'password', 'protocol', 'port')
 
         # アクション先ごとに情報を取得
         for rs in rset:
             # パラメーターシート用メニュー情報を取得
-            cls = ITAParameterSheetMenuManager(rs)
+            cls = ITAParameterSheetMenuManager(rs, user_name, now)
             cls.execute()
 
     except Exception as e:
