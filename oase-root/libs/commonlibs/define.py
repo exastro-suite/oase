@@ -548,6 +548,7 @@ class SYSTEM_SETTINGS():
         'ad_collaboration' : 'AD_COLLAB_LOG',
         'oase_accept'      : 'REQUEST_ACCEPT_LOG',
         'oase_monitoring'  : 'MONITORING_LOG',
+        'exastro_collaboration'  : 'EXASTRO_LOG',
 }
 
 #-------------------
