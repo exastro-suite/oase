@@ -69,13 +69,12 @@ function addList(tbodyID, dummyID){
     //  更新メニューを追加
     objTr.cells[1].children[0].children[0].id = "selModify" + strID;
     objTr.cells[2].children[0].children[0].id = "ita_driver_name" + strID;
-    objTr.cells[3].children[0].children[0].id = "menu_group_id" + strID;
-    objTr.cells[4].children[0].children[0].id = "menu_id" + strID;
-    objTr.cells[5].children[0].children[0].id = "parameter_name" + strID;
-    objTr.cells[6].children[0].children[0].id = "order" + strID;
-    objTr.cells[7].children[0].children[0].id = "conditional_name" + strID;
-    objTr.cells[8].children[0].children[0].id = "extraction_method1" + strID;
-    objTr.cells[9].children[0].children[0].id = "extraction_method2" + strID;
+    objTr.cells[3].children[0].children[0].id = "menu_id" + strID;
+    objTr.cells[4].children[0].children[0].id = "parameter_name" + strID;
+    objTr.cells[5].children[0].children[0].id = "order" + strID;
+    objTr.cells[6].children[0].children[0].id = "conditional_name" + strID;
+    objTr.cells[7].children[0].children[0].id = "extraction_method1" + strID;
+    objTr.cells[8].children[0].children[0].id = "extraction_method2" + strID;
 
     tableRowCount();
 }
@@ -135,7 +134,6 @@ function submitAnalysisData(tbodyID) {
     var strOpe = "";
     var strMatchID = "";
     var strItaDriverID = "";
-    var strMenuGroupID = "";
     var strMenuID = "";
     var strParameterName = "";
     var strOrder = "";
@@ -145,7 +143,6 @@ function submitAnalysisData(tbodyID) {
 
     var errorFlag = false;
     var errItaDriverID = {};
-    var errMenuGroupID = {};
     var errMenuID = {};
     var errParameterName = {};
     var errOrder =  {};
@@ -204,8 +201,12 @@ function submitAnalysisData(tbodyID) {
         } else {
             strItaDriverID = document.getElementById("ita_driver_name" + strID).value;
         }
-        strMenuGroupID = document.getElementById("menu_group_id" + strID).value;
-        strMenuID = document.getElementById("menu_id" + strID).value;
+        if(strOpe == 1) {
+            MenuID = document.getElementById("menu_id" + strID);
+            strMenuID = MenuID.children["0"].value;
+        } else {
+            strMenuID = document.getElementById("menu_id" + strID).value;
+        }
         strParameterName = document.getElementById("parameter_name" + strID).value;
         strOrder = document.getElementById("order" + strID).value;
         strConditionalName = document.getElementById("conditional_name" + strID).value;
@@ -213,7 +214,6 @@ function submitAnalysisData(tbodyID) {
         strExtractionMethod2 = document.getElementById("extraction_method2" + strID).value;
 
         errItaDriverID[strID] = '';
-        errMenuGroupID[strID] = '';
         errMenuID[strID] = '';
         errParameterName[strID] = '';
         errOrder[strID] =  '';
@@ -223,9 +223,6 @@ function submitAnalysisData(tbodyID) {
 
         if(strItaDriverID == "0") {
             errItaDriverID[strID] += getMessage("MOSJA27315", true) + "\n";
-        }
-        if(strMenuGroupID == "") {
-            errMenuGroupID[strID] += getMessage("MOSJA27316", true) + "\n";
         }
         if(strMenuID == "") {
             errMenuID[strID] += getMessage("MOSJA27317", true) + "\n";
@@ -254,8 +251,6 @@ function submitAnalysisData(tbodyID) {
 
         if(errItaDriverID[strID] != ""){
             errorFlag = true;
-        }else if(errMenuGroupID[strID] != ""){
-            errorFlag = true;
         }else if(errMenuID[strID] != ""){
             errorFlag = true;
         }else if(errParameterName[strID] != ""){
@@ -274,7 +269,6 @@ function submitAnalysisData(tbodyID) {
         dataInfo["ope"] = strOpe;
         dataInfo["match_id"] = strMatchID;
         dataInfo["ita_driver_id"] = strItaDriverID;
-        dataInfo["menu_group_id"] = strMenuGroupID;
         dataInfo["menu_id"] = strMenuID;
         dataInfo["parameter_name"] = strParameterName;
         dataInfo["order"] = strOrder;
@@ -297,22 +291,6 @@ function submitAnalysisData(tbodyID) {
 
             // 今回エラーを表記
             $errInput = $('#' + 'ita_driver_name' + rowId);
-            $errInput.parents('th, td').addClass('error');
-            var errorHTML = '<ul class="error-list">';
-            errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
-            errorHTML += '</ul>';
-            $errInput.after( errorHTML );
-        });
-
-        Object.keys(errMenuGroupID).forEach(function(rowId) {
-            errorStr = errMenuGroupID[rowId];
-
-            if(!errorStr || errorStr.length == 0) {
-                return true;
-            }
-
-            // 今回エラーを表記
-            $errInput = $('#' + 'menu_group_id' + rowId);
             $errInput.parents('th, td').addClass('error');
             var errorHTML = '<ul class="error-list">';
             errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errorStr + '"><em class="owf owf-question"></em></span></li>';
@@ -465,7 +443,6 @@ function submitAction(url) {
             Object.keys(errorMsg).forEach(function(rowId) {
                 errorStr = errorMsg[rowId];
                 errItaDriverID = errorStr['ita_driver_id'];
-                errMenuGroupID = errorStr['menu_group_id'];
                 errMenuID = errorStr['menu_id'];
                 errParameterName = errorStr['parameter_name'];
                 errOrder = errorStr['order'];
@@ -479,16 +456,6 @@ function submitAction(url) {
                     $errInput.parents('th, td').addClass('error');
                     var errorHTML = '<ul class="error-list" name="sub_error">';
                     errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errItaDriverID + '"><em class="owf owf-question"></em></span></li>';
-                    errorHTML += '</ul>';
-                    $errInput.after( errorHTML );
-                }
-
-                if(errMenuGroupID && errMenuGroupID.length > 0) {
-                    // 今回エラーを表記
-                    $errInput = $('#' + 'menu_group_id' + rowId);
-                    $errInput.parents('th, td').addClass('error');
-                    var errorHTML = '<ul class="error-list" name="sub_error">';
-                    errorHTML += '<li><em class="owf owf-cross"></em>' + getMessage("MOSJA00026", false) + '<span class="tooltip help" title="' + errMenuGroupID + '"><em class="owf owf-question"></em></span></li>';
                     errorHTML += '</ul>';
                     $errInput.after( errorHTML );
                 }
