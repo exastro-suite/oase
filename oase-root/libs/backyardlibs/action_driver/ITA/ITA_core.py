@@ -1042,3 +1042,55 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
 
         return True, row_data
+
+    def select_menu_list(self, config, range_start=None, range_end=None, menu_names=[], group_names=[]):
+        """
+        [概要]
+          メニュー管理検索メソッド
+        """
+
+        logger.logic_log('LOSI00001', 'trace_id:%s' % (self.trace_id))
+
+        row_data = []
+
+        # フィルタ条件設定(廃止を除外)
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
+        }
+
+        # フィルタ条件設定(MENU_ID範囲from)
+        if range_start is not None:
+            aryfilter[Cstobj.AML_MENU_ID] = {}
+            aryfilter[Cstobj.AML_MENU_ID]['RANGE'] = {'START':range_start}
+
+        # フィルタ条件設定(MENU_ID範囲to)
+        if range_end is not None:
+            if Cstobj.AML_MENU_ID not in aryfilter:
+                aryfilter[Cstobj.AML_MENU_ID] = {}
+                aryfilter[Cstobj.AML_MENU_ID]['RANGE'] = {'END':0}
+
+            aryfilter[Cstobj.AML_MENU_ID]['RANGE']['END'] = range_end
+
+        # フィルタ条件設定(メニュー名)
+        if len(menu_names) > 0:
+            aryfilter[Cstobj.AML_MENU_NAME] = {'LIST':menu_names}
+
+        # フィルタ条件設定(メニューグループ名)
+        if len(group_names) > 0:
+            aryfilter[Cstobj.AML_MENU_GROUP_NAME] = {'LIST':group_names}
+
+        # メニュー管理情報を取得
+        self.restobj.rest_set_config(config)
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+        if not ret:
+            logger.system_log('LOSE取得失敗')
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+            return False, []
+
+        row_data = self.restobj.rest_get_row_data(ary_result)
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+
+        return True, row_data
