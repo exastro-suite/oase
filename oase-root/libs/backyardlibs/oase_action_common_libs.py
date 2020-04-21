@@ -116,6 +116,11 @@ class ConstantModules:
     EAP_PIONEER_VAR_COUNT             = 8
     EAP_LEGACYROLE_VAR_COUNT          = 10
 
+    ## F_CREATE_MENU_INFO
+    FCMI_MENU_NAME                    = 3
+    FCMI_TARGET                       = 4
+    FCMI_MENUGROUP                    = 9
+
     #OASE_T_RHDM_RESPONSE
     OTRR_RESPONSE_ID                  = 2
     OTRR_REQUEST_TYPE_ID              = 5

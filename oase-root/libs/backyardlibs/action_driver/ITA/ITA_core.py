@@ -91,7 +91,7 @@ class ITA1Rest:
         logger.logic_log(
             'LOSI00001', 'trace_id: %s, symphony_class_no: %s, operation_id: %s, list_symphony_instance_id: %s' %
             (self.trace_id, symphony_class_no, operation_id, list_symphony_instance_id))
-        # サ事開用設定
+        # プロクシ設定
         proxies = {
             "http": None,
             "https": None,
@@ -176,7 +176,7 @@ class ITA1Rest:
         ITA RestAPI insertメゾット
         """
         logger.logic_log('LOSI00001', 'trace_id: %s' % (self.trace_id))
-        # サ事開用設定
+        # プロクシ設定
         proxies = {
             "http": None,
             "https": None,
@@ -258,7 +258,7 @@ class ITA1Rest:
           ITA RestAPI selectメゾット
         """
         logger.logic_log('LOSI00001', 'trace_id: %s, aryfilter: %s' % (self.trace_id, aryfilter))
-        # サ事開用設定
+        # プロクシ設定
         proxies = {
             "http": None,
             "https": None,
@@ -334,7 +334,7 @@ class ITA1Rest:
         """
         logger.logic_log('LOSI00001', 'trace_id: %s, operation_id: %s' % (self.trace_id, operation_id))
 
-        # サ事開用設定
+        # プロクシ設定
         proxies = {
             "http": None,
             "https": None,
@@ -1010,3 +1010,35 @@ class ITA1Core(DriverCore):
 
         return 0
 
+    def select_create_menu_info_list(self, config, target=''):
+        """
+        [概要]
+          メニュー作成情報検索メソッド
+        """
+
+        logger.logic_log('LOSI00001', 'trace_id:%s' % (self.trace_id))
+
+        row_data = []
+
+        # フィルタ条件設定
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
+        }
+
+        if target:
+            aryfilter[Cstobj.FCMI_TARGET] = {'NORMAL':target}
+        
+        self.restobj.rest_set_config(config)
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+        if not ret:
+            logger.system_log('LOSE取得失敗')
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+            return False, []
+
+        row_data = self.restobj.rest_get_row_data(ary_result)
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+
+        return True, row_data
