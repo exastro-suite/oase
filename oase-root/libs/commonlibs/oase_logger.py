@@ -327,6 +327,10 @@ class OaseLogger:
             if 'monitoring' in filename:
                 filename = 'oase_monitoring'
 
+            # exastro系は1つのlogにまとめる
+            if 'exastro' in filename:
+                filename = 'exastro_collaboration'
+
             log_file_path = root_dir_path + '/logs/backyardlogs/' + filename + '/' + filename + '.log'
             system_config_id = defs.SYSTEM_SETTINGS.LOG_PERIOD[filename]
 
