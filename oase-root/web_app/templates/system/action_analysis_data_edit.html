@@ -22,8 +22,7 @@ Copyright 2019 NEC Corporation
       <th class="error-icon-area" style="display:none;"></th>{# エラー表示用 #}
       <th class="operation-menu sort"><div class="cell-inner">{% get_message 'MOSJA00030' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="ita-driver-name sort"><div class="cell-inner">{% get_message 'MOSJA27301' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
-      <th class="menu-group-id sort"><div class="cell-inner">{% get_message 'MOSJA27302' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
-      <th class="menu-id sort"><div class="cell-inner">{% get_message 'MOSJA27303' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+      <th class="menu-id sort"><div class="cell-inner">{% get_message 'MOSJA27329' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
       <th class="parameter-name sort"><div class="cell-inner">{% get_message 'MOSJA27304' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
       <th class="order sort"><div class="cell-inner">{% get_message 'MOSJA27305' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
       <th class="conditional-name sort"><div class="cell-inner">{% get_message 'MOSJA27306' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
@@ -70,8 +69,22 @@ Copyright 2019 NEC Corporation
           </div>
         </div>
       </td>
-      <td class="menu-group-id input"><div class="cell-inner"><input type="number" data-type="number" id="menu_group_id{{params.match_id}}" value="{{params.menu_group_id}}" class="validation-input"></div></td>
-      <td class="menu-id input"><div class="cell-inner"><input type="number" data-type="number" id="menu_id{{params.match_id}}" value="{{params.menu_id}}" class="validation-input"></div></td>
+      <td class="menu-id">
+        <div class="cell-inner">
+          <div class="select">
+            <select class="update validation-input" id="menu_id{{params.menu_id}}">
+              <option value="0" hidden disabled></option>
+              {% for key, values in menu_id.items %}
+                {% if params.menu_id == key %}
+              <option value="{{key}}" selected>{{values}}</option>
+                {% else %}
+              <option value="{{key}}">{{values}}</option>
+                {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </td>
       <td class="parameter-name input"><div class="cell-inner"><input type="text" data-type="text" id="parameter_name{{params.match_id}}" value="{{params.parameter_name}}" data-maxlength="256" class="validation-input"></div></td>
       <td class="order input"><div class="cell-inner"><input type="number" data-type="number" id="order{{params.match_id}}" value="{{params.order}}" class="validation-input"></div></td>
       <td class="conditional-name input"><div class="cell-inner"><input type="text" data-type="text" id="conditional_name{{params.match_id}}" value="{{params.conditional_name}}" data-maxlength="32" class="validation-input"></div></td>
@@ -97,8 +110,18 @@ Copyright 2019 NEC Corporation
           </div>
         </div>
       </td>
-      <td class="menu-group-id input"><div class="cell-inner"><input type="number" data-type="number" value="" class="validation-input"></div></td>
-      <td class="menu-id input"><div class="cell-inner"><input type="number" data-type="number" value="" class="validation-input"></div></td>
+      <td class="menu-id">
+        <div class="cell-inner">
+          <div class="select">
+            <select class="validation-input">
+              <option value="0" hidden disabled selected></option>
+              {% for key, values in menu_id.items %}
+              <option value="{{key}}">{{values}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </td>
       <td class="parameter-name input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="256" class="validation-input"></div></td>
       <td class="order input"><div class="cell-inner"><input type="number" data-type="number" value="" class="validation-input"></div></td>
       <td class="conditional-name input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="32" class="validation-input"></div></td>
