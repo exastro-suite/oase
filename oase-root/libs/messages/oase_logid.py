@@ -392,6 +392,7 @@ class OASELogID:
     Ary['LOSM25014'] = "Execution of zabbix monitoring failed."
     Ary['LOSM27000'] = "Driver version does not exist. (driver_type_id:{}, version:{})"
     Ary['LOSM27001'] = "Invalid request. \"{}\" Key does not exist."
+    Ary['LOSM28001'] = "ITA collaboration failed in {}."
 # LOSI
     Ary['LOSI00001'] = "Method start. [params: {}]"
     Ary['LOSI00002'] = "Method end. [overview of returns: {}]"
@@ -551,6 +552,10 @@ class OASELogID:
     Ary['LOSI27008'] = "Specified Match ID does not exist. (row_id:{}, match_id:{})"
     Ary['LOSI27009'] = "Specified ItaDriver ID does not exist. (row_id:{}, ita_driver_id:{})"
     Ary['LOSI27010'] = "Duplicate entry, unique key. (row_id:{}, ita_driver_id:{}, menu_group_id:{}, menu_id:{}, order:{}, count:{})"
+    Ary['LOSI28001'] = "ITA Driver IDs. (ita_driver_id:{})"
+    Ary['LOSI28002'] = "{} set length. (DriverID:{}, length:{})"
+    Ary['LOSI28003'] = "{} count. (DriverID:{}, count:{})"
+    Ary['LOSI28004'] = "Result: Get {} list. (result:{}, DriverID:{}, length:{})"
 # LOOE
     Ary['LOOE00001'] = "LOOE message1"
     Ary['LOOE00002'] = "LOOE message2"
