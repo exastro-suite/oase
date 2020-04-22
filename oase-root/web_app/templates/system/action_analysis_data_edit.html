@@ -72,9 +72,9 @@ Copyright 2019 NEC Corporation
       <td class="menu-id">
         <div class="cell-inner">
           <div class="select">
-            <select class="update validation-input" id="menu_id{{params.menu_id}}">
+            <select class="update validation-input" id="menu_id{{params.match_id}}">
               <option value="0" hidden disabled></option>
-              {% for key, values in menu_id.items %}
+              {% for key, values in ita_name_list.items %}
                 {% if params.menu_id == key %}
               <option value="{{key}}" selected>{{values}}</option>
                 {% else %}
