@@ -128,7 +128,6 @@ def ITAparamsheet_itaparammatchinfo_data():
     ItaParameterMatchInfo(
         match_id = 999,
         ita_driver_id = 999,
-        menu_group_id = 999,
         menu_id = 999,
         parameter_name = 'パラメーター名',
         order = 0,
@@ -144,6 +143,30 @@ def ITAparamsheet_itaparammatchinfo_data():
     ItaParameterMatchInfo.objects.filter(match_id=999).delete()
 
 @pytest.fixture(scope='function')
+def ITAparamsheet_itamenuname_data():
+    """
+    ITAパラメータ抽出条件データ作成(正常系テスト用)
+    """
+
+    module = import_module('web_app.models.ITA_models')
+    ItaMenuName = getattr(module, 'ItaMenuName')
+
+    ItaMenuName(
+        ita_menu_name_id = 999,
+        ita_driver_id = 999,
+        menu_group_id = 999,
+        menu_id = 999,
+        menu_group_name = 'group',
+        menu_name = 'menu',
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    yield
+
+    ItaMenuName.objects.filter(ita_menu_name_id=999).delete()
+
+@pytest.fixture(scope='function')
 def ITAparamsheet_itaparammatchinfo_data_forupdate():
     """
     ITAパラメータ抽出条件データ作成(正常系テスト用)
@@ -155,7 +178,6 @@ def ITAparamsheet_itaparammatchinfo_data_forupdate():
     ItaParameterMatchInfo(
         match_id = 1,
         ita_driver_id = 1,
-        menu_group_id = 1,
         menu_id = 999,
         parameter_name = 'パラメーター名',
         order = 0,
@@ -169,7 +191,6 @@ def ITAparamsheet_itaparammatchinfo_data_forupdate():
     ItaParameterMatchInfo(
         match_id = 2,
         ita_driver_id = 2,
-        menu_group_id = 2,
         menu_id = 999,
         parameter_name = 'パラメーター名',
         order = 0,
@@ -199,7 +220,8 @@ class TestITAParamSheet(object):
         'ita_table',
         'ITAparamsheet_actiontype_data',
         'ITAparamsheet_itadriver_data',
-        'ITAparamsheet_itaparammatchinfo_data'
+        'ITAparamsheet_itaparammatchinfo_data',
+        'ITAparamsheet_itamenuname_data'
     )
     def test_get_param_match_info_ok(self):
         """
@@ -207,7 +229,7 @@ class TestITAParamSheet(object):
         ※ 正常系
         """
 
-        data_list, drv_info = _get_param_match_info(1)
+        data_list, drv_info, menu_info = _get_param_match_info(1)
 
         assert len(data_list) > 0
 
@@ -215,7 +237,8 @@ class TestITAParamSheet(object):
         'ita_table',
         'ITAparamsheet_actiontype_data',
         'ITAparamsheet_itadriver_data',
-        'ITAparamsheet_itaparammatchinfo_data'
+        'ITAparamsheet_itaparammatchinfo_data',
+        'ITAparamsheet_itamenuname_data'
     )
     def test_get_param_match_info_ng_ver(self):
         """
@@ -226,7 +249,7 @@ class TestITAParamSheet(object):
         sts_code = 200
 
         try:
-            data_list, drv_info = _get_param_match_info(0)
+            data_list, drv_info, menu_info = _get_param_match_info(0)
 
         except Http404:
             sts_code = 404
@@ -250,7 +273,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -286,7 +308,6 @@ class TestITAParamSheet(object):
             '{"ope": "2",'
             ' "match_id": "998",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -322,7 +343,6 @@ class TestITAParamSheet(object):
             '{"ope": "2",'
             ' "match_id": "999",'
             ' "ita_driver_id": "0",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -358,7 +378,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -369,7 +388,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "998",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -395,42 +413,6 @@ class TestITAParamSheet(object):
         'ITAparamsheet_itadriver_data',
         'ITAparamsheet_itaparammatchinfo_data'
     )
-    def test_validate_ng_menugroupid_empty(self):
-        """
-        バリデーション
-        ※ 異常系(menu_group_id)
-        """
-
-        json_str = (
-            '{"json_str": ['
-            '{"ope": "1",'
-            ' "match_id": "999",'
-            ' "ita_driver_id": "999",'
-            ' "menu_group_id": "",'
-            ' "menu_id": "999",'
-            ' "parameter_name": "ホスト名",'
-            ' "order": "0",'
-            ' "conditional_name": "メッセージ本文",'
-            ' "extraction_method1": "(?<=(対象ノード|対象ホスト)= )[a-zA-Z0-9_-]+",'
-            ' "extraction_method2": "",'
-            ' "row_id": "1"}]}'
-        )
-        json_str = json.loads(json_str)
-
-        records = json_str['json_str']
-        version = 1
-        request = None
-
-        error_flag, error_msg = _validate(records, version, request)
-
-        assert 'MOSJA27316' in error_msg['1']['menu_group_id']
-
-    @pytest.mark.usefixtures(
-        'ita_table',
-        'ITAparamsheet_actiontype_data',
-        'ITAparamsheet_itadriver_data',
-        'ITAparamsheet_itaparammatchinfo_data'
-    )
     def test_validate_ng_menuid_empty(self):
         """
         バリデーション
@@ -442,7 +424,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -478,7 +459,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "",'
             ' "order": "0",'
@@ -520,7 +500,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "%s",'
             ' "order": "0",'
@@ -556,7 +535,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "",'
@@ -592,7 +570,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -628,7 +605,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -673,7 +649,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -718,7 +693,6 @@ class TestITAParamSheet(object):
             '{"ope": "1",'
             ' "match_id": "999",'
             ' "ita_driver_id": "999",'
-            ' "menu_group_id": "999",'
             ' "menu_id": "999",'
             ' "parameter_name": "ホスト名",'
             ' "order": "0",'
@@ -811,7 +785,6 @@ class TestITAParamSheet(object):
                     'ope': '1',
                     'match_id': '2',
                     'ita_driver_id': '1',
-                    'menu_group_id': '1',
                     'menu_id': '1',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -824,7 +797,6 @@ class TestITAParamSheet(object):
                     'ope': '1',
                     'match_id': '3',
                     'ita_driver_id': '1',
-                    'menu_group_id': '1',
                     'menu_id': '1',
                     'parameter_name': 'プロセス',
                     'order': '1',
@@ -861,7 +833,6 @@ class TestITAParamSheet(object):
                     'ope': '1',
                     'match_id': '2',
                     'ita_driver_id': '1',
-                    'menu_group_id': '1',
                     'menu_id': '1',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -874,7 +845,6 @@ class TestITAParamSheet(object):
                     'ope': '1',
                     'match_id': '3',
                     'ita_driver_id': '1',
-                    'menu_group_id': '1',
                     'menu_id': '1',
                     'parameter_name': 'プロセス',
                     'order': '1',
@@ -916,7 +886,6 @@ class TestITAParamSheet(object):
                     'ope': '3',
                     'match_id': '999',
                     'ita_driver_id': '999',
-                    'menu_group_id': '999',
                     'menu_id': '999',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -951,7 +920,6 @@ class TestITAParamSheet(object):
                     'ope': '3',
                     'match_id': '999',
                     'ita_driver_id': '999',
-                    'menu_group_id': '999',
                     'menu_id': '999',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -986,7 +954,6 @@ class TestITAParamSheet(object):
                     'ope': '2',
                     'match_id': '1',
                     'ita_driver_id': '1',
-                    'menu_group_id': '1',
                     'menu_id': '999',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -999,7 +966,6 @@ class TestITAParamSheet(object):
                     'ope': '2',
                     'match_id': '2',
                     'ita_driver_id': '2',
-                    'menu_group_id': '2',
                     'menu_id': '999',
                     'parameter_name': 'プロセス',
                     'order': '1',
@@ -1034,7 +1000,6 @@ class TestITAParamSheet(object):
                     'ope': '2',
                     'match_id': '1',
                     'ita_driver_id': '1',
-                    'menu_group_id': '1',
                     'menu_id': '999',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -1047,7 +1012,6 @@ class TestITAParamSheet(object):
                     'ope': '2',
                     'match_id': '2',
                     'ita_driver_id': '2',
-                    'menu_group_id': '2',
                     'menu_id': '999',
                     'parameter_name': 'プロセス',
                     'order': '1',
@@ -1081,7 +1045,6 @@ class TestITAParamSheet(object):
                     'ope': '1',
                     'match_id': '3',
                     'ita_driver_id': '3',
-                    'menu_group_id': '3',
                     'menu_id': '999',
                     'parameter_name': 'メッセージ',
                     'order': '0',
@@ -1094,7 +1057,6 @@ class TestITAParamSheet(object):
                     'ope': '2',
                     'match_id': '1',
                     'ita_driver_id': '1',
-                    'menu_group_id': '1',
                     'menu_id': '999',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -1107,7 +1069,6 @@ class TestITAParamSheet(object):
                     'ope': '3',
                     'match_id': '2',
                     'ita_driver_id': '2',
-                    'menu_group_id': '2',
                     'menu_id': '999',
                     'parameter_name': 'プロセス',
                     'order': '1',
