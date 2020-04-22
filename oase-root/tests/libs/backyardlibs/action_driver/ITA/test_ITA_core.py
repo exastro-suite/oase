@@ -289,3 +289,55 @@ def test_select_operation(monkeypatch):
     assert ret == Cstobj.RET_REST_ERROR
 
 
+def test_select_create_menu_info_list_OK(monkeypatch):
+    """
+    select_create_menu_info_list()の正常系テスト
+    """
+
+    result = []
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    def method_dummy_data(*args, **kwargs):
+        """正常系用"""
+        return {'1': {'ORCHESTRATOR_ID': '3', 'MovementIDName': '1:サービス起動'}}
+
+    # 正常系
+    monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_data', method_dummy_data)
+
+    flg, getdata = core.select_create_menu_info_list(result)
+
+    assert flg == True
+    assert getdata == method_dummy_data
+
+
+def test_select_create_menu_info_list_NG(monkeypatch):
+    """
+    select_create_menu_info_list()の異常系テスト
+    """
+
+    result = []
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_false)
+
+    flg, getdata = core.select_create_menu_info_list(result)
+
+    assert flg == False
+    assert getdata == []
+
+
+def test_select_menu_list_OK(monkeypatch):
+    """
+    select_menu_list()の正常系テスト
+    """
+
+
+
+
+def test_select_menu_list_NG(monkeypatch):
+    """
+    select_menu_list()の異常系テスト
+    """
