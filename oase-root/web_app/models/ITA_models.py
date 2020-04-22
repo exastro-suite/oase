@@ -76,7 +76,6 @@ class ItaParameterMatchInfo(models.Model):
     """
     match_id = models.AutoField("パラメータ抽出条件ID", primary_key=True)
     ita_driver_id = models.IntegerField("ITAドライバID")
-    menu_group_id = models.IntegerField("メニューグループID")
     menu_id = models.IntegerField("メニューID")
     parameter_name = models.CharField("パラメータ名", max_length=256)
     order = models.IntegerField("順序")
@@ -88,7 +87,7 @@ class ItaParameterMatchInfo(models.Model):
 
     class Meta:
         db_table = 'OASE_T_ITA_PARAMETER_MATCH_INFO'
-        unique_together = (('ita_driver_id', 'menu_group_id', 'menu_id', 'order'), )
+        unique_together = (('ita_driver_id', 'menu_id', 'order'), )
 
     def __str__(self):
         return str(self.match_id)
