@@ -181,6 +181,30 @@ class InstallDriverInfo():
         ['web_app/views/system/%s/', 'action_%s.py'],
     ]
 
+    PLUGIN_FILES_DIC = {
+        'ITA' : [
+            ['backyards/exastro_collaboration/', 'exastro_%s_collaboration.py'],
+            ['backyards/exastro_collaboration/', 'oase-%s-collaboration.service', '/usr/lib/systemd/system/'],
+            ['confs/backyardconfs/services/', '%s_collaboration_env', '/etc/sysconfig/'],
+        ]
+    }
+
+    # 関連サービスの設定
+    INSTALL_SERVICE_DIC = {
+        'ITA' : [
+            ["systemctl", "daemon-reload"],
+            ["systemctl", "start", "oase-%s-collaboration.service"],
+            ["systemctl", "enable", "oase-%s-collaboration.service"],
+        ]
+    }
+
+    UNINSTALL_SERVICE_DIC = {
+        'ITA' : [
+            ["systemctl", "disable", "oase-%s-collaboration.service"],
+            ["systemctl", "stop", "oase-%s-collaboration.service"],
+        ]
+    }
+
     # インポート修正対象ファイルパス
     MODIFY_IMPORT_FILES = [
         'web_app/views/system/urls.py',
@@ -221,33 +245,86 @@ class InstallDriverInfo():
         self.config = configparser.ConfigParser()
         self.config.read(config_filepath)
 
+    def get_driver_version_name(self):
+
+        ver_name = self.driver_name
+        if self.driver_major > 1:
+            ver_name = '%s%s' % (self.driver_name, self.driver_major)
+
+        return ver_name
+
+    def copy_files_common(self, plug_dir, plug_file, drv_name, fix_dst_path=''):
+        """
+        資材コピーの共通処理
+        """
+
+        plugin_dir = plug_dir if plug_dir.find('%s') < 0 else plug_dir % (drv_name)
+        plugin_file = plug_file if plug_file.find('%s') < 0 else plug_file % (drv_name)
+
+        dst_path = '%s%s' % (self.dst_root_path, plugin_dir)
+        os.makedirs(dst_path, exist_ok=True)
+
+        src_filepath = '%s%s/%s' % (self.src_root_path, drv_name, plugin_file)
+        dst_filepath = '%s%s' % (dst_path, plugin_file)
+
+        if not os.path.exists(src_filepath):
+            print('コピー元ファイルが存在しません src=%s' % (src_filepath))
+            return
+
+        shutil.copy(src_filepath, dst_filepath)
+
+        if fix_dst_path:
+            shutil.copy(src_filepath, fix_dst_path)
+
     def copy_files(self):
         """
         資材のコピー
         """
+
+        drv_ver_name = self.get_driver_version_name()
+
         for plugins in self.PLUGIN_FILES:
-            plugin_dir = plugins[0] if plugins[0].find('%s') < 0 else plugins[0] % (self.driver_name)
-            plugin_file = plugins[1] if plugins[1].find('%s') < 0 else plugins[1] % (self.driver_name)
+            self.copy_files_common(plugins[0], plugins[1], self.driver_name)
 
-            dst_path = '%s%s' % (self.dst_root_path, plugin_dir)
-            os.makedirs(dst_path, exist_ok=True)
+        if drv_ver_name in self.PLUGIN_FILES_DIC:
+            for plugins in self.PLUGIN_FILES_DIC[drv_ver_name]:
+                self.copy_files_common(plugins[0], plugins[1], drv_ver_name, '' if len(plugins) < 3 else plugins[2])
 
-            src_filepath = '%s%s/%s' % (self.src_root_path, self.driver_name, plugin_file)
-            dst_filepath = '%s%s' % (dst_path, plugin_file)
+    def remove_files(self, plug_dir, plug_file, drv_name, fix_dst_path=''):
+        """
+        資材の削除
+        """
 
-            if not os.path.exists(src_filepath):
-                print('コピー元ファイルが存在しません src=%s' % (src_filepath))
-                continue
+        plugin_dir = plug_dir if plug_dir.find('%s') < 0 else plug_dir % (drv_name)
+        plugin_file = plug_file if plug_file.find('%s') < 0 else plug_file % (drv_name)
 
-            shutil.copy(src_filepath, dst_filepath)
+        dst_path = '%s%s' % (self.dst_root_path, plugin_dir)
+        dst_filepath = '%s%s' % (dst_path, plugin_file)
+
+        if os.path.exists(plugin_dir):
+            os.remove(dst_filepath)
+            if self.driver_name in plugin_dir:
+                shutil.rmtree(plugin_dir)
+
+        if fix_dst_path:
+            dst_filepath = '%s%s' % (fix_dst_path, plugin_file)
+            if dst_filepath != '/':
+                os.remove(dst_filepath)
 
     def install(self):
         """
         インストールを実行
         """
         self.copy_files()
+
         # インストール資材の読込
         subprocess.call(["systemctl", "reload", "uwsgi.service"])
+
+        drv_ver_name = self.get_driver_version_name()
+        if drv_ver_name in self.INSTALL_SERVICE_DIC:
+            for srv in self.INSTALL_SERVICE_DIC[drv_ver_name]:
+                comm_list = [s if s.find('%s') < 0 else s % (drv_ver_name) for s in srv]
+                subprocess.call(comm_list)
 
         # テーブル作成
         if self.config:
@@ -288,20 +365,24 @@ class InstallDriverInfo():
         ActionType.objects.filter(driver_type_id=self.driver_id).update(disuse_flag=str(defs.DISABLE))
 
         # 資材の削除
+        drv_ver_name = self.get_driver_version_name()
         for plugins in self.PLUGIN_FILES:
-            plugin_dir = plugins[0] if plugins[0].find('%s') < 0 else plugins[0] % (self.driver_name)
-            plugin_file = plugins[1] if plugins[1].find('%s') < 0 else plugins[1] % (self.driver_name)
-
-            dst_path = '%s%s' % (self.dst_root_path, plugin_dir)
-            dst_filepath = '%s%s' % (dst_path, plugin_file)
-
-            if os.path.exists(plugin_dir):
-                os.remove(dst_filepath)
-                if self.driver_name in plugin_dir:
-                    shutil.rmtree(plugin_dir)
+            self.remove_files(plugins[0], plugins[1], self.driver_name)
 
         # インストール資材の読込
         subprocess.call(["systemctl", "reload", "uwsgi.service"])
+
+        # 固有サービス停止
+        drv_ver_name = self.get_driver_version_name()
+        if drv_ver_name in self.UNINSTALL_SERVICE_DIC:
+            for srv in self.UNINSTALL_SERVICE_DIC[drv_ver_name]:
+                comm_list = [s if s.find('%s') < 0 else s % (drv_ver_name) for s in srv]
+                subprocess.call(comm_list)
+
+        # 固有サービス資材の削除
+        if drv_ver_name in self.PLUGIN_FILES_DIC:
+            for plugins in self.PLUGIN_FILES_DIC[drv_ver_name]:
+                self.remove_files(plugins[0], plugins[1], drv_ver_name, '' if len(plugins) < 3 else plugins[2])
 
 
 def get_driver_master(ids=[]):
