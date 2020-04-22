@@ -22,9 +22,6 @@ class ItaParameterMatchInfoForm(forms.Form):
     ita_driver_id_errors = {
         'required': 'MOSJA27315',
     }
-    menu_group_id_errors = {
-        'required': 'MOSJA27316',
-    }
     menu_id_errors = {
         'required': 'MOSJA27317',
     }
@@ -47,7 +44,6 @@ class ItaParameterMatchInfoForm(forms.Form):
     }
 
     ita_driver_id = forms.IntegerField(required=True, error_messages=ita_driver_id_errors)
-    menu_group_id = forms.IntegerField(required=True, error_messages=menu_group_id_errors)
     menu_id = forms.IntegerField(required=True, error_messages=menu_id_errors)
     parameter_name = forms.CharField(max_length=256, required=True, error_messages=parameter_name_errors)
     order = forms.IntegerField(required=True, error_messages=order_errors)
@@ -62,11 +58,6 @@ class ItaParameterMatchInfoForm(forms.Form):
         ita_driver_id = self.cleaned_data['ita_driver_id']
 
         return ita_driver_id
-
-    def clean_menu_group_id(self):
-        menu_group_id = self.cleaned_data['menu_group_id']
-
-        return menu_group_id
 
     def clean_menu_id(self):
         menu_id = self.cleaned_data['menu_id']
