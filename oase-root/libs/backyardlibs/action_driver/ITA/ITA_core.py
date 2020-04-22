@@ -1016,7 +1016,7 @@ class ITA1Core(DriverCore):
           メニュー作成情報検索メソッド
         """
 
-        logger.logic_log('LOSI00001', 'trace_id:%s' % (self.trace_id))
+        logger.logic_log('LOSI00001', 'trace_id:%s, target:%s' % (self.trace_id, target))
 
         row_data = []
 
@@ -1033,7 +1033,7 @@ class ITA1Core(DriverCore):
         ary_result = {}
         ret = self.restobj.rest_select(aryfilter, ary_result)
         if not ret:
-            logger.system_log('LOSE取得失敗')
+            logger.system_log('LOSE01025', self.trace_id, self.restobj.menu_id, 'Filter', ary_result['status'])
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
             return False, []
 
@@ -1049,7 +1049,12 @@ class ITA1Core(DriverCore):
           メニュー管理検索メソッド
         """
 
-        logger.logic_log('LOSI00001', 'trace_id:%s' % (self.trace_id))
+        logger.logic_log(
+            'LOSI00001',
+            'trace_id:%s, range_s:%s, range_e:%s, menus:%s, groups:%s' % (
+                self.trace_id, range_start, range_end, menu_names, group_names
+            )
+        )
 
         row_data = []
 
@@ -1085,7 +1090,7 @@ class ITA1Core(DriverCore):
         ary_result = {}
         ret = self.restobj.rest_select(aryfilter, ary_result)
         if not ret:
-            logger.system_log('LOSE取得失敗')
+            logger.system_log('LOSE01025', self.trace_id, self.restobj.menu_id, 'Filter', ary_result['status'])
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
             return False, []
 
