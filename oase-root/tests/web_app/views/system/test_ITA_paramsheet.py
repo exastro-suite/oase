@@ -38,7 +38,7 @@ from django.test import Client, RequestFactory
 from libs.commonlibs.common import Common
 from web_app.models.models import ActionType, DriverType, User, PasswordHistory
 
-from web_app.views.system.ITA_paramsheet import _get_param_match_info, _validate, modify as paramsheet_modify
+from web_app.views.system.ITA_paramsheet import _get_param_match_info, _make_disp_name, _validate, modify as paramsheet_modify
 
 
 def get_adminstrator():
@@ -255,6 +255,54 @@ class TestITAParamSheet(object):
             sts_code = 404
 
         assert sts_code == 404
+
+    @pytest.mark.usefixtures(
+        'ita_table',
+        'ITAparamsheet_actiontype_data',
+        'ITAparamsheet_itadriver_data',
+        'ITAparamsheet_itaparammatchinfo_data',
+        'ITAparamsheet_itamenuname_data'
+    )
+    def test_make_disp_name_ok(self):
+        """
+        文字列結合処理
+        ※ 正常系
+        """
+
+        module = import_module('web_app.models.ITA_models')
+        ItaMenuName = getattr(module, 'ItaMenuName')
+
+        Itaname_dict = ItaMenuName.objects.values('ita_driver_id', 'menu_group_id', 'menu_id', 'menu_group_name', 'menu_name')
+        ita_driver_id = 999
+        menu_id = 999
+
+        disp_name = _make_disp_name(Itaname_dict, ita_driver_id, menu_id)
+
+        assert len(disp_name) > 0
+
+    @pytest.mark.usefixtures(
+        'ita_table',
+        'ITAparamsheet_actiontype_data',
+        'ITAparamsheet_itadriver_data',
+        'ITAparamsheet_itaparammatchinfo_data',
+        'ITAparamsheet_itamenuname_data'
+    )
+    def test_make_disp_name_ng(self):
+        """
+        文字列結合処理
+        ※ データが一致しない場合
+        """
+
+        module = import_module('web_app.models.ITA_models')
+        ItaMenuName = getattr(module, 'ItaMenuName')
+
+        Itaname_dict = ItaMenuName.objects.values('ita_driver_id', 'menu_group_id', 'menu_id', 'menu_group_name', 'menu_name')
+        ita_driver_id = 1
+        menu_id = 1
+
+        disp_name = _make_disp_name(Itaname_dict, ita_driver_id, menu_id)
+
+        assert disp_name == None
 
     @pytest.mark.usefixtures(
         'ita_table',
