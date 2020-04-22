@@ -131,4 +131,4 @@ class ItaMenuName(models.Model):
         db_table = 'OASE_T_ITA_MENU_NAME'
 
     def __str__(self):
-        return str(self.match_id)
+        return str(self.ita_menu_name_id)
