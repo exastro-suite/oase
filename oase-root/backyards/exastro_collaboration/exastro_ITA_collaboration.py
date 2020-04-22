@@ -82,7 +82,7 @@ from web_app.models.ITA_models import ItaDriver, ItaMenuName
 #-------------------
 # STATUS
 #-------------------
-DB_OASE_USER = 1 # -2140000006
+DB_OASE_USER = -2140000006
 
 class ITAParameterSheetMenuManager:
     """
