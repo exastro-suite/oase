@@ -120,7 +120,10 @@ class ITAParameterSheetMenuManager:
         menu_list : list : パラメーターシートメニューの情報リスト
         """
 
-        logger.logic_log('LOSI00001', 'メニューリスト取得処理開始 drv_id=%s' % (self.drv_id))
+        logger.logic_log(
+            'LOSI00001',
+            'Start ITAParameterSheetMenuManager.get_menu_list. DriverID=%s' % (self.drv_id)
+        )
 
         ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
 
@@ -131,10 +134,15 @@ class ITAParameterSheetMenuManager:
             'パラメータシート'  # TODO : 多言語対応
         )
 
+        logger.logic_log('LOSI28004', 'create_menu_info', flg, self.drv_id, len(menu_list))
+
         # メニュー作成情報取得エラー
         if not flg:
-            logger.system_log('LOSMメニュー作成情報取得エラー')
             return False, []
+
+        # 取得件数0件
+        if len(menu_list) <= 0:
+            return True, []
 
         # メニュー管理取得用の条件を作成
         menu_names = []
@@ -156,14 +164,15 @@ class ITAParameterSheetMenuManager:
             range_end=2000000000
         )
 
+        logger.logic_log('LOSI28004', 'menu', flg, self.drv_id, len(menu_list))
+
         # メニュー管理取得エラー
         if not flg:
-            logger.system_log('LOSMメニュー管理取得エラー')
             return False, []
 
         logger.logic_log(
             'LOSI00002',
-            'メニューリスト取得処理終了 drv_id=%s, result=%s, count=%s' % (
+            'End ITAParameterSheetMenuManager.get_menu_list. DriverID=%s, result=%s, count=%s' % (
                 self.drv_id, flg, len(menu_list)
             )
         )
@@ -176,6 +185,11 @@ class ITAParameterSheetMenuManager:
         パラメーターシートメニューの情報を保存
         ※try句内で呼び出すこと
         """
+
+        logger.logic_log(
+            'LOSI00001',
+            'Start ITAParameterSheetMenuManager.save_menu_info. DriverID=%s' % (self.drv_id)
+        )
 
         # ITAから取得したメニュー情報を作成
         ita_data = {}
@@ -193,6 +207,8 @@ class ITAParameterSheetMenuManager:
                 'menu_name' : menu_name,
             }
 
+        logger.logic_log('LOSI28002', 'ITA', self.drv_id, len(ita_set))
+
         # OASEが保持しているメニュー情報を作成
         oase_data = {}
         oase_set = set()
@@ -203,6 +219,8 @@ class ITAParameterSheetMenuManager:
             oase_set.add(group_menu_tpl)
             oase_data[group_menu_tpl] = rs['ita_menu_name_id']
 
+        logger.logic_log('LOSI28002', 'OASE', self.drv_id, len(oase_set))
+
         # OASEには存在する／ITAには存在しない情報は削除
         del_ids = []
         del_set = oase_set - ita_set
@@ -212,6 +230,8 @@ class ITAParameterSheetMenuManager:
 
         if len(del_ids) > 0:
             ItaMenuName.objects.filter(ita_menu_name_id__in=del_ids).delete()
+
+        logger.logic_log('LOSI28003', 'Delete', self.drv_id, len(del_ids))
 
         # OASEにも存在する／ITAにも存在する情報は更新
         upd_set = oase_set & ita_set
@@ -228,6 +248,8 @@ class ITAParameterSheetMenuManager:
                 last_update_timestamp = self.now,
                 last_update_user = self.user_name
             )
+
+        logger.logic_log('LOSI28003', 'Update', self.drv_id, len(upd_set))
 
         # OASEには存在しない／ITAには存在する情報は挿入
         reg_list = []
@@ -248,11 +270,23 @@ class ITAParameterSheetMenuManager:
         if len(reg_list) > 0:
             ItaMenuName.objects.bulk_create(reg_list)
 
+        logger.logic_log('LOSI28003', 'Insert', self.drv_id, len(reg_list))
+
+        logger.logic_log(
+            'LOSI00002',
+            'End ITAParameterSheetMenuManager.save_menu_info. DriverID=%s' % (self.drv_id)
+        )
+
     def execute(self):
         """
         [概要]
         ITAからパラメーターシートメニューの情報を取得して保存
         """
+
+        logger.logic_log(
+            'LOSI00001',
+            'Start ITAParameterSheetMenuManager.execute. DriverID=%s' % (self.drv_id)
+        )
 
         try:
             flg, menu_list = self.get_menu_list()
@@ -261,17 +295,26 @@ class ITAParameterSheetMenuManager:
                     self.save_menu_info(menu_list)
 
         except Exception as e:
-            traceback.print_exc()
+            logger.system_log('LOSM28001', 'execute')
+            logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
+
+        logger.logic_log(
+            'LOSI00002',
+            'End ITAParameterSheetMenuManager.execute. DriverID=%s' % (self.drv_id)
+        )
 
 
 if __name__ == '__main__':
 
     try:
+        logger.logic_log('LOSI00001', 'Start ITA collaboration.')
+
         now = datetime.datetime.now()
         user_name = User.objects.get(user_id=DB_OASE_USER).user_name
 
         # ドライバー設定情報取得
         rset = ItaDriver.objects.all().values('ita_driver_id', 'hostname', 'username', 'password', 'protocol', 'port')
+        logger.logic_log('LOSI28001', [rs['ita_driver_id'] for rs in rset])
 
         # アクション先ごとに情報を取得
         for rs in rset:
@@ -279,8 +322,10 @@ if __name__ == '__main__':
             cls = ITAParameterSheetMenuManager(rs, user_name, now)
             cls.execute()
 
+        logger.logic_log('LOSI00002', 'End ITA collaboration.')
+
     except Exception as e:
-        logger.system_log('LOSM25012')
+        logger.system_log('LOSM28001', 'main')
         logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
         sys.exit(2)
 
