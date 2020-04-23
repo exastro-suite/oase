@@ -156,9 +156,7 @@ class TestITAParameterSheetMenuManager(object):
         patch_return = [[None, '', '1', 'OASEメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'OASE_MenuGroup(Host)', 'OASE_MenuGroup(Ref)', '', None, None, '2020/04/10 15:02:08', 'T_20200410150208611888', 'システム管理者'], [None, '', '2', 'OASEメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '2', 'ホスト 用', '', '', 'テストメニュー（Host）', 'testメニュー （Ref）', '', 'テスト', None, '2020/04/16 17:35:02', 'T_20200416173502336962', 'システム管理者']]
 
         monkeypatch.setattr(ITA1Core, 'select_create_menu_info_list', lambda x, y, z: (True, patch_return))
-        monkeypatch.setattr(ITA1Core, 'select_menu_list', lambda *_: (True, patch_return))
-
-        # self.target.ita_config
+        monkeypatch.setattr(ITA1Core, 'select_menu_list', lambda a, b, menu_names=[], group_names=[], range_start=0, range_end=0: (True, patch_return))
 
         flg, get_data = self.target.get_menu_list()
 
