@@ -24,6 +24,7 @@ from django.utils import timezone
  DOSL07004:ITAパラメータ抽出条件管理
  DOSL07005:ITAパラメータ実行管理
  DOSL07006:ITAメニュー名管理
+ DOSL07007:ITAドライバ権限管理
 """
 
 
@@ -131,3 +132,22 @@ class ItaMenuName(models.Model):
 
     def __str__(self):
         return str(self.ita_menu_name_id)
+
+
+class ItaPermission(models.Model):
+    """
+    DOSL07007:ITAドライバ権限管理
+    """
+    ita_permission_id = models.AutoField("ITAドライバ権限ID", primary_key=True)
+    ita_driver_id = models.IntegerField("ITAドライバID")
+    group_id = models.IntegerField("グループID")
+    permission_type_id = models.IntegerField("権限種別ID")
+    last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
+    last_update_user = models.CharField("最終更新者", max_length=64)
+
+    class Meta:
+        db_table = 'OASE_T_ITA_PERMISSION'
+        unique_together = (('ita_driver_id', 'group_id', 'permission_type_id'), )
+
+    def __str__(self):
+        return str(self.ita_permission_id)
