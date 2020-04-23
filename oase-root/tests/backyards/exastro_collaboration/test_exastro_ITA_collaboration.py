@@ -30,52 +30,75 @@ import datetime
 import traceback
 import pytz
 
+from libs.backyardlibs.action_driver.ITA.ITA_core import ITA1Core
+from libs.commonlibs.aes_cipher import AESCipher
+from libs.commonlibs.define import *
+from importlib import import_module
+
+from django.conf import settings
 from django.db import transaction
 from mock import Mock
 
-
-from libs.backyardlibs.oase_action_common_libs import ConstantModules as Cstobj
-from libs.backyardlibs.action_driver.ITA.ITA_core import ITA1Core
-from libs.commonlibs.define import *
-from libs.webcommonlibs.events_request import EventsRequestCommon
-from web_app.models.models import EventsRequest
-
-
 # 環境変数設定
 oase_root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..')
-os.environ['OASE_ROOT_DIR'] = oase_root_dir 
+os.environ['OASE_ROOT_DIR'] = oase_root_dir
 os.environ['RUN_INTERVAL']  = '3600'
 os.environ['PYTHON_MODULE'] = '/usr/bin/python3'
 os.environ['LOG_LEVEL']     = "TRACE"
 os.environ['LOG_DIR']       = oase_root_dir + "/logs/backyardlogs/exastro_collaboration/"
 
+# 動的インポート
+module = import_module('web_app.models.models')
+User = getattr(module, 'User')
 
-@pytest.fixture(scope='function')
-def exastro_ITA_collaboration_data():
-
-    # 動的インポート
-    # module = import_module('web_app.models.ZABBIX_monitoring_models')
-    # ZabbixMonitoringHistory = getattr(module, 'ZabbixMonitoringHistory')
-
-    # zabbix_monitoring_history_list = []
-    # for index in range(1, 5):
-    #     zabbix_monitoring_history = ZabbixMonitoringHistory(
-    #             zabbix_adapter_id     = TEST_ZABBIX_ADAPTER_ID + index,
-    #             zabbix_lastchange     = index,
-    #             status                = index,
-    #             status_update_id      = gethostname(),
-    #             last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
-    #             last_update_user      = 'unittest_user',
-    #         )
-    #     zabbix_monitoring_history.save(force_insert=True)
-    #     zabbix_monitoring_history_list.append(zabbix_monitoring_history)
-
-    yield
-
-    for zabbix_monitoring_history_item in zabbix_monitoring_history_list:
-        zabbix_monitoring_history_item.delete()
+module2 = import_module('web_app.models.ITA_models')
+ItaDriver = getattr(module2, 'ItaDriver')
 
 
+def set_exastro_ITA_collaboration_data():
+    '''
+    テストデータ作成
+    '''
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    user = User(
+        user_id=999,
+        user_name='unittest_procedure',
+        login_id='',
+        mail_address='',
+        password='',
+        disp_mode_id=DISP_MODE.DEFAULT,
+        lang_mode_id=LANG_MODE.JP,
+        password_count=0,
+        password_expire=datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user='unittest_user',
+        last_update_timestamp=datetime.datetime.now(pytz.timezone('UTC')),
+    )
+    user.save(force_insert=True)
+
+    cipher = AESCipher(settings.AES_KEY)
+    encrypted_password = cipher.encrypt('pytest')
+    ita_driver = ItaDriver(
+        ita_driver_id=99,
+        ita_disp_name='Action43',
+        protocol='https',
+        hostname='pytest-host-name',
+        port='443',
+        username='pytest',
+        password=encrypted_password,
+        last_update_user='pytest',
+        last_update_timestamp=now,
+    )
+    ita_driver.save(force_insert=True)
+
+    return now, user.user_id
+
+def del_exastro_ITA_collaboration_data():
+    '''
+    テストデータ作成
+    '''
+
+    User.objects.all().delete()
+    ItaDriver.objects.all().delete()
 
 
 @pytest.mark.django_db
@@ -94,32 +117,65 @@ class TestITAParameterSheetMenuManager(object):
         print('method_name: {}'.format(method.__name__))
 
         # 動的インポート
-        module = import_module('backyards.monitoring_adapter.ZABBIX_monitoring')
+        module = import_module('backyards.exastro_collaboration.exastro_ITA_collaboration')
         ITAParameterSheetMenuManager = getattr(module, 'ITAParameterSheetMenuManager')
 
-        self.target = ITAParameterSheetMenuManager()
+        now, user_id = set_exastro_ITA_collaboration_data()
+        rset = ItaDriver.objects.all().values('ita_driver_id', 'hostname', 'username', 'password', 'protocol', 'port')
+
+        for rs in rset:
+            self.target = ITAParameterSheetMenuManager(rs, user_id, now)
 
     def teardown_method(self, method):
         print('method_name: {}:'.format(method.__name__))
         del self.target
+        del_exastro_ITA_collaboration_data()
+
+
+    def get_configs(self):
+        configs = {
+            'Protocol': 'https',
+            'Host': 'pytest-host-name',
+            'PortNo': '443',
+            'user': u'pytest',
+            'password': u'pytest',
+            'menuID': '',
+        }
+        return configs
 
 
     ########################
     # TESTここから
     ########################
 
-    @pytest.mark.usefixtures('')
-    def test_get_menu_list_1(self, monkeypatch):
+    def test_get_menu_list_OK(self, monkeypatch):
         """
         パラメーターシートメニューの情報リストを取得(正常系)
         """
-        module = getattr(import_module('web_app.views.system'), 'ITA_paramsheet')
 
-        monkeypatch.setattr(module, 'select_create_menu_info_list', lambda x, y, z: (False, {}))
+        patch_return = [[None, '', '1', 'OASEメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'OASE_MenuGroup(Host)', 'OASE_MenuGroup(Ref)', '', None, None, '2020/04/10 15:02:08', 'T_20200410150208611888', 'システム管理者'], [None, '', '2', 'OASEメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '2', 'ホスト 用', '', '', 'テストメニュー（Host）', 'testメニュー （Ref）', '', 'テスト', None, '2020/04/16 17:35:02', 'T_20200416173502336962', 'システム管理者']]
+
+        monkeypatch.setattr(ITA1Core, 'select_create_menu_info_list', lambda x, y, z: (True, patch_return))
+        monkeypatch.setattr(ITA1Core, 'select_menu_list', lambda *_: (True, patch_return))
+
+        # self.target.ita_config
+
+        flg, get_data = self.target.get_menu_list()
+
+        assert flg == True
+        assert get_data == patch_return
 
 
+    def test_get_menu_list_NG(self, monkeypatch):
+        """
+        パラメーターシートメニューの情報リストを取得(正常系)
+        """
 
+        patch_return = []
+        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+        monkeypatch.setattr(ITA1Core, 'select_create_menu_info_list', lambda x, y, z: (False, patch_return))
 
+        flg, get_data = self.target.get_menu_list()
 
-
-
+        assert flg == False
+        assert get_data == patch_return
