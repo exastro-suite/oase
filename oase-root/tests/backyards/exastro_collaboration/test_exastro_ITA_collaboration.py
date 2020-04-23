@@ -53,6 +53,7 @@ User = getattr(module, 'User')
 
 module2 = import_module('web_app.models.ITA_models')
 ItaDriver = getattr(module2, 'ItaDriver')
+ItaMenuName = getattr(module2, 'ItaMenuName')
 
 
 def set_exastro_ITA_collaboration_data():
@@ -90,7 +91,19 @@ def set_exastro_ITA_collaboration_data():
     )
     ita_driver.save(force_insert=True)
 
+    ItaMenuName(
+        ita_menu_name_id=1,
+        ita_driver_id=99,
+        menu_group_id=1,
+        menu_id=1,
+        menu_group_name="デフォルトテストメニューグループ名",
+        menu_name="デフォルトテストメニュー名",
+        last_update_timestamp=datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user="デフォルトシステム最終更新者",
+    ).save(force_insert=True)
+
     return now, user.user_id
+
 
 def del_exastro_ITA_collaboration_data():
     '''
@@ -99,6 +112,7 @@ def del_exastro_ITA_collaboration_data():
 
     User.objects.all().delete()
     ItaDriver.objects.all().delete()
+    ItaMenuName.objects.all().delete()
 
 
 @pytest.mark.django_db
@@ -177,3 +191,26 @@ class TestITAParameterSheetMenuManager(object):
 
         assert flg == False
         assert get_data == patch_return
+
+    def test_save_menu_list(self):
+        """
+        パラメーターシートメニューの情報リストを保存
+        """
+
+        # テストケース1(追加・変更パターン)
+        test_menu_list = [[None, '', '1', '1', 'OASE_MenuGroup(Host)', '1:OASE_MenuGroup(Host)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/10 15:04:12', 'T_20200410150412624059', 'メニュー作成機能'], [None, '', '3', '3', '追加メニューグループ（Host）', '3:追加メニューグループ（Host）', '追加メニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/16 17:36:07', 'T_20200416173607725733', 'メニュー作成機能']]
+
+        self.target.save_menu_info(test_menu_list)
+        assert ItaMenuName.objects.count() == 2
+
+        # テストケース2(削除パターン)
+        test_menu_list2 = [[None, '', '3', '3', '追加メニューグループ（Host）', '3:追加メニューグループ（Host）', '追加メニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/16 17:36:07', 'T_20200416173607725733', 'メニュー作成機能']]
+
+        self.target.save_menu_info(test_menu_list2)
+        assert ItaMenuName.objects.count() == 1
+
+        # テストケース3(ITAのデータとOASEのデータに差異がないパターン)
+        self.target.save_menu_info(test_menu_list2)
+        assert ItaMenuName.objects.count() == 1
+
+        del_exastro_ITA_collaboration_data()
