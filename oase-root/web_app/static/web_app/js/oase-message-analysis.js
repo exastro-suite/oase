@@ -13,6 +13,9 @@
 // limitations under the License.
 //
 
+// グローバル
+let id = "";
+
 ////////////////////////////////////////////////
 //  編集モードへ移行する
 //  tbodyID(string) : tbodyのid
@@ -536,3 +539,102 @@ function submitAction(url) {
     });
 }
 
+////////////////////////////////////////////////
+//  メニューグループ：メニューのプルダウン処理
+////////////////////////////////////////////////
+function SelectMenuName(obj) {
+    let ita_driver_id = obj.value;
+
+    let token = null;
+    if(document.cookie && document.cookie !== "") {
+        let cookies = document.cookie.split(";");
+        for(let i = 0; i < cookies.length; i++) {
+            let c = jQuery.trim(cookies[i]);
+            if(c.substring(0, "csrftoken".length + 1) === "csrftoken=") {
+                token = decodeURIComponent(c.substring("csrftoken".length + 1));
+                break;
+            }
+        }
+    }
+
+    version = document.getElementById("action_version");
+    temp = obj.id
+    if ( temp == "" ){
+        temp = obj.offsetParent.id
+    }
+    temp = temp.substr(15)
+    id = "menu_id" + temp
+
+    parent = document.getElementById(id);
+
+    while(parent.lastChild){
+        parent.removeChild(parent.lastChild);
+    }
+
+    if(!temp.indexOf('New')){
+        div = document.getElementById(id);
+        select = document.createElement("select");
+        div.appendChild(select);
+        div = document.getElementById(id);
+        option = document.createElement("option");
+        div.children[0].appendChild(option);
+
+    } else {
+        select = document.getElementById(id);
+        option = document.createElement("option");
+        select.appendChild(option);
+    }
+
+    let data = {
+        "version" : version.innerText,
+        "ita_driver_id" : ita_driver_id,
+        "csrfmiddlewaretoken" : token
+    };
+
+    $.ajax({
+        type : "POST",
+        url  : "/oase_web/system/paramsheet/select/",
+        data : data,
+        dataType : "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+
+            index = id.substr(7)
+            i = 0
+            if(!index.indexOf('New')){
+                for (let [key, value] of Object.entries(response_json.menu_info)) {
+                    div = document.getElementById(id);
+                    option = document.createElement("option");
+                    div.children[0].appendChild(option);
+                    div.children[0][i+1].value = key;
+                    div.children[0][i+1].innerText = value;
+                    i = i + 1;
+                }
+            } else {
+                for (let [key, value] of Object.entries(response_json.menu_info)) {
+                    select = document.getElementById(id);
+                    option = document.createElement("option");
+                    select.appendChild(option);
+                    select.children[i+1].value = key;
+                    select.children[i+1].innerText = value;
+                    i = i + 1;
+                }
+            }
+        } else {
+            if(response_json.msg == ""){
+                alert(getMessage("MOSJA27330", true));
+            } else {
+                alert(response_json.msg);
+            }
+
+            window.location.href = "/oase_web/top/logout";
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA03007", false));
+        if(stscode === "error") {
+            window.location.href = "/oase_web/top/logout";
+        }
+    });
+}
