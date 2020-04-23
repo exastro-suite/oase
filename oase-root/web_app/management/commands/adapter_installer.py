@@ -354,7 +354,7 @@ class InstallAdapterInfo():
         if self.adapter_name == 'ZABBIX':
 
             # サービス自動起動無効
-            subprocess.call(["systemctl", "enable", self.ZABBIX_SERVICE_FILE])
+            subprocess.call(["systemctl", "disable", self.ZABBIX_SERVICE_FILE])
 
             # サービス停止
             subprocess.call(["systemctl", "stop", self.ZABBIX_SERVICE_FILE])
