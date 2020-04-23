@@ -327,6 +327,22 @@ function moveMessageAnalysis(version) {
 
     window.location.href = 'paramsheet/' + String( version );
 }
+
+////////////////////////////////////////////////
+//  新規追加画面の表示
+////////////////////////////////////////////////
+$(function(){
+  showNewTable();
+});
+
+function showNewTable(){
+    // アクセス権限情報埋め込み
+    var html = '';
+    {% comment %}MOSJA27027 : 編集可能なグループが存在しません。{% endcomment %}
+    html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+
+    $("#dlAuthGrpListNew").html(html);
+}
 -->
 </script>
 {% endblock %}
@@ -446,6 +462,13 @@ function moveMessageAnalysis(version) {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+          {% comment %}グループ権限の設定{% endcomment %}
+          <div class="oase-modal-block" style="padding-top: 0px;">
+            <h3>{% get_message 'MOSJA00080' request.user.get_lang_mode showMsgId=False %}</h3>
+            <div id="dlAuthGrpListNew" class="authority-group-list">
+              <!-- jQueryでここにタグ追加される -->
             </div>
           </div>
         </div>
