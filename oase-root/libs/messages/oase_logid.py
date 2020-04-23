@@ -392,6 +392,8 @@ class OASELogID:
     Ary['LOSM25014'] = "Execution of zabbix monitoring failed."
     Ary['LOSM27000'] = "Driver version does not exist. (driver_type_id:{}, version:{})"
     Ary['LOSM27001'] = "Invalid request. \"{}\" Key does not exist."
+    Ary['LOSM27002'] = "Invalid request. (ita_driver_id:{}, version:{})"
+    Ary['LOSM27003'] = "Unexpected request ita_driver_id. (ita_driver_id:{})"
     Ary['LOSM28001'] = "ITA collaboration failed in {}."
 # LOSI
     Ary['LOSI00001'] = "Method start. [params: {}]"
