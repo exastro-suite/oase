@@ -65,4 +65,5 @@ urlpatterns = [
     path('paramsheet/<int:version>/', ITA_paramsheet.index, name='paramsheet'),
     path('paramsheet/edit/<int:version>/', ITA_paramsheet.edit, name='paramsheet_edit'),
     path('paramsheet/modify/<int:version>/', ITA_paramsheet.modify, name='paramsheet_modify'),
+    path('paramsheet/select/', ITA_paramsheet.select, name='paramsheet_select'),
 ]
