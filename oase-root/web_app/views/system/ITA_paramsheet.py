@@ -115,7 +115,7 @@ def _get_param_match_info(version, request=None):
         drv_ids.append(drv['ita_driver_id'])
         drv_info[drv['ita_driver_id']] = drv['ita_disp_name']
 
-    #　ITAメニュー名称を取得
+    # ITAメニュー名称を取得
     module_name2 = '%sMenuName' % (drv_name)
     ItaMenuName = getattr(module, module_name2, None)
     if not ItaMenuName:
@@ -383,6 +383,100 @@ def modify(request, version):
 
     redirect_url = reverse('web_app:system:paramsheet', args=[version, ])
     response_json = '{"status": "success", "redirect_url": "%s"}' % redirect_url
+
+    logger.logic_log('LOSI00002', 'None', request=request)
+    return HttpResponse(response_json, content_type="application/json")
+
+
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_ADMIN)
+@require_POST
+def select(request):
+    """
+    [メソッド概要]
+      メニューグループ:メニューのプルダウンリスト作成処理
+    """
+
+    logger.logic_log('LOSI00001', 'None', request=request)
+    msg = ''
+
+    try:
+        ita_driver_id = request.POST.get('ita_driver_id', None)
+        version = request.POST.get('version', None)
+
+        # パラメーターチェック
+        if ita_driver_id is None or version is None:
+            msg = get_message('MOSJA27310', request.user.get_lang_mode())
+            logger.user_log('LOSM27002', ita_driver_id, version, request=request)
+            raise Exception()
+
+        ita_driver_id = int(ita_driver_id)
+        version = int(version)
+
+        # リクエストデータの妥当性チェック
+        if ita_driver_id <= 0:
+            msg = get_message('MOSJA27310', request.user.get_lang_mode())
+            logger.user_log('LOSM27003', ita_driver_id, request=request)
+            raise Exception()
+
+        # インストールドライバー取得
+        rcnt = ActionType.objects.filter(driver_type_id=defs.ITA, disuse_flag='0').count()
+        if rcnt <= 0:
+            logger.user_log('LOSI27000', defs.ITA, request=request)
+            raise Http404
+
+        rset = DriverType.objects.filter(driver_type_id=defs.ITA, driver_major_version=version)
+        drv_names = list(rset.values_list('name', flat=True))
+        if len(drv_names) <= 0:
+            logger.system_log('LOSM27000', defs.ITA, version, request=request)
+            raise Http404
+
+        # バージョンが1以上の場合は、ドライバー名にバージョン番号を付与
+        drv_name = drv_names[0].capitalize()
+        if version > 1:
+            drv_name = '%s%s' % (drv_name, version)
+
+        # ITAメニュー名称を取得
+        module_name = '%sMenuName' % (drv_name)
+
+        # モジュール名からアクション設定モジュールを取得
+        module = import_module('web_app.models.ITA_models')
+
+        ItaMenuName = getattr(module, module_name, None)
+        if not ItaMenuName:
+            logger.user_log('LOSI27001', module_name, request=request)
+            raise Http404
+
+        # データ取得処理
+        menu_dict = ItaMenuName.objects.filter(ita_driver_id=ita_driver_id).values(
+            'menu_group_id', 'menu_id', 'menu_group_name', 'menu_name')
+
+        # データ加工処理
+        menu_info = {}
+        menu_ids = []
+
+        for menu in menu_dict:
+            value = '%s:%s:%s:%s' % (menu['menu_group_id'], menu['menu_group_name'], menu['menu_id'], menu['menu_name'])
+            menu_info[menu['menu_id']] = value
+
+    except Http404:
+        raise Http404
+
+    except Exception as e:
+        # 異常
+        logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
+        if msg == '':
+            msg = get_message('MOSJA27330', request.user.get_lang_mode())
+        response = {}
+        response['status'] = 'failure'
+        response['msg'] = msg
+        response_json = json.dumps(response)
+        return HttpResponse(response_json, content_type="application/json")
+
+    # 正常
+    response = {}
+    response['status'] = 'success'
+    response['menu_info'] = menu_info
+    response_json = json.dumps(response)
 
     logger.logic_log('LOSI00002', 'None', request=request)
     return HttpResponse(response_json, content_type="application/json")
