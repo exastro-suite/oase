@@ -135,9 +135,9 @@ class ITADriverInfo():
 
         perm_list = []
 
-        for grp in grp_list:
+        for ita in ItaPerm_list:
             ex_flg = False
-            for ita in ItaPerm_list:
+            for grp in grp_list:
                 if ita['group_id'] == grp['group_id']:
                     ita['group_name'] = grp['group_name']
                     perm_list.append(ita)
