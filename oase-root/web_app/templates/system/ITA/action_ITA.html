@@ -400,6 +400,28 @@ function createHTMLAccessPermission(tagID, grID, grName, perm){
 //  新規追加画面の表示
 ////////////////////////////////////////////////
 $(function(){
+  // 権限グループリスト開閉
+  $('.authority-group-list').on('click', 'dt', function(){
+    var $clickElement = $( this );
+    var $parentBlock = $clickElement.closest('.oase-modal-body');
+    var scrollTop = $clickElement.offset().top - $parentBlock.offset().top + $parentBlock.scrollTop() - 8;
+    $( this ).next().slideToggle( 0 ,function(){
+      // 開いたときスクロールする
+      if( $( this ).is(':visible') ) {
+        $parentBlock.animate({ scrollTop: scrollTop }, 300 );
+      }
+    });
+  });
+
+  // 権限グループリストの簡易表示を変更
+  $('.oase-modal').on({
+    'click': function(){
+      var trIndex = $(this).parents('tbody').find('tr').index( $(this).parents('tr') ) + 1;
+      var authorityLevel = $(this).val();
+      $(this).parents('dd').prev('dt').find('.authority' + trIndex + ' em').removeClass().addClass('level' + authorityLevel );
+    }
+  }, 'input[type="radio"]');
+
   showNewTable();
 });
 
@@ -414,7 +436,7 @@ function showNewTable(){
     html += '</dl>';
     {% else %}
     {% comment %}MOSJA27027 : 編集可能なグループが存在しません。{% endcomment %}
-    html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+    html += '<div class="oase-none"><p>' + getMessage('MOSJA27027', false) + '</p></div>';
     {% endif %}
 
     $("#dlAuthGrpListNew").html(html);
