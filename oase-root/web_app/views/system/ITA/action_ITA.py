@@ -113,27 +113,6 @@ class ITADriverInfo():
 
         return ita_driver_dto_list
 
-
-    @classmethod
-    def get_group_list(cls, ita_driver_id, permission_list):
-        """
-        [概要]
-        permission情報の格納データ用成型
-        """
-        perm_list = []
-        perm_dict = {}
-
-        # ita_info['permission'] = {'ita_driver_id': 1,  'group_id': 2, 'permission_type_id': 2, 'group_name': '権限なし'}
-        for pm in permission_list:
-            logger.logic_log('LOSI00001', ita_driver_id, request=None)
-            if ita_driver_id == pm['ita_driver_id']:
-                pm_data = {pm[group_id], pm[group_name], pm[permission_type_id]}
-            perm_dict.append(pm_data)
-
-        perm_list.append(perm_dict)
-        return perm_dict
-
-
     @classmethod
     def get_group_list(cls):
         """
@@ -156,18 +135,17 @@ class ITADriverInfo():
 
         perm_list = []
         for ita in ItaPerm_list:
-            ex_flg = False
             for grp in grp_list:
                 if ita['group_id'] == grp['group_id']:
                     ita['group_name'] = grp['group_name']
                     perm_list.append(ita)
-                    ex_flg = True
                     break
             else:
-                if ex_flg == False:
-                    ita['group_name'] = '権限なし'
-                    perm_list.append(ita)
+                ita['group_name'] = grp['group_name']
+                ita['permission_type_id'] = 3
+                perm_list.append(ita)
 
+        logger.logic_log('LOSI00001', perm_list, request=None)
         return perm_list
 
     @classmethod
@@ -309,16 +287,18 @@ class ITADriverInfo():
                 driver.last_update_timestamp = now
                 driver.save(force_update=True)
 
-                permission = Itapermission.objects.get(ita_permission_id=rq['ita_permission_id'])
-                permission.ita_driver_id = rq['ita_driver_id']
-                permission.group_id = rq['group_id']
-                permission.permission_type_id = rq['permission_type_id']
-                permission.last_update_timestamp = now
-                permission.last_update_user = request.user.user_name
+                for pm in rq['permission']:
+                    permission = ItaPermission.objects.get(ita_permission_id=pm['ita_permission_id'])
+                    permission.ita_driver_id = rq['ita_driver_id']
+                    permission.group_id = pm['group_id']
+                    permission.permission_type_id = pm['permission_type_id']
+                    permission.last_update_timestamp = now
+                    permission.last_update_user = request.user.user_name
+                    permission.save(force_update=True)
 
             elif ope == defs.DABASE_OPECODE.OPE_DELETE:
                 ItaDriver.objects.get(pk=rq['ita_driver_id']).delete()
-                Itapermission.objects.get(pk=rq['ita_permission_id']).delete()
+                ItaPermission.objects.get(pk=rq['ita_permission_id']).delete()
 
             elif ope == defs.DABASE_OPECODE.OPE_INSERT:
                 encrypted_password = cipher.encrypt(rq['password'])
@@ -334,14 +314,18 @@ class ITADriverInfo():
                     last_update_timestamp = now,
                 ).save(force_insert=True)
 
-                permission = Itapermission(
-                    ita_permission_id = rq['ita_permission_id'],
-                    ita_driver_id = rq['ita_driver_id'],
-                    group_id = rq['group_id'],
-                    permission_type_id = rq['permission_type_id'],
-                    last_update_timestamp = now,
-                    last_update_user = request.user.user_name,
-                )
+                permission_list_reg = []
+                for pm in rq['permission']:
+                    permission = ItaPermission(
+                        ita_driver_id = rq['ita_driver_id'],
+                        group_id = pm['group_id'],
+                        permission_type_id = pm['permission_type_id'],
+                        last_update_timestamp = now,
+                        last_update_user = request.user.user_name,
+                    )
+                    permission_list_reg.append(permission)
+                ItaPermission.objects.bulk_create(permission_list_reg)
+                logger.user_log('LOSI27007', 'web_app.models.ITA_models', request=request)
 
         except ItaDriver.DoesNotExist:
             logger.logic_log('LOSM07006', "ita_driver_id", ita_driver_id, request=request)
