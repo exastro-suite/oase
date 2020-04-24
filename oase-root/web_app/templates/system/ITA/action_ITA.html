@@ -329,6 +329,74 @@ function moveMessageAnalysis(version) {
 }
 
 ////////////////////////////////////////////////
+//  アクセス権限HTMLの生成
+////////////////////////////////////////////////
+// 権限チェック状態
+function getPermissionChecked(num, perm){
+    if(num == "1" && perm == "3")
+        return " checked";
+
+    else if(num == "2" && perm == "2")
+        return " checked";
+
+    else if(num == "3" && perm == "1")
+        return " checked";
+
+    return "";
+}
+
+// グループ別権限表示
+function createHTMLAccessPermission(tagID, grID, grName, perm){
+    var html = '';
+
+    // グループ名と権限表示
+    html += '<dt>';
+    html += '  <em class="owf owf-down-on"></em>';
+    html += '  <span class="authority-group-name">' + grName + '</span>';
+    html += '  <span class="authority-check">';
+    html += '    <span class="rule-authority authority1"><em class="level' + perm + '"></em></span>';
+    html += '  </span>';
+    html += '</dt>';
+
+    html += '<dd>';
+    html += '  <div class="oase-modal-table">';
+    html += '    <table class="authority-table">';
+    html += '      <thead>';
+    html += '        <tr>';
+    html += '          <th><div class="cell-inner">' + getMessage('MOSJA00082', false) + '</div></th>';
+
+    {% comment %}新規追加画面{% endcomment %}
+    if(tagID == "dlAuthGrpListNew"){
+        html += '          <th><div class="cell-inner"><em class="owf owf-cross"></em><br>' + getMessage('MOSJA00086', false) + '</div></th>';
+        html += '          <th><div class="cell-inner"><em class="owf owf-loupe"></em><br>' + getMessage('MOSJA00087', false) + '</div></th>';
+        html += '          <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA00088', false) + '</div></th>';
+    }
+
+    html += '        </tr>';
+    html += '      </thead>';
+
+    // 詳細表示
+    html += '      <tbody>';
+    html += '        <tr>';
+    html += '          <th><div class="cell-inner">' + getMessage('MOSJA00090', false) + '</div></th>';
+
+    {% comment %}新規追加画面{% endcomment %}
+    if(tagID == "dlAuthGrpListNew"){
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1" name="radio' + grID + '"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2" name="radio' + grID + '"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3" name="radio' + grID + '"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3"></label></div></td>';
+    }
+
+    html += '        </tr>';
+    html += '      </tbody>';
+    html += '    </table>';
+    html += '  </div>';
+    html += '</dd>';
+
+    return html;
+}
+
+////////////////////////////////////////////////
 //  新規追加画面の表示
 ////////////////////////////////////////////////
 $(function(){
@@ -338,8 +406,16 @@ $(function(){
 function showNewTable(){
     // アクセス権限情報埋め込み
     var html = '';
+    {% if group_list|length %}
+    html += '<dl>';
+      {% for gr in group_list %}
+    html += createHTMLAccessPermission('dlAuthGrpListNew', '{{gr.group_id}}', '{{gr.group_name}}', '3');
+      {% endfor %}
+    html += '</dl>';
+    {% else %}
     {% comment %}MOSJA27027 : 編集可能なグループが存在しません。{% endcomment %}
     html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+    {% endif %}
 
     $("#dlAuthGrpListNew").html(html);
 }
