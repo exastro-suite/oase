@@ -230,7 +230,7 @@ function post(postdata, btnId, render_func, req_mode) {
 
 {# 各ドライバーの一覧画面読み込み #}
 {% for some_driver in driver_list %}
-  {% include some_driver.driver_template_file with driver_id=some_driver.driver_id driver_name=some_driver.name info_list=some_driver.info_list defines=some_driver.define %}
+  {% include some_driver.driver_template_file with driver_id=some_driver.driver_id driver_name=some_driver.name info_list=some_driver.info_list defines=some_driver.define group_list=some_driver.group_list %}
 {% endfor %}
 <form id="toPostForm" method="post" action="action">
   {% csrf_token %}
