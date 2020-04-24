@@ -43,6 +43,24 @@ function setInfoInItaDetailView(idName) {
     $('#viewItaUpdateuser').text(updateuser);
     $('#viewItaTimestamp').text(timestamp);
 
+    // アクセス権限情報埋め込み
+    {% for i in info_list %}
+    if (idName == 'itadriver-{{i.ita_driver_id}}'){
+        html = '';
+        {% if i.permission|length %}
+        html += '<dl>';
+          {% for p in i.permission %}
+        html += createHTMLAccessPermission('dlAuthGrpListDisp', '{{p.group_id}}', '{{p.group_name}}', '{{p.permission_type_id}}');
+          {% endfor %}
+        html += '</dl>';
+        {% else %}
+        {% comment %}MOSJA27027 : 編集可能なグループが存在しません。{% endcomment %}
+        html += '<div class="oase-none"><p>' + getMessage('MOSJA27027', false) + '</p></div>';
+        {% endif %}
+
+        $("#dlAuthGrpListDisp").html(html);
+    }
+    {% endfor %}
 }
 
 ////////////////////////////////////////////////
@@ -331,6 +349,20 @@ function moveMessageAnalysis(version) {
 ////////////////////////////////////////////////
 //  アクセス権限HTMLの生成
 ////////////////////////////////////////////////
+// 権限設定値の文言を取得
+function getPermissionText(perm){
+    if(perm == "1")
+        return '<em class="owf owf-circle"></em>' + getMessage('MOSJA00088', false);
+
+    else if(perm == "2")
+        return '<em class="owf owf-loupe"></em>' + getMessage('MOSJA00087', false);
+
+    else if(perm == "3")
+        return '<em class="owf owf-cross"></em>' + getMessage('MOSJA00086', false);
+
+    return "";
+}
+
 // 権限チェック状態
 function getPermissionChecked(num, perm){
     if(num == "1" && perm == "3")
@@ -371,6 +403,11 @@ function createHTMLAccessPermission(tagID, grID, grName, perm){
         html += '          <th><div class="cell-inner"><em class="owf owf-loupe"></em><br>' + getMessage('MOSJA00087', false) + '</div></th>';
         html += '          <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA00088', false) + '</div></th>';
     }
+    {% comment %}参照画面{% endcomment %}
+    else if(tagID == "dlAuthGrpListDisp"){
+        {% comment %}MOSJA27028 : 設定値{% endcomment %}
+        html += '          <th><div class="cell-inner">' + getMessage('MOSJA27028', false) + '</div></th>';
+    }
 
     html += '        </tr>';
     html += '      </thead>';
@@ -378,13 +415,23 @@ function createHTMLAccessPermission(tagID, grID, grName, perm){
     // 詳細表示
     html += '      <tbody>';
     html += '        <tr>';
-    html += '          <th><div class="cell-inner">' + getMessage('MOSJA00090', false) + '</div></th>';
 
     {% comment %}新規追加画面{% endcomment %}
     if(tagID == "dlAuthGrpListNew"){
+        html += '          <th><div class="cell-inner">' + getMessage('MOSJA00090', false) + '</div></th>';
         html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1" name="radio' + grID + '"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1"></label></div></td>';
         html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2" name="radio' + grID + '"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2"></label></div></td>';
         html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3" name="radio' + grID + '"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3"></label></div></td>';
+    }
+    {% comment %}参照画面{% endcomment %}
+    else if(tagID == "dlAuthGrpListDisp"){
+        {% comment %}MOSJA27029 : 現在の設定値{% endcomment %}
+        html += '          <th><div class="cell-inner">' + getMessage('MOSJA27029', false) + '</div></th>';
+        html += '          <td class="authority-type level' + perm + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm);
+        html += '            </div>';
+        html += '          </td>';
     }
 
     html += '        </tr>';
@@ -494,6 +541,13 @@ function showNewTable(){
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+          {% comment %}グループ権限の表示{% endcomment %}
+          <div class="oase-modal-block" style="padding-top: 0px;">
+            <h3>{% get_message 'MOSJA00082' request.user.get_lang_mode showMsgId=False %}</h3>
+            <div id="dlAuthGrpListDisp" class="authority-group-list">
+              <!-- jQueryでここにタグ追加される -->
             </div>
           </div>
         </div>
