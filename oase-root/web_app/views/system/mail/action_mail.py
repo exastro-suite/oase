@@ -101,6 +101,15 @@ class mailDriverInfo():
         return mail_driver_dto_list
 
     @classmethod
+    def get_group_list(cls):
+        """
+        [概要]
+        グループ一覧を取得する(システム管理グループを除く)
+        """
+
+        return []
+
+    @classmethod
     def get_define(cls):
 
         protocol_dict = {key_value['v']: key_value['k']  for key_value in defs.SMTP_PROTOCOL.LIST_ALL}
