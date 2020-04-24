@@ -164,7 +164,23 @@ function addItaDriver() {
     setITAInfo(drvInfo, idInfo);
     drvInfo["ope"] = ope;
     drvInfo["ita_driver_id"] = "0";
-    drvInfo["permission"] = [{'group_id' :1, 'permission_type_id' :1 },{'group_id' :2, 'permission_type_id' :1 }];
+    
+    var permissionRecords = []
+
+    {% if group_list|length %}
+    {% for gr in group_list %}
+
+    group_id　= '{{gr.group_id}}';
+    permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
+    
+    var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
+    
+    permissionRecords.push(record)
+
+    {% endfor %}
+    {% endif %}
+
+    drvInfo["permission"] = permissionRecords;
 
     // バリデーションチェック
     var objTBody = document.getElementById("tbodyActionInfo{{ driver_id }}");
