@@ -164,6 +164,7 @@ function addItaDriver() {
     setITAInfo(drvInfo, idInfo);
     drvInfo["ope"] = ope;
     drvInfo["ita_driver_id"] = "0";
+    drvInfo["permission"] = [{'group_id' :1, 'permission_type_id' :1 },{'group_id' :2, 'permission_type_id' :1 }];
 
     // バリデーションチェック
     var objTBody = document.getElementById("tbodyActionInfo{{ driver_id }}");
