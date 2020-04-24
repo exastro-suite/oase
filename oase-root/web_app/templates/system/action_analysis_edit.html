@@ -38,10 +38,10 @@ Copyright 2019 NEC Corporation
         <div class="oase-main-menu">
           <div class="oase-main-menu-inner">
             <ul class="oase-button-group">
-              <li><button id="btnCan" class="oase-button" onClick="cancel({{version}});"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
-              <li><button id="btnRes" class="oase-button" onClick="reset();"><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
-              <li><button class="oase-button" onClick="addList('analysis_data','parameter_dummy');"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA00020' request.user.get_lang_mode showMsgId=False %}</span></button></li>
-              <li><button id="btnUpd" class="oase-button" onClick="submitAnalysisData('analysis_data');"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button id="btnCan" class="tooltip oase-button" title="{% get_message 'MOSJA27333' request.user.get_lang_mode showMsgId=False %}" onClick="cancel({{version}});"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button id="btnRes" class="tooltip oase-button" title="{% get_message 'MOSJA27334' request.user.get_lang_mode showMsgId=False %}" onClick="reset();"><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="tooltip oase-button" title="{% get_message 'MOSJA27335' request.user.get_lang_mode showMsgId=False %}" onClick="addList('analysis_data','parameter_dummy');"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA00020' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button id="btnUpd" class="tooltip oase-button" title="{% get_message 'MOSJA27336' request.user.get_lang_mode showMsgId=False %}" onClick="submitAnalysisData('analysis_data');"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
 
               <form id="toResetForm" method="post" action="">
                 <input type="hidden" name="filters" value="{{param_list}}" />
