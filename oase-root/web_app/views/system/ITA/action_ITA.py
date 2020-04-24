@@ -36,7 +36,7 @@ from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.aes_cipher import AESCipher
 
-from web_app.models.models import ActionType
+from web_app.models.models import ActionType, Group
 from web_app.models.ITA_models import ItaDriver
 from web_app.templatetags.common import get_message
 
@@ -98,6 +98,16 @@ class ITADriverInfo():
             ita_driver_dto_list.append(ita_info)
 
         return ita_driver_dto_list
+
+    @classmethod
+    def get_group_list(cls):
+        """
+        [概要]
+        グループ一覧を取得する(システム管理グループを除く)
+        """
+
+        grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name')
+        return grp_list
 
     @classmethod
     def get_define(cls):
