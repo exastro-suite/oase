@@ -90,8 +90,6 @@ class ITADriverInfo():
         protocol_dict = cls.get_define()['dict']
         permission_list = cls.get_permission()
 
-        logger.logic_log('LOSI00001', 'permission_list', request=None)
-        logger.logic_log('LOSI00001', permission_list, request=None)
         ita_driver_dto_list = []
         cipher = AESCipher(settings.AES_KEY)
         for ita_obj in ita_driver_obj_list:
@@ -102,7 +100,6 @@ class ITADriverInfo():
             perm_list = []
             perm_dict = {}
 
-            # ita_info['permission'] = {'ita_driver_id': 1,  'group_id': 2, 'permission_type_id': 2, 'group_name': '権限なし'}
             for pm in permission_list:
                 logger.logic_log('LOSI00001', ita_obj.ita_driver_id, request=None)
                 if ita_obj.ita_driver_id == pm['ita_driver_id']:
@@ -169,6 +166,7 @@ class ITADriverInfo():
             else:
                 if ex_flg == False:
                     ita['group_name'] = '権限なし'
+                    perm_list.append(ita)
 
         return perm_list
 
@@ -234,7 +232,6 @@ class ITADriverInfo():
         except Exception as e:
             msg = get_message('MOSJA11013', lang)
             logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
-
 
         return permission_data
 
