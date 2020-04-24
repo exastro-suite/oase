@@ -134,16 +134,20 @@ class ITADriverInfo():
         ItaPerm_list = ItaPermission.objects.filter().values('ita_driver_id', 'group_id', 'permission_type_id')
 
         perm_list = []
-        for ita in ItaPerm_list:
-            for grp in grp_list:
+
+        for grp in grp_list:
+            ex_flg = False
+            for ita in ItaPerm_list:
                 if ita['group_id'] == grp['group_id']:
                     ita['group_name'] = grp['group_name']
                     perm_list.append(ita)
+                    ex_flg = True
                     break
             else:
-                ita['group_name'] = grp['group_name']
-                ita['permission_type_id'] = 3
-                perm_list.append(ita)
+                if ex_flg == False:
+                    ita['group_name'] = grp['group_name']
+                    ita['permission_type_id'] = 3
+                    perm_list.append(ita)
 
         logger.logic_log('LOSI00001', perm_list, request=None)
         return perm_list
