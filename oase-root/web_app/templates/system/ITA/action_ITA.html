@@ -88,6 +88,25 @@ function setInfoInItaEditView() {
     $('#editItaPass1').val(password);
     $('#editItaUpdateuser').text(updateuser);
     $('#editItaTimestamp').text(timestamp);
+
+    // アクセス権限情報埋め込み
+    {% for i in info_list %}
+    if (trId == '#itadriver-{{i.ita_driver_id}}'){
+        html = '';
+        {% if i.permission|length %}
+        html += '<dl>';
+          {% for p in i.permission %}
+        html += createHTMLAccessPermission('dlAuthGrpListEdit', '{{p.group_id}}', '{{p.group_name}}', '{{p.permission_type_id}}');
+          {% endfor %}
+        html += '</dl>';
+        {% else %}
+        {% comment %}MOSJA27027 : 編集可能なグループが存在しません。{% endcomment %}
+        html += '<div class="oase-none"><p>' + getMessage('MOSJA27027', false) + '</p></div>';
+        {% endif %}
+
+        $("#dlAuthGrpListEdit").html(html);
+    }
+    {% endfor %}
 }
 
 ////////////////////////////////////////////////
@@ -397,8 +416,8 @@ function createHTMLAccessPermission(tagID, grID, grName, perm){
     html += '        <tr>';
     html += '          <th><div class="cell-inner">' + getMessage('MOSJA00082', false) + '</div></th>';
 
-    {% comment %}新規追加画面{% endcomment %}
-    if(tagID == "dlAuthGrpListNew"){
+    {% comment %}新規追加画面 or 編集画面{% endcomment %}
+    if(tagID == "dlAuthGrpListNew" || tagID == "dlAuthGrpListEdit"){
         html += '          <th><div class="cell-inner"><em class="owf owf-cross"></em><br>' + getMessage('MOSJA00086', false) + '</div></th>';
         html += '          <th><div class="cell-inner"><em class="owf owf-loupe"></em><br>' + getMessage('MOSJA00087', false) + '</div></th>';
         html += '          <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA00088', false) + '</div></th>';
@@ -422,6 +441,13 @@ function createHTMLAccessPermission(tagID, grID, grName, perm){
         html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1" name="radio' + grID + '"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1"></label></div></td>';
         html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2" name="radio' + grID + '"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2"></label></div></td>';
         html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3" name="radio' + grID + '"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3"></label></div></td>';
+    }
+    {% comment %}更新画面{% endcomment %}
+    else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <th><div class="cell-inner">' + getMessage('MOSJA00080', false) + '</div></th>';
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1b" name="radio' + grID + 'b"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2b" name="radio' + grID + 'b"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3b" name="radio' + grID + 'b"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3b"></label></div></td>';
     }
     {% comment %}参照画面{% endcomment %}
     else if(tagID == "dlAuthGrpListDisp"){
@@ -616,7 +642,7 @@ function showNewTable(){
               </table>
             </div>
           </div>
-          {% comment %}グループ権限の設定{% endcomment %}
+          {% comment %}グループ権限の設定(新規追加){% endcomment %}
           <div class="oase-modal-block" style="padding-top: 0px;">
             <h3>{% get_message 'MOSJA00080' request.user.get_lang_mode showMsgId=False %}</h3>
             <div id="dlAuthGrpListNew" class="authority-group-list">
@@ -692,6 +718,13 @@ function showNewTable(){
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </div>
+          {% comment %}グループ権限の設定(既存変更){% endcomment %}
+          <div class="oase-modal-block" style="padding-top: 0px;">
+            <h3>{% get_message 'MOSJA00080' request.user.get_lang_mode showMsgId=False %}</h3>
+            <div id="dlAuthGrpListEdit" class="authority-group-list">
+              <!-- jQueryでここにタグ追加される -->
             </div>
           </div>
         </div>
