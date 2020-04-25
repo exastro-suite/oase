@@ -106,8 +106,8 @@ class ITADriverInfo():
                     perm_dict['group_id'] = pm['group_id']
                     perm_dict['group_name'] = pm['group_name']
                     perm_dict['permission_type_id'] = pm['permission_type_id']
+                    perm_list.append(perm_dict.copy())
 
-            perm_list.append(perm_dict)
             ita_info['permission'] = perm_list
             ita_driver_dto_list.append(ita_info)
 
@@ -136,18 +136,11 @@ class ITADriverInfo():
         perm_list = []
 
         for ita in ItaPerm_list:
-            ex_flg = False
             for grp in grp_list:
                 if ita['group_id'] == grp['group_id']:
                     ita['group_name'] = grp['group_name']
                     perm_list.append(ita)
-                    ex_flg = True
                     break
-            else:
-                if ex_flg == False:
-                    ita['group_name'] = grp['group_name']
-                    ita['permission_type_id'] = 3
-                    perm_list.append(ita)
 
         logger.logic_log('LOSI00001', perm_list, request=None)
         return perm_list
@@ -318,10 +311,12 @@ class ITADriverInfo():
                     last_update_timestamp = now,
                 ).save(force_insert=True)
 
+                ita_driver_id = ItaDriver.objects.get(ita_disp_name=rq['ita_disp_name']).ita_driver_id
+
                 permission_list_reg = []
                 for pm in rq['permission']:
                     permission = ItaPermission(
-                        ita_driver_id = rq['ita_driver_id'],
+                        ita_driver_id = ita_driver_id,
                         group_id = pm['group_id'],
                         permission_type_id = pm['permission_type_id'],
                         last_update_timestamp = now,
