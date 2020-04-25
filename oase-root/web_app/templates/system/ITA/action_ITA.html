@@ -168,16 +168,16 @@ function addItaDriver() {
     var permissionRecords = []
 
     {% if group_list|length %}
-    {% for gr in group_list %}
+      {% for gr in group_list %}
 
-    group_id　= '{{gr.group_id}}';
-    permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
+        group_id　= '{{gr.group_id}}';
+        permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
     
-    var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
+        var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
     
-    permissionRecords.push(record)
+        permissionRecords.push(record)
 
-    {% endfor %}
+      {% endfor %}
     {% endif %}
 
     drvInfo["permission"] = permissionRecords;
@@ -226,6 +226,23 @@ function updateItaDriver() {
     setITAInfo(drvInfo, idInfo);
     drvInfo["ope"] = ope;
     drvInfo["ita_driver_id"] = $('#viewItaDetail').attr('data-recordid').replace("itadriver-", "");
+
+    var permissionRecords = []
+
+    {% if group_list|length %}
+      {% for gr in group_list %}
+
+        group_id　= '{{gr.group_id}}';
+        permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
+    
+        var record = {"ita_permission_id" : 1, "group_id" : group_id, "permission_type_id" : permission_type_id};
+        permissionRecords.push(record)
+
+      {% endfor %}
+    {% endif %}
+
+    drvInfo["permission"] = permissionRecords;
+
 
     // バリデーションチェック
     var objTBody = document.getElementById("tbodyActionInfo{{ driver_id }}");
@@ -286,10 +303,26 @@ function deleteItaDriver() {
 
     var strId = $('#viewItaDetail').attr('data-recordid');
     var itaDrvId = strId.replace("itadriver-", "");
+    var permissionRecords = []
+
+    {% if group_list|length %}
+      {% for gr in group_list %}
+
+        group_id　= '{{gr.group_id}}';
+        permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
+
+        var record = {"ita_permission_id" : 1, "group_id" : group_id, "permission_type_id" : permission_type_id};
+        permissionRecords.push(record)
+
+      {% endfor %}
+    {% endif %}
+
+    var permission = permissionRecords;
     var drvInfo = {
             "ope" : "3",
             "driver_id" : "1",
             "ita_driver_id" : itaDrvId,
+            "permission" : permission,
         };
     post(drvInfo, btnId, renderNoError, '');
 
