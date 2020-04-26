@@ -149,13 +149,13 @@ function addItaDriver() {
     }
 
     var idInfo = {
-            'ita_disp_name': "#addItaName",
-            'hostname': "#addItaHost",
-            'port': "#addItaPort",
-            'protocol': "#addItaProtocol",
-            'username': "#addItaUsername",
-            'password': "#addItaPass1",
-        }
+        'ita_disp_name': "#addItaName",
+        'hostname': "#addItaHost",
+        'port': "#addItaPort",
+        'protocol': "#addItaProtocol",
+        'username': "#addItaUsername",
+        'password': "#addItaPass1",
+    }
     var errorMsg = {};
     var ope = "1"
     var drvInfo = {};
@@ -165,16 +165,16 @@ function addItaDriver() {
     drvInfo["ope"] = ope;
     drvInfo["ita_driver_id"] = "0";
     
-    var permissionRecords = []
+    var permissionRecords = [];
 
     {% if group_list|length %}
       {% for gr in group_list %}
- 
-        group_id　= '{{gr.group_id}}';
+
+        group_id = '{{gr.group_id}}';
         permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
-    
+
         var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
-    
+
         permissionRecords.push(record)
 
       {% endfor %}
@@ -211,13 +211,13 @@ function updateItaDriver() {
     }
 
     var idInfo = {
-            'ita_disp_name': "#editItaName",
-            'hostname': "#editItaHost",
-            'port': "#editItaPort",
-            'protocol': "#editItaProtocol",
-            'username': "#editItaUsername",
-            'password': "#editItaPass1",
-        }
+        'ita_disp_name': "#editItaName",
+        'hostname': "#editItaHost",
+        'port': "#editItaPort",
+        'protocol': "#editItaProtocol",
+        'username': "#editItaUsername",
+        'password': "#editItaPass1",
+    }
     var errorMsg = {};
     var ope = "2";
     var drvInfo = {};
@@ -227,14 +227,14 @@ function updateItaDriver() {
     drvInfo["ope"] = ope;
     drvInfo["ita_driver_id"] = $('#viewItaDetail').attr('data-recordid').replace("itadriver-", "");
 
-    var permissionRecords = []
+    var permissionRecords = [];
 
     {% if group_list|length %}
       {% for gr in group_list %}
 
-        group_id　= '{{gr.group_id}}';
+        group_id = '{{gr.group_id}}';
         permission_type_id = $('input[name="radio{{gr.group_id}}b"]:checked').val();
-        var record = {"ita_permission_id" : 1, "group_id" : group_id, "permission_type_id" : permission_type_id};
+        var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
         permissionRecords.push(record)
 
       {% endfor %}
@@ -302,27 +302,13 @@ function deleteItaDriver() {
 
     var strId = $('#viewItaDetail').attr('data-recordid');
     var itaDrvId = strId.replace("itadriver-", "");
-    var permissionRecords = []
 
-    {% if group_list|length %}
-      {% for gr in group_list %}
-
-        group_id　= '{{gr.group_id}}';
-        permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
-
-        var record = {"ita_permission_id" : 1, "group_id" : group_id, "permission_type_id" : permission_type_id};
-        permissionRecords.push(record)
-
-      {% endfor %}
-    {% endif %}
-
-    var permission = permissionRecords;
     var drvInfo = {
-            "ope" : "3",
-            "driver_id" : "1",
-            "ita_driver_id" : itaDrvId,
-            "permission" : permission,
-        };
+        "ope" : "3",
+        "driver_id" : "1",
+        "ita_driver_id" : itaDrvId,
+    };
+
     post(drvInfo, btnId, renderNoError, '');
 
 }
