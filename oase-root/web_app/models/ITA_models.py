@@ -147,7 +147,7 @@ class ItaPermission(models.Model):
 
     class Meta:
         db_table = 'OASE_T_ITA_PERMISSION'
-        unique_together = (('ita_driver_id', 'group_id', 'permission_type_id'), )
+        unique_together = (('ita_driver_id', 'group_id'), )
 
     def __str__(self):
         return str(self.ita_permission_id)
