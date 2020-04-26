@@ -285,9 +285,6 @@ class ITADriverInfo():
                 driver.save(force_update=True)
 
                 for pm in rq['permission']:
-                    logger.logic_log('LOSI00002', rq['ita_driver_id'], request=None)
-                    logger.logic_log('LOSI00002', pm['group_id'], request=None)
-                    logger.logic_log('LOSI00002', pm['permission_type_id'], request=None)
                     permission = ItaPermission.objects.get(ita_driver_id=rq['ita_driver_id'], group_id=pm['group_id'])
                     permission.ita_driver_id = rq['ita_driver_id']
                     permission.group_id = pm['group_id']
