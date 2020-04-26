@@ -285,9 +285,10 @@ class ITADriverInfo():
                 driver.save(force_update=True)
 
                 for pm in rq['permission']:
-                    permission = ItaPermission.objects.get(ita_driver_id=rq['ita_driver_id'], group_id=pm['group_id'])
-                    permission.ita_driver_id = rq['ita_driver_id']
-                    permission.group_id = pm['group_id']
+                    permission = ItaPermission.objects.get(
+                        ita_driver_id=rq['ita_driver_id'], 
+                        group_id=pm['group_id']
+                    )
                     permission.permission_type_id = pm['permission_type_id']
                     permission.last_update_timestamp = now
                     permission.last_update_user = request.user.user_name
@@ -295,7 +296,7 @@ class ITADriverInfo():
 
             elif ope == defs.DABASE_OPECODE.OPE_DELETE:
                 ItaDriver.objects.get(pk=rq['ita_driver_id']).delete()
-                ItaPermission.objects.get(pk=rq['ita_permission_id']).delete()
+                ItaPermission.objects.filter(ita_driver_id=rq['ita_driver_id']).delete()
 
             elif ope == defs.DABASE_OPECODE.OPE_INSERT:
                 encrypted_password = cipher.encrypt(rq['password'])
