@@ -169,8 +169,8 @@ function addItaDriver() {
 
     {% if group_list|length %}
       {% for gr in group_list %}
-
-        group_id　= '{{gr.group_id}}';
+ 
+        group_id　= '#group_id';
         permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
     
         var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
@@ -233,8 +233,7 @@ function updateItaDriver() {
       {% for gr in group_list %}
 
         group_id　= '{{gr.group_id}}';
-        permission_type_id = $('input[name="radio{{gr.group_id}}"]:checked').val();
-    
+        permission_type_id = $('input[name="radio{{gr.group_id}}b"]:checked').val();
         var record = {"ita_permission_id" : 1, "group_id" : group_id, "permission_type_id" : permission_type_id};
         permissionRecords.push(record)
 
