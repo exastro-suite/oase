@@ -221,6 +221,50 @@ def _make_disp_name(Itaname_dict, ita_driver_id, menu_id):
     return None
 
 
+def _check_update_auth(request, version):
+    """
+    [メソッド概要]
+      更新権限チェック
+    """
+
+    hasUpdateAuthority = True
+
+    # インストールドライバー取得
+    rcnt = ActionType.objects.filter(driver_type_id=defs.ITA, disuse_flag='0').count()
+    if rcnt <= 0:
+        logger.user_log('LOSI27000', defs.ITA, request=request)
+        raise Http404
+
+    rset = DriverType.objects.filter(driver_type_id=defs.ITA, driver_major_version=version)
+    drv_names = list(rset.values_list('name', flat=True))
+    if len(drv_names) <= 0:
+        logger.system_log('LOSM27000', defs.ITA, version, request=request)
+        raise Http404
+
+    # バージョンが1以上の場合は、ドライバー名にバージョン番号を付与
+    drv_name = drv_names[0].capitalize()
+    if version > 1:
+        drv_name = '%s%s' % (drv_name, version)
+
+    # ITAメニュー名称を取得
+    module_name = '%sPermission' % (drv_name)
+
+    # モジュール名からアクション設定モジュールを取得
+    module = import_module('web_app.models.ITA_models')
+
+    ItaPermission = getattr(module, module_name, None)
+    if not ItaPermission:
+        logger.user_log('LOSI27001', module_name, request=request)
+        raise Http404
+
+    if 1 not in request.user_config.group_id_list:
+        ItaPerm_list = ItaPermission.objects.filter(group_id__in=request.user_config.group_id_list).values_list('permission_type_id', flat=True)
+        if defs.ALLOWED_MENTENANCE not in ItaPerm_list:
+            hasUpdateAuthority = False
+
+    return hasUpdateAuthority
+
+
 @check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
 def index(request, version):
     """
@@ -246,6 +290,8 @@ def index(request, version):
             request
         )
 
+        hasUpdateAuthority = _check_update_auth(request, version)
+
     except Http404:
         raise Http404
 
@@ -259,6 +305,7 @@ def index(request, version):
         'mainmenu_list' : request.user_config.get_menu_list(),
         'user_name' : request.user.user_name,
         'lang_mode' : request.user.get_lang_mode(),
+        'hasUpdateAuthority' : hasUpdateAuthority,
     }
 
     return render(request, 'system/action_analysis_disp.html', data)
