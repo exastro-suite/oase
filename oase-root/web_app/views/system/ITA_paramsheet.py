@@ -77,7 +77,13 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
       drv_info  : dict : アクション設定されたドライバーのID/名前
     """
 
-    logger.logic_log('LOSI00001', 'version:%s' % (version), request=request)
+    logger.logic_log(
+        'LOSI00001',
+        'version:%s, perm_types:%s, user_groups:%s' % (
+            version, perm_types, user_groups
+        ),
+        request=request
+    )
 
     # インストールドライバー取得
     rcnt = ActionType.objects.filter(driver_type_id=defs.ITA, disuse_flag='0').count()
@@ -116,18 +122,22 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
         raise Http404
 
     # ユーザー所属グループ別のアクセス可能ドライバーを取得
-    rset = perm_module.objects.all()
+    enable_drv_ids = []
     if 1 not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
+        rset = perm_module.objects.all()
         rset = rset.filter(group_id__in=user_groups)
-
-    rset = rset.filter(permission_type_id__in=perm_types)
-    enable_drv_ids = list(rset.values_list('ita_driver_id', flat=True).distinct())
+        rset = rset.filter(permission_type_id__in=perm_types)
+        enable_drv_ids = list(rset.values_list('ita_driver_id', flat=True).distinct())
 
     # アクション設定情報を取得
     drv_ids = []
     drv_info = {}
 
-    drv_list = drv_module.objects.filter(ita_driver_id__in=enable_drv_ids).values('ita_driver_id', 'ita_disp_name')
+    rset = drv_module.objects.all()
+    if 1 not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
+        rset = drv_module.objects.filter(ita_driver_id__in=enable_drv_ids)
+
+    drv_list = rset.values('ita_driver_id', 'ita_disp_name')
     for drv in drv_list:
         drv_ids.append(drv['ita_driver_id'])
         drv_info[drv['ita_driver_id']] = drv['ita_disp_name']
