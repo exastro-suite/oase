@@ -96,6 +96,7 @@ class ITADriverInfo():
             ita_info = ita_obj.__dict__
             ita_info['password'] = cipher.decrypt(ita_obj.password)
             ita_info['protocol_str'] = protocol_dict[ita_obj.protocol]
+            ita_info['editable'] = True
 
             perm_list = []
             perm_dict = {}
