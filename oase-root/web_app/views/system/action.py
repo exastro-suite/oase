@@ -41,7 +41,7 @@ from web_app.templatetags.common import get_message
 class ActionDriverSupportTool():
 
     @classmethod
-    def get_driver_info(cls, driver_info):
+    def get_driver_info(cls, driver_info, user_groups):
 
         drv_module = import_module(driver_info['module'])
         drv_class  = getattr(drv_module, driver_info['class'])
@@ -52,7 +52,7 @@ class ActionDriverSupportTool():
         clazz_info['name'] = clazz.get_driver_name()
         clazz_info['driver_id'] = clazz.get_driver_id()
         clazz_info['driver_template_file'] = clazz.get_template_file()
-        clazz_info['info_list'] = clazz.get_info_list()
+        clazz_info['info_list'] = clazz.get_info_list(user_groups)
         clazz_info['group_list'] = clazz.get_group_list()
         clazz_info['define'] = clazz.get_define()
         clazz_info['icon_name'] = clazz.get_icon_name()
@@ -96,7 +96,7 @@ def action(request):
     driver_list = []
     try:
         for ud in use_drivers:
-            driver_info = ActionDriverSupportTool.get_driver_info(ud)
+            driver_info = ActionDriverSupportTool.get_driver_info(ud, request.user_config.group_id_list)
 
             driver_list.append(driver_info)
 
