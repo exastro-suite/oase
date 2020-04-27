@@ -394,6 +394,7 @@ class OASELogID:
     Ary['LOSM27001'] = "Invalid request. \"{}\" Key does not exist."
     Ary['LOSM27002'] = "Invalid request. (ita_driver_id:{}, version:{})"
     Ary['LOSM27003'] = "Unexpected request ita_driver_id. (ita_driver_id:{})"
+    Ary['LOSM27004'] = "Permission denied. (user_group_id_list:{})"
     Ary['LOSM28001'] = "ITA collaboration failed in {}."
 # LOSI
     Ary['LOSI00001'] = "Method start. [params: {}]"

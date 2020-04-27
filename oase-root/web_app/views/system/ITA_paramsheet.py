@@ -385,6 +385,11 @@ def modify(request, version):
                 logger.user_log('LOSM27001', 'json_str', request=request)
                 raise Exception()
 
+            if not chk_permission(json_str, request):
+                msg = get_message('MOSJA27351', request.user.get_lang_mode(), showMsgId=False)
+                logger.user_log('LOSM27004', request.user_config.user_group_list)
+                raise Exception()
+
             # 更新前にレコードロック
             message_update_list = [
                 rq['match_id']
@@ -681,3 +686,22 @@ def _validate(records, version, request=None):
             match_info[r['ita_driver_id']][r['menu_id']][r['order']] = 1
 
     return error_flag, error_msg
+
+
+def chk_permission(json_str, request):
+    """
+    更新権限チェック
+    """
+    ItaPermission = getattr(import_module('web_app.models.ITA_models'), 'ItaPermission')
+
+    permission_data = ItaPermission.objects.filter(
+        group_id__in=request.user_config.group_id_list,
+        permission_type_id=1,
+    ).values_list('ita_driver_id', flat=True).distinct()
+
+    for rq in json_str['json_str']:
+        logger.logic_log('LOSI00001', rq, request=None)
+        if int(rq['ita_driver_id']) not in permission_data:
+            return False
+
+    return True
