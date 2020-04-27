@@ -290,7 +290,10 @@ def index(request, version):
             request
         )
 
-        hasUpdateAuthority = _check_update_auth(request, version)
+        if editable_user:
+            hasUpdateAuthority = _check_update_auth(request, version)
+        else:
+            hasUpdateAuthority = False
 
     except Http404:
         raise Http404
