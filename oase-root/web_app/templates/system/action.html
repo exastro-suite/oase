@@ -156,6 +156,10 @@ function post(postdata, btnId, render_func, req_mode) {
             }
 
             $(btnId).prop("disabled", false);
+            if(response_json.redirect_url) {
+                beforeunloadThroughFlag = true;
+                window.location.href = response_json.redirect_url;
+            }
         }
     })
     .fail(function(respdata, stscode, resp) {
