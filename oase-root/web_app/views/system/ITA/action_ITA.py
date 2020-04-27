@@ -78,7 +78,7 @@ class ITADriverInfo():
         return 'system/ITA/action_ITA.html'
 
     @classmethod
-    def get_info_list(cls):
+    def get_info_list(cls, user_groups):
 
         try:
             ita_driver_obj_list = ItaDriver.objects.all()
@@ -89,6 +89,7 @@ class ITADriverInfo():
 
         protocol_dict = cls.get_define()['dict']
         permission_list = cls.get_permission(ita_driver_obj_list)
+        editable_ids = cls.get_editable_driver_ids(ita_driver_obj_list, user_groups)
 
         ita_driver_dto_list = []
         cipher = AESCipher(settings.AES_KEY)
@@ -96,7 +97,7 @@ class ITADriverInfo():
             ita_info = ita_obj.__dict__
             ita_info['password'] = cipher.decrypt(ita_obj.password)
             ita_info['protocol_str'] = protocol_dict[ita_obj.protocol]
-            ita_info['editable'] = True
+            ita_info['editable'] = True if ita_obj.ita_driver_id in editable_ids else False
             ita_info['permission'] = permission_list[ita_obj.ita_driver_id] if ita_obj.ita_driver_id in permission_list else []
             ita_driver_dto_list.append(ita_info)
 
@@ -111,6 +112,30 @@ class ITADriverInfo():
 
         grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name').order_by('group_id')
         return grp_list
+
+    @classmethod
+    def get_editable_driver_ids(cls, ita_drv_list, user_groups):
+        """
+        [概要]
+        ユーザーグループを用いて更新可能権限を持つドライバーIDを取得する
+        """
+
+        drv_ids = []
+
+        if 1 in user_groups:  # 1=システム管理グループ:すべてのドライバーに対して更新権限を持つ
+            drv_ids = [drv.ita_driver_id for drv in ita_drv_list]
+
+        else:
+            drv_ids = list(
+                ItaPermission.objects.filter(
+                    group_id__in=user_groups,
+                    permission_type_id=defs.ALLOWED_MENTENANCE
+                ).values_list(
+                    'ita_driver_id', flat=True
+                ).distinct()
+            )
+
+        return drv_ids
 
     @classmethod
     def get_permission(cls, ita_drv_list):

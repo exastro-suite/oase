@@ -78,7 +78,7 @@ class mailDriverInfo():
         return 'system/mail/action_mail.html'
 
     @classmethod
-    def get_info_list(cls):
+    def get_info_list(cls, user_groups):
 
         try:
             mail_driver_obj_list = MailDriver.objects.all()
