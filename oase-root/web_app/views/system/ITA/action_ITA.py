@@ -88,7 +88,7 @@ class ITADriverInfo():
             raise
 
         protocol_dict = cls.get_define()['dict']
-        permission_list = cls.get_permission()
+        permission_list = cls.get_permission(ita_driver_obj_list)
 
         ita_driver_dto_list = []
         cipher = AESCipher(settings.AES_KEY)
@@ -97,19 +97,7 @@ class ITADriverInfo():
             ita_info['password'] = cipher.decrypt(ita_obj.password)
             ita_info['protocol_str'] = protocol_dict[ita_obj.protocol]
             ita_info['editable'] = True
-
-            perm_list = []
-            perm_dict = {}
-
-            for pm in permission_list:
-                logger.logic_log('LOSI00001', ita_obj.ita_driver_id, request=None)
-                if ita_obj.ita_driver_id == pm['ita_driver_id']:
-                    perm_dict['group_id'] = pm['group_id']
-                    perm_dict['group_name'] = pm['group_name']
-                    perm_dict['permission_type_id'] = pm['permission_type_id']
-                    perm_list.append(perm_dict.copy())
-
-            ita_info['permission'] = perm_list
+            ita_info['permission'] = permission_list[ita_obj.ita_driver_id] if ita_obj.ita_driver_id in permission_list else []
             ita_driver_dto_list.append(ita_info)
 
         return ita_driver_dto_list
@@ -121,29 +109,59 @@ class ITADriverInfo():
         グループ一覧を取得する(システム管理グループを除く)
         """
 
-        grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name')
+        grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name').order_by('group_id')
         return grp_list
 
     @classmethod
-    def get_permission(cls):
+    def get_permission(cls, ita_drv_list):
         """
         [概要]
         権限情報を作成する
         """
 
+        perm_info = {}
+
+        # グループ情報を取得
+        grp_info = {}
         grp_list = cls.get_group_list()
-        ItaPerm_list = ItaPermission.objects.filter().values('ita_driver_id', 'group_id', 'permission_type_id')
+        for grp in grp_list:
+            grp_info[grp['group_id']] = grp['group_name']
 
-        perm_list = []
-
-        for ita in ItaPerm_list:
+        for drv in ita_drv_list:
+            perm_info[drv.ita_driver_id] = []
             for grp in grp_list:
-                if ita['group_id'] == grp['group_id']:
-                    ita['group_name'] = grp['group_name']
-                    perm_list.append(ita)
-                    break
+                perm_info[drv.ita_driver_id].append(
+                    {
+                        'group_id' : grp['group_id'],
+                        'group_name' : grp_info[grp['group_id']],
+                        'permission_type_id' : defs.NO_AUTHORIZATION,
+                    }
+                )
 
-        return perm_list
+        # 権限情報を取得
+        drv_grp_info = {}
+        ItaPerm_list = ItaPermission.objects.filter().values('ita_driver_id', 'group_id', 'permission_type_id')
+        for ita in ItaPerm_list:
+            drv_id = ita['ita_driver_id']
+            grp_id = ita['group_id']
+            perm = ita['permission_type_id']
+
+            # 不明なドライバー、不明なグループは無視
+            if drv_id not in perm_info or grp_id not in grp_info:
+                continue
+
+            # 登録中の権限を保持
+            drv_grp_info[(drv_id, grp_id)] = perm
+
+        # 登録されている権限をセット
+        for drv_id, v_list in perm_info.items():
+            for v in v_list:
+                grp_id = v['group_id']
+                if (drv_id, grp_id) in drv_grp_info:
+                    v['permission_type_id'] = drv_grp_info[(drv_id, grp_id)]
+
+        return perm_info
+
 
 
     @classmethod
@@ -220,15 +238,35 @@ class ITADriverInfo():
                 driver.last_update_timestamp = now
                 driver.save(force_update=True)
 
+                permission_list_reg = []
                 for pm in rq['permission']:
-                    permission = ItaPermission.objects.get(
-                        ita_driver_id=rq['ita_driver_id'], 
+                    rcnt = ItaPermission.objects.filter(
+                        ita_driver_id=rq['ita_driver_id'],
                         group_id=pm['group_id']
-                    )
-                    permission.permission_type_id = pm['permission_type_id']
-                    permission.last_update_timestamp = now
-                    permission.last_update_user = request.user.user_name
-                    permission.save(force_update=True)
+                    ).count()
+
+                    if rcnt > 0:
+                        ItaPermission.objects.filter(
+                            ita_driver_id=rq['ita_driver_id'],
+                            group_id=pm['group_id']
+                        ).update(
+                            permission_type_id = pm['permission_type_id'],
+                            last_update_timestamp = now,
+                            last_update_user = request.user.user_name
+                        )
+                    else:
+                        permission_list_reg.append(
+                            ItaPermission(
+                                ita_driver_id = rq['ita_driver_id'],
+                                group_id = pm['group_id'],
+                                permission_type_id = pm['permission_type_id'],
+                                last_update_timestamp = now,
+                                last_update_user = request.user.user_name
+                            )
+                        )
+
+                if len(permission_list_reg) > 0:
+                    ItaPermission.objects.bulk_create(permission_list_reg)
 
             elif ope == defs.DABASE_OPECODE.OPE_DELETE:
                 ItaDriver.objects.get(pk=rq['ita_driver_id']).delete()
