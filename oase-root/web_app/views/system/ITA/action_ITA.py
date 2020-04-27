@@ -88,7 +88,7 @@ class ITADriverInfo():
             raise
 
         protocol_dict = cls.get_define()['dict']
-        permission_list = cls.get_permission()
+        permission_list = cls.get_permission(ita_driver_obj_list)
 
         ita_driver_dto_list = []
         cipher = AESCipher(settings.AES_KEY)
@@ -96,19 +96,8 @@ class ITADriverInfo():
             ita_info = ita_obj.__dict__
             ita_info['password'] = cipher.decrypt(ita_obj.password)
             ita_info['protocol_str'] = protocol_dict[ita_obj.protocol]
-
-            perm_list = []
-            perm_dict = {}
-
-            for pm in permission_list:
-                logger.logic_log('LOSI00001', ita_obj.ita_driver_id, request=None)
-                if ita_obj.ita_driver_id == pm['ita_driver_id']:
-                    perm_dict['group_id'] = pm['group_id']
-                    perm_dict['group_name'] = pm['group_name']
-                    perm_dict['permission_type_id'] = pm['permission_type_id']
-                    perm_list.append(perm_dict.copy())
-
-            ita_info['permission'] = perm_list
+            ita_info['editable'] = True
+            ita_info['permission'] = permission_list[ita_obj.ita_driver_id] if ita_obj.ita_driver_id in permission_list else []
             ita_driver_dto_list.append(ita_info)
 
         return ita_driver_dto_list
@@ -120,95 +109,60 @@ class ITADriverInfo():
         グループ一覧を取得する(システム管理グループを除く)
         """
 
-        grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name')
+        grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name').order_by('group_id')
         return grp_list
 
     @classmethod
-    def get_permission(cls):
+    def get_permission(cls, ita_drv_list):
         """
         [概要]
         権限情報を作成する
         """
 
+        perm_info = {}
+
+        # グループ情報を取得
+        grp_info = {}
         grp_list = cls.get_group_list()
-        ItaPerm_list = ItaPermission.objects.filter().values('ita_driver_id', 'group_id', 'permission_type_id')
+        for grp in grp_list:
+            grp_info[grp['group_id']] = grp['group_name']
 
-        perm_list = []
-
-        for ita in ItaPerm_list:
+        for drv in ita_drv_list:
+            perm_info[drv.ita_driver_id] = []
             for grp in grp_list:
-                if ita['group_id'] == grp['group_id']:
-                    ita['group_name'] = grp['group_name']
-                    perm_list.append(ita)
-                    break
-
-        logger.logic_log('LOSI00001', perm_list, request=None)
-        return perm_list
-
-    @classmethod
-    def get_AutherSettings(cls):
-        """
-        [概要]
-        権限情報を作成する
-        """
-        imaabd = ITAMessageAnalysissAuthByDriver()
-        hasUpdateAuthority = True if imaabd.auth_create_names == defs.ALLOWED_MENTENANCE else False
-        object_flg = 0
-        drv_msg_ids_disp = []
-        drv_msg_ids_edit = []
-
-        drv_msg_ids_disp.extend(imaabd.get_modify_names([defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE]))
-        drv_msg_ids_edit.extend(imaabd.get_modify_names(defs.ALLOWED_MENTENANCE))
-
-        try:
-            #==================取得=================#
-            filters = {}
-            if request and request.method == 'POST':
-                filters = request.POST.get('filters', None)
-                filters = json.loads(filters)
-
-            # 参照以上の権限を持つルール種別IDをフィルター条件に追加
-            if '_id' not in filters:
-                filters['ita_driver_id'] = {}
-
-            if 'LIST' not in filters['ita_driver_id']:
-                filters['ita_driver_id']['LIST'] = []
-
-            filters['ita_driver_id']['LIST'].extend(drv_msg_ids_disp)
-
-            # 情報を取得
-            decision_table_list = _select(filters)
-            msg = get_message('MOSJA11000', lang) if not decision_table_list else ''
-
-            # ディシジョンテーブル情報に操作権限情報を追加
-            for dt in decision_table_list:
-                auth_val = imaabd.get_auth_table_val(dt['pk'])
-                dt.update(
+                perm_info[drv.ita_driver_id].append(
                     {
-                        'allow_view'     : imaabd.allow_view(auth_val, dt['pk']),
-                        'allow_create'   : imaabd.allow_create(auth_val, dt['pk']),
-                        'allow_update'   : imaabd.allow_update(auth_val, dt['pk']),
-                        'allow_delete'   : imaabd.allow_delete(auth_val, dt['pk']),
+                        'group_id' : grp['group_id'],
+                        'group_name' : grp_info[grp['group_id']],
+                        'permission_type_id' : defs.NO_AUTHORIZATION,
                     }
                 )
 
-            group_list, group_list_default = get_group_list(drv_msg_ids_disp)
-            add_group_information(decision_table_list, group_list)
+        # 権限情報を取得
+        drv_grp_info = {}
+        ItaPerm_list = ItaPermission.objects.filter().values('ita_driver_id', 'group_id', 'permission_type_id')
+        for ita in ItaPerm_list:
+            drv_id = ita['ita_driver_id']
+            grp_id = ita['group_id']
+            perm = ita['permission_type_id']
 
-            # 条件名の言語別変換処理
-            ce = ConditionalExpression.objects.all()
-            for c in ce:
-                c.operator_name = get_message(c.operator_name, lang, showMsgId=False)
+            # 不明なドライバー、不明なグループは無視
+            if drv_id not in perm_info or grp_id not in grp_info:
+                continue
 
-            #==================編集モード判定=================#
-            if request and request.method == 'POST':
-                edit_mode = request.POST.get('edit_mode', False)
+            # 登録中の権限を保持
+            drv_grp_info[(drv_id, grp_id)] = perm
 
-        except Exception as e:
-            msg = get_message('MOSJA11013', lang)
-            logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
+        # 登録されている権限をセット
+        for drv_id, v_list in perm_info.items():
+            for v in v_list:
+                grp_id = v['group_id']
+                if (drv_id, grp_id) in drv_grp_info:
+                    v['permission_type_id'] = drv_grp_info[(drv_id, grp_id)]
 
-        return permission_data
+        return perm_info
+
+
 
     @classmethod
     def get_define(cls):
@@ -289,15 +243,35 @@ class ITADriverInfo():
                 driver.last_update_timestamp = now
                 driver.save(force_update=True)
 
+                permission_list_reg = []
                 for pm in rq['permission']:
-                    permission = ItaPermission.objects.get(
-                        ita_driver_id=rq['ita_driver_id'], 
+                    rcnt = ItaPermission.objects.filter(
+                        ita_driver_id=rq['ita_driver_id'],
                         group_id=pm['group_id']
-                    )
-                    permission.permission_type_id = pm['permission_type_id']
-                    permission.last_update_timestamp = now
-                    permission.last_update_user = request.user.user_name
-                    permission.save(force_update=True)
+                    ).count()
+
+                    if rcnt > 0:
+                        ItaPermission.objects.filter(
+                            ita_driver_id=rq['ita_driver_id'],
+                            group_id=pm['group_id']
+                        ).update(
+                            permission_type_id = pm['permission_type_id'],
+                            last_update_timestamp = now,
+                            last_update_user = request.user.user_name
+                        )
+                    else:
+                        permission_list_reg.append(
+                            ItaPermission(
+                                ita_driver_id = rq['ita_driver_id'],
+                                group_id = pm['group_id'],
+                                permission_type_id = pm['permission_type_id'],
+                                last_update_timestamp = now,
+                                last_update_user = request.user.user_name
+                            )
+                        )
+
+                if len(permission_list_reg) > 0:
+                    ItaPermission.objects.bulk_create(permission_list_reg)
 
             elif ope == defs.DABASE_OPECODE.OPE_DELETE:
                 ItaDriver.objects.get(pk=rq['ita_driver_id']).delete()
@@ -502,250 +476,3 @@ class ITADriverInfo():
             }
         return response
 
-class ITAMessageAnalysissAuthByDriver(object):
-    """
-    [クラス概要]
-      ITAアクションドライバによるメッセージ抽出定義画面の権限制御
-    """
-
-    ############################################
-    # 値定義
-    ############################################
-    # 画面操作権限
-    ALLOW_403      = 0x0000  # 権限なし(403)
-    ALLOW_HIDDEN   = 0x0001  # 非表示
-    ALLOW_VIEW     = 0x0002  # 参照可能
-    ALLOW_CREATE   = 0x0008  # 新規作成可能
-    ALLOW_UPDATE   = 0x0020  # 更新可能
-    ALLOW_DELETE   = 0x0040  # 削除可能
-
-    ALLOW_REGIST   = ALLOW_HIDDEN + ALLOW_CREATE
-    ALLOW_VIEWONLY = ALLOW_VIEW
-    ALLOW_MODIFY   = ALLOW_VIEW   + ALLOW_UPDATE + ALLOW_DELETE
-    ALLOW_VIEWREG  = ALLOW_VIEW   + ALLOW_CREATE
-    ALLOW_ALL      = ALLOW_VIEW   + ALLOW_CREATE + ALLOW_UPDATE + ALLOW_DELETE
-
-    # 権限種別インデックス
-    PERM_INDEX = {
-        defs.NO_AUTHORIZATION   : 0,
-        defs.VIEW_ONLY          : 1,
-        defs.ALLOWED_MENTENANCE : 2,
-    }
-
-
-    ############################################
-    # メソッド
-    ############################################
-    def __init__(self, request):
-        """
-        [メソッド概要]
-          初期化処理
-        """
-
-        self.auth_create_analysis = request.user_config.get_menu_auth_type(MENU_ID_CREATE)
-        self.auth_modify_analysis = request.user_config.get_activename_auth_type(MENU_ID_MODIFY)
-
-        self.auth_table = [
-            #                     メッセージ抽出定義新規追加
-            # 権限なし            参照                 更新可能
-            [self.ALLOW_403,      self.ALLOW_HIDDEN,   self.ALLOW_REGIST],   # 権限なし
-            [self.ALLOW_VIEWONLY, self.ALLOW_VIEWONLY, self.ALLOW_VIEWREG],  # 参照
-            [self.ALLOW_MODIFY,   self.ALLOW_MODIFY,   self.ALLOW_ALL],      # 更新可能
-        ]
-
-
-    def get_auth_table_val(self, ita_driver_id):
-        """
-        [メソッド概要]
-          指定ルールの画面操作権限を取得
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          int          : 画面操作権限
-        """
-
-        # 指定のルールの権限を取得
-        auth_modify = defs.NO_AUTHORIZATION
-        if ita_driver_id in self.auth_modify_analysis[defs.NO_AUTHORIZATION]:
-            auth_modify = defs.NO_AUTHORIZATION
-
-        elif ita_driver_id in self.auth_modify_analysis[defs.VIEW_ONLY]:
-            auth_modify = defs.VIEW_ONLY
-
-        elif ita_driver_id in self.auth_modify_analysis[defs.ALLOWED_MENTENANCE]:
-            auth_modify = defs.ALLOWED_MENTENANCE
-
-        # 新規追加画面と更新削除画面の操作権限を取得
-        idx_create = self.PERM_INDEX[self.auth_create_analysis]
-        idx_modify = self.PERM_INDEX[auth_modify]
-
-        if idx_modify < len(self.auth_table) and idx_create < len(self.auth_table[idx_modify]):
-            return self.auth_table[idx_modify][idx_create]
-
-        return self.ALLOW_403
-
-
-    def get_modify_analysis(self, auth_type_list):
-
-        ret_val = []
-
-        if not isinstance(auth_type_list, list):
-            auth_type_list = [auth_type_list, ]
-
-        for auth_type in auth_type_list:
-            if auth_type in self.auth_modify_analysis:
-                ret_val.extend(self.auth_modify_analysis[auth_type])
-
-        return ret_val
-
-
-    def is_deny(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          403チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : True=403画面, False=ディシジョンテーブル画面
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val == self.ALLOW_403:
-            return True
-
-        return False
-
-
-    def is_hidden(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          非表示チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : True=非表示, False=表示
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val & self.ALLOW_HIDDEN:
-            return True
-
-        return False
-
-
-    def allow_view(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          参照可能権限チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : 参照可否
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val & self.ALLOW_VIEW:
-            return True
-
-        return False
-
-
-    def allow_download(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          DL可能権限チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : DL可否
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val & self.ALLOW_DOWNLOAD:
-            return True
-
-        return False
-
-
-    def allow_create(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          新規追加権限チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : 新規追加可否
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val & self.ALLOW_CREATE:
-            return True
-
-        return False
-
-
-    def allow_copy(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          複製権限チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : 複製可否
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val & self.ALLOW_COPY:
-            return True
-
-        return False
-
-
-    def allow_update(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          更新権限チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : 更新可否
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val & self.ALLOW_UPDATE:
-            return True
-
-        return False
-
-
-    def allow_delete(self, auth_val=None, ita_driver_id=0):
-        """
-        [メソッド概要]
-          更新権限チェック
-        [引数]
-          ita_driver_id : ITAドライバID
-        [戻り値]
-          bool         : 削除可否
-        """
-
-        if auth_val is None:
-            auth_val = self.get_auth_table_val(ita_driver_id)
-
-        if auth_val & self.ALLOW_DELETE:
-            return True
-
-        return False

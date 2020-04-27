@@ -63,19 +63,27 @@ logger = OaseLogger.get_instance() # ロガー初期化
 MENU_ID = 2141002007
 
 
-def _get_param_match_info(version, request=None):
+def _get_param_match_info(version, perm_types, user_groups, request=None):
     """
     [メソッド概要]
       指定バージョンに紐づくITAパラメータ抽出条件情報を取得
     [引数]
-      version : ITAドライバーのバージョン
-      request : ログ出力用情報(ユーザーID、セッションID)
+      version     : ITAドライバーのバージョン
+      perm_types  : 取得対象の権限リスト
+      user_groups : ユーザー所属グループリスト
+      request     : ログ出力用情報(ユーザーID、セッションID)
     [戻り値]
       data_list : list : メッセージ解析情報取得のリスト
       drv_info  : dict : アクション設定されたドライバーのID/名前
     """
 
-    logger.logic_log('LOSI00001', 'version:%s' % (version), request=request)
+    logger.logic_log(
+        'LOSI00001',
+        'version:%s, perm_types:%s, user_groups:%s' % (
+            version, perm_types, user_groups
+        ),
+        request=request
+    )
 
     # インストールドライバー取得
     rcnt = ActionType.objects.filter(driver_type_id=defs.ITA, disuse_flag='0').count()
@@ -95,22 +103,41 @@ def _get_param_match_info(version, request=None):
     if version > 1:
         drv_name = '%s%s' % (drv_name, version)
 
-    # ドライバー名からアクション設定モジュール名をセット
-    module_name = '%sDriver' % (drv_name)
+    # ドライバー名からアクション設定モジュール名、権限モジュール名をセット
+    drv_module_name = '%sDriver' % (drv_name)
+    perm_module_name = '%sPermission' % (drv_name)
 
-    # モジュール名からアクション設定モジュールを取得
+    # モジュール名からアクション設定モジュールと権限モジュールを取得
     module = import_module('web_app.models.ITA_models')
-    drv_module = getattr(module, module_name, None)
+    drv_module = getattr(module, drv_module_name, None)
 
     if not drv_module:
-        logger.user_log('LOSI27001', module_name, request=request)
+        logger.user_log('LOSI27001', drv_module_name, request=request)
         raise Http404
+
+    perm_module = getattr(module, perm_module_name, None)
+
+    if not perm_module:
+        logger.user_log('LOSI27001', perm_module_name, request=request)
+        raise Http404
+
+    # ユーザー所属グループ別のアクセス可能ドライバーを取得
+    enable_drv_ids = []
+    if 1 not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
+        rset = perm_module.objects.all()
+        rset = rset.filter(group_id__in=user_groups)
+        rset = rset.filter(permission_type_id__in=perm_types)
+        enable_drv_ids = list(rset.values_list('ita_driver_id', flat=True).distinct())
 
     # アクション設定情報を取得
     drv_ids = []
     drv_info = {}
 
-    drv_list = drv_module.objects.all().values('ita_driver_id', 'ita_disp_name')
+    rset = drv_module.objects.all()
+    if 1 not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
+        rset = drv_module.objects.filter(ita_driver_id__in=enable_drv_ids)
+
+    drv_list = rset.values('ita_driver_id', 'ita_disp_name')
     for drv in drv_list:
         drv_ids.append(drv['ita_driver_id'])
         drv_info[drv['ita_driver_id']] = drv['ita_disp_name']
@@ -194,6 +221,50 @@ def _make_disp_name(Itaname_dict, ita_driver_id, menu_id):
     return None
 
 
+def _check_update_auth(request, version):
+    """
+    [メソッド概要]
+      更新権限チェック
+    """
+
+    hasUpdateAuthority = True
+
+    # インストールドライバー取得
+    rcnt = ActionType.objects.filter(driver_type_id=defs.ITA, disuse_flag='0').count()
+    if rcnt <= 0:
+        logger.user_log('LOSI27000', defs.ITA, request=request)
+        raise Http404
+
+    rset = DriverType.objects.filter(driver_type_id=defs.ITA, driver_major_version=version)
+    drv_names = list(rset.values_list('name', flat=True))
+    if len(drv_names) <= 0:
+        logger.system_log('LOSM27000', defs.ITA, version, request=request)
+        raise Http404
+
+    # バージョンが1以上の場合は、ドライバー名にバージョン番号を付与
+    drv_name = drv_names[0].capitalize()
+    if version > 1:
+        drv_name = '%s%s' % (drv_name, version)
+
+    # ITAメニュー名称を取得
+    module_name = '%sPermission' % (drv_name)
+
+    # モジュール名からアクション設定モジュールを取得
+    module = import_module('web_app.models.ITA_models')
+
+    ItaPermission = getattr(module, module_name, None)
+    if not ItaPermission:
+        logger.user_log('LOSI27001', module_name, request=request)
+        raise Http404
+
+    if 1 not in request.user_config.group_id_list:
+        ItaPerm_list = ItaPermission.objects.filter(group_id__in=request.user_config.group_id_list).values_list('permission_type_id', flat=True)
+        if defs.ALLOWED_MENTENANCE not in ItaPerm_list:
+            hasUpdateAuthority = False
+
+    return hasUpdateAuthority
+
+
 @check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
 def index(request, version):
     """
@@ -212,7 +283,17 @@ def index(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names, ita_name_list = _get_param_match_info(version, request)
+        data_list, driver_id_names, ita_name_list = _get_param_match_info(
+            version,
+            [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
+            request.user_config.group_id_list,
+            request
+        )
+
+        if editable_user:
+            hasUpdateAuthority = _check_update_auth(request, version)
+        else:
+            hasUpdateAuthority = False
 
     except Http404:
         raise Http404
@@ -227,6 +308,7 @@ def index(request, version):
         'mainmenu_list' : request.user_config.get_menu_list(),
         'user_name' : request.user.user_name,
         'lang_mode' : request.user.get_lang_mode(),
+        'hasUpdateAuthority' : hasUpdateAuthority,
     }
 
     return render(request, 'system/action_analysis_disp.html', data)
@@ -251,7 +333,12 @@ def edit(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names, ita_name_list = _get_param_match_info(version, request)
+        data_list, driver_id_names, ita_name_list = _get_param_match_info(
+            version,
+            [defs.ALLOWED_MENTENANCE,],
+            request.user_config.group_id_list,
+            request
+        )
         logger.logic_log('LOSI00001', ita_name_list, request=request)
     except Http404:
         raise Http404
@@ -296,6 +383,11 @@ def modify(request, version):
             if 'json_str' not in json_str:
                 msg = get_message('MOSJA27010', request.user.get_lang_mode(), showMsgId=False)
                 logger.user_log('LOSM27001', 'json_str', request=request)
+                raise Exception()
+
+            if not chk_permission(json_str, request):
+                msg = get_message('MOSJA27351', request.user.get_lang_mode(), showMsgId=False)
+                logger.user_log('LOSM27004', request.user_config.user_group_list)
                 raise Exception()
 
             # 更新前にレコードロック
@@ -594,3 +686,22 @@ def _validate(records, version, request=None):
             match_info[r['ita_driver_id']][r['menu_id']][r['order']] = 1
 
     return error_flag, error_msg
+
+
+def chk_permission(json_str, request):
+    """
+    更新権限チェック
+    """
+    ItaPermission = getattr(import_module('web_app.models.ITA_models'), 'ItaPermission')
+
+    permission_data = ItaPermission.objects.filter(
+        group_id__in=request.user_config.group_id_list,
+        permission_type_id=1,
+    ).values_list('ita_driver_id', flat=True).distinct()
+
+    for rq in json_str['json_str']:
+        logger.logic_log('LOSI00001', rq, request=None)
+        if int(rq['ita_driver_id']) not in permission_data:
+            return False
+
+    return True
