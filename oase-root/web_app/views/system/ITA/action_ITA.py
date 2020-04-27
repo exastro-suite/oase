@@ -492,6 +492,10 @@ class ITADriverInfo():
         return error_flag
 
     def _chk_permission(self, group_id_list, ita_driver_id, response):
+
+        if 1 in group_id_list:
+            return response
+
         pti = ItaPermission.objects.filter(group_id__in=group_id_list, ita_driver_id=ita_driver_id, permission_type_id=1)
 
         if pti.count() == 0:
