@@ -239,6 +239,11 @@ class ITADriverInfo():
 
         try:
             rq = json_str['json_str']
+
+            response = self._chk_permission(request.user_config.group_id_list, rq['ita_driver_id'], response)
+            if response['status'] == 'failure':
+                return response
+
             ope = int(rq['ope'])
             #削除以外の場合の入力チェック
             if ope != defs.DABASE_OPECODE.OPE_DELETE:
@@ -485,3 +490,14 @@ class ITADriverInfo():
 
         logger.logic_log('LOSI00002', 'return: %s' % error_flag)
         return error_flag
+
+    def _chk_permission(self, group_id_list, ita_driver_id, response):
+        pti = ItaPermission.objects.filter(group_id__in=group_id_list, ita_driver_id=ita_driver_id, permission_type_id=1)
+
+        if pti.count() == 0:
+            response = {
+                'status': 'failure',
+                'notpermitted': True,
+            }
+        return response
+
