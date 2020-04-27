@@ -167,6 +167,9 @@ def modify(request):
                 each_driver_response = modify_func(json_str, request)
 
                 if each_driver_response['status'] != 'success':
+                    if 'notpermitted' in each_driver_response and each_driver_response['notpermitted']:
+                        response['redirect_url'] = reverse('web_app:top:notpermitted')
+
                     response['status'] = 'failure'
                     response['error_msg'] = each_driver_response.get('error_msg', {})
 
