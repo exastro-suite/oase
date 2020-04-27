@@ -39,7 +39,9 @@ Copyright 2019 NEC Corporation
           <div class="oase-main-menu-inner">
             <ul class="oase-button-group">
               <li><button class="tooltip oase-button" title="{% get_message 'MOSJA27331' request.user.get_lang_mode showMsgId=False %}" onClick="window.location.href='{% url "web_app:system:action" %}'"><em class="owf owf-prev"></em><span>{% get_message 'MOSJA27300' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              {% if hasUpdateAuthority %}
               <li><button class="tooltip oase-button" title="{% get_message 'MOSJA27332' request.user.get_lang_mode showMsgId=False %}" id="btnEdt" onClick="changeModeToEdit('analysis_data', 'toEditForm');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              {% endif %}
             </ul>
             <form id="toEditForm" method="post" action="{% url 'web_app:system:paramsheet_edit' version %}">
               {% csrf_token %}
