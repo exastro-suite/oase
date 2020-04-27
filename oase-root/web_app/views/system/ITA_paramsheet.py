@@ -63,13 +63,15 @@ logger = OaseLogger.get_instance() # ロガー初期化
 MENU_ID = 2141002007
 
 
-def _get_param_match_info(version, request=None):
+def _get_param_match_info(version, perm_types, user_groups, request=None):
     """
     [メソッド概要]
       指定バージョンに紐づくITAパラメータ抽出条件情報を取得
     [引数]
-      version : ITAドライバーのバージョン
-      request : ログ出力用情報(ユーザーID、セッションID)
+      version     : ITAドライバーのバージョン
+      perm_types  : 取得対象の権限リスト
+      user_groups : ユーザー所属グループリスト
+      request     : ログ出力用情報(ユーザーID、セッションID)
     [戻り値]
       data_list : list : メッセージ解析情報取得のリスト
       drv_info  : dict : アクション設定されたドライバーのID/名前
@@ -95,22 +97,37 @@ def _get_param_match_info(version, request=None):
     if version > 1:
         drv_name = '%s%s' % (drv_name, version)
 
-    # ドライバー名からアクション設定モジュール名をセット
-    module_name = '%sDriver' % (drv_name)
+    # ドライバー名からアクション設定モジュール名、権限モジュール名をセット
+    drv_module_name = '%sDriver' % (drv_name)
+    perm_module_name = '%sPermission' % (drv_name)
 
-    # モジュール名からアクション設定モジュールを取得
+    # モジュール名からアクション設定モジュールと権限モジュールを取得
     module = import_module('web_app.models.ITA_models')
-    drv_module = getattr(module, module_name, None)
+    drv_module = getattr(module, drv_module_name, None)
 
     if not drv_module:
-        logger.user_log('LOSI27001', module_name, request=request)
+        logger.user_log('LOSI27001', drv_module_name, request=request)
         raise Http404
+
+    perm_module = getattr(module, perm_module_name, None)
+
+    if not perm_module:
+        logger.user_log('LOSI27001', perm_module_name, request=request)
+        raise Http404
+
+    # ユーザー所属グループ別のアクセス可能ドライバーを取得
+    rset = perm_module.objects.all()
+    if 1 not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
+        rset = rset.filter(group_id__in=user_groups)
+
+    rset = rset.filter(permission_type_id__in=perm_types)
+    enable_drv_ids = list(rset.values_list('ita_driver_id', flat=True).distinct())
 
     # アクション設定情報を取得
     drv_ids = []
     drv_info = {}
 
-    drv_list = drv_module.objects.all().values('ita_driver_id', 'ita_disp_name')
+    drv_list = drv_module.objects.filter(ita_driver_id__in=enable_drv_ids).values('ita_driver_id', 'ita_disp_name')
     for drv in drv_list:
         drv_ids.append(drv['ita_driver_id'])
         drv_info[drv['ita_driver_id']] = drv['ita_disp_name']
@@ -212,7 +229,12 @@ def index(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names, ita_name_list = _get_param_match_info(version, request)
+        data_list, driver_id_names, ita_name_list = _get_param_match_info(
+            version,
+            [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
+            request.user_config.group_id_list,
+            request
+        )
 
     except Http404:
         raise Http404
@@ -251,7 +273,12 @@ def edit(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names, ita_name_list = _get_param_match_info(version, request)
+        data_list, driver_id_names, ita_name_list = _get_param_match_info(
+            version,
+            [defs.ALLOWED_MENTENANCE,],
+            request.user_config.group_id_list,
+            request
+        )
         logger.logic_log('LOSI00001', ita_name_list, request=request)
     except Http404:
         raise Http404
