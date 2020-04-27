@@ -61,6 +61,19 @@ function setInfoInItaDetailView(idName) {
         $("#dlAuthGrpListDisp").html(html);
     }
     {% endfor %}
+
+    // ボタン制御
+    {% for i in info_list %}
+    if (idName == 'itadriver-{{i.ita_driver_id}}'){
+        {% if i.editable %}
+        $('#liEdit').css('display', 'inline-block');
+        $('#liDel').css('display', 'inline-block');
+        {% else %}
+        $('#liEdit').css('display', 'none');
+        $('#liDel').css('display', 'none');
+        {% endif %}
+    }
+    {% endfor %}
 }
 
 ////////////////////////////////////////////////
@@ -617,9 +630,9 @@ function showNewTable(){
           <ul class="oase-button-group">
             <li><button class="oase-button cancel" onclick="modalClose('#modal-ITA');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
             {% if editable_user %}
-            <li><button class="oase-button" onclick="setInfoInItaEditView(); modalChange('#modal-ITA', '#modal-ITA-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
+            <li id="liEdit"><button class="oase-button" onclick="setInfoInItaEditView(); modalChange('#modal-ITA', '#modal-ITA-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
             </button></li>
-            <li><button id="btnDelIta" class="oase-button" onclick="deleteItaDriver();"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li id="liDel"><button id="btnDelIta" class="oase-button" onclick="deleteItaDriver();"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
             {% endif %}
           </ul>
         </div>
