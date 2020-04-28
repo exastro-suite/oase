@@ -36,6 +36,7 @@ from django.http import Http404
 from django.test import Client, RequestFactory
 
 from libs.commonlibs.common import Common
+from libs.commonlibs import define as defs
 from web_app.models.models import ActionType, DriverType, User, PasswordHistory
 
 from web_app.views.system.ITA_paramsheet import _get_param_match_info, _make_disp_name, _validate, modify as paramsheet_modify
@@ -229,7 +230,11 @@ class TestITAParamSheet(object):
         ※ 正常系
         """
 
-        data_list, drv_info, menu_info = _get_param_match_info(1)
+        data_list, drv_info, menu_info = _get_param_match_info(
+            1,
+            [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
+            [1]
+        )
 
         assert len(data_list) > 0
 
@@ -249,7 +254,11 @@ class TestITAParamSheet(object):
         sts_code = 200
 
         try:
-            data_list, drv_info, menu_info = _get_param_match_info(0)
+            data_list, drv_info, menu_info = _get_param_match_info(
+                0,
+                [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
+                [1]
+            )
 
         except Http404:
             sts_code = 404
