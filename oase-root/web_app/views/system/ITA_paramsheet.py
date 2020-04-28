@@ -387,7 +387,7 @@ def modify(request, version):
 
             if not chk_permission(json_str, request):
                 msg = get_message('MOSJA27351', request.user.get_lang_mode(), showMsgId=False)
-                logger.user_log('LOSM27004', request.user_config.user_group_list)
+                logger.user_log('LOSM27004', request.user_config.group_id_list)
                 raise Exception()
 
             # 更新前にレコードロック
@@ -692,6 +692,10 @@ def chk_permission(json_str, request):
     """
     更新権限チェック
     """
+
+    if 1 in request.user_config.group_id_list:  # 1=システム管理グループ：すべてのドライバーに対して更新権限を持つ
+        return True
+
     ItaPermission = getattr(import_module('web_app.models.ITA_models'), 'ItaPermission')
 
     permission_data = ItaPermission.objects.filter(
