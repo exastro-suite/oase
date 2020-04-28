@@ -119,7 +119,9 @@ class ConstantModules:
     ## F_CREATE_MENU_INFO
     FCMI_MENU_NAME                    = 3
     FCMI_TARGET                       = 4
-    FCMI_MENUGROUP                    = 9
+    FCMI_MENUGROUP_FOR_HOSTGROUP      = 8
+    FCMI_MENUGROUP_FOR_HOST           = 9
+    FCMI_MENUGROUP_FOR_VERTICAL       = 11
 
     ## A_MENU_LIST
     AML_MENU_ID                       = 2
