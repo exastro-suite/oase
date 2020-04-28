@@ -151,8 +151,14 @@ class ITAParameterSheetMenuManager:
             if menu[Cstobj.FCMI_MENU_NAME]:
                 menu_names.append(menu[Cstobj.FCMI_MENU_NAME])
 
-            if menu[Cstobj.FCMI_MENUGROUP]:
-                group_names.append(menu[Cstobj.FCMI_MENUGROUP])
+            if menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
+                group_names.append(menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL])
+
+            elif menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP]:
+                group_names.append(menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP])
+
+            elif menu[Cstobj.FCMI_MENUGROUP_FOR_HOST]:
+                group_names.append(menu[Cstobj.FCMI_MENUGROUP_FOR_HOST])
 
         # メニュー管理取得
         self.ita_config['menuID'] = '2100000205'
