@@ -212,6 +212,11 @@ def menu_id_check(menu_id, check_info, conditions, message_list):
         logger.logic_log('LOSM00029', check_info)
         message_list.append({'id': 'MOSJA03144', 'param': None})
 
+    menu_id_list = menu_id.split(':')
+    if len(menu_id_list) != 1 and check_info['CONVERT_FLG'].upper() == 'TRUE':
+        logger.logic_log('LOSM00030', check_info)
+        message_list.append({'id': 'MOSJA03145', 'param': None})
+
     return message_list
 
 
