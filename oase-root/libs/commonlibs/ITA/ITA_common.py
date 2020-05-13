@@ -65,7 +65,6 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
 
     # MENU_ID チェック
     if 'MENU_ID' in check_info:
-        print(check_info)
         menu_id = check_info['MENU_ID']
         exclusive = exclusive + 1
         message_list = menu_id_check(menu_id, check_info, conditions, message_list)
@@ -213,7 +212,6 @@ def menu_id_check(menu_id, check_info, conditions, message_list):
         logger.logic_log('LOSM00029', check_info)
         message_list.append({'id': 'MOSJA03144', 'param': None})
 
-    print(str(menu_id))
     menu_id_list = menu_id.split(':')
     if len(menu_id_list) != 1 and check_info['CONVERT_FLG'].upper() == 'TRUE':
         logger.logic_log('LOSM00030', check_info)
