@@ -553,14 +553,14 @@ class ITAManager(AbstractManager):
         target_table = ""
 
         if orchestra_id == '3':
-                menu_id = '2100020108'
-                target_table = 'B_ANSIBLE_LNS_PHO_LINK'
+                menu_id = '2100020109'
+                target_table = 'B_ANSIBLE_LNS_VARS_ASSIGN_RIC'
         elif orchestra_id == '4':
-                menu_id = '2100020209'
-                target_table = 'B_ANSIBLE_PNS_PHO_LINK'
+                menu_id = '2100020210'
+                target_table = 'B_ANSIBLE_PNS_VARS_ASSIGN_RIC'
         else:
-                menu_id = '2100020310'
-                target_table = 'B_ANSIBLE_LRL_PHO_LINK'
+                menu_id = '2100020311'
+                target_table = 'B_ANSIBLE_LRL_VARS_ASSIGN_RIC'
 
         return menu_id, target_table
 
