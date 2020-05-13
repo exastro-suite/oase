@@ -124,6 +124,7 @@ class ItaMenuName(models.Model):
     menu_id = models.IntegerField("メニューID")
     menu_group_name = models.CharField("メニューグループ名", max_length=64)
     menu_name = models.CharField("メニュー名", max_length=64)
+    hostgroup_flag = models.BooleanField("ホストグループフラグ", default=False)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
 
