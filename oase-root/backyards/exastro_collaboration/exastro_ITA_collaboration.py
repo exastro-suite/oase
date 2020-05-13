@@ -117,8 +117,14 @@ class ITAParameterSheetMenuManager:
         パラメーターシートメニューの情報リストを取得
         [戻り値]
         flg       : bool : True=成功、False=失敗
-        menu_list : list : パラメーターシートメニューの情報リスト
+        ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報
+        
         """
+
+        ret_info = {
+            'menu_list' : [],
+            'use_info'  : {},
+        }
 
         logger.logic_log(
             'LOSI00001',
@@ -138,27 +144,37 @@ class ITAParameterSheetMenuManager:
 
         # メニュー作成情報取得エラー
         if not flg:
-            return False, []
+            return False, ret_info
 
         # 取得件数0件
         if len(menu_list) <= 0:
-            return True, []
+            return True, ret_info
 
         # メニュー管理取得用の条件を作成
         menu_names = []
         group_names = []
+        use_info = {}
         for menu in menu_list:
+            menu_name = ''
+            group_name = ''
+            hostgroup_flg = True if menu[Cstobj.FCMI_USE] in ['ホストグループ用',] else False # TODO : 多言語対応
+
             if menu[Cstobj.FCMI_MENU_NAME]:
-                menu_names.append(menu[Cstobj.FCMI_MENU_NAME])
+                menu_name = menu[Cstobj.FCMI_MENU_NAME]
 
             if menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
-                group_names.append(menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL])
+                group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]
 
             elif menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP]:
-                group_names.append(menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP])
+                group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP]
 
             elif menu[Cstobj.FCMI_MENUGROUP_FOR_HOST]:
-                group_names.append(menu[Cstobj.FCMI_MENUGROUP_FOR_HOST])
+                group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_HOST]
+
+            if menu_name and group_name:
+                menu_names.append(menu_name)
+                group_names.append(group_name)
+                use_info[(group_name, menu_name)] = hostgroup_flg
 
         # メニュー管理取得
         self.ita_config['menuID'] = '2100000205'
@@ -174,7 +190,7 @@ class ITAParameterSheetMenuManager:
 
         # メニュー管理取得エラー
         if not flg:
-            return False, []
+            return False, ret_info
 
         logger.logic_log(
             'LOSI00002',
@@ -183,9 +199,12 @@ class ITAParameterSheetMenuManager:
             )
         )
 
-        return flg, menu_list
+        ret_info['menu_list'] = menu_list
+        ret_info['use_info']  = use_info
 
-    def save_menu_info(self, menu_list):
+        return flg, ret_info
+
+    def save_menu_info(self, menu_info):
         """
         [概要]
         パラメーターシートメニューの情報を保存
@@ -196,6 +215,14 @@ class ITAParameterSheetMenuManager:
             'LOSI00001',
             'Start ITAParameterSheetMenuManager.save_menu_info. DriverID=%s' % (self.drv_id)
         )
+
+        menu_list = []
+        use_info  = {}
+        if 'menu_list' in menu_info:
+            menu_list = menu_info['menu_list']
+
+        if 'use_info' in menu_info:
+            use_info = menu_info['use_info']
 
         # ITAから取得したメニュー情報を作成
         ita_data = {}
@@ -248,9 +275,11 @@ class ITAParameterSheetMenuManager:
             pkey = oase_data[u]
             group_name = ita_data[u]['group_name']
             menu_name = ita_data[u]['menu_name']
+            hg_flag = use_info[(group_name, menu_name)] if (group_name, menu_name) in use_info else False
             ItaMenuName.objects.filter(ita_menu_name_id=pkey).update(
                 menu_group_name = group_name,
                 menu_name = menu_name,
+                hostgroup_flag = hg_flag,
                 last_update_timestamp = self.now,
                 last_update_user = self.user_name
             )
@@ -261,6 +290,9 @@ class ITAParameterSheetMenuManager:
         reg_list = []
         reg_set = ita_set - oase_set
         for r in reg_set:
+            group_name = ita_data[r]['group_name']
+            menu_name = ita_data[r]['menu_name']
+            hg_flag = use_info[(group_name, menu_name)] if (group_name, menu_name) in use_info else False
             reg_list.append(
                 ItaMenuName(
                     ita_driver_id = self.drv_id,
@@ -268,6 +300,7 @@ class ITAParameterSheetMenuManager:
                     menu_id = r[1],
                     menu_group_name = ita_data[r]['group_name'],
                     menu_name = ita_data[r]['menu_name'],
+                    hostgroup_flag = hg_flag,
                     last_update_timestamp = self.now,
                     last_update_user = self.user_name
                 )
@@ -295,10 +328,10 @@ class ITAParameterSheetMenuManager:
         )
 
         try:
-            flg, menu_list = self.get_menu_list()
+            flg, menu_info = self.get_menu_list()
             if flg:
                 with transaction.atomic():
-                    self.save_menu_info(menu_list)
+                    self.save_menu_info(menu_info)
 
         except Exception as e:
             logger.system_log('LOSM28001', 'execute')
