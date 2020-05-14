@@ -152,7 +152,8 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
     menu_ids = []
     menu_info = {}
 
-    menu_list = ItaMenuName.objects.all().values('menu_group_id', 'menu_id', 'menu_group_name', 'menu_name')
+    menu_list = ItaMenuName.objects.all().values(
+        'menu_group_id', 'menu_id', 'menu_group_name', 'menu_name').order_by('menu_id')
     for menu in menu_list:
         menu_ids.append(menu['menu_id'])
         value = '%s:%s:%s:%s' % (menu['menu_group_id'], menu['menu_group_name'], menu['menu_id'], menu['menu_name'])
