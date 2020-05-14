@@ -490,7 +490,7 @@ def test_menu_id_check_ok(ita_table):
     conditions = {'条件1', '条件2'}
 
     # テストデータ設定
-    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'1', 'CONVERT_FLG':True}
+    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'1', 'CONVERT_FLG':'True'}
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -516,7 +516,7 @@ def test_menu_id_check_ng_menu_id_noval(ita_table):
     conditions = {'条件1', '条件2'}
 
     # テストデータ設定
-    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'', 'CONVERT_FLG':True}
+    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'', 'CONVERT_FLG':'True'}
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -542,7 +542,7 @@ def test_menu_id_check_ng_menu_id_reserved(ita_table):
     conditions = {'条件1', '条件2'}
 
     # テストデータ設定
-    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'{{ VAR_条件0 }}', 'CONVERT_FLG':True}
+    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'{{ VAR_条件0 }}', 'CONVERT_FLG':'True'}
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -606,6 +606,31 @@ def test_menu_id_check_ng_convert_flg_noval(ita_table):
     # テストデータ削除
     delete_data_for_ita_driver()
 
+
+@pytest.mark.django_db
+def test_menu_id_check_ng_menu_ids_convert_flg_true(ita_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    MENU_IDの異常系(MENU_IDが複数 且つ Convert_Flg=True)
+    """
+
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+
+    # テストデータ設定
+    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'1:2:3', 'CONVERT_FLG':'True'}
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    # テスト実施
+    message_list = []
+    menu_id_check(check_info['MENU_ID'], check_info, conditions, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03145'
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
 
 ################################################################
 # アクションパラメータ全体のバリデーションチェック処理テスト
