@@ -101,6 +101,7 @@ class ItaParametaCommitInfo(models.Model):
     commit_id = models.AutoField("パラメータ実行ID", primary_key=True)
     response_id = models.IntegerField("レスポンスID")
     commit_order = models.IntegerField("実行順序")
+    menu_id = models.IntegerField("メニューID")
     ita_order = models.IntegerField("ITA順序")
     parameter_value = models.CharField("抽出パラメータ値", max_length=4000)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
@@ -108,7 +109,7 @@ class ItaParametaCommitInfo(models.Model):
 
     class Meta:
         db_table = 'OASE_T_ITA_PARAMETER_COMMIT_INFO'
-        unique_together = (('response_id', 'commit_order', 'ita_order'), )
+        unique_together = (('response_id', 'commit_order', 'menu_id', 'ita_order'), )
 
     def __str__(self):
         return str(self.commit_id)
