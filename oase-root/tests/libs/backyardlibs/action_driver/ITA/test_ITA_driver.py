@@ -613,7 +613,7 @@ def test_set_action_parameters():
     testITA.aryActionParameter['OPERATION_ID'] = 1
 
     try:
-        with pytest.raiseraises(OASEError):
+        with pytest.raises(OASEError):
             testITA.set_action_parameters(
                 testITA.aryActionParameter, exe_order, res_detail_id)
             assert False
@@ -915,11 +915,11 @@ def test_ptrn_multiple_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
 
     try:
-        with pytest.raiseraises(OASEError):
-            status, detai =testITA.act(rhdm_res_act)
+        with pytest.raises(OASEError):
+            status, detai = testITA.act(rhdm_res_act)
             status == ACTION_DATA_ERROR
     except:
-        assert True
+        assert False
 
     delete_data_param_information()
 
