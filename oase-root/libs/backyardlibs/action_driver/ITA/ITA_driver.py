@@ -51,7 +51,7 @@ from web_app.models.models import DataObject
 from web_app.models.ITA_models import ItaActionHistory
 from web_app.models.ITA_models import ItaDriver
 from web_app.models.ITA_models import ItaParameterMatchInfo
-from web_app.models.ITA_models import ItaParametaCommitInfo
+from web_app.models.ITA_models import ItaParametaCommitInfo, ItaMenuName
 
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.aes_cipher import AESCipher
@@ -249,8 +249,8 @@ class ITAManager(AbstractManager):
             if convert_flg.upper() == 'FALSE':
                 commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('ita_order')
                 if len(commitinfo_list) == 0:
+                    commitinfo_list = []
                     for menu_id in menu_id_list:
-                        commitinfo_list = []
                         ita_param_matchinfo_list = list(ItaParameterMatchInfo.objects.filter(menu_id=menu_id).order_by('match_id'))
                         events_request = EventsRequest.objects.get(trace_id=self.trace_id)
                         data_object_list = list(DataObject.objects.filter(rule_type_id=events_request.rule_type_id).order_by('data_object_id'))
@@ -279,7 +279,7 @@ class ITAManager(AbstractManager):
                                     itaparcom = ItaParametaCommitInfo(
                                         response_id = self.response_id,
                                         commit_order = rhdm_res_act.execution_order,
-                                        menu_id = menu_id,
+                                        menu_id = int(menu_id),
                                         ita_order = match.order,
                                         parameter_value = parameter_value,
                                         last_update_timestamp = Comobj.getStringNowDateTime(),
@@ -287,24 +287,28 @@ class ITAManager(AbstractManager):
                                     )
                                     commitinfo_list.append(itaparcom)
 
-                        try:
-                            ItaParametaCommitInfo.objects.bulk_create(commitinfo_list)
-                        except Exception as e:
-                            logger.system_log('LOSE01133', self.trace_id, traceback.format_exc())
-                            ActionDriverCommonModules.SaveActionLog(
-                                self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01071')
-                            return ACTION_EXEC_ERROR, DetailStatus
+                    try:
+                        ItaParametaCommitInfo.objects.bulk_create(commitinfo_list)
+                    except Exception as e:
+                        logger.system_log('LOSE01133', self.trace_id, traceback.format_exc())
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01071')
+                        return ACTION_EXEC_ERROR, DetailStatus
 
-                parameter_list = []
+                parameter_list = {}
 
                 for commit_info in commitinfo_list:
+                    if commit_info.menu_id not in parameter_list:
+                        parameter_list[commit_info.menu_id] = {'host_name':'', 'param_list':[]}
+
                     if commit_info.ita_order == 0:
-                        host_name = commit_info.parameter_value
+                        parameter_list[commit_info.menu_id]['host_name'] = commit_info.parameter_value
                     else:
-                        parameter_list.append(commit_info.parameter_value)
+                        parameter_list[commit_info.menu_id]['param_list'].append(commit_info.parameter_value)
 
             elif convert_flg.upper() == 'TRUE':
-                parameter_list = []
+                menu_id = int(menu_id_list[0])
+                parameter_list = {}
 
                 event_info_list = ast.literal_eval(events_request.event_info)['EVENT_INFO']
                 if len(event_info_list) == 0:
@@ -312,14 +316,18 @@ class ITAManager(AbstractManager):
                     return ACTION_EXEC_ERROR, DetailStatus
 
                 for i, v in enumerate(event_info_list):
-                    if i == 0:
-                        host_name = event_info_list[0]
-                    else:
-                        parameter_list.append(event_info_list[i])
+                    if menu_id not in parameter_list:
+                        parameter_list[menu_id] = {'host_name':'', 'param_list':[]}
 
-            if not host_name:
-                logger.system_log('LOSE01136', self.trace_id, traceback.format_exc())
-                return ACTION_EXEC_ERROR, DetailStatus
+                    if i == 0:
+                        parameter_list[menu_id]['host_name'] = event_info_list[0]
+                    else:
+                        parameter_list[menu_id]['param_list'].append(event_info_list[i])
+
+            for k, v in parameter_list.items():
+                if not v['host_name']:
+                    logger.system_log('LOSE01136', self.trace_id, traceback.format_exc())
+                    return ACTION_EXEC_ERROR, DetailStatus
 
             operation_data = []
             if retry:
@@ -375,16 +383,45 @@ class ITAManager(AbstractManager):
                 operation_data[0][Cstobj.COL_OPERATION_NO_IDBH],
                 operation_data[0][Cstobj.COL_OPERATION_NAME])
 
-            ret = self.ITAobj.insert_c_parameter_sheet(
-                host_name, operation_id, operation_name, exec_schedule_date, parameter_list, menu_id.zfill(10))
-            if ret == Cstobj.RET_REST_ERROR:
-                logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+            hg_flg_info = {}
+            rset = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
+            rset = rset.values('menu_id', 'hostgroup_flag')
+            for r in rset:
+                hg_flg_info[r['menu_id']] = r['hostgroup_flag']
 
-                return ACTION_EXEC_ERROR, DetailStatus
+            for menu_id in menu_id_list:
+                menu_id = int(menu_id)
+                host_name = ''
+                param_list = []
 
-            ActionDriverCommonModules.SaveActionLog(
-                self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
+                if menu_id not in hg_flg_info:
+                    logger.system_log(
+                        'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                if not parameter_list[menu_id]['host_name']:
+                    logger.system_log(
+                        'LOSE01138', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                host_name = parameter_list[menu_id]['host_name']
+                if hg_flg_info[menu_id]:
+                    host_name = '[H]%s' % (parameter_list[menu_id]['host_name'])
+
+                param_list = parameter_list[menu_id]['param_list']
+
+                ret = self.ITAobj.insert_c_parameter_sheet(
+                    host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
+                if ret == Cstobj.RET_REST_ERROR:
+                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
 
             return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, DetailStatus
 
