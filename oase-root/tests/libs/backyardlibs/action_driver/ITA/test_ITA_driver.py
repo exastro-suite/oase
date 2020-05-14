@@ -536,18 +536,45 @@ def test_check_action_parameters():
     result = testITA.check_action_parameters()
     assert result == {'msg_id': 'MOSJA01006', 'key': 'SYMPHONY_CLASS_ID'}
 
+    ########################################################
+    # 異常終了パターン　いずれのキーも存在しないパターン
+    ########################################################
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    testITA.aryActionParameter.clear()
+    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+
+    result = testITA.check_action_parameters()
+    assert result == {'msg_id': 'MOSJA01063', 'key': ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
+
     ####################################################################
-    # 異常終了パターン 排他キー(OPERATION_ID, SERVER_LIST)チェック
+    # 異常終了パターン 排他キー(OPERATION_ID, SERVER_LIST, MENU_ID)チェック
     ####################################################################
     testITA = ITAManager(trace_id, response_id, last_update_user)
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
     testITA.aryActionParameter['OPERATION_ID'] = 1
     testITA.aryActionParameter['SERVER_LIST'] = 1
+    testITA.aryActionParameter['MENU_ID'] = '1'
 
     result = testITA.check_action_parameters()
     assert result == {'msg_id': 'MOSJA01062',
-                      'key': ['OPERATION_ID', 'SERVER_LIST']}
+                      'key': ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
+
+    ####################################################################
+    # 異常終了パターン 排他キー(キーは存在するが値は存在しない)チェック
+    ####################################################################
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
+    testITA.aryActionParameter['OPERATION_ID'] = None
+    testITA.aryActionParameter['SERVER_LIST'] = None
+    testITA.aryActionParameter['MENU_ID'] = None
+
+    result = testITA.check_action_parameters()
+    assert result == {'msg_id': 'MOSJA01062',
+                      'key': ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
 
     ############################################
     # 正常終了パターン OPERATION_ID
@@ -572,6 +599,17 @@ def test_check_action_parameters():
     result = testITA.check_action_parameters()
     assert not result
 
+    ############################################
+    # 正常終了パターン MENU_ID
+    ############################################
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
+    testITA.aryActionParameter['MENU_ID'] = '1:2'
+
+    result = testITA.check_action_parameters()
+
+    assert not result
 
 def test_set_action_parameters():
     """
