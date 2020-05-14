@@ -221,7 +221,7 @@ ITAドライバ
 * SYMPHONY_CLASS_IDはITA画面の基本コンソール-Symphonyクラス一覧のSymphonyクラスIDと紐づけます。
 * OPERATION_IDはITA画面の基本コンソール-投入オペレーション一覧のオペレーションIDと紐づけます。
 * SERVER_LISTは実行対象となるホスト名を記述します。ホスト名はITA画面の基本コンソール-機器一覧のホスト名と紐づけます。複数記載する場合はコロン(:)で区切って記述します。
-* MENU_IDはITAで作成されたパラメータシートのメニューIDと紐づけます。メニューIDはITA画面の管理コンソール-メニュー管理から確認できます。
+* MENU_IDはITAで作成されたパラメータシートのメニューIDと紐づけます。メニューIDはITA画面の管理コンソール-メニュー管理から確認できます。複数記載する場合はコロン(:)で区切って記述します。
 * CONVERT_FLGはTRUEまたはFALSEを設定します。MENU_ID指定の時に必須になります。
 * SYMPHONY_CLASS_ID,OPERATION_ID,SERVER_LIST,MENU_IDの値に {{ VAR_条件名 }} と記入すると条件部の値を当てはめることができます。
 * {{ VAR_条件名 }} の条件名には :doc:`02_screen_structure` の新規追加画面にて入力された条件名を記入してください。
@@ -278,7 +278,7 @@ ITAドライバ
 
 ::
 
- ITA_NAME=action43,SYMPHONY_CLASS_ID=2,MENU_ID=1,CONVERT_FLG=FALSE
+ ITA_NAME=action43,SYMPHONY_CLASS_ID=2,MENU_ID=1:2,CONVERT_FLG=FALSE
 
 .. note::
    OPERATION_ID,SERVER_LIST,MENU_IDを同時に設定した場合エラーとなります。
