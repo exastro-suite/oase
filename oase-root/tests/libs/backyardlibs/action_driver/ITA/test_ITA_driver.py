@@ -1006,7 +1006,7 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
                 trace_id=trace_id,
                 status=1,
                 last_update_timestamp=now,
-                last_update_user='pytest',
+                last_update_user='pytest'
             )
             pre_action_history.save(force_insert=True)
 
@@ -1022,14 +1022,13 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
                 username='pytest',
                 password=encrypted_password,
                 last_update_user='pytest',
-                last_update_timestamp=now,
+                last_update_timestamp=now
             )
             ita_driver.save(force_insert=True)
 
             # ITAパラメータ抽出条件
             ItaParameterMatchInfo(
                 ita_driver_id=ita_driver.ita_driver_id,
-                menu_group_id=1,
                 menu_id=1,
                 parameter_name='ホスト名',
                 order=0,
@@ -1042,7 +1041,6 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
 
             ItaParameterMatchInfo(
                 ita_driver_id=ita_driver.ita_driver_id,
-                menu_group_id=1,
                 menu_id=1,
                 parameter_name='プロセス',
                 order=1,
