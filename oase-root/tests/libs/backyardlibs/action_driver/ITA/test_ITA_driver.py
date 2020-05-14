@@ -742,7 +742,69 @@ def test_act_ptrn_menuid_convertflg_false_ok(monkeypatch):
     delete_data_param_information()
 
 @pytest.mark.django_db
+def test_act_ptrn_multiple_menuid_convertflg_false_ok(monkeypatch):
+    """
+    ITAアクションを実行メソッドのテスト
+    アクションパラーメータに複数のMENU_ID,CONVERT_FLG=FALSE を指定したパターン
+    """
+    ITAManager = get_ita_manager()
+    ItaDriver = get_ita_driver()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1:2", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1","CONVERT_FLG=FALSE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info, 4)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    status, detai = testITA.act(rhdm_res_act)
+    assert status == ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE
+
+    delete_data_param_information()
+
+@pytest.mark.django_db
 def test_ptrn_menuid_act_ng(monkeypatch):
+    ITAManager = get_ita_manager()
+    ItaDriver = get_ita_driver()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1:2", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1","CONVERT_FLG=TRUE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info, 4)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    status, detai = testITA.act(rhdm_res_act)
+    assert status == ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE
+
+    delete_data_param_information()
+
     """
     ITAアクションを実行時のオペレーション登録/検索失敗のテスト
     """
@@ -803,6 +865,91 @@ def test_ptrn_menuid_act_ng(monkeypatch):
     trace_id = EventsRequestCommon.generate_trace_id(now)
     ita_disp_name = 'ITA176'
     parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1", "CONVERT_FLG=FALSE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (cmod.RET_REST_ERROR))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    status, detai = testITA.act(rhdm_res_act)
+    assert status == ACTION_EXEC_ERROR
+
+    delete_data_param_information()
+
+@pytest.mark.django_db
+def test_ptrn_multiple_menuid_act_ng(monkeypatch):
+    """
+    ITAアクションを実行時のオペレーション登録/検索失敗のテスト
+    """
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+
+    # 異常系 (オペレーション登録失敗)
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    ita_disp_name = 'ITA176'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1:2", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1", "CONVERT_FLG=TRUE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (False, ''))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    try:
+        with pytest.raises(OASEError):
+            status, detai = testITA.act(rhdm_res_act)
+            status == ACTION_DATA_ERROR
+    except:
+        assert False
+
+    delete_data_param_information()
+
+    # 異常系 (オペレーション検索失敗)
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    ita_disp_name = 'ITA176'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1:2", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1", "CONVERT_FLG=FALSE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (False, []))
+    monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    status, detai = testITA.act(rhdm_res_act)
+    assert status == ACTION_EXEC_ERROR
+
+    delete_data_param_information()
+
+    # 異常系 (パラメータシート登録失敗)
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    ita_disp_name = 'ITA176'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1:2", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1", "CONVERT_FLG=FALSE"]}'
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info)
 
     testITA = ITAManager(trace_id, response_id, last_update_user)
@@ -1042,6 +1189,30 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
             ItaParameterMatchInfo(
                 ita_driver_id=ita_driver.ita_driver_id,
                 menu_id=1,
+                parameter_name='プロセス',
+                order=1,
+                conditional_name='メッセージ本文',
+                extraction_method1=r'pid=\d*',
+                extraction_method2='pid=',
+                last_update_timestamp=now,
+                last_update_user='pytest'
+            ).save(force_insert=True)
+
+            ItaParameterMatchInfo(
+                ita_driver_id=ita_driver.ita_driver_id,
+                menu_id=2,
+                parameter_name='ホスト名',
+                order=0,
+                conditional_name='メッセージ本文',
+                extraction_method1=r'対象ノード= ([\w-]+)',
+                extraction_method2='対象ノード=',
+                last_update_timestamp=now,
+                last_update_user='pytest'
+            ).save(force_insert=True)
+
+            ItaParameterMatchInfo(
+                ita_driver_id=ita_driver.ita_driver_id,
+                menu_id=2,
                 parameter_name='プロセス',
                 order=1,
                 conditional_name='メッセージ本文',
