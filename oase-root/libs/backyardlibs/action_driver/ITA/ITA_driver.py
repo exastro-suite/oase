@@ -239,54 +239,61 @@ class ITAManager(AbstractManager):
             menu_id = check_info[key_menu_id]
             convert_flg = check_info[key_convert_flg]
 
+            menu_id_list = menu_id.split(':')
+            if len(menu_id_list) != 1 and convert_flg.upper() == 'TRUE':
+                raise OASEError('', 'LOSE01137', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
+                                'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
+
             host_name = None
             events_request = EventsRequest.objects.get(trace_id=self.trace_id)
             if convert_flg.upper() == 'FALSE':
                 commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('ita_order')
                 if len(commitinfo_list) == 0:
-                    ita_param_matchinfo_list = list(ItaParameterMatchInfo.objects.filter(menu_id=menu_id).order_by('match_id'))
-                    events_request = EventsRequest.objects.get(trace_id=self.trace_id)
-                    data_object_list = list(DataObject.objects.filter(rule_type_id=events_request.rule_type_id).order_by('data_object_id'))
-                    commitinfo_list = []
+                    for menu_id in menu_id_list:
+                        commitinfo_list = []
+                        ita_param_matchinfo_list = list(ItaParameterMatchInfo.objects.filter(menu_id=menu_id).order_by('match_id'))
+                        events_request = EventsRequest.objects.get(trace_id=self.trace_id)
+                        data_object_list = list(DataObject.objects.filter(rule_type_id=events_request.rule_type_id).order_by('data_object_id'))
 
-                    for match in ita_param_matchinfo_list:
-                        label_list = []
-                        for obj in data_object_list:
+                        for match in ita_param_matchinfo_list:
+                            label_list = []
+                            for obj in data_object_list:
 
-                            if match.conditional_name == obj.conditional_name and not obj.label in label_list:
-                                label_list.append(obj.label)
-                                number = int(obj.label[5:])
-                                message = ast.literal_eval(events_request.event_info)['EVENT_INFO'][number]
+                                if match.conditional_name == obj.conditional_name and not obj.label in label_list:
+                                    label_list.append(obj.label)
+                                    number = int(obj.label[5:])
+                                    message = ast.literal_eval(events_request.event_info)['EVENT_INFO'][number]
 
-                                parameter_value = ''
+                                    parameter_value = ''
 
-                                pattern = match.extraction_method1
-                                m = re.search(pattern, message)
-                                if m is None:
-                                    continue
-                                elif match.extraction_method2 == '':
-                                    parameter_value = m.group(0).strip()
-                                elif match.extraction_method2 != '':
-                                    value = m.group(0).split(match.extraction_method2)
-                                    parameter_value = value[1].strip()
+                                    pattern = match.extraction_method1
+                                    m = re.search(pattern, message)
+                                    if m is None:
+                                        continue
+                                    elif match.extraction_method2 == '':
+                                        parameter_value = m.group(0).strip()
+                                    elif match.extraction_method2 != '':
+                                        value = m.group(0).split(match.extraction_method2)
+                                        parameter_value = value[1].strip()
 
-                                itaparcom = ItaParametaCommitInfo(
-                                    response_id = self.response_id,
-                                    commit_order = rhdm_res_act.execution_order,
-                                    ita_order = match.order,
-                                    parameter_value = parameter_value,
-                                    last_update_timestamp = Comobj.getStringNowDateTime(),
-                                    last_update_user = self.last_update_user,
-                                )
-                                commitinfo_list.append(itaparcom)
+                                    itaparcom = ItaParametaCommitInfo(
+                                        response_id = self.response_id,
+                                        commit_order = rhdm_res_act.execution_order,
+                                        menu_id = menu_id,
+                                        ita_order = match.order,
+                                        parameter_value = parameter_value,
+                                        last_update_timestamp = Comobj.getStringNowDateTime(),
+                                        last_update_user = self.last_update_user,
+                                    )
+                                    commitinfo_list.append(itaparcom)
 
-                    try:
-                        ItaParametaCommitInfo.objects.bulk_create(commitinfo_list)
-                    except Exception as e:
-                        logger.system_log('LOSE01133', self.trace_id, traceback.format_exc())
-                        ActionDriverCommonModules.SaveActionLog(
-                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01071')
-                        return ACTION_EXEC_ERROR, DetailStatus
+                        try:
+                            ItaParametaCommitInfo.objects.bulk_create(commitinfo_list)
+                        except Exception as e:
+                            logger.system_log('LOSE01133', self.trace_id, traceback.format_exc())
+                            ActionDriverCommonModules.SaveActionLog(
+                                self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01071')
+                            return ACTION_EXEC_ERROR, DetailStatus
 
                 parameter_list = []
 
@@ -812,18 +819,29 @@ class ITAManager(AbstractManager):
             ret_info = {'msg_id':'MOSJA01006', 'key':'SYMPHONY_CLASS_ID'}
             return ret_info
 
-        # 排他キー(OPERATION_ID, SERVER_LIST)チェック
+        # 排他キー(OPERATION_ID, SERVER_LIST, MENU_ID)チェック
+        key_exists_count = 0
+        matual_exclusive_keys = ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']
+        for exkey in matual_exclusive_keys:
+            if exkey in self.aryActionParameter:
+                key_exists_count += 1
+
         # キーが排他的ではない
-        if 'OPERATION_ID' in self.aryActionParameter and 'SERVER_LIST' in self.aryActionParameter:
-            ret_info = {'msg_id':'MOSJA01062', 'key':['OPERATION_ID', 'SERVER_LIST']}
+        if key_exists_count > 1:
+            ret_info = {'msg_id':'MOSJA01062', 'key':['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
             return ret_info
 
-        # いずれのキーも存在しない、もしくは、キーは存在するが値が不完全
-        elif (('OPERATION_ID' in self.aryActionParameter and not self.aryActionParameter['OPERATION_ID']) \
-        or   ('SERVER_LIST'  in self.aryActionParameter and not self.aryActionParameter['SERVER_LIST'])):
-            ret_info = {'msg_id':'MOSJA01063', 'key':['OPERATION_ID', 'SERVER_LIST']}
+        # いずれのキーも存在しない
+        elif key_exists_count < 1:
+            ret_info = {'msg_id':'MOSJA01063', 'key':['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
             return ret_info
 
+        # キーは存在するが値が不完全
+        if (('OPERATION_ID' in self.aryActionParameter and not self.aryActionParameter['OPERATION_ID']) \
+        or  ('SERVER_LIST'  in self.aryActionParameter and not self.aryActionParameter['SERVER_LIST']) \
+        or  ('MENU_ID'      in self.aryActionParameter and not self.aryActionParameter['MENU_ID'])):
+            ret_info = {'msg_id':'MOSJA01063', 'key':['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
+            return ret_info
 
         return ret_info
 
