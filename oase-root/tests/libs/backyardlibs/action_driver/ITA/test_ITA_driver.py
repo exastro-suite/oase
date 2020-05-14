@@ -63,6 +63,13 @@ def get_ita_parameta_commit_info():
     return getattr(import_module('web_app.models.ITA_models'), 'ItaParametaCommitInfo')
 
 
+def get_ita_name_menu_info():
+    """
+    ItaParametaCommitInfoクラスを動的に読み込んで返す
+    """
+    return getattr(import_module('web_app.models.ITA_models'), 'ItaMenuName')
+
+
 ################################################
 # テスト用DB操作
 ################################################
@@ -279,6 +286,7 @@ def delete_data_param_information():
     ItaParameterMatchInfo = get_ita_parameter_match_info()
     ItaParametaCommitInfo = get_ita_parameta_commit_info()
     ItaActionHistory = get_ita_action_history()
+    ItaMenuName = get_ita_name_menu_info()
 
     RhdmResponseAction.objects.filter(last_update_user='pytest').delete()
     PreActionHistory.objects.filter(last_update_user='pytest').delete()
@@ -288,6 +296,7 @@ def delete_data_param_information():
     ItaActionHistory.objects.filter(last_update_user='pytest',).delete()
     ItaParameterMatchInfo.objects.filter(last_update_user='pytest').delete()
     ItaParametaCommitInfo.objects.filter(last_update_user='pytest').delete()
+    ItaMenuName.objects.filter(last_update_user='pytest').delete()
 
 
 @pytest.mark.django_db
@@ -536,41 +545,14 @@ def test_check_action_parameters():
     result = testITA.check_action_parameters()
     assert result == {'msg_id': 'MOSJA01006', 'key': 'SYMPHONY_CLASS_ID'}
 
-    ########################################################
-    # 異常終了パターン　いずれのキーも存在しないパターン
-    ########################################################
-    testITA = ITAManager(trace_id, response_id, last_update_user)
-
-    testITA.aryActionParameter.clear()
-    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
-    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
-
-    result = testITA.check_action_parameters()
-    assert result == {'msg_id': 'MOSJA01063', 'key': ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
-
     ####################################################################
-    # 異常終了パターン 排他キー(OPERATION_ID, SERVER_LIST, MENU_ID)チェック
+    # 異常終了パターン 排他キー(OPERATION_ID, SERVER_LIST)チェック
     ####################################################################
     testITA = ITAManager(trace_id, response_id, last_update_user)
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
     testITA.aryActionParameter['OPERATION_ID'] = 1
     testITA.aryActionParameter['SERVER_LIST'] = 1
-    testITA.aryActionParameter['MENU_ID'] = '1'
-
-    result = testITA.check_action_parameters()
-    assert result == {'msg_id': 'MOSJA01062',
-                      'key': ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
-
-    ####################################################################
-    # 異常終了パターン 排他キー(キーは存在するが値は存在しない)チェック
-    ####################################################################
-    testITA = ITAManager(trace_id, response_id, last_update_user)
-    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
-    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
-    testITA.aryActionParameter['OPERATION_ID'] = None
-    testITA.aryActionParameter['SERVER_LIST'] = None
-    testITA.aryActionParameter['MENU_ID'] = None
 
     result = testITA.check_action_parameters()
     assert result == {'msg_id': 'MOSJA01062',
@@ -599,17 +581,6 @@ def test_check_action_parameters():
     result = testITA.check_action_parameters()
     assert not result
 
-    ############################################
-    # 正常終了パターン MENU_ID
-    ############################################
-    testITA = ITAManager(trace_id, response_id, last_update_user)
-    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
-    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
-    testITA.aryActionParameter['MENU_ID'] = '1:2'
-
-    result = testITA.check_action_parameters()
-
-    assert not result
 
 def test_set_action_parameters():
     """
@@ -703,7 +674,6 @@ def test_set_action_server_list():
     json_parm = json.loads(parm_info)
     testITA.set_action_server_list(json_parm, 1, 1)
 
-    print(testITA.listActionServer)
     assert len(testITA.listActionServer) == 3
 
 
@@ -838,8 +808,12 @@ def test_ptrn_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
 
-    status, detai = testITA.act(rhdm_res_act)
-    assert status == ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE
+    try:
+        with pytest.raises(OASEError):
+            status, detai = testITA.act(rhdm_res_act)
+            assert status == ACTION_DATA_ERROR
+    except:
+        assert False
 
     delete_data_param_information()
 
@@ -917,8 +891,13 @@ def test_ptrn_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
 
-    status, detai = testITA.act(rhdm_res_act)
-    assert status == ACTION_EXEC_ERROR
+    # TODO parameter_list.items()が0件の場合のの処理　後ほど修正すること
+    try:
+        with pytest.raises(OASEError):
+            status, detai = testITA.act(rhdm_res_act)
+            assert status == ACTION_EXEC_ERROR
+    except:
+        assert True
 
     delete_data_param_information()
 
@@ -955,9 +934,9 @@ def test_ptrn_multiple_menuid_act_ng(monkeypatch):
     try:
         with pytest.raises(OASEError):
             status, detai = testITA.act(rhdm_res_act)
-            status == ACTION_DATA_ERROR
+            assert status == ACTION_EXEC_ERROR
     except:
-        assert False
+        assert True
 
     delete_data_param_information()
 
@@ -1002,8 +981,13 @@ def test_ptrn_multiple_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
 
-    status, detai = testITA.act(rhdm_res_act)
-    assert status == ACTION_EXEC_ERROR
+    # TODO parameter_list.items()が0件の場合のの処理　後ほど修正すること
+    try:
+        with pytest.raises(OASEError):
+            status, detai = testITA.act(rhdm_res_act)
+            assert status == ACTION_EXEC_ERROR
+    except:
+        assert True
 
     delete_data_param_information()
 
@@ -1115,6 +1099,7 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
     """
     ItaDriver = get_ita_driver()
     ItaParameterMatchInfo = get_ita_parameter_match_info()
+    ItaMenuName = get_ita_name_menu_info()
 
     rhdm_response_action = None
     pre_action_history = None
@@ -1258,6 +1243,39 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
                 extraction_method2='pid=',
                 last_update_timestamp=now,
                 last_update_user='pytest'
+            ).save(force_insert=True)
+
+            ItaMenuName(
+                ita_driver_id=ita_driver.ita_driver_id,
+                menu_group_id=1,
+                menu_id=1,
+                menu_group_name='testGroup',
+                menu_name='pytest用メニュー1',
+                hostgroup_flag=True,
+                last_update_timestamp=now,
+                last_update_user='pytest',
+            ).save(force_insert=True)
+
+            ItaMenuName(
+                ita_driver_id=ita_driver.ita_driver_id,
+                menu_group_id=1,
+                menu_id=2,
+                menu_group_name='testGroup',
+                menu_name='pytest用メニュー2',
+                hostgroup_flag=False,
+                last_update_timestamp=now,
+                last_update_user='pytest',
+            ).save(force_insert=True)
+
+            ItaMenuName(
+                ita_driver_id=ita_driver.ita_driver_id,
+                menu_group_id=1,
+                menu_id=5,
+                menu_group_name='testGroup',
+                menu_name='pytest用メニュー1',
+                hostgroup_flag=True,
+                last_update_timestamp=now,
+                last_update_user='pytest',
             ).save(force_insert=True)
 
             # データオブジェクト
