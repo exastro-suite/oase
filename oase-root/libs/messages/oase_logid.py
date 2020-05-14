@@ -87,6 +87,7 @@ class OASELogID:
     Ary['LOSE01134'] = "Convert Flg is not valid. (table:{} response detail id:{} item:{} TraceID:{})"
     Ary['LOSE01135'] = "Failed to get records from OASE_T_EVENTS_REQUEST. (TraceID:{}, Traceback: {})"
     Ary['LOSE01136'] = "Failed to get host name. (TraceID: {}, Traceback: {})"
+    Ary['LOSE01137'] = "Even though CONVERT_FLG is True, Multiple MENU_ID is set. (TraceID:{}, Traceback: {})"
     Ary['LOSE02000'] = "RestAPI access error. (TraceID:{} Type:{} Exception:{})"
     Ary['LOSE02001'] = "Data length error. TraceID={}  Expected={}, result={}"
     Ary['LOSE02002'] = "There isn't match any rule. TraceID={}"
