@@ -82,6 +82,8 @@ class ITAManager(AbstractManager):
         'SERVER_LIST',
         'MENU_ID',
         'CONVERT_FLG',
+        'HOSTGROUP_NAME',
+        'HOST_NAME'
     ]
 
     def __init__(self, trace_id, response_id, last_update_user):
