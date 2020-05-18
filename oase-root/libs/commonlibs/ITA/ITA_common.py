@@ -212,6 +212,16 @@ def menu_id_check(menu_id, check_info, conditions, message_list):
         logger.logic_log('LOSM00029', check_info)
         message_list.append({'id': 'MOSJA03144', 'param': None})
 
+    if 'HOSTGROUP_NAME' in check_info:
+        if check_info['HOSTGROUP_NAME'] == '':
+            logger.logic_log('LOSM00031', check_info)
+            message_list.append({'id': 'MOSJA03146', 'param': None})
+
+    if 'HOST_NAME' in check_info:
+        if check_info['HOST_NAME'] == '':
+            logger.logic_log('LOSM00032', check_info)
+            message_list.append({'id': 'MOSJA03147', 'param': None})
+
     menu_id_list = menu_id.split(':')
     if len(menu_id_list) != 1 and check_info['CONVERT_FLG'].upper() == 'TRUE':
         logger.logic_log('LOSM00030', check_info)
