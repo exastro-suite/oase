@@ -136,6 +136,8 @@ class OASELogID:
     Ary['LOSM00028'] = "No key for CONVERT_FLG. (check_info: {})"
     Ary['LOSM00029'] = "No value for CONVERT_FLG. (check_info: {})"
     Ary['LOSM00030'] = "Even though CONVERT_FLG is True, Multiple MENU_ID is set. (check_info: {})"
+    Ary['LOSM00031'] = "No value for HOSTGROUP_NAME. (check_info: {})"
+    Ary['LOSM00032'] = "No value for HOST_NAME. (check_info: {})"
     Ary['LOSM00100'] = "RuleType does not exist. (rule_type_id: {}, {})"
     Ary['LOSM00101'] = "ConditionalExpression does not exist. (conditional_expression_id: {})"
     Ary['LOSM00102'] = "Failed to get data from the OASE_T_CONDITIONAL_EXPRESSION table. (conditional_expression_id: {}, {})"
