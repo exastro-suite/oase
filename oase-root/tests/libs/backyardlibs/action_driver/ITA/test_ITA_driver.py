@@ -1029,6 +1029,172 @@ def test_act_ptrn_serverlist_ok(monkeypatch):
 
 
 @pytest.mark.django_db
+def test_set_host_data_HG_ok(monkeypatch):
+    """
+    ホストグループ名/ホスト名の正常性チェック
+    HGを確認するパターン
+    """
+
+    ITAManager = get_ita_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    key = 'HG'
+    name_data = '1:HG2&HG3'
+    menu_id = '1'
+
+    target_host_name = {}
+    target_host_name[menu_id] = {'H': [], 'HG': []}
+    target_host = {menu_id: {'H': [], 'HG': ['HG2', 'HG3']}}
+
+    result = testITA.set_host_data(target_host_name, key, name_data)
+    assert result == target_host
+
+
+@pytest.mark.django_db
+def test_set_host_data_H_ok(monkeypatch):
+    """
+    ホストグループ名/ホスト名の正常性チェック
+    Hを確認するパターン
+    """
+
+    ITAManager = get_ita_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    key = 'H'
+    name_data = '1:H2&H3'
+    menu_id = '1'
+
+    target_host_name = {}
+    target_host_name[menu_id] = {'H': [], 'HG': []}
+    target_host = {menu_id: {'H': ['H2', 'H3'], 'HG': []}}
+
+    result = testITA.set_host_data(target_host_name, key, name_data)
+    assert result == target_host
+
+
+@pytest.mark.django_db
+def test_set_host_data_HG_ng1(monkeypatch):
+    """
+    ホストグループ名/ホスト名の正常性チェック
+    アクションパラーメータにSERVER_LISTを指定したパターン
+    """
+
+    ITAManager = get_ita_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    key = 'H'
+    name_data = '1:H2&H3&H4'
+    menu_id = ''
+
+    target_host_name = {}
+    target_host_name[menu_id] = {'H': [], 'HG': []}
+    target_host = {menu_id: {'H': [], 'HG': []}}
+
+    result = testITA.set_host_data(target_host_name, key, name_data)
+    assert result == target_host
+
+
+def test_set_host_data_HG_ng2(monkeypatch):
+    """
+    ホストグループ名/ホスト名の正常性チェック
+    アクションパラーメータにSERVER_LISTを指定したパターン
+    """
+
+    ITAManager = get_ita_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    key = 'H'
+    name_data = '1:H2&H3&H4'
+    menu_id = '2'
+
+    target_host_name = {}
+    target_host_name[menu_id] = {'H': [], 'HG': []}
+    target_host = {menu_id: {'H': [], 'HG': []}}
+
+    result = testITA.set_host_data(target_host_name, key, name_data)
+    assert result == target_host
+
+@pytest.mark.django_db
+def test_set_host_data_HGandH_ok(monkeypatch):
+    """
+    ホストグループ名/ホスト名の正常性チェック
+    HGとHの複合パターン
+    """
+
+    ITAManager = get_ita_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    key = 'HG'
+    name_data = '1:HG2&HG3'
+    menu_id = '1'
+
+    target_host_name = {}
+    target_host_name[menu_id] = {'H': [], 'HG': []}
+
+    result = testITA.set_host_data(target_host_name, key, name_data)
+
+    key = 'H'
+    name_data = '1:H3&H3'
+    menu_id = '1'
+    target_host = {menu_id: {'H': ['H3', 'H3'], 'HG': ['HG2', 'HG3']}}
+
+    result = testITA.set_host_data(result, key, name_data)
+    assert result == target_host
+
+
+@pytest.mark.django_db
+def test_set_host_data_H_ok(monkeypatch):
+    """
+    ホストグループ名/ホスト名の正常性チェック
+    アクションパラーメータにSERVER_LISTを指定したパターン
+    """
+
+    ITAManager = get_ita_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    key = 'H'
+    name_data = '1:H2&H3'
+    menu_id = '1'
+
+    target_host_name = {}
+    target_host_name[menu_id] = {'H': [], 'HG': []}
+    target_host = {menu_id: {'H': ['H2', 'H3'], 'HG': []}}
+
+    result = testITA.set_host_data(target_host_name, key, name_data)
+    assert result == target_host
+
+
+@pytest.mark.django_db
 def test_act_ok(monkeypatch):
     """
     ITAアクションを実行メソッドのテスト
