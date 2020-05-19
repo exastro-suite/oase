@@ -29,6 +29,7 @@ OASEをより深く知りたい場合は、ここにあるドキュメントを�
    system_config/index
    group/index
    user/index
+   monitoring_adapter/index
    action/index
    locked_user/index
    blacklist/index
