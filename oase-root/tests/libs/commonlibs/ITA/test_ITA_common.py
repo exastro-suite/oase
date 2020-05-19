@@ -502,6 +502,31 @@ def test_menu_id_check_ok(ita_table):
     # テストデータ削除
     delete_data_for_ita_driver()
 
+@pytest.mark.django_db
+def test_menu_id_check_ok_hostgroup_name_host_name_nomal(ita_table):
+    """
+    ホストグループ名とホスト名のバリデーションチェック処理テスト
+    HOSTGROUP_NAMEとHOST_NAME使用時の正常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+
+    # テストデータ設定
+    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'1', 'HOSTGROUP_NAME':'24:hostgroup', 'HOST_NAME':'26:hostname', 'CONVERT_FLG':'True'}
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    # テスト実施
+    message_list = []
+    menu_id_check(check_info['MENU_ID'], check_info, conditions, message_list)
+    assert len(message_list) == 0
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
+
 
 @pytest.mark.django_db
 def test_menu_id_check_ng_menu_id_noval(ita_table):
@@ -628,6 +653,31 @@ def test_menu_id_check_ng_menu_ids_convert_flg_true(ita_table):
     message_list = []
     menu_id_check(check_info['MENU_ID'], check_info, conditions, message_list)
     assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03145'
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
+
+@pytest.mark.django_db
+def test_menu_id_check_ng_hostgroup_name_host_name_noval(ita_table):
+    """
+    ホストグループ名とホスト名のバリデーションチェック処理テスト
+    HOSTGROUP_NAMEとHOST_NAME使用時の異常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+
+    # テストデータ設定
+    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'1', 'HOSTGROUP_NAME':'', 'HOST_NAME':'', 'CONVERT_FLG':'True'}
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    # テスト実施
+    message_list = []
+    menu_id_check(check_info['MENU_ID'], check_info, conditions, message_list)
+    assert len(message_list) == 2 and message_list[0]['id'] == 'MOSJA03146' and message_list[1]['id'] == 'MOSJA03147'
 
     # テストデータ削除
     delete_data_for_ita_driver()
