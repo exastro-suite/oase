@@ -222,6 +222,8 @@ ITAドライバ
 * OPERATION_IDはITA画面の基本コンソール-投入オペレーション一覧のオペレーションIDと紐づけます。
 * SERVER_LISTは実行対象となるホスト名を記述します。ホスト名はITA画面の基本コンソール-機器一覧のホスト名と紐づけます。複数記載する場合はコロン(:)で区切って記述します。
 * MENU_IDはITAで作成されたパラメータシートのメニューIDと紐づけます。メニューIDはITA画面の管理コンソール-メニュー管理から確認できます。複数記載する場合はコロン(:)で区切って記述します。
+* HOSTGROUP_NAMEはMENU_IDに紐づいたホストグループIDを記載します。MENU_IDと併せてコロン（:）で区切って記載します。1つのMENU_IDに複数のホストグループを紐づける場合はアンド（&）で区切って記載します。
+* 複数のMENU_IDを設定する場合はパイプ（|）で区切って記載します。HOST_NAMEにつきましても、HOSTGROUP_NAMEと同様です。
 * CONVERT_FLGはTRUEまたはFALSEを設定します。MENU_ID指定の時に必須になります。
 * SYMPHONY_CLASS_ID,OPERATION_ID,SERVER_LIST,MENU_IDの値に {{ VAR_条件名 }} と記入すると条件部の値を当てはめることができます。
 * {{ VAR_条件名 }} の条件名には :doc:`02_screen_structure` の新規追加画面にて入力された条件名を記入してください。
@@ -279,6 +281,10 @@ ITAドライバ
 ::
 
  ITA_NAME=action43,SYMPHONY_CLASS_ID=2,MENU_ID=1:2,CONVERT_FLG=FALSE
+
+::
+
+ ITA_NAME=action43,SYMPHONY_CLASS_ID=2,MENU_ID=1:2:3:4,HOSTGROUP_NAME=1:HG1,HOST_NAME=2:H2&H3|3:H4|4:H5&H6&H7,CONVERT_FLG=FALSE
 
 .. note::
    OPERATION_ID,SERVER_LIST,MENU_IDを同時に設定した場合エラーとなります。
