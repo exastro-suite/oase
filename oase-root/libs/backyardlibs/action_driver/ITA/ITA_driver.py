@@ -169,6 +169,8 @@ class ITAManager(AbstractManager):
         operation_id = None
         menu_id = None
         convert_flg = None
+        dt_host_name = None
+        hostgroup_name = None
 
         param_info = json.loads(rhdm_res_act.action_parameter_info)
 
@@ -189,6 +191,8 @@ class ITAManager(AbstractManager):
         key_server_list = 'SERVER_LIST'
         key_menu_id = 'MENU_ID'
         key_convert_flg = 'CONVERT_FLG'
+        key_hostgroup_name = 'HOSTGROUP_NAME'
+        key_dt_host_name = 'HOST_NAME'
         check_info = self.analysis_parameters(param_info[key1])
 
         # OPERATION_IDのパターン
@@ -238,6 +242,18 @@ class ITAManager(AbstractManager):
                 raise OASEError('', 'LOSE01134', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
                                 'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
 
+            if key_hostgroup_name in check_info:
+                hostgroup_name = check_info[key_hostgroup_name]
+                if not hostgroup_name:
+                    raise OASEError('', 'LOSE0113X', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
+                                    'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
+
+            if key_dt_host_name in check_info:
+                dt_host_name = check_info[key_dt_host_name]
+                if not dt_host_name:
+                    raise OASEError('', 'LOSE0113X', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
+                                    'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
+
             menu_id = check_info[key_menu_id]
             convert_flg = check_info[key_convert_flg]
 
@@ -246,6 +262,22 @@ class ITAManager(AbstractManager):
                 raise OASEError('', 'LOSE01137', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
                                 'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
 
+            target_host_name = {}
+
+            for menu_id in menu_id_list:
+                if menu_id not in target_host_name:
+                    target_host_name[menu_id] = {
+                        'H': [],
+                        'HG': [],
+                    }
+
+            if hostgroup_name:
+                target_host_name = self.set_host_data(target_host_name, 'HG', hostgroup_name)
+
+            if dt_host_name:
+                target_host_name = self.set_host_data(target_host_name, 'H', dt_host_name)
+
+            print(target_host_name)
             host_name = None
             events_request = EventsRequest.objects.get(trace_id=self.trace_id)
             if convert_flg.upper() == 'FALSE':
@@ -408,11 +440,39 @@ class ITAManager(AbstractManager):
                     )
                     return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
-                host_name = parameter_list[menu_id]['host_name']
-                if hg_flg_info[menu_id]:
-                    host_name = '[H]%s' % (parameter_list[menu_id]['host_name'])
+                # 409で指定されたH/HGがあるか
+                set_host = []
+                if menu_id in target_host_name.keys:
+                    for h in target_host_name[menu_id]['[HG]']:
+                        host_name_tmp = '[HG]%s' % (h) if hg_flg_info[menu_id] else h
+                        set_host.append(host_name_tmp)
 
-                param_list = parameter_list[menu_id]['param_list']
+                    for h in target_host_name[menu_id]['[H]']:
+                        host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] else h
+                        set_host.append(host_name_tmp)
+
+                if len(set_host) == 0 and menu_id in parameter_list and parameter_list[menu_id]['host_name']:
+                    h = parameter_list[menu_id]['host_name']
+                    host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] else h
+                    set_host.append(host_name_tmp)
+
+                    param_list = parameter_list[menu_id]['param_list']
+
+                if len(set_host) <= 0:
+                    # Error
+                    logger.system_log(
+                        'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                for sh in set_host:
+                    ret = self.ITAobj.insert_c_parameter_sheet(
+                        host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
+                    if ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
 
                 ret = self.ITAobj.insert_c_parameter_sheet(
                     host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
@@ -831,12 +891,37 @@ class ITAManager(AbstractManager):
             ActionDriverCommonModules.SaveActionLog(self.response_id, exe_order, self.trace_id, 'MOSJA01005')
             raise OASEError('', 'LOSE01114', log_params=[self.trace_id, 'OASE_T_RHDM_RESPONSE_ACTION', res_detail_id, key1], msg_params={'sts':ACTION_DATA_ERROR, 'detail':ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_KEY})
 
-        # ITA_NAME/SYMPHONY_CLASS_ID/OPERATION_ID/SERVER_LIST サーチ
+        # ITA_NAME/SYMPHONY_CLASS_ID/OPERATION_ID/SERVER_LIST/MENU_ID/CONVERT_FLAG サーチ
         check_info = self.analysis_parameters(aryActionParameter[key1])
         for key, val in check_info.items():
             if val:
                 self.aryActionParameter[key] = val
 
+    def set_host_data(self, target_host_name, key, name_data):
+        """
+        [概要]
+        ホストグループ名/ホスト名の正常性チェック  
+        """
+        name_splited = name_data.split('|')
+        for rec in name_splited:
+            name_splited_c = rec.split(':')
+            if len(name_splited_c) < 2:
+                continue
+            if name_splited_c[0] not in target_host_name:
+                continue
+
+            name_splited_c2 = name_splited_c[1].split('&')
+
+            name_splited_c3 = []
+            for rec2 in name_splited_c2:
+                if len(rec2) <= 0:
+                    continue
+                name_splited_c3.append(rec2)
+
+            if len(name_splited_c3) > 0:
+                target_host_name[name_splited_c[0]][key] = name_splited_c3
+
+        return target_host_name
 
     def check_action_parameters(self):
         """
