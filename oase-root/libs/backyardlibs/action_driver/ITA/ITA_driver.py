@@ -277,7 +277,6 @@ class ITAManager(AbstractManager):
             if dt_host_name:
                 target_host_name = self.set_host_data(target_host_name, 'H', dt_host_name)
 
-            print(target_host_name)
             host_name = None
             events_request = EventsRequest.objects.get(trace_id=self.trace_id)
             if convert_flg.upper() == 'FALSE':
@@ -440,14 +439,15 @@ class ITAManager(AbstractManager):
                     )
                     return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
-                # 409で指定されたH/HGがあるか
                 set_host = []
-                if menu_id in target_host_name.keys:
-                    for h in target_host_name[menu_id]['[HG]']:
+                target_id = str(menu_id)
+                if target_id in target_host_name.keys():
+                    for h in target_host_name[target_id]['HG']:
                         host_name_tmp = '[HG]%s' % (h) if hg_flg_info[menu_id] else h
+
                         set_host.append(host_name_tmp)
 
-                    for h in target_host_name[menu_id]['[H]']:
+                    for h in target_host_name[target_id]['H']:
                         host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] else h
                         set_host.append(host_name_tmp)
 
@@ -456,9 +456,9 @@ class ITAManager(AbstractManager):
                     host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] else h
                     set_host.append(host_name_tmp)
 
-                    param_list = parameter_list[menu_id]['param_list']
+                param_list = parameter_list[menu_id]['param_list']
 
-                if len(set_host) <= 0:
+                if len(set_host) == 0:
                     # Error
                     logger.system_log(
                         'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
@@ -466,6 +466,7 @@ class ITAManager(AbstractManager):
                     return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
                 for sh in set_host:
+                    host_name = sh
                     ret = self.ITAobj.insert_c_parameter_sheet(
                         host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
                     if ret == Cstobj.RET_REST_ERROR:
@@ -473,14 +474,6 @@ class ITAManager(AbstractManager):
                         DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
                         return ACTION_EXEC_ERROR, DetailStatus
-
-                ret = self.ITAobj.insert_c_parameter_sheet(
-                    host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
-                if ret == Cstobj.RET_REST_ERROR:
-                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
-
-                    return ACTION_EXEC_ERROR, DetailStatus
 
                 ActionDriverCommonModules.SaveActionLog(
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
