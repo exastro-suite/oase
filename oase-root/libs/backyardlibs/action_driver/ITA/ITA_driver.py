@@ -330,6 +330,7 @@ class ITAManager(AbstractManager):
 
                 parameter_list = {}
 
+                commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('ita_order')
                 for commit_info in commitinfo_list:
                     if commit_info.menu_id not in parameter_list:
                         parameter_list[commit_info.menu_id] = {'host_name':'', 'param_list':[]}
