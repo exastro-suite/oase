@@ -152,10 +152,10 @@ Zabbixアダプタ編集画面の各構成要素と、その機能は次の表�
 
 
 「監視先追加」ボタン
-^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
 
-| アダプタごとに監視先を設定します。
-| 監視先の接続情報を新規に追加することができます。
+* アダプタごとに監視先を設定します。
+* 監視先の接続情報を新規に追加することができます。
 
 .. figure:: ../images/monitoring_adapter/monitoring_adapter_08.png
    :scale: 100%
@@ -166,6 +166,8 @@ Zabbixアダプタ編集画面の各構成要素と、その機能は次の表�
 Zabbixアダプタの新規追加画面
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Zabbixアダプタの監視先を新規で追加します。
+
+.. _monitoring_adapter_Zabbix_new:
 
 .. figure:: ../images/monitoring_adapter/monitoring_adapter_09.png
    :scale: 100%
@@ -197,7 +199,7 @@ Zabbixアダプタの監視先を新規で追加します。
 ^^^^
 監視アダプタの監視先が一覧で表示されます。
 
-.. _action_ITA_disp:
+.. _monitoring_adapter_Zabbix_disp:
 
 .. figure:: ../images/monitoring_adapter/monitoring_adapter_10.png
    :scale: 100%
@@ -218,5 +220,41 @@ Zabbixアダプタの監視先を新規で追加します。
    6, ルール種別,設定しているルール種別が表示されます。
    7, 最終更新者,監視先の名前、プロトコル、ホスト/IP、ポート、ユーザ名およびパスワードを更新したユーザの名前が表示されます。
    8, 最終実行日時,監視先の名前、プロトコル、ホスト/IP、ポート、ユーザ名およびパスワードを更新した日時が表示されます。
+
+
+操作ボタン
+^^^^^^^^^^
+
+.. figure:: ../images/monitoring_adapter/monitoring_adapter_11.png
+   :scale: 100%
+   :align: center
+
+   図 2.2-4 「oase_adapter」の操作ボタン遷移
+
+
+詳細画面
+^^^^^^^^
+
+* 一覧にある「操作」列のボタンを押下すると、監視先の詳細が表示されます。
+
+.. figure:: ../images/monitoring_adapter/monitoring_adapter_12.png
+   :scale: 100%
+   :align: center
+
+   図 2.2-5 「oase_adapter」の詳細画面
+
+
+編集画面
+^^^^^^^^
+
+| Zabbixアダプタの既存監視先を編集により更新します。
+| 編集画面の画面構成は新規追加画面と同様です。
+| 詳細は前述の「監視アダプタ画面のZabbixアダプタ新規追加画面」 :ref:`monitoring_adapter_Zabbix_new` および、「監視アダプタ画面のZabbixアダプタ一覧画面」 :ref:`monitoring_adapter_Zabbix_disp` をご参照ください。
+
+.. figure:: ../images/monitoring_adapter/monitoring_adapter_13.png
+   :scale: 100%
+   :align: center
+
+   図 2.2-6 「oase_adapter」の編集画面
 
 
