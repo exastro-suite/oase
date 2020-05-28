@@ -130,6 +130,13 @@ class ConstantModules:
     AML_MENU_GROUP_NAME               = 4
     AML_MENU_NAME                     = 6
 
+    ## D_ANS_LNS_VAL_ASSIGN
+    DALVA_ID                          = 2
+    DALVA_MENU_NAME                   = 3
+    DALVA_ITEM_NAME                   = 4
+    DALVA_ITEM_ORDER                  = 5
+    DALVA_COLUMN_GROUP                = 8
+
     #OASE_T_RHDM_RESPONSE
     OTRR_RESPONSE_ID                  = 2
     OTRR_REQUEST_TYPE_ID              = 5
