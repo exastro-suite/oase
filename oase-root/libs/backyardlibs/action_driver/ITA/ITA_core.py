@@ -1087,9 +1087,6 @@ class ITA1Core(DriverCore):
         # メニュー管理情報を取得
         self.restobj.rest_set_config(config)
 
-        aryfilter = {
-            Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
-        }
         ary_result = {}
         ret = self.restobj.rest_select(aryfilter, ary_result)
         if not ret:
@@ -1104,7 +1101,7 @@ class ITA1Core(DriverCore):
         return True, row_data
 
 
-    def select_create_item_list(self, config, target=''):
+    def select_create_item_list(self, config, target=[]):
         """
         [概要]
           メニュー項目作成情報検索メソッド
@@ -1118,6 +1115,10 @@ class ITA1Core(DriverCore):
         aryfilter = {
             Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
         }
+
+        if target:
+            aryfilter[Cstobj.DALVA_MENU_NAME] = {'LIST':target}
+
         self.restobj.rest_set_config(config)
 
         ary_result = {}
