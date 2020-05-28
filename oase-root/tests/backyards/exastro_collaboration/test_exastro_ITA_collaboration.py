@@ -167,20 +167,23 @@ class TestITAParameterSheetMenuManager(object):
         パラメーターシートメニューの情報リストを取得(正常系)
         """
 
-        patch_return = [[None, '', '1', 'OASEメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'OASE_MenuGroup(Host)', 'OASE_MenuGroup(Ref)', '', None, None, '2020/04/10 15:02:08', 'T_20200410150208611888', 'システム管理者'], [None, '', '2', 'OASEメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '2', 'ホスト 用', '', '', 'テストメニュー（Host）', 'testメニュー （Ref）', '', 'テスト', None, '2020/04/16 17:35:02', 'T_20200416173502336962', 'システム管理者']]
+        menu_list = [
+            [None, '', '1', 'dummyメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'サービス管理', 'サービス管理(参照用)', '', None, None, '2020/02/17 17:37:52', 'T_20200217173752325034', 'システム管理者'],
+            [None, '', '2', 'dummyメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', '確認用', '参照用', '', None, None, '2020/02/18 17:10:52', 'T_20200218171052344285', 'システム管理者'],
+            [None, '', '3', 'dummyメニュー3', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', '複数パラメータ用', '複数パラメータ用(参照用)', '', None, None, '2020/03/23 11:03:51', 'T_20200323110351341164', 'システム管理者'],
+            [None, '', '4', 'dummyメニュー4', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'サービス管理', 'サービス管理(参照用)', '', '', None, None, '2020/03/25 16:26:16', 'T_20200325162616833923', 'システム管理者']
+        ]
 
-        monkeypatch.setattr(ITA1Core, 'select_create_menu_info_list', lambda x, y, z: (True, patch_return))
-        monkeypatch.setattr(ITA1Core, 'select_menu_list', lambda a, b, menu_names=[], group_names=[], range_start=0, range_end=0: (True, patch_return))
+        monkeypatch.setattr(ITA1Core, 'select_create_menu_info_list', lambda x, y, z: (True, menu_list))
 
         flg, get_data = self.target.get_menu_list()
 
         assert flg == True
-        assert get_data == patch_return
-
+        assert get_data == menu_list
 
     def test_get_menu_list_NG(self, monkeypatch):
         """
-        パラメーターシートメニューの情報リストを取得(正常系)
+        パラメーターシートメニューの情報リストを取得(異常系)
         """
 
         patch_return = []
@@ -191,6 +194,113 @@ class TestITAParameterSheetMenuManager(object):
 
         assert flg == False
         assert get_data == patch_return
+
+    def test_get_hostgroup_flg_OK(self, monkeypatch):
+        """
+        ホストグループフラグ情報を取得(正常系)
+        """
+
+        ret_info = {
+            'menu_list' : [],
+            'use_info'  : {},
+        }
+
+        menu_list = [
+        	[None, '', '1', '1', 'サービス管理', '1:サービス管理', 'OASEメニュー', '要', 'サービス提 供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929133181', 'メニュー作成機能'],
+	        [None, '', '2', '2', 'サービス管理(参照用)', '2:サービス管理(参照用)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929134986', 'メニュー作成機能'],
+	        [None, '', '3', '3', 'dummy確認用', '3:dummy確認用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232478557', 'メニュー作成機能'],
+	        [None, '', '4', '4', 'dummy参照用', '4:dummy参照用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232480269', 'メニュー作成機能']
+        ]
+
+        use_info = {('しない', '1'): False, ('しない', '2'): False, ('しない', '3'): False, ('しない', '4'): False}
+
+        result_list = [[None, '', '1', '1', 'サービス管理', '1:サービス管理', 'OASEメニュー', '要', 'サービス提 供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929133181', 'メニュー作成機能'], [None, '', '2', '2', 'サービス管理(参照用)', '2:サービス管理(参照用)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929134986', 'メニュー作成機能'], [None, '', '3', '3', 'dummy確認用', '3:dummy確認用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232478557', 'メニュー作成機能'], [None, '', '4', '4', 'dummy参照用', '4:dummy参照用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232480269', 'メニュー作成機能']]
+
+        monkeypatch.setattr(ITA1Core, 'select_menu_list', lambda a, b, menu_names=[], group_names=[], range_start=0, range_end=0: (True, menu_list))
+
+        flg, get_data = self.target.get_hostgroup_flg(menu_list)
+        ret_info['menu_list'] = result_list
+        ret_info['use_info'] = use_info
+
+        assert flg == True
+        assert get_data == ret_info
+
+    def test_get_hostgroup_flg_NG(self, monkeypatch):
+        """
+        ホストグループフラグ情報を取得(異常系)
+        """
+
+        ret_info = {
+            'menu_list' : [],
+            'use_info'  : {},
+        }
+
+        menu_list = [
+        	[None, '', '1', '1', 'サービス管理', '1:サービス管理', 'OASEメニュー', '要', 'サービス提 供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929133181', 'メニュー作成機能'],
+	        [None, '', '2', '2', 'サービス管理(参照用)', '2:サービス管理(参照用)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929134986', 'メニュー作成機能'],
+	        [None, '', '3', '3', 'dummy確認用', '3:dummy確認用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232478557', 'メニュー作成機能'],
+	        [None, '', '4', '4', 'dummy参照用', '4:dummy参照用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232480269', 'メニュー作成機能']
+        ]
+
+        use_info = {
+	        ('サービス管理', 'OASEメニュー'): False,
+	        ('dummy確認用', 'dummyメニュー'): False
+        }
+
+        patch_return = []
+        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+
+        flg, get_data = self.target.get_hostgroup_flg(menu_list)
+
+        assert flg == False
+        assert get_data == ret_info
+
+    def test_get_menu_item_list_OK(self, monkeypatch):
+        """
+        メニュー項目リストを取得(正常系)
+        """
+
+        ret_info = {'menu_list': [[None, '', '1', '1', 'サービス管理', '1:サービス管理', 'OASEメニュー', '要', 'サービス提 供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929133181', 'メニュー作成機能'], [None, '', '2', '2', 'サービス管理(参照用)', '2:サービス管理(参照用)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929134986', 'メニュー作成機能'], [None, '', '3', '3', 'dummy確認用', '3:dummy確認用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232478557', 'メニュー作成機能'], [None, '', '4', '4', 'dummy参照用', '4:dummy参照用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232480269', 'メニュー作成機能']], 'use_info': {('しない', '1'): False, ('しない', '2'): False, ('しない', '3'): False, ('しない', '4'): False}}
+
+        menu_list = [
+        	[None, '', '1', '1', 'サービス管理', '1:サービス管理', 'OASEメニュー', '要', 'サービス提 供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929133181', 'メニュー作成機能'],
+	        [None, '', '2', '2', 'サービス管理(参照用)', '2:サービス管理(参照用)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/25 16:29:29', 'T_20200325162929134986', 'メニュー作成機能'],
+	        [None, '', '3', '3', 'dummy確認用', '3:dummy確認用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232478557', 'メニュー作成機能'],
+	        [None, '', '4', '4', 'dummy参照用', '4:dummy参照用', 'dummyメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/03/26 15:32:32', 'T_20200326153232480269', 'メニュー作成機能']
+        ]
+
+        use_info = {
+	        ('サービス管理', 'OASEメニュー'): False,
+	        ('dummy確認用', 'dummyメニュー'): False
+        }
+
+        monkeypatch.setattr(ITA1Core, 'select_create_item_list', lambda x, y: (True, menu_list))
+
+        flg, get_data = self.target.get_menu_item_list(ret_info)
+        ret_info['item_list'] = menu_list
+
+        assert flg == True
+        assert get_data == ret_info
+
+    def test_get_menu_item_list_NG(self, monkeypatch):
+        """
+        メニュー項目リストを取得(異常系)
+        """
+
+        ret_info = {
+            'menu_list' : [],
+            'use_info'  : {},
+            'item_list' : [],
+        }
+
+        patch_return = []
+        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+
+        flg, get_data = self.target.get_menu_item_list(ret_info)
+        ret_info['item_list'] = patch_return
+
+        assert flg == False
+        assert get_data == ret_info
 
     def test_save_menu_list(self):
         """
