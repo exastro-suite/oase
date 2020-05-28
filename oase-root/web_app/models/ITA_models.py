@@ -161,6 +161,7 @@ class ItaParameterItemInfo(models.Model):
     DOSL07008:ITAメニュー項目情報
     """
     ita_parameter_item_info_id = models.AutoField("ITAメニュー項目情報ID", primary_key=True)
+    ita_driver_id = models.IntegerField("ITAドライバID")
     menu_id = models.IntegerField("メニューID")
     column_group = models.CharField("カラムグループ", max_length=512)
     item_name = models.CharField("ITA項目名", max_length=256)
@@ -171,6 +172,7 @@ class ItaParameterItemInfo(models.Model):
 
     class Meta:
         db_table = 'OASE_T_ITA_PARAMETER_ITEM_INFO'
+        unique_together = (('ita_driver_id', 'item_number'), )
 
     def __str__(self):
         return str(self.ita_parameter_item_info_id)
