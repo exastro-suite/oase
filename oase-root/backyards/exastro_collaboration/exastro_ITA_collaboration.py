@@ -76,7 +76,7 @@ from libs.backyardlibs.action_driver.ITA.ITA_core import ITA1Core
 from libs.commonlibs import define as defs
 from libs.commonlibs.aes_cipher import AESCipher
 from web_app.models.models import User
-from web_app.models.ITA_models import ItaDriver, ItaMenuName
+from web_app.models.ITA_models import ItaDriver, ItaMenuName, ItaParameterItemInfo
 
 
 #-------------------
@@ -112,13 +112,13 @@ class ITAParameterSheetMenuManager:
         self.ita_config['menuID'] = ''
         self.ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
 
-    def get_menu_list(self, ret_info):
+    def get_menu_list(self):
         """
         [概要]
         パラメーターシートメニューの情報リストを取得
         [戻り値]
         flg       : bool : True=成功、False=失敗
-        ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報、メニュー項目リスト
+        ret_info  : list : パラメーターシートメニューの情報リスト
         
         """
 
@@ -138,26 +138,42 @@ class ITAParameterSheetMenuManager:
 
         # メニュー作成情報取得エラー
         if not flg:
-            return False, ret_info
+            return False, []
 
-        # 取得件数0件
-        if len(menu_list) <= 0:
-            return True, ret_info
+        logger.logic_log(
+            'LOSI00002',
+            'End ITAParameterSheetMenuManager.get_menu_list. DriverID=%s, result=%s, count=%s' % (
+                self.drv_id, flg, len(menu_list)
+            )
+        )
 
-        ret_info['menu_list'] = menu_list
-        return flg, ret_info
+        return flg, menu_list
 
 
-    def get_hostgroup_flg(self, ret_info):
+    def get_hostgroup_flg(self, menu_list):
         """
         [概要]
         ホストグループフラグ情報を取得
+        [引数]
+        menu_list : list : パラメーターシートメニューの情報リスト
         [戻り値]
         flg       : bool : True=成功、False=失敗
         ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報、メニュー項目リスト
         """
 
-        menu_list = ret_info['menu_list']
+        ret_info = {
+            'menu_list' : [],
+            'use_info'  : {},
+        }
+
+        logger.logic_log(
+            'LOSI00001',
+            'Start ITAParameterSheetMenuManager.get_hostgroup_flg. DriverID=%s' % (self.drv_id)
+        )
+
+        # 取得件数0件
+        if len(menu_list) <= 0:
+            return True, ret_info
 
         # メニュー管理取得用の条件を作成
         menu_names = []
@@ -203,11 +219,12 @@ class ITAParameterSheetMenuManager:
 
         logger.logic_log(
             'LOSI00002',
-            'End ITAParameterSheetMenuManager.get_menu_list. DriverID=%s, result=%s, count=%s' % (
+            'End ITAParameterSheetMenuManager.get_hostgroup_flg. DriverID=%s, result=%s, count=%s' % (
                 self.drv_id, flg, len(menu_list)
             )
         )
 
+        ret_info['menu_list'] = menu_list
         ret_info['use_info'] = use_info
         return flg, ret_info
 
@@ -215,15 +232,37 @@ class ITAParameterSheetMenuManager:
         """
         [概要]
         メニュー項目リストを取得
+        [引数]
+        ret_info  : list : メニュー管理の情報リスト
         [戻り値]
         flg       : bool : True=成功、False=失敗
-        ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報、メニュー項目リスト
+        ret_info  : dict : メニュー項目リスト
         """
+
+        menu_info = {}
+        menu_list = []
+        if 'menu_list' in ret_info:
+            menu_list = ret_info['menu_list']
+
+        logger.logic_log(
+            'LOSI00001',
+            'Start ITAParameterSheetMenuManager.get_menu_item_list. DriverID=%s' % (self.drv_id)
+        )
+
+        # メニューIDとメニュー名の紐づけ情報を作成
+        menu_names = []
+        for menu in menu_list:
+            menu_id = int(menu[Cstobj.AML_MENU_ID])
+            menu_name = menu[Cstobj.AML_MENU_NAME]
+
+            menu_names.append(menu_name)
+            menu_info[menu_name] = menu_id
 
         # メニュー項目作成情報取得
         self.ita_config['menuID'] = '2100160002'
         flg, item_list = self.ita_core.select_create_item_list(
             self.ita_config,
+            #menu_names
         )
         logger.logic_log('LOSI28004', 'create_item_list', flg, self.drv_id, len(item_list))
 
@@ -236,6 +275,7 @@ class ITAParameterSheetMenuManager:
             return True, ret_info
 
         ret_info['item_list'] = item_list
+        ret_info['menu_info'] = menu_info
 
         return flg, ret_info
 
@@ -351,6 +391,131 @@ class ITAParameterSheetMenuManager:
             'End ITAParameterSheetMenuManager.save_menu_info. DriverID=%s' % (self.drv_id)
         )
 
+
+    def save_menu_item_info(self, item_info):
+        """
+        [概要]
+        パラメーターシートメニューの項目情報を保存
+        ※try句内で呼び出すこと
+        """
+
+        logger.logic_log(
+            'LOSI00001',
+            'Start ITAParameterSheetMenuManager.save_menu_item_info. DriverID=%s' % (self.drv_id)
+        )
+
+
+        item_list = []
+        menu_info  = {}
+        if 'item_list' in item_info:
+            item_list = item_info['item_list']
+
+        if 'menu_info' in item_info:
+            menu_info = item_info['menu_info']
+
+        # ITAから取得したメニュー情報を作成
+        ita_data = {}
+        ita_set = set()
+        for item in item_list:
+            if item[Cstobj.DALVA_MENU_NAME] not in menu_info:
+                continue
+
+            menu_id = menu_info[item[Cstobj.DALVA_MENU_NAME]]
+            column_group = item[Cstobj.DALVA_COLUMN_GROUP][:512]
+            item_name = item[Cstobj.DALVA_ITEM_NAME]
+            item_number = int(item[Cstobj.DALVA_ID])
+            ita_order = int(item[Cstobj.DALVA_ITEM_ORDER])
+
+            ita_set.add(item_number)
+            ita_data[item_number] = {
+                'menu_id' : menu_id,
+                'column_group' : column_group,
+                'item_name' : item_name,
+                'ita_order' : ita_order,
+            }
+
+        logger.logic_log('LOSI28002', 'ITA', self.drv_id, len(ita_set))
+
+        # OASEが保持しているメニュー情報を作成
+        oase_data = {}
+        oase_set = set()
+        rset = ItaParameterItemInfo.objects.select_for_update().filter(ita_driver_id=self.drv_id)
+        rset = rset.values('ita_parameter_item_info_id', 'item_number')
+        for rs in rset:
+            oase_set.add(rs['item_number'])
+            oase_data[rs['item_number']] = rs['ita_parameter_item_info_id']
+
+        logger.logic_log('LOSI28002', 'OASE', self.drv_id, len(oase_set))
+
+        # OASEには存在する／ITAには存在しない情報は削除
+        del_ids = []
+        del_set = oase_set - ita_set
+        for d in del_set:
+            if d in oase_data:
+                del_ids.append(oase_data[d])
+
+        if len(del_ids) > 0:
+            ItaParameterItemInfo.objects.filter(ita_parameter_item_info_id__in=del_ids).delete()
+
+        logger.logic_log('LOSI28003', 'Delete', self.drv_id, len(del_ids))
+
+        # OASEにも存在する／ITAにも存在する情報は更新
+        upd_set = oase_set & ita_set
+        for u in upd_set:
+            if u not in oase_data or u not in ita_data:
+                continue
+
+            pkey = oase_data[u]
+            menu_id = ita_data[u]['menu_id']
+            column_group = ita_data[u]['column_group']
+            item_name = ita_data[u]['item_name']
+            ita_order = ita_data[u]['ita_order']
+
+            ItaParameterItemInfo.objects.filter(ita_parameter_item_info_id=pkey).update(
+                menu_id = menu_id,
+                column_group = column_group,
+                item_name = item_name,
+                ita_order = ita_order,
+                last_update_timestamp = self.now,
+                last_update_user = self.user_name
+            )
+
+        logger.logic_log('LOSI28003', 'Update', self.drv_id, len(upd_set))
+
+        # OASEには存在しない／ITAには存在する情報は挿入
+        reg_list = []
+        reg_set = ita_set - oase_set
+        for r in reg_set:
+            menu_id = ita_data[r]['menu_id']
+            column_group = ita_data[r]['column_group']
+            item_name = ita_data[r]['item_name']
+            item_number = r
+            ita_order = ita_data[r]['ita_order']
+
+            reg_list.append(
+                ItaParameterItemInfo(
+                    ita_driver_id = self.drv_id,
+                    menu_id = menu_id,
+                    column_group = column_group,
+                    item_name = item_name,
+                    item_number = item_number,
+                    ita_order = ita_order,
+                    last_update_timestamp = self.now,
+                    last_update_user = self.user_name
+                )
+            )
+
+        if len(reg_list) > 0:
+            ItaParameterItemInfo.objects.bulk_create(reg_list)
+
+        logger.logic_log('LOSI28003', 'Insert', self.drv_id, len(reg_list))
+
+        logger.logic_log(
+            'LOSI00002',
+            'End ITAParameterSheetMenuManager.save_menu_item_info. DriverID=%s' % (self.drv_id)
+        )
+
+
     def execute(self):
         """
         [概要]
@@ -362,21 +527,29 @@ class ITAParameterSheetMenuManager:
             'Start ITAParameterSheetMenuManager.execute. DriverID=%s' % (self.drv_id)
         )
 
-        ret_info = {
-            'menu_list' : [],
-            'use_info'  : {},
-            'item_list' : [],
-        }
-
         try:
-            flg1, ret_info = self.get_menu_list(ret_info)
-            if flg1:
-                flg2, ret_info = self.get_hostgroup_flg(ret_info)
-                flg3, ret_info = self.get_menu_item_list(ret_info)
+            # パラメーターシートのメニュー作成情報を取得
+            flg, menu_list = self.get_menu_list()
+            if not flg:
+                return
 
-                if flg2 or flg3:
-                    with transaction.atomic():
-                        self.save_menu_info(ret_info)
+            # メニュー作成情報からメニュー管理情報を取得
+            flg, ret_info = self.get_hostgroup_flg(menu_list)
+            if not flg:
+                return
+
+            # メニュー管理情報を保存
+            with transaction.atomic():
+                self.save_menu_info(ret_info)
+
+            # メニュー管理情報からメニュー項目作成情報を取得
+            flg, ret_info = self.get_menu_item_list(ret_info)
+            if not flg:
+                return
+
+            # メニュー項目作成情報を保存
+            with transaction.atomic():
+                self.save_menu_item_info(ret_info)
 
         except Exception as e:
             logger.system_log('LOSM28001', 'execute')
