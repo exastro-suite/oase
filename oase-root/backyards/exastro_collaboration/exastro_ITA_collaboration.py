@@ -370,11 +370,13 @@ class ITAParameterSheetMenuManager:
 
         try:
             flg1, ret_info = self.get_menu_list(ret_info)
-            flg2, ret_info = self.get_hostgroup_flg(ret_info)
-            flg3, ret_info = self.get_menu_item_list(ret_info)
-            if flg1 and flg2 and flg3:
-                with transaction.atomic():
-                    self.save_menu_info(ret_info)
+            if flg1:
+                flg2, ret_info = self.get_hostgroup_flg(ret_info)
+                flg3, ret_info = self.get_menu_item_list(ret_info)
+
+                if flg2 or flg3:
+                    with transaction.atomic():
+                        self.save_menu_info(ret_info)
 
         except Exception as e:
             logger.system_log('LOSM28001', 'execute')
