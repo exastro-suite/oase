@@ -25,6 +25,7 @@ from django.utils import timezone
  DOSL07005:ITAパラメータ実行管理
  DOSL07006:ITAメニュー名管理
  DOSL07007:ITAドライバ権限管理
+ DOSL07008:ITA連携項目履歴
 """
 
 
@@ -153,3 +154,23 @@ class ItaPermission(models.Model):
 
     def __str__(self):
         return str(self.ita_permission_id)
+
+
+class ItaParameterItemInfo(models.Model):
+    """
+    DOSL07008:ITAメニュー項目情報
+    """
+    ita_parameter_item_info_id = models.AutoField("ITAメニュー項目情報ID", primary_key=True)
+    menu_id = models.IntegerField("メニューID")
+    column_group = models.CharField("カラムグループ", max_length=512)
+    item_name = models.CharField("ITA項目名", max_length=256)
+    item_number = models.IntegerField("項番")
+    ita_order = models.IntegerField("ITA順序")
+    last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
+    last_update_user = models.CharField("最終更新者", max_length=64)
+
+    class Meta:
+        db_table = 'OASE_T_ITA_PARAMETER_ITEM_INFO'
+
+    def __str__(self):
+        return str(self.ita_parameter_item_info_id)
