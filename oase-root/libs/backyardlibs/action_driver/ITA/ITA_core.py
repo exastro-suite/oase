@@ -1087,8 +1087,42 @@ class ITA1Core(DriverCore):
         # メニュー管理情報を取得
         self.restobj.rest_set_config(config)
 
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
+        }
         ary_result = {}
         ret = self.restobj.rest_select(aryfilter, ary_result)
+        if not ret:
+            logger.system_log('LOSE01025', self.trace_id, self.restobj.menu_id, 'Filter', ary_result['status'])
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+            return False, []
+
+        row_data = self.restobj.rest_get_row_data(ary_result)
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+
+        return True, row_data
+
+
+    def select_create_item_list(self, config, target=''):
+        """
+        [概要]
+          メニュー項目作成情報検索メソッド
+        """
+
+        logger.logic_log('LOSI00001', 'trace_id:%s, target:%s' % (self.trace_id, target))
+
+        row_data = []
+
+        # フィルタ条件設定
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
+        }
+        self.restobj.rest_set_config(config)
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+
         if not ret:
             logger.system_log('LOSE01025', self.trace_id, self.restobj.menu_id, 'Filter', ary_result['status'])
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))

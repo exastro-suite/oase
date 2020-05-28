@@ -110,32 +110,26 @@ class ITAParameterSheetMenuManager:
         self.ita_config['user'] = drv_info['username']
         self.ita_config['password'] = cipher.decrypt(drv_info['password'])
         self.ita_config['menuID'] = ''
+        self.ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
 
-    def get_menu_list(self):
+    def get_menu_list(self, ret_info):
         """
         [概要]
         パラメーターシートメニューの情報リストを取得
         [戻り値]
         flg       : bool : True=成功、False=失敗
-        ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報
+        ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報、メニュー項目リスト
         
         """
-
-        ret_info = {
-            'menu_list' : [],
-            'use_info'  : {},
-        }
 
         logger.logic_log(
             'LOSI00001',
             'Start ITAParameterSheetMenuManager.get_menu_list. DriverID=%s' % (self.drv_id)
         )
 
-        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
-
         # メニュー作成情報取得
         self.ita_config['menuID'] = '2100160001'
-        flg, menu_list = ita_core.select_create_menu_info_list(
+        flg, menu_list = self.ita_core.select_create_menu_info_list(
             self.ita_config,
             'パラメータシート'  # TODO : 多言語対応
         )
@@ -149,6 +143,21 @@ class ITAParameterSheetMenuManager:
         # 取得件数0件
         if len(menu_list) <= 0:
             return True, ret_info
+
+        ret_info['menu_list'] = menu_list
+        return flg, ret_info
+
+
+    def get_hostgroup_flg(self, ret_info):
+        """
+        [概要]
+        ホストグループフラグ情報を取得
+        [戻り値]
+        flg       : bool : True=成功、False=失敗
+        ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報、メニュー項目リスト
+        """
+
+        menu_list = ret_info['menu_list']
 
         # メニュー管理取得用の条件を作成
         menu_names = []
@@ -178,7 +187,7 @@ class ITAParameterSheetMenuManager:
 
         # メニュー管理取得
         self.ita_config['menuID'] = '2100000205'
-        flg, menu_list = ita_core.select_menu_list(
+        flg, menu_list = self.ita_core.select_menu_list(
             self.ita_config,
             menu_names=menu_names,
             group_names=group_names,
@@ -199,8 +208,34 @@ class ITAParameterSheetMenuManager:
             )
         )
 
-        ret_info['menu_list'] = menu_list
-        ret_info['use_info']  = use_info
+        ret_info['use_info'] = use_info
+        return flg, ret_info
+
+    def get_menu_item_list(self, ret_info):
+        """
+        [概要]
+        メニュー項目リストを取得
+        [戻り値]
+        flg       : bool : True=成功、False=失敗
+        ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報、メニュー項目リスト
+        """
+
+        # メニュー項目作成情報取得
+        self.ita_config['menuID'] = '2100160002'
+        flg, item_list = self.ita_core.select_create_item_list(
+            self.ita_config,
+        )
+        logger.logic_log('LOSI28004', 'create_item_list', flg, self.drv_id, len(item_list))
+
+        # メニュー項目作成情報取得エラー
+        if not flg:
+            return False, ret_info
+
+        # 取得件数0件
+        if len(item_list) <= 0:
+            return True, ret_info
+
+        ret_info['item_list'] = item_list
 
         return flg, ret_info
 
@@ -327,11 +362,19 @@ class ITAParameterSheetMenuManager:
             'Start ITAParameterSheetMenuManager.execute. DriverID=%s' % (self.drv_id)
         )
 
+        ret_info = {
+            'menu_list' : [],
+            'use_info'  : {},
+            'item_list' : [],
+        }
+
         try:
-            flg, menu_info = self.get_menu_list()
-            if flg:
+            flg1, ret_info = self.get_menu_list(ret_info)
+            flg2, ret_info = self.get_hostgroup_flg(ret_info)
+            flg3, ret_info = self.get_menu_item_list(ret_info)
+            if flg1 and flg2 and flg3:
                 with transaction.atomic():
-                    self.save_menu_info(menu_info)
+                    self.save_menu_info(ret_info)
 
         except Exception as e:
             logger.system_log('LOSM28001', 'execute')
