@@ -372,3 +372,48 @@ def test_select_menu_list_NG(monkeypatch):
 
     assert flg == False
     assert getdata == result
+
+def test_select_create_item_list_OK(monkeypatch):
+    """
+    select_create_item_list()の正常系テスト
+    """
+
+    result = [[None, '', '1', 'OASEメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'OASE_MenuGroup(Host)', 'OASE_MenuGroup(Ref)', '', None, None, '2020/04/10 15:02:08', 'T_20200410150208611888', 'システム管理者'], [None, '', '2', 'OASEメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '2', 'ホスト 用', '', '', 'テストメニュー（Host）', 'testメニュー （Ref）', '', 'テスト', None, '2020/04/16 17:35:02', 'T_20200416173502336962', 'システム管理者']]
+    core = create_ita1core()
+    configs = get_configs()
+
+    def method_dummy_data(*args, **kwargs):
+        """正常系用"""
+        return [[None, '', '1', 'OASEメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'OASE_MenuGroup(Host)', 'OASE_MenuGroup(Ref)', '', None, None, '2020/04/10 15:02:08', 'T_20200410150208611888', 'システム管理者'], [None, '', '2', 'OASEメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '2', 'ホスト 用', '', '', 'テストメニュー（Host）', 'testメニュー （Ref）', '', 'テスト', None, '2020/04/16 17:35:02', 'T_20200416173502336962', 'システム管理者']]
+
+    # 正常系
+    monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_data', method_dummy_data)
+
+    flg, get_data = core.select_create_item_list(configs, 'パラメータシート')
+    assert flg == True
+    get_data == result
+
+def test_select_create_item_list_NG(monkeypatch):
+    """
+    select_create_item_list()の異常系テスト
+    """
+
+    result = []
+    core = create_ita1core()
+    configs = get_configs()
+
+    def method_dummy_false(*args, **kwargs):
+        """異常系用"""
+        return {}
+
+    monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_false)
+    try:
+        with pytest.raises(KeyError):
+            flg, getdata = core.select_create_menu_info_list(configs)
+            assert flg == False
+            assert getdata == result
+    except:
+        assert flg == False
+        assert getdata == result
+
