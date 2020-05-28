@@ -25,7 +25,7 @@ from django.utils import timezone
  DOSL07005:ITAパラメータ実行管理
  DOSL07006:ITAメニュー名管理
  DOSL07007:ITAドライバ権限管理
- DOSL07008:ITA連携項目履歴
+ DOSL07008:ITAメニュー項目情報
 """
 
 
