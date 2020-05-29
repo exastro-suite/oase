@@ -150,12 +150,12 @@ class ITAParameterSheetMenuManager:
         return flg, menu_list
 
 
-    def get_hostgroup_flg(self, menu_list):
+    def get_hostgroup_flg(self, param_menu_list):
         """
         [概要]
         ホストグループフラグ情報を取得
         [引数]
-        menu_list : list : パラメーターシートメニューの情報リスト
+        param_menu_list : list : パラメーターシートメニューの情報リスト
         [戻り値]
         flg       : bool : True=成功、False=失敗
         ret_info  : dict : パラメーターシートメニューの情報リスト、ホストグループフラグ情報、メニュー項目リスト
@@ -172,34 +172,44 @@ class ITAParameterSheetMenuManager:
         )
 
         # 取得件数0件
-        if len(menu_list) <= 0:
+        if len(param_menu_list) <= 0:
             return True, ret_info
 
         # メニュー管理取得用の条件を作成
         menu_names = []
         group_names = []
         use_info = {}
-        for menu in menu_list:
+        for menu in param_menu_list:
             menu_name = ''
             group_name = ''
             hostgroup_flg = True if menu[Cstobj.FCMI_USE] in ['ホストグループ用',] else False # TODO : 多言語対応
+            vertical_flg = False
+            priority = 0
 
             if menu[Cstobj.FCMI_MENU_NAME]:
                 menu_name = menu[Cstobj.FCMI_MENU_NAME]
 
             if menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
                 group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]
+                vertical_flg = True
+                priority = 3
 
             elif menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP]:
                 group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP]
+                priority = 2
 
             elif menu[Cstobj.FCMI_MENUGROUP_FOR_HOST]:
                 group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_HOST]
+                priority = 1
 
             if menu_name and group_name:
                 menu_names.append(menu_name)
                 group_names.append(group_name)
-                use_info[(group_name, menu_name)] = hostgroup_flg
+                use_info[(group_name, menu_name)] = {
+                    'hostgroup_flg' : hostgroup_flg,
+                    'vertical_flg' : vertical_flg,
+                    'priority' : priority,
+                }
 
         # メニュー管理取得
         self.ita_config['menuID'] = '2100000205'
@@ -244,19 +254,36 @@ class ITAParameterSheetMenuManager:
         if 'menu_list' in ret_info:
             menu_list = ret_info['menu_list']
 
+        use_info = {}
+        if 'use_info' in ret_info:
+            use_info = ret_info['use_info']
+
         logger.logic_log(
             'LOSI00001',
             'Start ITAParameterSheetMenuManager.get_menu_item_list. DriverID=%s' % (self.drv_id)
         )
+
 
         # メニューIDとメニュー名の紐づけ情報を作成
         menu_names = []
         for menu in menu_list:
             menu_id = int(menu[Cstobj.AML_MENU_ID])
             menu_name = menu[Cstobj.AML_MENU_NAME]
+            group_name = menu[Cstobj.AML_MENU_GROUP_NAME]
+            group_menu_tpl = (group_name, menu_name)
+
+            if menu_name not in menu_info:
+                menu_info[menu_name] = {'menu_id':0, 'priority':0}
+
+            for k, v in use_info.items():
+                if k[1] != menu_name:
+                    continue
+
+                if v['priority'] > menu_info[menu_name]['priority']:
+                    menu_info[menu_name]['menu_id'] = menu_id
+                    menu_info[menu_name]['priority'] = v['priority']
 
             menu_names.append(menu_name)
-            menu_info[menu_name] = menu_id
 
         # メニュー項目作成情報取得
         self.ita_config['menuID'] = '2100160002'
@@ -270,12 +297,15 @@ class ITAParameterSheetMenuManager:
         if not flg:
             return False, ret_info
 
-        # 取得件数0件
-        if len(item_list) <= 0:
-            return True, ret_info
-
         ret_info['item_list'] = item_list
         ret_info['menu_info'] = menu_info
+
+        logger.logic_log(
+            'LOSI00002',
+            'End ITAParameterSheetMenuManager.get_menu_item_list. DriverID=%s, result=%s, count=%s' % (
+                self.drv_id, flg, len(item_list)
+            )
+        )
 
         return flg, ret_info
 
@@ -350,7 +380,7 @@ class ITAParameterSheetMenuManager:
             pkey = oase_data[u]
             group_name = ita_data[u]['group_name']
             menu_name = ita_data[u]['menu_name']
-            hg_flag = use_info[(group_name, menu_name)] if (group_name, menu_name) in use_info else False
+            hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else False
             ItaMenuName.objects.filter(ita_menu_name_id=pkey).update(
                 menu_group_name = group_name,
                 menu_name = menu_name,
@@ -367,7 +397,7 @@ class ITAParameterSheetMenuManager:
         for r in reg_set:
             group_name = ita_data[r]['group_name']
             menu_name = ita_data[r]['menu_name']
-            hg_flag = use_info[(group_name, menu_name)] if (group_name, menu_name) in use_info else False
+            hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else False
             reg_list.append(
                 ItaMenuName(
                     ita_driver_id = self.drv_id,
@@ -420,7 +450,10 @@ class ITAParameterSheetMenuManager:
             if item[Cstobj.DALVA_MENU_NAME] not in menu_info:
                 continue
 
-            menu_id = menu_info[item[Cstobj.DALVA_MENU_NAME]]
+            if menu_info[item[Cstobj.DALVA_MENU_NAME]]['menu_id'] == 0:
+                continue
+
+            menu_id = menu_info[item[Cstobj.DALVA_MENU_NAME]]['menu_id']
             column_group = item[Cstobj.DALVA_COLUMN_GROUP][:512]
             item_name = item[Cstobj.DALVA_ITEM_NAME]
             item_number = int(item[Cstobj.DALVA_ID])
