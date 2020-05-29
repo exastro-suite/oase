@@ -145,6 +145,7 @@ def ita_table(django_db_blocker):
     getattr(module, 'ItaDriver').objects.all().delete()
     getattr(module, 'ItaParameterMatchInfo').objects.all().delete()
     getattr(module, 'ItaParametaCommitInfo').objects.all().delete()
+    getattr(module, 'ItaParameterItemInfo').objects.all().delete()
 
 
 @pytest.fixture()
