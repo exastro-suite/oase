@@ -227,16 +227,23 @@ class DecisionTableFactory:
         """
         [メソッド概要]
         11行目の幅を自動調整する
-        日本語3bite, 英語1biteを考慮していい感じの幅にする
+        日本語3byte, 英語1byteを考慮していい感じの幅にする
         """
-        for c in range(3, self.len_condition + self.len_act + 1):
+        counter = 0
+        max_range = self.len_condition + self.len_act + 1
+        for c in range(3, max_range):
             strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
-            maxlen = 0
-            for s in strs:
-                l = len(s) + (len(s.encode('utf-8')) -len(s)) / 2
-                maxlen = l if maxlen < l else maxlen
+            if len(strs) >= 2 and (get_message('MOSJA03132', lang) in strs[0] or get_message('MOSJA03133', lang) in strs[0] or get_message('MOSJA03134', lang) in strs[0] or get_message('MOSJA03135', lang) in strs[0]):
+                # if ('回数' in strs[0] or '間隔' in strs[0]):
+                #列幅2.88が2桁数値の最低幅
+                self.tables_ws.column_dimensions[get_column_letter(c)].width = 2.88
+            else:
+                maxlen = 0
+                for s in strs:
+                    l = len(s) + (len(s.encode('utf-8')) -len(s)) / 2
+                    maxlen = l if maxlen < l else maxlen
 
-            self.tables_ws.column_dimensions[get_column_letter(c)].width = maxlen 
+                self.tables_ws.column_dimensions[get_column_letter(c)].width = maxlen
 
     def _create_tables_sheet(self):
         """
