@@ -229,11 +229,9 @@ class DecisionTableFactory:
         11行目の幅を自動調整する
         日本語3byte, 英語1byteを考慮していい感じの幅にする
         """
-        counter = 0
         for c in range(3, self.len_condition + self.len_act + 1):
             strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
 
-            print(get_message('MOSJA03132', self.lang, showMsgId=False))
             if len(strs) >= 2 and (get_message('MOSJA03132', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03133', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03134', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03135', self.lang, showMsgId=False) in strs[0]):
                 #列幅2.88が2桁数値の最低幅
                 self.tables_ws.column_dimensions[get_column_letter(c)].width = 2.88
