@@ -81,6 +81,7 @@ def set_data_ita_driver(ita_disp_name):
                 operation_id=1,
                 symphony_workflow_confirm_url=url,
                 restapi_error_info=None,
+                parameter_item_info='info_test',
                 last_update_timestamp=now,
                 last_update_user='pytest'
             ).save(force_insert=True)
@@ -1040,6 +1041,7 @@ def test_get_history_data_ok(ita_table):
     assert result['MOSJA13026'] == 1
     assert result['MOSJA13027'] == 'https://pytest-host-name:443/'
     assert result['MOSJA13028'] == None
+    assert result['MOSJA13084'] == 'info_test'
 
     # テストデータ削除
     delete_data_for_ita_driver()
