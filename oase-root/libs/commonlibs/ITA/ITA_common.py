@@ -249,6 +249,7 @@ def get_history_data(action_his_id):
         result['MOSJA13026'] = history.operation_id
         result['MOSJA13027'] = history.symphony_workflow_confirm_url
         result['MOSJA13028'] = history.restapi_error_info
+        result['MOSJA13084'] = history.parameter_item_info  # MOSJA13084:連携項目
 
     except ItaActionHistory.DoesNotExist:
         logger.system_log('LOSE00001', action_his_id, traceback.format_exc())
