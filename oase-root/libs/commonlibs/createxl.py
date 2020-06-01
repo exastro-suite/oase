@@ -230,11 +230,11 @@ class DecisionTableFactory:
         日本語3byte, 英語1byteを考慮していい感じの幅にする
         """
         counter = 0
-        max_range = self.len_condition + self.len_act + 1
-        for c in range(3, max_range):
+        for c in range(3, self.len_condition + self.len_act + 1):
             strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
-            if len(strs) >= 2 and (get_message('MOSJA03132', lang) in strs[0] or get_message('MOSJA03133', lang) in strs[0] or get_message('MOSJA03134', lang) in strs[0] or get_message('MOSJA03135', lang) in strs[0]):
-                # if ('回数' in strs[0] or '間隔' in strs[0]):
+
+            print(get_message('MOSJA03132', self.lang, showMsgId=False))
+            if len(strs) >= 2 and (get_message('MOSJA03132', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03133', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03134', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03135', self.lang, showMsgId=False) in strs[0]):
                 #列幅2.88が2桁数値の最低幅
                 self.tables_ws.column_dimensions[get_column_letter(c)].width = 2.88
             else:
