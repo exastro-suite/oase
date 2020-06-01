@@ -41,6 +41,7 @@ class ItaActionHistory(models.Model):
     operation_id = models.IntegerField("オペレーションID", null=True)
     symphony_workflow_confirm_url = models.CharField("Symphony作業確認URL", max_length=128, null=True, blank=True)
     restapi_error_info = models.CharField("RESTAPI異常時の詳細内容", max_length=1024, null=True, blank=True)
+    parameter_item_info = models.CharField("変数項目パラメータ値", max_length=1024, null=True, blank=True)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
 
