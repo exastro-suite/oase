@@ -1547,6 +1547,38 @@ def test_act_ok(monkeypatch):
     delete_data_param_information()
 
 
+@pytest.mark.django_db
+def test_ita_action_history_insert_ok(monkeypatch):
+    """
+    ITAアクション履歴登録メソッドのテスト
+    insert処理の正常系
+    """
+
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+    param_info = {
+        'ITA_NAME':ita_disp_name,
+        'SYMPHONY_CLASS_ID' : 1,
+    }
+
+    rhdm_res_act, pre_action_history = set_data_for_information(
+        1, ita_disp_name, trace_id, '')
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.action_history = ActionHistory.objects.all()[0]
+
+    itaacthist = testITA.ita_action_history_insert(param_info, 1, 1, 'http://hoge.example.com/', 1)
+
+    assert itaacthist != None
+
+    delete_data_param_information()
+
+
 def create_ita1core():
     """
     ITA1Coreのインスタンスを作成して返す
