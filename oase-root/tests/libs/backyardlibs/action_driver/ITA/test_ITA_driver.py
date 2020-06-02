@@ -56,6 +56,13 @@ def get_ita_parameter_match_info():
     return getattr(import_module('web_app.models.ITA_models'), 'ItaParameterMatchInfo')
 
 
+def get_ita_parameter_item_info():
+    """
+    ItaParameterItemInfoクラスを動的に読み込んで返す
+    """
+    return getattr(import_module('web_app.models.ITA_models'), 'ItaParameterItemInfo')
+
+
 def get_ita_parameta_commit_info():
     """
     ItaParametaCommitInfoクラスを動的に読み込んで返す
@@ -284,6 +291,7 @@ def delete_data_param_information():
     """
     ItaDriver = get_ita_driver()
     ItaParameterMatchInfo = get_ita_parameter_match_info()
+    ItaParameterItemInfo = get_ita_parameter_item_info()
     ItaParametaCommitInfo = get_ita_parameta_commit_info()
     ItaActionHistory = get_ita_action_history()
     ItaMenuName = get_ita_name_menu_info()
@@ -295,6 +303,7 @@ def delete_data_param_information():
     ItaDriver.objects.filter(last_update_user='pytest').delete()
     ItaActionHistory.objects.filter(last_update_user='pytest',).delete()
     ItaParameterMatchInfo.objects.filter(last_update_user='pytest').delete()
+    ItaParameterItemInfo.objects.filter(last_update_user='pytest').delete()
     ItaParametaCommitInfo.objects.filter(last_update_user='pytest').delete()
     ItaMenuName.objects.filter(last_update_user='pytest').delete()
 
@@ -701,6 +710,7 @@ def test_act_ptrn_menuid_convertflg_true_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 4
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -736,6 +746,7 @@ def test_act_ptrn_menuid_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -771,6 +782,7 @@ def test_act_ptrn_menuid_hostgroup_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -806,6 +818,7 @@ def test_act_ptrn_menuid_host_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -841,6 +854,7 @@ def test_act_ptrn_menuid_hostgroup_host_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -876,6 +890,7 @@ def test_act_ptrn_multiple_menuid_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -910,6 +925,7 @@ def test_act_ptrn_multiple_menuid_hostgroup_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -1548,7 +1564,7 @@ def test_act_ok(monkeypatch):
 
 
 @pytest.mark.django_db
-def test_ita_action_history_insert_ok(monkeypatch):
+def test_ita_action_history_insert_ok():
     """
     ITAアクション履歴登録メソッドのテスト
     insert処理の正常系
@@ -1579,6 +1595,107 @@ def test_ita_action_history_insert_ok(monkeypatch):
     delete_data_param_information()
 
 
+@pytest.mark.django_db
+def test_ita_action_history_update_ok():
+    """
+    ITAアクション履歴登録メソッドのテスト
+    insert処理の正常系
+    """
+
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+    param_info = {
+        'ITA_NAME':ita_disp_name,
+        'SYMPHONY_CLASS_ID' : 1,
+    }
+
+    rhdm_res_act, pre_action_history = set_data_for_information(
+        1, ita_disp_name, trace_id, '')
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.action_history = ActionHistory.objects.all()[0]
+
+    itaacthist = testITA.ita_action_history_insert(param_info, 1, 1, 'http://hoge.example.com/', 1)
+    itaacthist = testITA.ita_action_history_insert(param_info, 9, 9, 'http://hoge.example.com/', 1)
+
+    assert itaacthist != None
+    assert itaacthist.operation_id == 9
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_make_parameter_item_info_ok():
+    """
+    パラメーター項目情報作成メソッドのテスト
+    正常系
+    """
+
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+    param_info = {
+        'ITA_NAME':ita_disp_name,
+        'SYMPHONY_CLASS_ID' : 1,
+    }
+
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.ita_driver = ItaDriver.objects.all()[0]
+
+    set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
+
+    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act)
+
+    assert 'ItemName1001' in parameter_item_info
+    assert 'ParamData2001' in parameter_item_info
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_make_parameter_item_info_ok_nomatch():
+    """
+    パラメーター項目情報作成メソッドのテスト
+    正常系(マッチング情報なし)
+    """
+
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+    param_info = {
+        'ITA_NAME':ita_disp_name,
+        'SYMPHONY_CLASS_ID' : 1,
+    }
+
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.ita_driver = ItaDriver.objects.all()[0]
+
+    set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
+
+    parameter_item_info = testITA.make_parameter_item_info([99], rhdm_res_act)
+
+    assert parameter_item_info == ''
+
+    delete_data_param_information()
+
+
 def create_ita1core():
     """
     ITA1Coreのインスタンスを作成して返す
@@ -1588,6 +1705,81 @@ def create_ita1core():
     response_id = '2'
     execution_order = '3'
     return ITA1Core(trace_id, symphony_class_no_, response_id, execution_order)
+
+
+def set_data_param_item(drv_id, resp_id, exec_order):
+    """
+    テストで使用するパラメーターシート項目データの生成
+    """
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    ItaParameterItemInfo = get_ita_parameter_item_info()
+    ItaParametaCommitInfo = get_ita_parameta_commit_info()
+
+    # パラメーターシート項目データ作成
+    ItaParameterItemInfo(
+        ita_driver_id = drv_id,
+        menu_id = 1,
+        column_group = '',
+        item_name = 'ItemName1001',
+        item_number = 1,
+        ita_order = 1,
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    ItaParameterItemInfo(
+        ita_driver_id = drv_id,
+        menu_id = 2,
+        column_group = '',
+        item_name = 'ItemName2001',
+        item_number = 2,
+        ita_order = 1,
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    # パラメーターシート投入データ作成
+    ItaParametaCommitInfo(
+        response_id = resp_id,
+        commit_order = exec_order,
+        menu_id = 1,
+        ita_order = 0,
+        parameter_value = 'HostName',
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    ItaParametaCommitInfo(
+        response_id = resp_id,
+        commit_order = exec_order,
+        menu_id = 1,
+        ita_order = 1,
+        parameter_value = 'ParamData1001',
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    ItaParametaCommitInfo(
+        response_id = resp_id,
+        commit_order = exec_order,
+        menu_id = 2,
+        ita_order = 0,
+        parameter_value = 'HostGroupName',
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    ItaParametaCommitInfo(
+        response_id = resp_id,
+        commit_order = exec_order,
+        menu_id = 2,
+        ita_order = 1,
+        parameter_value = 'ParamData2001',
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
 
 
 def get_evinfo(act_ptrn):
