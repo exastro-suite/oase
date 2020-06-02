@@ -240,11 +240,14 @@ class DecisionTableFactory:
         11行目の幅を自動調整する
         日本語3byte, 英語1byteを考慮していい感じの幅にする
         """
+        print('A')
         for c in range(3, self.len_condition + self.len_act + 1):
             strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
 
+            print('strs', strs)
             if self._get_action_count_info(strs):
                 self.tables_ws.column_dimensions[get_column_letter(c)].width = 2.88
+                print('幅', self.tables_ws.column_dimensions[get_column_letter(c)].width)
                 theme = self.tables_ws.cell(row=11, column=c).value
                 # TODO 英語化対応で別途処理が必要
                 self.tables_ws.cell(row=11, column=c).value = theme[5:]
