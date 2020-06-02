@@ -1633,7 +1633,7 @@ def test_ita_action_history_update_ok():
 def test_make_parameter_item_info_ok():
     """
     パラメーター項目情報作成メソッドのテスト
-    正常系
+    正常系(対象ホスト指定なし)
     """
 
     ItaDriver = get_ita_driver()
@@ -1647,6 +1647,8 @@ def test_make_parameter_item_info_ok():
         'ITA_NAME':ita_disp_name,
         'SYMPHONY_CLASS_ID' : 1,
     }
+    target_host = {
+    }
 
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
 
@@ -1655,10 +1657,88 @@ def test_make_parameter_item_info_ok():
 
     set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
 
-    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act)
+    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act, target_host)
 
     assert 'ItemName1001' in parameter_item_info
     assert 'ParamData2001' in parameter_item_info
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_make_parameter_item_info_ok_specifyhost_nomatch():
+    """
+    パラメーター項目情報作成メソッドのテスト
+    正常系(対象ホスト指定がマッチしない)
+    """
+
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+    param_info = {
+        'ITA_NAME':ita_disp_name,
+        'SYMPHONY_CLASS_ID' : 1,
+    }
+    target_host = {
+        99:{'H':'Host99', 'HG':'HostGroup99'}
+    }
+
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.ita_driver = ItaDriver.objects.all()[0]
+
+    set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
+
+    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act, target_host)
+
+    assert 'ItemName1001' in parameter_item_info
+    assert 'ParamData2001' in parameter_item_info
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_make_parameter_item_info_ok_specifyhost_all():
+    """
+    パラメーター項目情報作成メソッドのテスト
+    正常系(対象ホスト指定がホスト/ホストグループ/両方の全パターン)
+    """
+
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+    param_info = {
+        'ITA_NAME':ita_disp_name,
+        'SYMPHONY_CLASS_ID' : 1,
+    }
+    target_host = {
+        1:{'H':['[H]Host1001', ], 'HG':[]},
+        2:{'HG':['[HG]HostGr2001', ], 'H':[]},
+        5:{'H':['[H]Host5001', ], 'HG':['[HG]HostGr5002', ]}
+    }
+
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.ita_driver = ItaDriver.objects.all()[0]
+
+    set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
+
+    parameter_item_info = testITA.make_parameter_item_info([1, 2, 5], rhdm_res_act, target_host)
+
+    assert 'Host1001' in parameter_item_info
+    assert 'HostGr2001' in parameter_item_info
+    assert 'Host5001' in parameter_item_info
+    assert 'HostGr5002' in parameter_item_info
 
     delete_data_param_information()
 
@@ -1689,7 +1769,7 @@ def test_make_parameter_item_info_ok_nomatch():
 
     set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
 
-    parameter_item_info = testITA.make_parameter_item_info([99], rhdm_res_act)
+    parameter_item_info = testITA.make_parameter_item_info([99], rhdm_res_act, {})
 
     assert parameter_item_info == ''
 
@@ -1740,6 +1820,17 @@ def set_data_param_item(drv_id, resp_id, exec_order):
         last_update_user = 'pytest'
     ).save(force_insert=True)
 
+    ItaParameterItemInfo(
+        ita_driver_id = drv_id,
+        menu_id = 5,
+        column_group = '',
+        item_name = 'ItemName5001',
+        item_number = 5,
+        ita_order = 1,
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
     # パラメーターシート投入データ作成
     ItaParametaCommitInfo(
         response_id = resp_id,
@@ -1777,6 +1868,26 @@ def set_data_param_item(drv_id, resp_id, exec_order):
         menu_id = 2,
         ita_order = 1,
         parameter_value = 'ParamData2001',
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    ItaParametaCommitInfo(
+        response_id = resp_id,
+        commit_order = exec_order,
+        menu_id = 5,
+        ita_order = 0,
+        parameter_value = 'HostName',
+        last_update_timestamp = now,
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    ItaParametaCommitInfo(
+        response_id = resp_id,
+        commit_order = exec_order,
+        menu_id = 5,
+        ita_order = 1,
+        parameter_value = 'ParamData5001',
         last_update_timestamp = now,
         last_update_user = 'pytest'
     ).save(force_insert=True)
@@ -1979,7 +2090,7 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
                 menu_group_id=1,
                 menu_id=5,
                 menu_group_name='testGroup',
-                menu_name='pytest用メニュー1',
+                menu_name='pytest用メニュー5',
                 hostgroup_flag=True,
                 last_update_timestamp=now,
                 last_update_user='pytest',
