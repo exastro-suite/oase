@@ -70,13 +70,6 @@ class DecisionTableFactory:
             logger.system_log('LOSM12067', rule_type_id, traceback.format_exc())
 
         # 初期化
-        print('rule_set', rule_set)
-        print('table_name', table_name)
-        print('class_name', class_name)
-        print('fact_name', fact_name)
-        print('save_path', save_path)
-        print('lang', lang)
-
         self.rule_type_id = rule_type_id
         self.rule_set = rule_set
         self.table_name = table_name
