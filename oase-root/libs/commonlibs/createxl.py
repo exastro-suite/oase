@@ -223,6 +223,17 @@ class DecisionTableFactory:
                         # フォーマットの設定は最後に行う
                         self.tables_ws.cell(row=r, column=c).number_format = openpyxl.styles.numbers.FORMAT_TEXT
 
+        #----------------
+        # アクション部 左揃え
+        #----------------
+        action_start = 3 + self.len_condition + 2
+        action_end = self.len_condition + self.len_act + 1
+        for c in range(action_start, action_end):
+            strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
+            if not self._get_action_count_info(strs):
+                for r in range(12, 19):
+                    self.tables_ws.cell(row=r, column=c).alignment = al_lb
+
     def _set_width(self):
         """
         [メソッド概要]
@@ -232,8 +243,7 @@ class DecisionTableFactory:
         for c in range(3, self.len_condition + self.len_act + 1):
             strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
 
-            if len(strs) >= 2 and (get_message('MOSJA03132', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03133', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03134', self.lang, showMsgId=False) in strs[0] or get_message('MOSJA03135', self.lang, showMsgId=False) in strs[0]):
-                #列幅2.88が2桁数値の最低幅
+            if self._get_action_count_info(strs):
                 self.tables_ws.column_dimensions[get_column_letter(c)].width = 2.88
             else:
                 maxlen = 0
@@ -242,6 +252,19 @@ class DecisionTableFactory:
                     maxlen = l if maxlen < l else maxlen
 
                 self.tables_ws.column_dimensions[get_column_letter(c)].width = maxlen
+
+    def _get_action_count_info(self, strs):
+        """
+        [メソッド概要]
+        アクションリトライ間隔、アクションリトライ回数、アクション抑止間隔、アクション抑止回数の判定処理
+        """
+        if len(strs) >= 2 and (get_message('MOSJA03132', self.lang, showMsgId=False) in strs[0]
+                                or get_message('MOSJA03133', self.lang, showMsgId=False) in strs[0]
+                                or get_message('MOSJA03134', self.lang, showMsgId=False) in strs[0]
+                                or get_message('MOSJA03135', self.lang, showMsgId=False) in strs[0]):
+            return True
+        else:
+            return False
 
     def _create_tables_sheet(self):
         """
