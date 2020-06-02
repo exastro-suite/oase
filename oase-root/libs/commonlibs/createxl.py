@@ -245,6 +245,11 @@ class DecisionTableFactory:
 
             if self._get_action_count_info(strs):
                 self.tables_ws.column_dimensions[get_column_letter(c)].width = 2.88
+                theme = self.tables_ws.cell(row=11, column=c).value
+                # TODO 英語化対応で別途処理が必要
+                self.tables_ws.cell(row=11, column=c).value = theme[5:]
+                self.tables_ws.cell(row=11, column=c).alignment = Alignment(horizontal='center', vertical='top', wrap_text=True)
+
             else:
                 maxlen = 0
                 for s in strs:
