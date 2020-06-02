@@ -52,6 +52,7 @@ from web_app.models.ITA_models import ItaActionHistory
 from web_app.models.ITA_models import ItaDriver
 from web_app.models.ITA_models import ItaParameterMatchInfo
 from web_app.models.ITA_models import ItaParametaCommitInfo, ItaMenuName
+from web_app.models.ITA_models import ItaParameterItemInfo
 
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.aes_cipher import AESCipher
@@ -102,7 +103,7 @@ class ITAManager(AbstractManager):
 
 
     def ita_action_history_insert(self,aryAnzActionParameter,SymphonyInstanceNO,
-            OperationID,SymphonyWorkflowURL, exe_order):
+            OperationID,SymphonyWorkflowURL, exe_order, parameter_item_info=''):
         """
         [概要]
         ITAアクション履歴登録メゾット
@@ -130,6 +131,7 @@ class ITAManager(AbstractManager):
                         symphony_class_id=aryAnzActionParameter['SYMPHONY_CLASS_ID'],
                         operation_id=OperationID,
                         symphony_workflow_confirm_url=SymphonyWorkflowURL,
+                        parameter_item_info=parameter_item_info,
                         last_update_timestamp=Comobj.getStringNowDateTime(),
                         last_update_user=self.last_update_user,
                     )
@@ -163,7 +165,7 @@ class ITAManager(AbstractManager):
         DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
 
         list_operation_id = []
-        symphony_instance_id = 0
+        symphony_instance_id = None
         symphony_url = ''
         server_list = ''
         operation_id = None
@@ -479,6 +481,19 @@ class ITAManager(AbstractManager):
                 ActionDriverCommonModules.SaveActionLog(
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
 
+            # 連携項目整形
+            parameter_item_info = self.make_parameter_item_info(menu_id_list, rhdm_res_act, target_host_name)
+
+            # ITAアクション履歴登録
+            ret = self.ita_action_history_insert(
+                self.aryActionParameter,
+                symphony_instance_id,
+                operation_id,
+                symphony_url,
+                rhdm_res_act.execution_order,
+                parameter_item_info
+            )
+
             return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, DetailStatus
 
         ret = self.ITAobj.select_ope_ita_master(
@@ -516,6 +531,76 @@ class ITAManager(AbstractManager):
         logger.logic_log('LOSI00002', 'return: PROCESSED')
         return ACTION_HISTORY_STATUS.EXASTRO_REQUEST, DetailStatus
 
+    def make_parameter_item_info(self, menu_id_list, rhdm_res_act, target_host_name):
+        """
+        [概要]
+        """
+
+        menu_name = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
+        menu_name = menu_name.values('menu_id', 'menu_name')
+
+        param_item_info = ItaParameterItemInfo.objects.filter(
+            ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list).order_by('menu_id','ita_order','item_number')
+        param_item_info = param_item_info.values('menu_id', 'item_name', 'ita_order')
+
+        param_commit_info = ItaParametaCommitInfo.objects.filter(
+            response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('menu_id','ita_order')
+        param_commit_info = param_commit_info.values('menu_id', 'parameter_value', 'ita_order')
+
+        parameter_item_info = ''
+
+        for i,mn in enumerate(menu_name):
+            if i == 0:
+                parameter_item_info = str(mn['menu_id']) + ":" + mn['menu_name']
+            else:
+                parameter_item_info = parameter_item_info + ", " + str(mn['menu_id']) + ":" + mn['menu_name']
+
+            for j,pii in enumerate(param_item_info):
+                menu_id_prev = 0
+                for k,pci in enumerate(param_commit_info):
+                    if mn['menu_id'] == pii['menu_id'] and mn['menu_id'] == pci['menu_id']:
+                        if menu_id_prev != pci['menu_id'] and len(target_host_name) > 0:
+                            if target_host_name.get(str(mn['menu_id'])) != None:
+                                if len(target_host_name[str(mn['menu_id'])]['HG']) > 0 and \
+                                   len(target_host_name[str(mn['menu_id'])]['H']) > 0:
+                                    hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
+                                    h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
+                                    # TODO 多言語化対応
+                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                    parameter_item_info = parameter_item_info + hg_hostname
+                                    parameter_item_info = parameter_item_info + "," + h_hostname
+                                elif len(target_host_name[str(mn['menu_id'])]['HG']) > 0:
+                                    hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
+                                    # TODO 多言語化対応
+                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                    parameter_item_info = parameter_item_info + hg_hostname
+                                elif len(target_host_name[str(mn['menu_id'])]['H']) > 0:
+                                    h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
+                                    # TODO 多言語化対応
+                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                    parameter_item_info = parameter_item_info + h_hostname
+                            elif pci['ita_order'] == 0:
+                                # TODO 多言語化対応
+                                parameter_item_info = parameter_item_info + "[ホスト名:"
+                                parameter_item_info = parameter_item_info + pci['parameter_value']
+                        elif pci['ita_order'] == 0:
+                            # TODO 多言語化対応
+                            parameter_item_info = parameter_item_info + "[ホスト名:" 
+                            parameter_item_info = parameter_item_info + pci['parameter_value']
+                        elif pii['ita_order'] == pci['ita_order']:
+                            parameter_item_info = parameter_item_info + ", "
+                            parameter_item_info = parameter_item_info + pii['item_name']
+                            parameter_item_info = parameter_item_info + ":"
+                            parameter_item_info = parameter_item_info + pci['parameter_value']
+
+                    menu_id_prev = pci['menu_id']
+
+                if j == len(param_item_info) - 1:
+                    parameter_item_info = parameter_item_info + "]"
+
+        return parameter_item_info
+
+
     def act_with_menuid(self, act_his_id, exec_order):
         """
         [概要]
@@ -524,6 +609,7 @@ class ITAManager(AbstractManager):
         symphony_instance_id = 0
         operation_id = 0
         symphony_url = ''
+        restapi_error_info = ''
 
         self.ITAobj = ITA1Core(self.trace_id, self.aryActionParameter['SYMPHONY_CLASS_ID'], self.response_id, exec_order)
         self.set_ary_ita_config()
