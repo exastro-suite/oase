@@ -70,6 +70,13 @@ class DecisionTableFactory:
             logger.system_log('LOSM12067', rule_type_id, traceback.format_exc())
 
         # 初期化
+        print('rule_set', rule_set)
+        print('table_name', table_name)
+        print('class_name', class_name)
+        print('fact_name', fact_name)
+        print('save_path', save_path)
+        print('lang', lang)
+
         self.rule_type_id = rule_type_id
         self.rule_set = rule_set
         self.table_name = table_name
@@ -245,6 +252,11 @@ class DecisionTableFactory:
 
             if self._get_action_count_info(strs):
                 self.tables_ws.column_dimensions[get_column_letter(c)].width = 2.88
+                theme = self.tables_ws.cell(row=11, column=c).value
+                # TODO 英語化対応で別途処理が必要
+                self.tables_ws.cell(row=11, column=c).value = theme[5:]
+                self.tables_ws.cell(row=11, column=c).alignment = Alignment(horizontal='center', vertical='top', wrap_text=True)
+
             else:
                 maxlen = 0
                 for s in strs:
