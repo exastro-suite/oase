@@ -591,6 +591,7 @@ class RuleType(models.Model):
     current_container_id_staging = models.CharField("現ステージング用コンテナID", max_length=96, null=True, blank=True)
     current_container_id_product = models.CharField("現プロダクト用コンテナID", max_length=96, null=True, blank=True)
     label_count = models.IntegerField("Label件数")
+    unknown_event_notification = models.CharField("未知事象通知設定", max_length=1, default='0')
     mail_address = models.CharField("通知先メールアドレス", max_length=512, null=True, blank=True)
     disuse_flag = models.CharField("廃止フラグ", max_length=1, default='0')
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
