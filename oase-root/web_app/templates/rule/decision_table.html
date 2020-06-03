@@ -1225,6 +1225,8 @@ var ruleRow = heredocHTML( function(){/*
                     <select class="notification-select">
                       <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                       <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
+                      <!-- <option value="2">システムに通知する</option>
+                      <option value="3">メールとシステムに通知する</option> -->
                     </select>
                     <!-- TODO js側で管理 -->
                   </div>
@@ -1251,6 +1253,23 @@ var ruleRow = heredocHTML( function(){/*
                   </table>
                   </div>
                 </div>
+
+                <!-- システムに通知する -->
+                <!-- <div class="notification-system">
+                  <h4><span>システム通知設定</span></h4>
+                  <div class="oase-modal-table">
+                  <table>
+                  <tbody>
+                  <tr>
+                  <th><div class="cell-inner">通知先システム</div></th>
+                  <td><div class="cell-inner">
+                  <input type="text" data-type="system" value="" data-maxlength="256" class="validation-input">
+                  </div></td>
+                  </tr>
+                  </tbody>
+                  </table>
+                  </div>
+                </div> -->
 
               </div>
 
