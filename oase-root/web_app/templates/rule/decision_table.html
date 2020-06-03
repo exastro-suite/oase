@@ -47,6 +47,7 @@ function submitTableData(){
     var objTBody      = document.getElementById("data_object_data");
     var dataObjList   = new Array();
     var groupList     = new Array();
+    var notificationInfo = {};
 
     // ボタン制御 連打防止
     $("#btnUpd").prop("disabled", true);
@@ -75,6 +76,12 @@ function submitTableData(){
             dataObjInfo["row_id"]                    = trID;
             dataObjList.push(dataObjInfo);
         });
+
+        //--------------------------------------------
+        // 未知事象の設定取得
+        //--------------------------------------------
+        notificationInfo["notification-flag"] = $("#notification-flag").val();
+        notificationInfo["notification-address"] = $("#notification-address").val();
 
         //--------------------------------------------
         // アクセス権限の取得
@@ -158,7 +165,7 @@ function submitTableData(){
             });
         }else{
             //登録情報をjson形式に変換し、任意のvalueにセットする。
-            var jstr = JSON.stringify({"table_info": tableInfo, "data_obj_info":dataObjList, "group_list":groupList});
+            var jstr = JSON.stringify({"table_info": tableInfo, "data_obj_info":dataObjList, "group_list":groupList, "notificationInfo":notificationInfo});
             $("#add_record").val(jstr);
     
             //formにセットした登録情報をサーバーに送る
@@ -1221,14 +1228,12 @@ var ruleRow = heredocHTML( function(){/*
                   <th><div class="cell-inner">{% get_message 'MOSJA11049' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
                   <div class="select">
-                    <!-- TODO js側で管理 -->
-                    <select class="notification-select">
+                    <select class="notification-select" id="notification-flag">
                       <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                       <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                       <!-- <option value="2">システムに通知する</option>
                       <option value="3">メールとシステムに通知する</option> -->
                     </select>
-                    <!-- TODO js側で管理 -->
                   </div>
                   </div></td>
                   </tr>
@@ -1246,7 +1251,7 @@ var ruleRow = heredocHTML( function(){/*
                   <tr>
                     <th><div class="cell-inner"></div>{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
-                  <input type="text" data-type="mail" value="" data-maxlength="256" class="validation-input">
+                  <input type="text" data-type="mail" value="" data-maxlength="256" class="validation-input" id="notification-address">
                   </div></td>
                   </tr>
                   </tbody>
