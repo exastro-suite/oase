@@ -1076,6 +1076,7 @@ var ruleRow = heredocHTML( function(){/*
             <ul>
               <li><button class="tooltip" title="{% get_message 'MOSJA11025' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#modal-new', 0 );">{% get_message 'MOSJA14001' request.user.get_lang_mode showMsgId=False %}</button></li>
               <li><button class="tooltip" title="{% get_message 'MOSJA11026' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#modal-new', 1 );">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</button></li>
+              <li><button class="tooltip" title="{% get_message 'MOSJA11047' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#modal-new', 2 );">{% get_message 'MOSJA14019' request.user.get_lang_mode showMsgId=False %}</button></li>
             </ul>
           </div>
 
@@ -1121,7 +1122,7 @@ var ruleRow = heredocHTML( function(){/*
                     <div class="oase-none">
                       <p>グループが存在しません。</p>
                     </div>
-                   -->
+                  -->
                   <div id="dlAuthGrpListNew" class="authority-group-list">
                     <!-- jQueryでここにタグ追加される -->
                   </div>
@@ -1141,70 +1142,168 @@ var ruleRow = heredocHTML( function(){/*
           <!-- Tab2 条件式 -->
           <div class="oase-modal-tab-block table">
 
-          <div class="oase-modal-body">
-          <div class="oase-modal-block">
-          <h3>{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</h3>
+            <div class="oase-modal-body">
+              <div class="oase-modal-block">
+              <h3>{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</h3>
 
-          <div class="oase-modal-rule-table">
+                <div class="oase-modal-rule-table">
 
-          <div class="oase-modal-rule-table-inner">
-          <table id="data_object">
+                  <div class="oase-modal-rule-table-inner">
+                    <table id="data_object">
 
-          <thead>
-          <tr id="record_dummy">
-          <th class="move">
-          <div class="cell-inner">{% get_message 'MOSJA14004' request.user.get_lang_mode showMsgId=False %}</div>
-          </th>
-          <th>
-          <div class="cell-inner">{% get_message 'MOSJA14003' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00100' request.user.get_lang_mode showMsgId=False %}{% get_message 'MOSJA00106' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div>
-          </th>
-          <th>
-          <div class="cell-inner">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div>
-          </th>
-          <th class="row-delete">
-          <div class="cell-inner">{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</div>
-          </th>
-          </tr>
-          </thead>
+                      <thead>
+                      <tr id="record_dummy">
+                      <th class="move">
+                      <div class="cell-inner">{% get_message 'MOSJA14004' request.user.get_lang_mode showMsgId=False %}</div>
+                      </th>
+                      <th>
+                      <div class="cell-inner">{% get_message 'MOSJA14003' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00100' request.user.get_lang_mode showMsgId=False %}{% get_message 'MOSJA00106' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div>
+                      </th>
+                      <th>
+                      <div class="cell-inner">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div>
+                      </th>
+                      <th class="row-delete">
+                      <div class="cell-inner">{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</div>
+                      </th>
+                      </tr>
+                      </thead>
 
-          <tbody id="data_object_data"></tbody>
+                      <tbody id="data_object_data"></tbody>
 
-          </table>
-          <script>
-            //初期ルール条件数
-            var ruleTrInput = '';
-            for ( var i = 1; i <= 1; i++ ) ruleTrInput += ruleRow;
-            $('#data_object tbody').html( ruleTrInput );
-          </script>
+                    </table>
+                    <script>
+                      //初期ルール条件数
+                      var ruleTrInput = '';
+                      for ( var i = 1; i <= 1; i++ ) ruleTrInput += ruleRow;
+                      $('#data_object tbody').html( ruleTrInput );
+                    </script>
+            
+                  </div>
+
+                  <div class="oase-modal-rule-table-footer">
+                    <button class="tooltip add-rule oase-mini-button" title="{% get_message 'MOSJA11028' request.user.get_lang_mode showMsgId=False %}" onClick="tableRowAdd('#data_object', ruleRow )">
+                      <em class="owf owf-plus"></em><span>{% get_message 'MOSJA14005' request.user.get_lang_mode showMsgId=False %}</span>
+                    </button>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+
+            <div class="oase-modal-footer">
+              <ul class="oase-button-group">
+              <li>
+                <button class="tooltip oase-button close" title="{% get_message 'MOSJA11029' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-new');">
+                  <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+              <li>
+                <button id="btnUpd" class="tooltip oase-button save" title="{% get_message 'MOSJA11030' request.user.get_lang_mode showMsgId=False %}" onclick="submitTableData();">
+                  <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+              </ul>
+            </div>
+
+          </div>
+
+          <!-- Tab3 未知事象通知 -->
+          <div class="oase-modal-tab-block">
+            <div class="oase-modal-body">
+
+              <div class="oase-modal-block">
+                <h3>{% get_message 'MOSJA11048' request.user.get_lang_mode showMsgId=False %}</h3>
+
+                <div class="oase-modal-table">
+                  <table>
+                  <tbody>
+                  <tr>
+                  <th><div class="cell-inner">{% get_message 'MOSJA11049' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  <td><div class="cell-inner">
+                  <div class="select">
+                    <!-- TODO js側で管理 -->
+                    <select class="notification-select">
+                      <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
+                      <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
+                      <!-- <option value="2">システムに通知する</option>
+                      <option value="3">メールとシステムに通知する</option> -->
+                    </select>
+                    <!-- TODO js側で管理 -->
+                  </div>
+                  </div></td>
+                  </tr>
+                  </tbody>
+                  </table>
+                </div>
+
+                <div class="notification-setting">
+                  <!-- メールで通知する -->
+                  <div class="notification-mail">
+                    <h4><span>{% get_message 'MOSJA11052' request.user.get_lang_mode showMsgId=False %}</span></h4>
+                  <div class="oase-modal-table">
+                  <table>
+                  <tbody>
+                  <tr>
+                    <th><div class="cell-inner"></div>{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  <td><div class="cell-inner">
+                  <input type="text" data-type="mail" value="" data-maxlength="256" class="validation-input">
+                  </div></td>
+                  </tr>
+                  </tbody>
+                  </table>
+                  </div>
+                </div>
+
+                <!-- システムに通知する -->
+                <!-- <div class="notification-system">
+                  <h4><span>システム通知設定</span></h4>
+                  <div class="oase-modal-table">
+                  <table>
+                  <tbody>
+                  <tr>
+                  <th><div class="cell-inner">通知先システム</div></th>
+                  <td><div class="cell-inner">
+                  <input type="text" data-type="system" value="" data-maxlength="256" class="validation-input">
+                  </div></td>
+                  </tr>
+                  </tbody>
+                  </table>
+                  </div>
+                </div> -->
+
+              </div>
+
+            </div>
+
+            </div>
           
-          </div>
-
-          <div class="oase-modal-rule-table-footer">
-          <button class="tooltip add-rule oase-mini-button" title="{% get_message 'MOSJA11028' request.user.get_lang_mode showMsgId=False %}" onClick="tableRowAdd('#data_object', ruleRow )">
-            <em class="owf owf-plus"></em><span>{% get_message 'MOSJA14005' request.user.get_lang_mode showMsgId=False %}</span>
-          </button>
-          </div>
-
-          </div>
-          </div>
-          </div>
-
-          <div class="oase-modal-footer">
-          <ul class="oase-button-group">
-          <li>
-            <button class="tooltip oase-button close" title="{% get_message 'MOSJA11029' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-new');">
-              <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span>
-            </button>
-          </li>
-          <li>
-            <button id="btnUpd" class="tooltip oase-button save" title="{% get_message 'MOSJA11030' request.user.get_lang_mode showMsgId=False %}" onclick="submitTableData();">
-              <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
-            </button>
-          </li>
-          </ul>
-          </div>
+            <div class="oase-modal-footer">
+            <ul class="oase-button-group">
+              <div class="oase-modal-footer">
+                <ul class="oase-button-group">
+                <li>
+                  <button class="tooltip oase-button close" title="{% get_message 'MOSJA11029' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-new');">
+                    <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span>
+                  </button>
+                </li>
+                <li>
+                  <button id="btnUpd" class="tooltip oase-button save" title="{% get_message 'MOSJA11030' request.user.get_lang_mode showMsgId=False %}" onclick="submitTableData();">
+                    <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
+                  </button>
+                </li>
+                </ul>
+              </div>          
+            </ul>
+            </div>
 
           </div>
+
+        </div>
+
+      </div>
+    </div>
+
+
 
         </div>
 
