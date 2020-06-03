@@ -30,6 +30,7 @@ import pytz
 from importlib import import_module
 from unittest.mock import MagicMock, patch
 from openpyxl.utils import get_column_letter
+from openpyxl.styles import PatternFill, Border, Side, Alignment, Protection
 
 from django.core.exceptions import PermissionDenied
 from django.db import transaction
@@ -161,7 +162,7 @@ def test__get_action_count_info_false():
 
 
 @pytest.mark.django_db
-def test_set_width():
+def test__set_width():
     """
     幅調整のテスト
     """
@@ -178,8 +179,38 @@ def test_set_width():
 
     dt_create._set_width()
 
-    assert ws.column_dimensions[get_column_letter(8)].width == 2.88
-    assert ws.cell(row=11, column=8).value == "リトライ間隔（必須）\n※「1」以上を定義して下さい。"
+    for c in range(8, 12):
+        if c != 12:
+            assert ws.column_dimensions[get_column_letter(c)].width == 2.88
+        else:
+            assert ws.column_dimensions[get_column_letter(c)].width == None
 
-    assert ws.column_dimensions[get_column_letter(12)].width == None
-    assert ws.cell(row=11, column=12).value == "有効日"
+    del_data_object()
+
+@pytest.mark.django_db
+def test__set_styles():
+    """
+    左揃えのテスト
+    """
+
+    del_data_object()
+    set_data_object()
+
+    dt_create = set_DecisionTableFactory()
+
+    dt_create._create_condition()
+    dt_create._create_header()
+
+    ws = dt_create.tables_ws
+    dt_create._set_styles()
+
+    al_lb = Alignment(horizontal='left', vertical='bottom', wrap_text=True)
+
+    for c in range(2, 12):
+        for r in range(12, 19):
+            if c == 6 or c == 7:
+                assert ws.cell(row=r, column=c).alignment == al_lb
+            else:
+                assert ws.cell(row=r, column=c).alignment != al_lb
+
+    del_data_object()
