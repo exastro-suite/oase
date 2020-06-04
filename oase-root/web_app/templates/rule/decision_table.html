@@ -464,6 +464,13 @@ function showNewTable(){
     for ( var i = 1; i <= 1; i++ ) ruleTrInput += ruleRow;
         $('#data_object tbody').html( ruleTrInput ); 
 
+    // 未知事象通知
+    $("#notification-flag").val("0");
+    $("#mail_address").val("");
+
+    // 非表示
+    $('.notification-mail, .notification-system').hide();
+
     // バリデーションエラー初期化
     $(".error-list").remove();
     $("td").removeClass("error");
