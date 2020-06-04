@@ -81,7 +81,12 @@ function submitTableData(){
         // 未知事象の設定取得
         //--------------------------------------------
         notificationInfo["notification-flag"] = $("#notification-flag").val();
-        notificationInfo["notification-address"] = $("#notification-address").val();
+
+        if (notificationInfo["notification-flag"] == "1") {
+            notificationInfo["mail_address"] = $("#mail_address").val();
+        } else {
+            notificationInfo["mail_address"] = "";
+        }
 
         //--------------------------------------------
         // アクセス権限の取得
@@ -207,7 +212,7 @@ function submitAction(){
             // 基本情報エラー処理
             errorMsg = response_json.error_top;
             Object.keys(errorMsg).forEach(function(id) {
-                if(id != "rule_type_name" && id != "summary" && id != "rule_table_name") {
+                if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address") {
                     return true;
                 }
                 errorStr = errorMsg[id];
@@ -1289,7 +1294,7 @@ var ruleRow = heredocHTML( function(){/*
                   <tr>
                     <th><div class="cell-inner"></div>{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
-                  <input type="text" data-type="multiaddress" value="" data-maxlength="256" class="validation-input" id="notification-address">
+                  <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mail_address">
                   </div></td>
                   </tr>
                   </tbody>

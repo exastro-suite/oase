@@ -112,6 +112,7 @@ def create(request):
     data_objs = request['data_obj_info']
     label_cnt = request['label_count']
     lang = request['lang']
+    notificationInfo = request['notificationInfo']
 
     type_name = table_info['rule_type_name']
     summary = table_info['summary']
@@ -120,6 +121,9 @@ def create(request):
     now = datetime.datetime.now(pytz.timezone('UTC'))
     user = User.objects.get(user_id=uid)
     dtcomp = DecisionTableComponent(table_name)
+
+    unknown_event_notification = notificationInfo['notification-flag']
+    mail_address = notificationInfo['mail_address']
 
     rule_type_id = 0
 
@@ -144,6 +148,8 @@ def create(request):
                 container_id_prefix_staging=dtcomp.contid_stg,
                 container_id_prefix_product=dtcomp.contid_prd,
                 label_count=label_cnt,
+                unknown_event_notification=unknown_event_notification,
+                mail_address=mail_address,
                 last_update_timestamp=now,
                 last_update_user=user.user_name
             )
