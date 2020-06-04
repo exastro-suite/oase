@@ -439,7 +439,6 @@ def modify(request):
         # ルール種別のバリデーションチェック
         info = add_record['table_info']
         dtcomp = DecisionTableComponent(info['rule_table_name'])
-
         notification = add_record['notificationInfo']
 
         decision_table_data = {
@@ -1001,7 +1000,7 @@ def _select(filters):
 
         if 'LIST' in v:
             where_info[k + '__in'] = v['LIST']
-        
+
         if 'FROM' in v:
             where_info[k + '__gte'] = datetime.datetime.strptime(v['FROM'], '%Y-%m-%d')
 
@@ -1021,6 +1020,8 @@ def _select(filters):
             'pk'                    : d.pk,
             'rule_type_name'        : d.rule_type_name,
             'summary'               : d.summary,
+            'unknown_event_notification' : d.unknown_event_notification,
+            'mail_address'          : d.mail_address,
             'rule_table_name'       : d.rule_table_name,
             'last_update_timestamp' : d.last_update_timestamp,
             'last_update_user'      : d.last_update_user,
