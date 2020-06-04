@@ -283,7 +283,7 @@ def is_addresses(addresses):
 
     pattern = r'^([\w!#$%&\'*+\-\/=?^`{|}~]+(\.[\w!#$%&\'*+\-\/=?^`{|}~]+)*|"([\w!#$%&\'*+\-\/=?^`{|}~. ()<>\[\]:;@,]|\\[\\"])+")@(([a-zA-Z\d\-]+\.)+[a-zA-Z]+|\[(\d{1,3}(\.\d{1,3}){3}|IPv6:[\da-fA-F]{0,4}(:[\da-fA-F]{0,4}){1,5}(:\d{1,3}(\.\d{1,3}){3}|(:[\da-fA-F]{0,4}){0,2}))\])$'
     repatter = re.compile(pattern)
-    address_list = addresses.split(',')
+    address_list = addresses.split(';')
 
     # 0件チェック
     if addresses == '':
