@@ -536,11 +536,13 @@ function showDetail(pk, copy_flg, del_flg, edit_flg, dl_flg){
               //  1:メール通知
               case "1":
                   $("#divNotifyType").text("{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}");
+                  $("#dispNotifyMailAddr").show();
                   break;
 
               //  通知しない or 不明な種別
               default:
                   $("#divNotifyType").text("{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}");
+                  $("#dispNotifyMailAddr").hide();
                   break;
             }
             $("#divNotifyMailAddr").text("{{d.mail_address|escapejs}}");
@@ -1481,18 +1483,20 @@ var ruleRow = heredocHTML( function(){/*
                     </tbody>
                   </table>
                 </div>
-                {% comment %} MOSJA11052 : メール通知設定 {% endcomment %}
-                <h3><span>{% get_message 'MOSJA11052' request.user.get_lang_mode showMsgId=False %}</span></h3>
-                <div class="oase-modal-table">
-                  <table>
-                    <tbody>
-                      <tr>
-                        {% comment %} MOSJA11053 : 通知先メールアドレス {% endcomment %}
-                        <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
-                        <td><div class="cell-inner" id="divNotifyMailAddr"></div></td>
-                      </tr>
-                    </tbody>
-                  </table>
+                <div class="oase-modal-table" id="dispNotifyMailAddr">
+                  {% comment %} MOSJA11052 : メール通知設定 {% endcomment %}
+                  <h3><span>{% get_message 'MOSJA11052' request.user.get_lang_mode showMsgId=False %}</span></h3>
+                  <div class="oase-modal-table">
+                    <table>
+                      <tbody>
+                        <tr>
+                          {% comment %} MOSJA11053 : 通知先メールアドレス {% endcomment %}
+                          <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner" id="divNotifyMailAddr"></div></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>
