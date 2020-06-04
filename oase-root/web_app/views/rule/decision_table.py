@@ -995,7 +995,7 @@ def _select(filters):
 
         if 'LIST' in v:
             where_info[k + '__in'] = v['LIST']
-        
+
         if 'FROM' in v:
             where_info[k + '__gte'] = datetime.datetime.strptime(v['FROM'], '%Y-%m-%d')
 
@@ -1015,6 +1015,8 @@ def _select(filters):
             'pk'                    : d.pk,
             'rule_type_name'        : d.rule_type_name,
             'summary'               : d.summary,
+            'unknown_event_notification' : d.unknown_event_notification,
+            'mail_address'          : d.mail_address,
             'rule_table_name'       : d.rule_table_name,
             'last_update_timestamp' : d.last_update_timestamp,
             'last_update_user'      : d.last_update_user,
