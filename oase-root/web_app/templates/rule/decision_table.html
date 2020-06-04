@@ -520,6 +520,18 @@ function showDetail(pk, copy_flg, del_flg, edit_flg, dl_flg){
             decisionTableData.push("{{d.rule_table_name|escapejs}}");
 
             $("#rule_type_name2").val("{{d.rule_type_name|escapejs}}");// formに埋め込み
+            switch("{{d.unknown_event_notification|escapejs}}"){
+              //  1:メール通知
+              case "1":
+                  $("#divNotifyType").text("{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}");
+                  break;
+
+              //  通知しない or 不明な種別
+              default:
+                  $("#divNotifyType").text("{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}");
+                  break;
+            }
+            $("#divNotifyMailAddr").text("{{d.mail_address|escapejs}}");
         }
     {% endfor %}
 
@@ -1344,7 +1356,7 @@ var ruleRow = heredocHTML( function(){/*
 </div>
 
 <!-- ディシジョンテーブル詳細 -->
-<div id="modal-info" class="oase-modal">
+<div id="modal-info" class="oase-modal oase-modal-tab oase-modal-tab-one-menu">
   <div class="oase-modal-main">
     <div class="oase-modal-inner">
       <div class="oase-modal-content">
@@ -1363,59 +1375,115 @@ var ruleRow = heredocHTML( function(){/*
           <input type="hidden" id="hidDetailID2" value="" />
         </form>
 
-        <div class="oase-modal-body">
+        <div class="oase-modal-tab-main">
 
-          <div class="oase-modal-block">
-
-            <h3>{% get_message 'MOSJA14007' request.user.get_lang_mode showMsgId=False %}</h3>
-
-            <div class="oase-modal-table">
-              <table id="detail-table">
-                <tr>
-                  <th><div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</div></th>
-                  <td><div class="cell-inner"></div></td>
-                </tr>
-                <tr>
-                  <th><div class="cell-inner">{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}</div></th>
-                  <td><div class="cell-inner"></div></td>
-                </tr>
-                <tr>
-                  <th><div class="cell-inner">RuleTable</div></th>
-                  <td><div class="cell-inner"></div></td>
-                </tr>
-              </table>
-            </div>
-
+          <!-- Tab Menu -->
+          <div class="oase-modal-tab-menu">
+            <ul>
+              <li><button onClick="modalTabMove( '#modal-info', 0 );">{% get_message 'MOSJA14001' request.user.get_lang_mode showMsgId=False %}</button></li>
+              <li><button onClick="modalTabMove( '#modal-info', 1 );">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</button></li>
+              <li><button onClick="modalTabMove( '#modal-info', 2 );">{% get_message 'MOSJA14019' request.user.get_lang_mode showMsgId=False %}</button></li>
+            </ul>
           </div>
 
-          <div class="oase-modal-block">
+          <div class="oase-modal-tab-block">
+            <div class="oase-modal-body">
 
-            <h3>{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</h3>
+            <div class="oase-modal-block">
 
-            <div class="oase-modal-rule-table">
-              <table>
-                <thead>
+              <h3>{% get_message 'MOSJA14007' request.user.get_lang_mode showMsgId=False %}</h3>
+
+              <div class="oase-modal-table">
+                <table id="detail-table">
                   <tr>
-                    <th><div class="cell-inner">{% get_message 'MOSJA14003' request.user.get_lang_mode showMsgId=False %}</div></th>
-                    <th><div class="cell-inner">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00075' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"></div></td>
                   </tr>
-                </thead>
-                <tbody id="conditional-tbody">
-                <!-- jQueryでここにタグ追加される -->
-                </tbody>
-              </table>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">RuleTable</div></th>
+                    <td><div class="cell-inner"></div></td>
+                  </tr>
+                </table>
+              </div>
+
             </div>
 
+            <div class="oase-modal-block">
+
+              <h3>{% get_message 'MOSJA00082' request.user.get_lang_mode showMsgId=False %}</h3>
+
+              <div id="dlAuthGrpListDisp" class="authority-group-list">
+                <!-- jQueryでここにタグ追加される -->
+              </div>
+
+            </div>
+
+            </div>
           </div>
 
-          <div class="oase-modal-block">
+          <div class="oase-modal-tab-block">
 
-            <h3>{% get_message 'MOSJA00082' request.user.get_lang_mode showMsgId=False %}</h3>
+            <div class="oase-modal-body">
 
-            <div id="dlAuthGrpListDisp" class="authority-group-list">
-              <!-- jQueryでここにタグ追加される -->
+              <div class="oase-modal-block">
+
+                <h3>{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</h3>
+    
+                <div class="oase-modal-rule-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA14003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <th><div class="cell-inner">{% get_message 'MOSJA14002' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      </tr>
+                    </thead>
+                    <tbody id="conditional-tbody">
+                    <!-- jQueryでここにタグ追加される -->
+                    </tbody>
+                  </table>
+                </div>
+    
+              </div>
+
             </div>
+          </div>
 
+          <div class="oase-modal-tab-block">
+
+            <div class="oase-modal-body">
+
+              <div class="oase-modal-block">
+                {% comment %} MOSJA11048 : 未知事象通知設定 {% endcomment %}
+                <h3>{% get_message 'MOSJA11048' request.user.get_lang_mode showMsgId=False %}</h3>
+                <div class="oase-modal-table">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th><div class="cell-inner">{% get_message 'MOSJA11049' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner" id="divNotifyType"></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                {% comment %} MOSJA11052 : メール通知設定 {% endcomment %}
+                <h3><span>{% get_message 'MOSJA11052' request.user.get_lang_mode showMsgId=False %}</span></h3>
+                <div class="oase-modal-table">
+                  <table>
+                    <tbody>
+                      <tr>
+                        {% comment %} MOSJA11053 : 通知先メールアドレス {% endcomment %}
+                        <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner" id="divNotifyMailAddr"></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>
