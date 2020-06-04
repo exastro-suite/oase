@@ -400,7 +400,6 @@ def index(request):
 
     logger.logic_log('LOSI00002', 'edit_mode: %s, dt_count: %s' % (edit_mode, len(decision_table_list)), request=request)
 
-    print(data)
     return render(request,'rule/decision_table.html',data)
 
 
