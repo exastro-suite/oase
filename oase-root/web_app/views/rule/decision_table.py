@@ -439,6 +439,8 @@ def modify(request):
         # ルール種別のバリデーションチェック
         info = add_record['table_info']
         dtcomp = DecisionTableComponent(info['rule_table_name'])
+        notification = add_record['notificationInfo']
+
         decision_table_data = {
             'rule_type_name'              : info['rule_type_name'],
             'summary'                     : info['summary'],
@@ -448,6 +450,8 @@ def modify(request):
             'artifact_id'                 : dtcomp.artifact_id,
             'container_id_prefix_staging' : dtcomp.contid_stg,
             'container_id_prefix_product' : dtcomp.contid_prd,
+            'unknown_event_notification'  : notification['notification-flag'],
+            'mail_address'                : notification['mail_address'],
             'last_update_user'            : request.user.user_name,
         }
 
@@ -492,11 +496,12 @@ def modify(request):
 
         # 適用君へ新規ルール作成リクエスト送信
         send_data = {
-            'request'       : 'CREATE',
-            'table_info'    : add_record['table_info'],
-            'data_obj_info' : data_obj_info,
-            'user_id'       : request.user.user_id,
-            'label_count'   : index,
+            'request'          : 'CREATE',
+            'table_info'       : add_record['table_info'],
+            'data_obj_info'    : data_obj_info,
+            'notificationInfo' : add_record['notificationInfo'],
+            'user_id'          : request.user.user_id,
+            'label_count'      : index,
             'lang' : request.user.get_lang_mode(),
         }
         result, msg = RequestToApply.operate(send_data, request=request)
