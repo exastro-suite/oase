@@ -54,7 +54,7 @@ Copyright 2019 NEC Corporation
                 <ul>
                   {% if d.allow_view %}
                   <li>
-                    <button class="tooltip detail oase-mini-button" title="{% get_message 'MOSJA11038' request.user.get_lang_mode showMsgId=False %}" onClick="authorityGroupListUpdate('#modal-info');modalOpen('#modal-info');showDetail({{d.pk}}, '{{d.allow_copy}}', '{{d.allow_delete}}', '{{d.allow_update}}', '{{d.allow_download}}');">
+                    <button class="tooltip detail oase-mini-button" title="{% get_message 'MOSJA11038' request.user.get_lang_mode showMsgId=False %}" onClick="authorityGroupListUpdate('#modal-info');modalTabOpen('#modal-info');showDetail({{d.pk}}, '{{d.allow_copy}}', '{{d.allow_delete}}', '{{d.allow_update}}', '{{d.allow_download}}');">
                       <em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span>
                     </button>
                   </li>

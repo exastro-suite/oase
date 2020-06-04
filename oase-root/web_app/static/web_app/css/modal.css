@@ -431,6 +431,9 @@ background-color: #FDFDFD;
 border: 4px solid #444;
 border-bottom: none;
 }
+.ond .oase-modal-tab-one-menu .oase-modal-tab-main {
+    height: calc( 100% - 112px );
+}
 .ond .oase-modal-tab-menu {
 height: 48px;
 }
@@ -455,6 +458,9 @@ height: calc( 100% - 64px );
 min-height: inherit;
 padding: 0;
 border: none;
+}
+.ond .oase-modal-tab-one-menu .oase-modal-tab-block .oase-modal-body {
+    height: 100%;
 }
 .ond .oase-modal-tab-block .oase-modal-footer {
 border: none;
