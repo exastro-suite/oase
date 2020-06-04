@@ -1239,6 +1239,32 @@ var ruleRow = heredocHTML( function(){/*
                   </tr>
                   </tbody>
                   </table>
+                  <script>
+                    // 未知事象セレクトを単純に切り替える物
+                    $(function(){
+                    
+                      // 非表示
+                      $('.notification-mail, .notification-system').hide();
+                    
+                      // セレクトチェンジ
+                      $('.notification-select').on('change', function(){
+                    
+                        const value = $( this ).val();
+                        $('.notification-mail, .notification-system').hide();
+                    
+                        if( value == '1' ){
+                          $('.notification-mail').show();
+                        } else if( value == '2' ){
+                          $('.notification-system').show();
+                        } else if( value == '3' ){
+                          $('.notification-mail, .notification-system').show();
+                        }
+                    
+                      });
+                    
+                    
+                    });
+                    </script>
                 </div>
 
                 <div class="notification-setting">
