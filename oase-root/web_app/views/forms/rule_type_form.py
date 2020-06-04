@@ -18,6 +18,7 @@ from django import forms
 from .common_form import DivErrorList
 from web_app.models.models import RuleType 
 from web_app.serializers.unicode_check import UnicodeCheck
+from libs.webcommonlibs.common import is_addresses
 
 class RuleTypeForm(forms.Form):
 
@@ -32,10 +33,15 @@ class RuleTypeForm(forms.Form):
         'required': 'MOSJA00003',
         'max_length': 'MOSJA11005',
     }
+    mail_address_errors = {
+        'max_length': 'MOSJA11054',
+    }
 
     rule_type_name = forms.CharField(label="ルール種別名称", max_length=64, error_messages=rule_type_name_errors) #unique
     summary = forms.CharField(label="概要", max_length=4000, required=False, error_messages=summary_errors)
     rule_table_name = forms.CharField(label="RuleTable名", max_length=64, error_messages=rule_table_name_errors) #unique
+    mail_address = forms.CharField(
+        label="通知先メールアドレス", max_length=512, required=False, error_messages=mail_address_errors)
 
     required_css_class = 'tooltip-input validation-input'
     error_css_class = 'tooltip-input validation-input'
@@ -99,4 +105,20 @@ class RuleTypeForm(forms.Form):
 
         return d
 
+
+    def clean_mail_address(self):
+        """
+        メールアドレスチェック
+        """
+        mail_address = self.cleaned_data['mail_address']
+
+        # 絵文字チェック
+        if len(self.emo_chk.is_emotion(mail_address)):
+            self.add_error('mail_address', 'MOSJA11055')
+
+        # メールアドレスの形式チェック
+        if not is_addresses(mail_address):
+            self.add_error('mail_address', 'MOSJA11056')
+
+        return mail_address
 
