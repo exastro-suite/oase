@@ -1351,8 +1351,7 @@ var ruleRow = heredocHTML( function(){/*
             </div>
           
             <div class="oase-modal-footer">
-            <ul class="oase-button-group">
-                <ul class="oase-button-group">
+              <ul class="oase-button-group">
                 <li>
                   <button class="tooltip oase-button close" title="{% get_message 'MOSJA11029' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-new');">
                     <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span>
@@ -1363,8 +1362,7 @@ var ruleRow = heredocHTML( function(){/*
                     <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
                   </button>
                 </li>
-                </ul>
-            </ul>
+              </ul>
             </div>
 
           </div>
@@ -1609,6 +1607,62 @@ var ruleRow = heredocHTML( function(){/*
             </div>
             
           </div>
+
+          <div class="oase-modal-block">
+
+            <h3>{% get_message 'MOSJA14019' request.user.get_lang_mode showMsgId=False %}</h3>
+
+            <div class="oase-modal-table">
+              <table>
+                <tr>
+                  <th><div class="cell-inner">{% get_message 'MOSJA11049' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                  <td><div class="cell-inner">
+                  <!-- プルダウンにして値を用意 -->
+                    <div class="select">
+                      <select class="notification-select" id="notification-flag">
+                        <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
+                        <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
+                        <!-- <option value="2">システムに通知する</option>
+                        <option value="3">メールとシステムに通知する</option> -->
+                      </select>
+                    </div>
+                </div></td>
+                </tr>
+                <tr class="notification-mail">
+                  <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  <td><div class="cell-inner">
+                    <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mail_address">
+                    <!-- <textarea id="edit-summary" placeholder="{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea> -->
+                  </div></td>
+                </tr>
+                <script>
+                  // 未知事象セレクトを単純に切り替える物
+                  $(function(){
+                  
+                    // 非表示
+                    $('.notification-mail, .notification-system').hide();
+                  
+                    // セレクトチェンジ
+                    $('.notification-select').on('change', function(){
+                  
+                      const value = $( this ).val();
+                      $('.notification-mail, .notification-system').hide();
+                  
+                      if( value == '1' ){
+                        $('.notification-mail').show();
+                      } else if( value == '2' ){
+                        $('.notification-system').show();
+                      } else if( value == '3' ){
+                        $('.notification-mail, .notification-system').show();
+                      }
+                    });
+                  });
+                  </script>
+              </table>
+            </div>
+          </div>
+
+
 
           <div class="oase-modal-block">
 
