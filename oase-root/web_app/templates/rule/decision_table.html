@@ -890,6 +890,13 @@ function showCopy() {
     $("#data_object tbody").html("");
     $('#data_object tbody').html(ruleRow);
 
+    // 未知事象通知
+    $("#notification-flag").val("0");
+    $("#mail_address").val("");
+
+    // 非表示
+    $('.notification-mail, .notification-system').hide();
+
     // バリデーションエラー初期化
     $(".error-list").remove();
     $("td").removeClass("error");
@@ -946,6 +953,15 @@ function showCopy() {
             $("#dlAuthGrpListNew").html(html);
         }
     {% endfor %}
+
+    // 詳細画面の未知事象通知設定内容を反映
+    detailNotifyType = document.getElementById('divNotifyType').textContent
+
+    if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
+      $("#notification-flag").val("1");
+      $("#mail_address").val(document.getElementById('divNotifyMailAddr').textContent);
+      $('.notification-mail, .notification-system').show();
+    }
 }
 
 ////////////////////////////////////////////////
@@ -1301,7 +1317,7 @@ var ruleRow = heredocHTML( function(){/*
                   <table>
                   <tbody>
                   <tr>
-                    <th><div class="cell-inner"></div>{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
                   <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mail_address">
                   </div></td>
