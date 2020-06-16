@@ -1287,7 +1287,7 @@ var ruleRow = heredocHTML( function(){/*
                   <th><div class="cell-inner">{% get_message 'MOSJA11049' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
                   <div class="select">
-                    <select class="notification-select " id="notification-flag">
+                    <select class="notification-select" id="notification-flag">
                       <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                       <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                       <!-- <option value="2">システムに通知する</option>
@@ -1630,7 +1630,7 @@ var ruleRow = heredocHTML( function(){/*
                   <td><div class="cell-inner">
                   <!-- プルダウンにして値を用意 -->
                     <div class="select">
-                      <select class="notification-select change-value" id="mod-notification-flag">
+                      <select class="notification-select" id="mod-notification-flag">
                         <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                         <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                         <!-- <option value="2">システムに通知する</option>
@@ -1642,7 +1642,7 @@ var ruleRow = heredocHTML( function(){/*
                 <tr class="notification-mail">
                   <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
-                    <input class="change-value" type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mod-mail-address">
+                    <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mod-mail-address">
                     <!-- <textarea id="edit-summary" placeholder="{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea> -->
                   </div></td>
                 </tr>
