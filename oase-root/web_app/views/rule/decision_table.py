@@ -561,7 +561,6 @@ def modify_detail(request, rule_type_id):
       データ更新処理(詳細画面)
       POSTリクエストのみ
     """
-
     logger.logic_log('LOSI00001', 'RuleTypeID: %s' % (rule_type_id), request=request)
 
     msg = ''
@@ -608,12 +607,14 @@ def modify_detail(request, rule_type_id):
                 error_msg = get_message('MOSJA11010', request.user.get_lang_mode())
                 raise Exception('不正なリクエストです request=%s' % (add_record))
 
-            #バリデーションチェック
+            # バリデーションチェック
             info = add_record['table_info']
+            notification = add_record['notificationInfo']
             serializer = RuleTypeSerializer()
             try:
                 serializer.validate_rule_type_name(info['rule_type_name'])
                 serializer.validate_summary(info['summary'])
+                serializer.validate_mail_address(notification['mail_address'])
 
                 select_object = RuleType.objects.filter(rule_type_name=info['rule_type_name'])
 
@@ -649,6 +650,8 @@ def modify_detail(request, rule_type_id):
             RuleType.objects.filter(rule_type_id=rule_type_id).update(
                 rule_type_name = info['rule_type_name'],
                 summary        = info['summary'],
+                unknown_event_notification = notification['notification-flag'],
+                mail_address = notification['mail_address'],
                 last_update_timestamp = now,
                 last_update_user   = request.user.user_name
             )
