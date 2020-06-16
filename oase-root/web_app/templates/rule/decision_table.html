@@ -955,7 +955,8 @@ function showCopy() {
     {% endfor %}
 
     // 詳細画面の未知事象通知設定内容を反映
-    detailNotifyType = document.getElementById('divNotifyType').textContent
+    var detailNotifyType = '';
+    detailNotifyType = document.getElementById('divNotifyType').textContent;
 
     if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
       $("#notification-flag").val("1");
