@@ -294,10 +294,10 @@ function submitTableData2(){
         //--------------------------------------------
         // 未知事象の設定取得
         //--------------------------------------------
-        notificationInfo["notification-flag"] = $("#mod-notification-flag").val();
+        notificationInfo["notification-flag"] = $("#edit-notification-flag").val();
 
         if (notificationInfo["notification-flag"] == "1") {
-            notificationInfo["mail_address"] = $("#mod-mail-address").val();
+            notificationInfo["mail_address"] = $("#edit-mail-address").val();
         } else {
             notificationInfo["mail_address"] = "";
         }
@@ -394,7 +394,7 @@ function submitAction2(){
                 // 基本情報エラー処理
                 errorMsg = response_json.error_top;
                 Object.keys(errorMsg).forEach(function(id) {
-                    if(id != "rule_type_name" && id != "summary" && id != "rule_table_name") {
+                    if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address") {
                         return true;
                     }
                     errorStr = errorMsg[id];
@@ -403,7 +403,8 @@ function submitAction2(){
                         return true;
                     }
                     // エラークラスを付与
-                    nonInput($("#"+id), getMessage('MOSJA00097', false), errorMsg[id]);
+                    errid = id.replace(/_/g, "-");
+                    nonInput($("#edit-"+errid), getMessage('MOSJA00097', false), errorMsg[id]);
                 });
                 $("#btnUpd2").prop("disabled", false);
             }
@@ -883,8 +884,8 @@ function showEditTable() {
     var detailNotifyType = "";
     detailNotifyType = document.getElementById('divNotifyType').textContent;
     if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
-      $("#mod-notification-flag").val("1");
-      $("#mod-mail-address").val(edit_mailaddr);
+      $("#edit-notification-flag").val("1");
+      $("#edit-mail-address").val(edit_mailaddr);
       $('.notification-mail, .notification-system').show();
     }
 
@@ -1630,7 +1631,7 @@ var ruleRow = heredocHTML( function(){/*
                   <td><div class="cell-inner">
                   <!-- プルダウンにして値を用意 -->
                     <div class="select">
-                      <select class="notification-select" id="mod-notification-flag">
+                      <select class="notification-select" id="edit-notification-flag">
                         <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                         <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                         <!-- <option value="2">システムに通知する</option>
@@ -1642,7 +1643,7 @@ var ruleRow = heredocHTML( function(){/*
                 <tr class="notification-mail">
                   <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
-                    <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mod-mail-address">
+                    <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="edit-mail-address">
                     <!-- <textarea id="edit-summary" placeholder="{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea> -->
                   </div></td>
                 </tr>
