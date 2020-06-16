@@ -621,7 +621,7 @@ def modify_detail(request, rule_type_id):
                 if len(select_object) == 1 and rule_type_id != select_object[0].rule_type_id:
                     logger.user_log('LOSM14005', info['rule_type_name'], rule_type_id, select_object[0].rule_type_id, request=request)
                     error_msg = get_message('MOSJA00005', request.user.get_lang_mode()).replace('\\n', '\n')
-                    error_msg_top['span_rule_type_name2'] = get_message('MOSJA11009', request.user.get_lang_mode())
+                    error_msg_top['rule_type_name'] = get_message('MOSJA11009', request.user.get_lang_mode())
                     raise Exception('ルール種別名称が重複しています。 request=%s' % (add_record))
 
             except serializers.ValidationError as e:
@@ -631,7 +631,7 @@ def modify_detail(request, rule_type_id):
                 log_txt = ''
                 logger_txt = ''
                 for d1, d2 in zip(e.get_full_details(), e.detail):
-                    k = 'span_%s2' % (d1['code'])
+                    k = '%s' % (d1['code'])
                     v = str(d2) + ' (MOSJA11011)'
                     error_msg_top[k] = v
 
