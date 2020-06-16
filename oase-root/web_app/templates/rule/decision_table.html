@@ -280,6 +280,7 @@ function submitTableData2(){
 
     var tableInfo = {};
     var groupList = new Array();
+    var notificationInfo = {};
 
     $("#btnUpd2").prop("disabled", true);
     if(confirm(getMessage('MOSJA11012', false)) == true){
@@ -289,6 +290,17 @@ function submitTableData2(){
         //--------------------------------------------
         tableInfo["rule_type_name"] = $("#edit-rule-type-name").val();
         tableInfo["summary"]        = $("#edit-summary").val();
+
+        //--------------------------------------------
+        // 未知事象の設定取得
+        //--------------------------------------------
+        notificationInfo["notification-flag"] = $("#mod-notification-flag").val();
+
+        if (notificationInfo["notification-flag"] == "1") {
+            notificationInfo["mail_address"] = $("#mod-mail-address").val();
+        } else {
+            notificationInfo["mail_address"] = "";
+        }
 
         //--------------------------------------------
         // アクセス権限の取得
@@ -344,7 +356,7 @@ function submitTableData2(){
         {% endfor %}
 
         //登録情報をjson形式に変換し、任意のvalueにセットする。
-        var jstr = JSON.stringify({"table_info": tableInfo, "group_list":groupList});
+        var jstr = JSON.stringify({"table_info": tableInfo, "group_list":groupList, "notificationInfo":notificationInfo});
         $("#add_record2").val(jstr);
         $("#operate").val("save");
 
@@ -863,6 +875,19 @@ function showEditTable() {
             $("#dlAuthGrpListEdit").html(html);
         }
     {% endfor %}
+
+    var edit_infotype = $("#divNotifyType").val();
+    var edit_mailaddr = document.getElementById('divNotifyMailAddr').textContent
+
+    // 未知事象を埋め込み
+    var detailNotifyType = "";
+    detailNotifyType = document.getElementById('divNotifyType').textContent;
+    if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
+      $("#mod-notification-flag").val("1");
+      $("#mod-mail-address").val(edit_mailaddr);
+      $('.notification-mail, .notification-system').show();
+    }
+
 }
 
 // 編集画面閉じたとき
@@ -955,7 +980,7 @@ function showCopy() {
     {% endfor %}
 
     // 詳細画面の未知事象通知設定内容を反映
-    var detailNotifyType = '';
+    var detailNotifyType = "";
     detailNotifyType = document.getElementById('divNotifyType').textContent;
 
     if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
@@ -1242,16 +1267,7 @@ var ruleRow = heredocHTML( function(){/*
 
             <div class="oase-modal-footer">
               <ul class="oase-button-group">
-              <li>
-                <button class="tooltip oase-button close" title="{% get_message 'MOSJA11029' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#modal-new');">
-                  <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span>
-                </button>
-              </li>
-              <li>
-                <button id="btnUpd" class="tooltip oase-button save" title="{% get_message 'MOSJA11030' request.user.get_lang_mode showMsgId=False %}" onclick="submitTableData();">
-                  <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
-                </button>
-              </li>
+              <li><button class="oase-button" onClick="modalTabMove( '#modal-new', 2 );"><em class="owf owf-arw-right"></em><span>{% get_message 'MOSJA11057' request.user.get_lang_mode showMsgId=False %}</span></button></li>
               </ul>
             </div>
 
@@ -1271,7 +1287,7 @@ var ruleRow = heredocHTML( function(){/*
                   <th><div class="cell-inner">{% get_message 'MOSJA11049' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
                   <div class="select">
-                    <select class="notification-select" id="notification-flag">
+                    <select class="notification-select " id="notification-flag">
                       <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                       <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                       <!-- <option value="2">システムに通知する</option>
@@ -1372,15 +1388,9 @@ var ruleRow = heredocHTML( function(){/*
 
       </div>
     </div>
-
-
-
-        </div>
-
-      </div>
-    </div>
   </div>
 </div>
+
 
 <!-- ディシジョンテーブル詳細 -->
 <div id="modal-info" class="oase-modal oase-modal-tab oase-modal-tab-one-menu">
@@ -1620,7 +1630,7 @@ var ruleRow = heredocHTML( function(){/*
                   <td><div class="cell-inner">
                   <!-- プルダウンにして値を用意 -->
                     <div class="select">
-                      <select class="notification-select" id="notification-flag">
+                      <select class="notification-select change-value" id="mod-notification-flag">
                         <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                         <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                         <!-- <option value="2">システムに通知する</option>
@@ -1632,7 +1642,7 @@ var ruleRow = heredocHTML( function(){/*
                 <tr class="notification-mail">
                   <th><div class="cell-inner">{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
-                    <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mail_address">
+                    <input class="change-value" type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mod-mail-address">
                     <!-- <textarea id="edit-summary" placeholder="{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea> -->
                   </div></td>
                 </tr>
