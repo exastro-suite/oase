@@ -24,6 +24,9 @@ from libs.commonlibs import define as defs
 
 from web_app.serializers.unicode_check import UnicodeCheck
 
+from libs.webcommonlibs.common import is_addresses
+
+
 class RuleTypeSerializer(serializers.ModelSerializer):
 
     GENERATION_MIN          = 1
@@ -32,6 +35,7 @@ class RuleTypeSerializer(serializers.ModelSerializer):
     SUMMARY_LENGTH          = 4000
     RULE_TABLE_NAEM_LENGTH  = 64
     RULE_TABLE_NAME_PATTERN = '^[a-zA-Z0-9]+$'
+    MAIL_ADDRESS_LENGTH = 512
     EMO_CHK                 = UnicodeCheck()
 
     class Meta:
@@ -48,6 +52,7 @@ class RuleTypeSerializer(serializers.ModelSerializer):
             'container_id_prefix_product',
             'current_container_id_staging',
             'current_container_id_product',
+            'mail_address',
             'last_update_timestamp',
             'last_update_user',
         )
@@ -118,3 +123,22 @@ class RuleTypeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("RuleTable名 入力文字不正", "rule_table_name")
 
         return rule_table_name
+
+    def validate_mail_address(self, mail_address):
+
+        mail_address_len = len(mail_address)
+
+        # 文字数チェック
+        if(mail_address_len) > self.MAIL_ADDRESS_LENGTH:
+            raise serializers.ValidationError("メールアドレス 入力文字数不正 mail_address=%s, req_len=%s, valid_len=%s" %(mail_address, mail_address_len, self.MAIL_ADDRESS_LENGTH), "mail_address")
+
+        # 絵文字チェック
+        value_list = self.EMO_CHK.is_emotion(mail_address)
+        if len(value_list) > 0:
+            raise serializers.ValidationError("メールアドレス 入力文字不正", "mail_address")
+
+        # メールアドレスの形式チェック
+        if not is_addresses(mail_address):
+            raise serializers.ValidationError("メールアドレス 形式不正", "mail_address")
+
+        return mail_address
