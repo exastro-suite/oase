@@ -159,6 +159,9 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
         value = '%s:%s:%s:%s' % (menu['menu_group_id'], menu['menu_group_name'], menu['menu_id'], menu['menu_name'])
         menu_info[menu['menu_id']] = value
 
+    # ITA項目情報を取得
+    item_info = _get_param_item_info('%sParameterItemInfo' % (drv_name))
+
     # メッセージ解析情報取得
     data_list = []
     if len(drv_ids) > 0:
@@ -198,7 +201,7 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
     logger.logic_log('LOSI00002', 'drv_ids:%s, data_count:%s' % (drv_ids, len(data_list)), request=request)
     logger.logic_log('LOSI00002', menu_info, request=request)
 
-    return data_list, drv_info, menu_info
+    return data_list, drv_info, menu_info, item_info
 
 
 def _make_disp_name(Itaname_dict, ita_driver_id, menu_id):
@@ -266,6 +269,60 @@ def _check_update_auth(request, version):
     return hasUpdateAuthority
 
 
+def _get_param_item_info(module_name, filter_info={}):
+    """
+    [メソッド概要]
+      パラメーター項目情報を取得
+    """
+
+    ret_info = {}
+
+    # モジュール名からパラメーター項目情報モジュールを取得
+    module = import_module('web_app.models.ITA_models')
+    param_module = getattr(module, module_name, None)
+    if not param_module:
+        logger.user_log('LOSI27001', module_name, request=request)
+        raise Http404
+
+    # パラメーター項目情報を取得
+    rset = param_module.objects.all()
+    if filter_info:
+        rset = rset.filter(**filter_info)
+
+    # パラメーター項目情報をドライバー別メニュー別に成形
+    rset = rset.values('ita_driver_id', 'menu_id', 'ita_order', 'item_name')
+    rset = rset.order_by('ita_driver_id', 'menu_id', 'ita_order', 'item_number')
+
+    for rs in rset:
+        drv_id  = rs['ita_driver_id']
+        menu_id = rs['menu_id']
+        ita_order = rs['ita_order']
+        name = rs['item_name']
+
+        if drv_id not in ret_info:
+            ret_info[drv_id] = {}
+
+        if menu_id not in ret_info[drv_id]:
+            ret_info[drv_id][menu_id] = [
+                {
+                    'id' : 0,
+                    'order' : 0,
+                    'name' : '対象ホスト',
+                }
+            ]
+
+        item_idx = len(ret_info[drv_id][menu_id])
+        ret_info[drv_id][menu_id].append(
+            {
+                'id' : item_idx,
+                'order' : ita_order,
+                'name' : name,
+            }
+        )
+
+    return ret_info
+
+
 @check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
 def index(request, version):
     """
@@ -284,7 +341,7 @@ def index(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names, ita_name_list = _get_param_match_info(
+        data_list, driver_id_names, ita_name_list, item_info = _get_param_match_info(
             version,
             [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
             request.user_config.group_id_list,
@@ -334,7 +391,7 @@ def edit(request, version):
 
     try:
         # メッセージ解析情報取得
-        data_list, driver_id_names, ita_name_list = _get_param_match_info(
+        data_list, driver_id_names, ita_name_list, item_info = _get_param_match_info(
             version,
             [defs.ALLOWED_MENTENANCE,],
             request.user_config.group_id_list,
@@ -353,6 +410,7 @@ def edit(request, version):
         'version' : version,
         'driver_id_names' : driver_id_names,
         'ita_name_list' : ita_name_list,
+        'item_info' : item_info,
         'opelist_add' : defs.DABASE_OPECODE.OPELIST_ADD,
         'opelist_mod' : defs.DABASE_OPECODE.OPELIST_MOD,
         'mainmenu_list' : request.user_config.get_menu_list(),
@@ -569,6 +627,91 @@ def select(request):
     response = {}
     response['status'] = 'success'
     response['menu_info'] = menu_info
+    response_json = json.dumps(response)
+
+    logger.logic_log('LOSI00002', 'None', request=request)
+    return HttpResponse(response_json, content_type="application/json")
+
+
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_ADMIN)
+@require_POST
+def select2(request):
+    """
+    [メソッド概要]
+      項目名のプルダウンリスト作成処理
+    """
+
+    logger.logic_log('LOSI00001', 'None', request=request)
+    msg = ''
+
+    try:
+        ita_driver_id = request.POST.get('ita_driver_id', None)
+        version = request.POST.get('version', None)
+        menu_id = request.POST.get('menu_id', None)
+
+        # パラメーターチェック
+        if ita_driver_id is None or version is None or menu_id is None:
+            msg = get_message('MOSJA27310', request.user.get_lang_mode())
+            logger.user_log('LOSM27005', ita_driver_id, version, menu_id, request=request)
+            raise Exception()
+
+        ita_driver_id = int(ita_driver_id)
+        version = int(version)
+        menu_id = int(menu_id)
+
+        filter_info = {
+            'ita_driver_id' : ita_driver_id,
+            'menu_id' : menu_id,
+        }
+
+        # リクエストデータの妥当性チェック
+        if ita_driver_id <= 0:
+            msg = get_message('MOSJA27310', request.user.get_lang_mode())
+            logger.user_log('LOSM27003', ita_driver_id, request=request)
+            raise Exception()
+
+        # インストールドライバー取得
+        rcnt = ActionType.objects.filter(driver_type_id=defs.ITA, disuse_flag='0').count()
+        if rcnt <= 0:
+            logger.user_log('LOSI27000', defs.ITA, request=request)
+            raise Http404
+
+        rset = DriverType.objects.filter(driver_type_id=defs.ITA, driver_major_version=version)
+        drv_names = list(rset.values_list('name', flat=True))
+        if len(drv_names) <= 0:
+            logger.system_log('LOSM27000', defs.ITA, version, request=request)
+            raise Http404
+
+        # バージョンが1以上の場合は、ドライバー名にバージョン番号を付与
+        drv_name = drv_names[0].capitalize()
+        if version > 1:
+            drv_name = '%s%s' % (drv_name, version)
+
+        # ITAメニュー名称を取得
+        module_name = '%sParameterItemInfo' % (drv_name)
+
+        # ITAパラメーター項目情報を取得
+        item_info = _get_param_item_info(module_name, filter_info)
+
+
+    except Http404:
+        raise Http404
+
+    except Exception as e:
+        # 異常
+        logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
+        if msg == '':
+            msg = get_message('MOSJA27330', request.user.get_lang_mode())
+        response = {}
+        response['status'] = 'failure'
+        response['msg'] = msg
+        response_json = json.dumps(response)
+        return HttpResponse(response_json, content_type="application/json")
+
+    # 正常
+    response = {}
+    response['status'] = 'success'
+    response['item_info'] = item_info
     response_json = json.dumps(response)
 
     logger.logic_log('LOSI00002', 'None', request=request)
