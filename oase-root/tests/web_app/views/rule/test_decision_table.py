@@ -92,16 +92,6 @@ class TestDecisionTableSelect:
         self.del_test_data()
 
 
-# やることリスト
-#   DecisionTableAuthByRuleモック化
-#   バリデーションチェックモック化
-#   RuleType,Groupに予めデータ挿入 済
-#   リクエストデータ準備（rule_type_idは同じ）
-#   レスポンスを投げる
-#   assert response_data['status'] == 'success'
-#   データ削除　済
-
-
 def get_adminstrator():
     """
     サイトにログインしwebページをクロールできるシステム管理者を返す
