@@ -40,7 +40,7 @@ from libs.commonlibs import define as defs
 from web_app.models.models import ActionType, DriverType, User, PasswordHistory
 
 from web_app.views.system.ITA_paramsheet import _get_param_match_info, _make_disp_name, _validate, modify as paramsheet_modify
-
+from web_app.views.system.ITA_paramsheet import _get_param_item_info
 
 def get_adminstrator():
     """
@@ -207,6 +207,31 @@ def ITAparamsheet_itaparammatchinfo_data_forupdate():
     ItaParameterMatchInfo.objects.filter(menu_id = 999).delete()
 
 
+@pytest.fixture(scope='function')
+def ITAparamsheet_paraminfo_data():
+    """
+    ITAパラメーター項目情報データ作成(正常系テスト用)
+    """
+
+    module = import_module('web_app.models.ITA_models')
+    ItaParameterItemInfo = getattr(module, 'ItaParameterItemInfo')
+
+    ItaParameterItemInfo(
+        ita_driver_id = 999,
+        menu_id = 999,
+        column_group = 'pytest_col_grp',
+        item_name = 'pytest項目名',
+        item_number = 99,
+        ita_order = 1,
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    yield
+
+    ItaParameterItemInfo.objects.filter(ita_driver_id=1, item_number=99).delete()
+
+
 @pytest.mark.django_db
 class TestITAParamSheet(object):
     """
@@ -230,7 +255,7 @@ class TestITAParamSheet(object):
         ※ 正常系
         """
 
-        data_list, drv_info, menu_info = _get_param_match_info(
+        data_list, drv_info, menu_info, item_info = _get_param_match_info(
             1,
             [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
             [1]
@@ -254,7 +279,7 @@ class TestITAParamSheet(object):
         sts_code = 200
 
         try:
-            data_list, drv_info, menu_info = _get_param_match_info(
+            data_list, drv_info, menu_info, item_info = _get_param_match_info(
                 0,
                 [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
                 [1]
@@ -767,6 +792,27 @@ class TestITAParamSheet(object):
         error_flag, error_msg = _validate(records, version, request)
 
         assert 'MOSJA27324' in error_msg['1']['extraction_method2']
+
+
+    @pytest.mark.usefixtures(
+        'ita_table',
+        'ITAparamsheet_paraminfo_data'
+    )
+    def test_get_param_item_info_ok(self):
+        """
+        パラメーター項目情報を取得
+        ※正常系
+        """
+
+        filter_info = {
+            'ita_driver_id' : 999,
+            'menu_id' : 999,
+        }
+
+        item_info = _get_param_item_info('ItaParameterItemInfo', filter_info)
+
+        assert len(item_info[999][999]) >= 2
+
 
     ###########################################
     # 参照画面テスト
