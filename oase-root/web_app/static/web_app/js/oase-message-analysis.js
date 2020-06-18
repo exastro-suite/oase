@@ -73,11 +73,11 @@ function addList(tbodyID, dummyID){
     objTr.cells[1].children[0].children[0].id = "selModify" + strID;
     objTr.cells[2].children[0].children[0].id = "ita_driver_name" + strID;
     objTr.cells[3].children[0].children[0].id = "menu_id" + strID;
-    objTr.cells[4].children[0].children[0].id = "parameter_name" + strID;
-    objTr.cells[5].children[0].children[0].id = "order" + strID;
-    objTr.cells[6].children[0].children[0].id = "conditional_name" + strID;
-    objTr.cells[7].children[0].children[0].id = "extraction_method1" + strID;
-    objTr.cells[8].children[0].children[0].id = "extraction_method2" + strID;
+    objTr.cells[4].children[0].children[0].id = "order" + strID;
+    objTr.cells[5].children[0].children[0].id = "conditional_name" + strID;
+    objTr.cells[6].children[0].children[0].id = "extraction_method1" + strID;
+    objTr.cells[7].children[0].children[0].id = "extraction_method2" + strID;
+
 
     tableRowCount();
 }
@@ -210,8 +210,20 @@ function submitAnalysisData(tbodyID) {
         } else {
             strMenuID = document.getElementById("menu_id" + strID).value;
         }
-        strParameterName = document.getElementById("parameter_name" + strID).value;
-        strOrder = document.getElementById("order" + strID).value;
+
+        if(strOpe == 1) {
+            var objSelParam = document.getElementById("order" + strID);
+            objSelParam = objSelParam.children["0"];
+            var iSelParam = objSelParam.selectedIndex;
+            strParameterName = objSelParam.options[iSelParam].text;
+            strOrder = objSelParam.options[iSelParam].value;
+        } else {
+            var objSelParam = document.getElementById("order" + strID);
+            var iSelParam = objSelParam.selectedIndex;
+            strParameterName = objSelParam.options[iSelParam].text;
+            strOrder = objSelParam.options[iSelParam].value;
+        }
+
         strConditionalName = document.getElementById("conditional_name" + strID).value;
         strExtractionMethod1 = document.getElementById("extraction_method1" + strID).value;
         strExtractionMethod2 = document.getElementById("extraction_method2" + strID).value;
@@ -563,7 +575,7 @@ function SelectMenuName(obj) {
         temp = obj.offsetParent.id
     }
     temp = temp.substr(15)
-    id = "menu_id" + temp
+    id = "menu_id" + temp;
 
     parent = document.getElementById(id);
 
@@ -571,16 +583,38 @@ function SelectMenuName(obj) {
         parent.removeChild(parent.lastChild);
     }
 
+    // パラメータ名プルダウンのクリア
+    idOrder = "order" + temp;
+    parent = document.getElementById(idOrder);
+    while(parent.lastChild){
+        parent.removeChild(parent.lastChild);
+    }
+
     if(!temp.indexOf('New')){
+        while(parent.lastChild){
+            parent.removeChild(parent.lastChild);
+        }
+
         div = document.getElementById(id);
         select = document.createElement("select");
+        select.setAttribute("onchange", "SelectParameterName(this);");
         div.appendChild(select);
         div = document.getElementById(id);
         option = document.createElement("option");
         div.children[0].appendChild(option);
 
+        div = document.getElementById(idOrder);
+        select = document.createElement("select");
+        div.appendChild(select);
+        div = document.getElementById(idOrder);
+        option = document.createElement("option");
+        div.children[0].appendChild(option);
     } else {
         select = document.getElementById(id);
+        option = document.createElement("option");
+        select.appendChild(option);
+
+        select = document.getElementById(idOrder);
         option = document.createElement("option");
         select.appendChild(option);
     }
@@ -619,6 +653,122 @@ function SelectMenuName(obj) {
                     select.children[i+1].value = key;
                     select.children[i+1].innerText = value;
                     i = i + 1;
+                }
+            }
+        } else {
+            if(response_json.msg == ""){
+                alert(getMessage("MOSJA27330", true));
+            } else {
+                alert(response_json.msg);
+            }
+
+            window.location.href = "/oase_web/top/logout";
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA03007", false));
+        if(stscode === "error") {
+            window.location.href = "/oase_web/top/logout";
+        }
+    });
+}
+
+
+////////////////////////////////////////////////
+//  項目名のプルダウン処理
+////////////////////////////////////////////////
+function SelectParameterName(obj) {
+    let menu_id = obj.value;
+
+    let token = null;
+    if(document.cookie && document.cookie !== "") {
+        let cookies = document.cookie.split(";");
+        for(let i = 0; i < cookies.length; i++) {
+            let c = jQuery.trim(cookies[i]);
+            if(c.substring(0, "csrftoken".length + 1) === "csrftoken=") {
+                token = decodeURIComponent(c.substring("csrftoken".length + 1));
+                break;
+            }
+        }
+    }
+
+    version = document.getElementById("action_version");
+    temp = obj.id;
+    if ( temp == "" ){
+        temp = obj.offsetParent.id;
+    }
+    temp = temp.substr(7)
+
+    var objSel = $("#ita_driver_name" + temp);
+    if(!temp.indexOf('New')){
+        objSel = $("#ita_driver_name" + temp).children("select");
+    }
+    let ita_driver_id = objSel.val();
+
+    id = "order" + temp;
+
+    parent = document.getElementById(id);
+
+    while(parent.lastChild){
+        parent.removeChild(parent.lastChild);
+    }
+
+    if(!temp.indexOf('New')){
+        div = document.getElementById(id);
+        select = document.createElement("select");
+        div.appendChild(select);
+        div = document.getElementById(id);
+        option = document.createElement("option");
+        div.children[0].appendChild(option);
+
+    } else {
+        select = document.getElementById(id);
+        option = document.createElement("option");
+        select.appendChild(option);
+    }
+
+    let data = {
+        "ita_driver_id" : ita_driver_id,
+        "version" : version.innerText,
+        "menu_id" : menu_id,
+        "csrfmiddlewaretoken" : token
+    };
+
+    $.ajax({
+        type : "POST",
+        url  : "/oase_web/system/paramsheet/select2/",
+        data : data,
+        dataType : "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            index = id.substr(5);
+            i = 0;
+            if(!index.indexOf('New')){
+                for (let [drv_id, menu_val] of Object.entries(response_json.item_info)) {
+                    for (let [menu_id, item_list] of Object.entries(menu_val)) {
+                        for (let [idx, item_info] of Object.entries(item_list)) {
+                            div = document.getElementById(id);
+                            option = document.createElement("option");
+                            div.children[0].appendChild(option);
+                            div.children[0][i+1].value = item_info['id'];
+                            div.children[0][i+1].innerText = item_info['name'];
+                            i = i + 1;
+                        }
+                    }
+                }
+            } else {
+                for (let [drv_id, menu_val] of Object.entries(response_json.item_info)) {
+                    for (let [menu_id, item_list] of Object.entries(menu_val)) {
+                        for (let [idx, item_info] of Object.entries(item_list)) {
+                            select = document.getElementById(id);
+                            option = document.createElement("option");
+                            select.appendChild(option);
+                            select.children[i+1].value = item_info['id'];
+                            select.children[i+1].innerText = item_info['name'];
+                            i = i + 1;
+                        }
+                    }
                 }
             }
         } else {
