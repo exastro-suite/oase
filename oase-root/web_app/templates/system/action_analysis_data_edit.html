@@ -24,7 +24,6 @@ Copyright 2019 NEC Corporation
       <th class="ita-driver-name sort"><div class="cell-inner">{% get_message 'MOSJA27301' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA27337' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
       <th class="menu-id sort"><div class="cell-inner">{% get_message 'MOSJA27329' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA27338' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
       <th class="parameter-name sort"><div class="cell-inner">{% get_message 'MOSJA27304' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA27339' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
-      <th class="order sort"><div class="cell-inner">{% get_message 'MOSJA27305' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA27340' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
       <th class="conditional-name sort"><div class="cell-inner">{% get_message 'MOSJA27306' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA27341' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
       <th class="extraction-method1 sort"><div class="cell-inner">{% get_message 'MOSJA27307' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA27342' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
       <th class="extraction-method2 sort"><div class="cell-inner">{% get_message 'MOSJA27308' request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA27343' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
@@ -72,7 +71,7 @@ Copyright 2019 NEC Corporation
       <td class="menu-id">
         <div class="cell-inner">
           <div class="select">
-            <select class="update validation-input" id="menu_id{{params.match_id}}">
+            <select class="update validation-input" id="menu_id{{params.match_id}}" onchange="SelectParameterName(this);">
               <option value="0" hidden disabled></option>
               {% for key, values in ita_name_list.items %}
                 {% if params.menu_id == key %}
@@ -85,8 +84,31 @@ Copyright 2019 NEC Corporation
           </div>
         </div>
       </td>
-      <td class="parameter-name input"><div class="cell-inner"><input type="text" data-type="text" id="parameter_name{{params.match_id}}" value="{{params.parameter_name}}" data-maxlength="256" class="validation-input"></div></td>
-      <td class="order input"><div class="cell-inner"><input type="number" data-type="number" id="order{{params.match_id}}" value="{{params.order}}" class="validation-input"></div></td>
+      <td class="item_info">
+        <div class="cell-inner">
+          <div class="select">
+            <select class="update validation-input" id="order{{params.match_id}}">
+              <option value="" hidden disabled></option>
+                {% for driver_id, driver_menu in item_info.items %}
+                  {% if params.ita_driver_id == driver_id %}
+                    {% for menu_id, menu_item in driver_menu.items %}
+                      {% if menu_id == params.menu_id %}
+                        {% for m_i in menu_item %}
+                          {% if m_i.id == params.order %}
+                          <option value="{{m_i.id}}" selected>{{ m_i.name }}</option>
+                          {% else %}
+                          <option value="{{m_i.id}}">{{ m_i.name }}</option>
+                          {% endif %}
+                        {% endfor %}
+                      {% endif %}
+                    {% endfor %}
+                  {% endif %}
+                {% endfor %}
+            </select>
+          </div>
+        </div>
+      </td>
+
       <td class="conditional-name input"><div class="cell-inner"><input type="text" data-type="text" id="conditional_name{{params.match_id}}" value="{{params.conditional_name}}" data-maxlength="32" class="validation-input"></div></td>
       <td class="extraction-method1 input"><div class="cell-inner"><input type="text" data-type="text" id="extraction_method1{{params.match_id}}" value="{{params.extraction_method1}}" data-maxlength="512" class="validation-input"></div></td>
       <td class="extraction-method2 input"><div class="cell-inner"><input type="text" data-type="text" id="extraction_method2{{params.match_id}}" value="{{params.extraction_method2}}" data-maxlength="512" class="validation-input"></div></td>
@@ -113,14 +135,22 @@ Copyright 2019 NEC Corporation
       <td class="menu-id">
         <div class="cell-inner">
           <div class="select">
+            <select class="validation-input" onchange=SelectParameterName(this);>
+              <option value="0" hidden disabled selected></option>
+            </select>
+          </div>
+        </div>
+      </td>
+      <td class="item_info">
+        <div class="cell-inner">
+          <div class="select">
             <select class="validation-input">
               <option value="0" hidden disabled selected></option>
             </select>
           </div>
         </div>
       </td>
-      <td class="parameter-name input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="256" class="validation-input"></div></td>
-      <td class="order input"><div class="cell-inner"><input type="number" data-type="number" value="" class="validation-input"></div></td>
+
       <td class="conditional-name input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="32" class="validation-input"></div></td>
       <td class="extraction-method1 input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="512" class="validation-input"></div></td>
       <td class="extraction-method2 input"><div class="cell-inner"><input type="text" data-type="text" value="" data-maxlength="512" class="validation-input"></div></td>
