@@ -37,6 +37,7 @@ class RuleTypeSerializer(serializers.ModelSerializer):
     RULE_TABLE_NAME_PATTERN = '^[a-zA-Z0-9]+$'
     MAIL_ADDRESS_LENGTH = 512
     EMO_CHK                 = UnicodeCheck()
+    NOTIFY_TYPES            = ['0', '1', '2', '3']
 
     class Meta:
         model = RuleType
@@ -52,6 +53,7 @@ class RuleTypeSerializer(serializers.ModelSerializer):
             'container_id_prefix_product',
             'current_container_id_staging',
             'current_container_id_product',
+            'unknown_event_notification',
             'mail_address',
             'last_update_timestamp',
             'last_update_user',
@@ -142,3 +144,14 @@ class RuleTypeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("メールアドレス 形式不正", "mail_address")
 
         return mail_address
+
+    def validate_unknown_event_notification(self, unknown_event_notification):
+        """
+        通知種別チェック
+        """
+
+        if unknown_event_notification not in self.NOTIFY_TYPES:
+            raise serializers.ValidationError("未知事象通知設定が不正", "unknown_event_notification")
+
+        return unknown_event_notification
+
