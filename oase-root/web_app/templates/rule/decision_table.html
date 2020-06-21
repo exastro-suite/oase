@@ -80,9 +80,9 @@ function submitTableData(){
         //--------------------------------------------
         // 未知事象の設定取得
         //--------------------------------------------
-        notificationInfo["notification-flag"] = $("#notification-flag").val();
+        notificationInfo["unknown_event_notification"] = $("#unknown_event_notification").val();
 
-        if (notificationInfo["notification-flag"] == "1") {
+        if (notificationInfo["unknown_event_notification"] == "1") {
             notificationInfo["mail_address"] = $("#mail_address").val();
         } else {
             notificationInfo["mail_address"] = "";
@@ -212,7 +212,7 @@ function submitAction(){
             // 基本情報エラー処理
             errorMsg = response_json.error_top;
             Object.keys(errorMsg).forEach(function(id) {
-                if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address") {
+                if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address" && id != "unknown_event_notification") {
                     return true;
                 }
                 errorStr = errorMsg[id];
@@ -294,9 +294,9 @@ function submitTableData2(){
         //--------------------------------------------
         // 未知事象の設定取得
         //--------------------------------------------
-        notificationInfo["notification-flag"] = $("#edit-notification-flag").val();
+        notificationInfo["unknown_event_notification"] = $("#edit-unknown_event_notification").val();
 
-        if (notificationInfo["notification-flag"] == "1") {
+        if (notificationInfo["unknown_event_notification"] == "1") {
             notificationInfo["mail_address"] = $("#edit-mail-address").val();
         } else {
             notificationInfo["mail_address"] = "";
@@ -394,7 +394,7 @@ function submitAction2(){
                 // 基本情報エラー処理
                 errorMsg = response_json.error_top;
                 Object.keys(errorMsg).forEach(function(id) {
-                    if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address") {
+                    if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address" && id != "unknown_event_notification") {
                         return true;
                     }
                     errorStr = errorMsg[id];
@@ -478,7 +478,7 @@ function showNewTable(){
         $('#data_object tbody').html( ruleTrInput ); 
 
     // 未知事象通知
-    $("#notification-flag").val("0");
+    $("#unknown_event_notification").val("0");
     $("#mail_address").val("");
 
     // 非表示
@@ -884,7 +884,7 @@ function showEditTable() {
     var detailNotifyType = "";
     detailNotifyType = document.getElementById('divNotifyType').textContent;
     if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
-      $("#edit-notification-flag").val("1");
+      $("#edit-unknown_event_notification").val("1");
       $("#edit-mail-address").val(edit_mailaddr);
       $('.notification-mail, .notification-system').show();
     }
@@ -917,7 +917,7 @@ function showCopy() {
     $('#data_object tbody').html(ruleRow);
 
     // 未知事象通知
-    $("#notification-flag").val("0");
+    $("#unknown_event_notification").val("0");
     $("#mail_address").val("");
 
     // 非表示
@@ -985,7 +985,7 @@ function showCopy() {
     detailNotifyType = document.getElementById('divNotifyType').textContent;
 
     if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
-      $("#notification-flag").val("1");
+      $("#unknown_event_notification").val("1");
       $("#mail_address").val(document.getElementById('divNotifyMailAddr').textContent);
       $('.notification-mail, .notification-system').show();
     }
@@ -1288,7 +1288,7 @@ var ruleRow = heredocHTML( function(){/*
                   <th><div class="cell-inner">{% get_message 'MOSJA11049' request.user.get_lang_mode showMsgId=False %}</div></th>
                   <td><div class="cell-inner">
                   <div class="select">
-                    <select class="notification-select" id="notification-flag">
+                    <select class="notification-select" id="unknown_event_notification">
                       <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                       <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                       <!-- <option value="2">システムに通知する</option>
@@ -1631,7 +1631,7 @@ var ruleRow = heredocHTML( function(){/*
                   <td><div class="cell-inner">
                   <!-- プルダウンにして値を用意 -->
                     <div class="select">
-                      <select class="notification-select" id="edit-notification-flag">
+                      <select class="notification-select" id="edit-unknown_event_notification">
                         <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                         <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
                         <!-- <option value="2">システムに通知する</option>

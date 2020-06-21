@@ -122,7 +122,7 @@ def create(request):
     user = User.objects.get(user_id=uid)
     dtcomp = DecisionTableComponent(table_name)
 
-    unknown_event_notification = notificationInfo['notification-flag']
+    unknown_event_notification = notificationInfo['unknown_event_notification']
     mail_address = notificationInfo['mail_address']
 
     rule_type_id = 0
