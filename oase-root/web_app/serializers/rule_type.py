@@ -153,5 +153,5 @@ class RuleTypeSerializer(serializers.ModelSerializer):
         if unknown_event_notification not in self.NOTIFY_TYPES:
             raise serializers.ValidationError("未知事象通知設定が不正", "unknown_event_notification")
 
-        return notify_type
+        return unknown_event_notification
 
