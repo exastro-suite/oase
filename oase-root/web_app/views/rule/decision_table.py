@@ -450,7 +450,7 @@ def modify(request):
             'artifact_id'                 : dtcomp.artifact_id,
             'container_id_prefix_staging' : dtcomp.contid_stg,
             'container_id_prefix_product' : dtcomp.contid_prd,
-            'unknown_event_notification'  : notification['notification-flag'],
+            'unknown_event_notification'  : notification['unknown_event_notification'],
             'mail_address'                : notification['mail_address'],
             'last_update_user'            : request.user.user_name,
         }
@@ -650,7 +650,7 @@ def modify_detail(request, rule_type_id):
             RuleType.objects.filter(rule_type_id=rule_type_id).update(
                 rule_type_name = info['rule_type_name'],
                 summary        = info['summary'],
-                unknown_event_notification = notification['notification-flag'],
+                unknown_event_notification = notification['unknown_event_notification'],
                 mail_address = notification['mail_address'],
                 last_update_timestamp = now,
                 last_update_user   = request.user.user_name

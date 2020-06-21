@@ -42,6 +42,7 @@ class RuleTypeForm(forms.Form):
     rule_table_name = forms.CharField(label="RuleTable名", max_length=64, error_messages=rule_table_name_errors) #unique
     mail_address = forms.CharField(
         label="通知先メールアドレス", max_length=512, required=False, error_messages=mail_address_errors)
+    unknown_event_notification = forms.CharField(label="未知事象通知設定", max_length=1)
 
     required_css_class = 'tooltip-input validation-input'
     error_css_class = 'tooltip-input validation-input'
@@ -121,4 +122,17 @@ class RuleTypeForm(forms.Form):
             self.add_error('mail_address', 'MOSJA11056')
 
         return mail_address
+
+
+    def clean_unknown_event_notification(self):
+        """
+        通知種別チェック
+        """
+
+        notify_type = self.cleaned_data['unknown_event_notification']
+
+        if notify_type not in ['0', '1', '2', '3']:
+            self.add_error('unknown_event_notification', 'MOSJA11059')
+
+        return notify_type
 
