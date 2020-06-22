@@ -390,7 +390,7 @@ class OASEMessageID:
     Ary['MOSJA10018'] = "ユーザはロックされています。<br />ロックを解除したい場合はシステム管理者に解除の依頼をしてください。"
     Ary['MOSJA10019'] = "解除してよろしいですか？"
     Ary['MOSJA10020'] = "解除されました。"
-    Ary['MOSJA10021'] = "Dashboard"
+    Ary['MOSJA10021'] = "DashBoard"
     Ary['MOSJA10022'] = "OASEにようこそ！"
     Ary['MOSJA10023'] = " Exastro"
     Ary['MOSJA10024'] = " Operation Autonomy Support Engine"
