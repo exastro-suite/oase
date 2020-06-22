@@ -47,7 +47,7 @@ Copyright 2019 NEC Corporation
           <ul class="oase-dashboard-menu">
             <li><a href="{% url 'web_app:user:personal_config' %}">{% get_message 'MOSJA10026' request.user.get_lang_mode showMsgId=False %}</a></li>
             {% for mm in mainmenu_list %}
-              {% if mm.default and mm.caption != 'DashBoard' %}
+              {% if mm.default and mm.caption != 'Dashboard' %}
               <li>
 
                 {% if mm.selected == "logout" %}
