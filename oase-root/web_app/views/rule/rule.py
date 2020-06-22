@@ -1155,7 +1155,7 @@ def rule_polling(request, rule_manage_id, trace_id):
                         add_msg = add_msg + get_message('MOSJA12125', request.user.get_lang_mode(), showMsgId=False) + target_actparainfo + ' \n'
                         add_msg = add_msg + get_message('MOSJA12126', request.user.get_lang_mode(), showMsgId=False) + target_actpreinfo  + ' \n'
                     else:
-                        add_msg  = match_rulename + get_message('MOSJA12127', request.user.get_lang_mode(), showMsgId=False)  + '\n\n'
+                        add_msg = get_message('MOSJA12127', request.user.get_lang_mode(), showMsgId=False, match_rulename=match_rulename)  + '\n\n'
                         add_msg = add_msg + get_message('MOSJA12141', request.user.get_lang_mode(), showMsgId=False) + '\n'
                         add_msg = add_msg + get_message('MOSJA12122', request.user.get_lang_mode(), showMsgId=False) + target_rule  + ' \n'
                         add_msg = add_msg + get_message('MOSJA12123', request.user.get_lang_mode(), showMsgId=False) + str(target_execution) + ' \n'
@@ -2101,12 +2101,12 @@ def rule_polling_bulk(request, rule_manage_id):
         # 応答情報作成
         for k, v in sorted(trace_info.items(), key=lambda x: x[1]['row']):
 
-            msg += '%s' % (v['row']) + get_message('MOSJA12150', request.user.get_lang_mode(), showMsgId=False)
+            msg += '%s' % get_message('MOSJA12150', request.user.get_lang_mode(), showMsgId=False, line=v['row'])
             if v['respid'] > 0 and v['respid'] in resp_act_info:
                 msg += get_message('MOSJA12142', request.user.get_lang_mode(), showMsgId=False) + '%s' % (len(resp_act_info[v['respid']])) + get_message('MOSJA12143', request.user.get_lang_mode(), showMsgId=False) + '\n'
 
                 for i, res_act in enumerate(resp_act_info[v['respid']]):
-                    msg = msg + str(i + 1) + get_message('MOSJA12144', request.user.get_lang_mode(), showMsgId=False) + '\n'
+                    msg = msg + get_message('MOSJA12144', request.user.get_lang_mode(), showMsgId=False, count=str(i + 1)) + '\n'
                     msg = msg + get_message('MOSJA12145', request.user.get_lang_mode(), showMsgId=False) + res_act['rulename'] + '\n'
                     msg = msg + get_message('MOSJA12146', request.user.get_lang_mode(), showMsgId=False) + str(res_act['exeorder']) + '\n'
                     msg = msg + get_message('MOSJA12147', request.user.get_lang_mode(), showMsgId=False) + res_act['acttype'] + '\n'
