@@ -174,6 +174,15 @@ function getMessage(msgid, showMsgFlag){
         }
         msg = (Ary[msgid]);
 
+        for(var i = 2; i < arguments.length; i++){
+            var argInfo = arguments[i];
+            var infoKey = Object.keys(argInfo)[0];
+            var infoVal = argInfo[infoKey];
+
+            infoKey = "$(" + infoKey + ")";
+            msg = msg.replace(infoKey, infoVal);
+        }
+
         //必要に応じメッセージIDを付ける
         if(showMsgFlag){
             msg = msg +"(" + msgid +")";

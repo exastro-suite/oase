@@ -426,7 +426,7 @@ function submitAction2(){
       var ruleTypeID        = $("#hidDetailID2").val();//ルール種別ID取得
       var decisionTableName = $("#rule_type_name2").val(); //ルール種別名の取得
 
-      if(confirm("["+decisionTableName+"]" + getMessage('MOSJA11014', false)) == true){
+      if(confirm(getMessage('MOSJA11014', false, {table_name:decisionTableName})) == true){
             $.ajax({
                 type : "POST",
                 url  : "decision_table/delete_table/" + ruleTypeID + "/",
