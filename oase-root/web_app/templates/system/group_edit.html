@@ -205,7 +205,7 @@ function submitGroupData(tbodyID)
 
     // 削除するグループが存在する場合、保存ボタン押下時のメッセージを変更する
     if(delGroupList.length > 0){
-        confirmMsg = delGroupList.join(',') + getMessage("MOSJA23023", false) ;
+        confirmMsg = getMessage("MOSJA23023", false, {group_name:delGroupList.join(',')});
     }
     // 削除グループの存在確認後に確認メッセージを表示する
     if(!confirm(confirmMsg)){
