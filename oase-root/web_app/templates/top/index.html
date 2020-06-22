@@ -43,7 +43,7 @@ Copyright 2019 NEC Corporation
         <h2 class="oase-dashboard-title"><span class="exastro"><em class="owf owf-exastro"></em>{% get_message 'MOSJA10023' request.user.get_lang_mode showMsgId=False %}</span>{% get_message 'MOSJA10024' request.user.get_lang_mode showMsgId=False %}</h2>
         
         <div class="oase-dashboard-login-user">
-          <p><em class="owf owf-user"></em><em>{{user_name}}</em>{% get_message 'MOSJA10025' request.user.get_lang_mode showMsgId=False %}</p>
+          <p><em class="owf owf-user"></em>{% autoescape off %}{% get_message 'MOSJA10025' request.user.get_lang_mode user_name=user_name showMsgId=False %}{% endautoescape %}</p>
           <ul class="oase-dashboard-menu">
             <li><a href="{% url 'web_app:user:personal_config' %}">{% get_message 'MOSJA10026' request.user.get_lang_mode showMsgId=False %}</a></li>
             {% for mm in mainmenu_list %}
