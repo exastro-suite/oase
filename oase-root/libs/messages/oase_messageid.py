@@ -1432,7 +1432,7 @@ class OASEMessageID:
     Ary['MOSEN01003'] = "Process is interrupted because the \"action type\" of the decision table file is invalid."
     Ary['MOSEN01004'] = "Starting the action information parameter analysis process."
     Ary['MOSEN01005'] = "Processing is interrupted because the database parameter information is incomplete."
-    Ary['MOSEN01006'] = "\"%(Key)s\" is not described in \"Action parameter information\" of the decision table file."
+    Ary['MOSEN01006'] = "\"%(key)s\" is not described in \"Action parameter information\" of the decision table file."
     Ary['MOSEN01007'] = "\"SYMPHONY_CLASS_ID\" is not described in \"Action parameter information\" of the decision table file."
     Ary['MOSEN01008'] = "\"MAIL_TO\" is not described in \"Action parameter information\" of the decision table file."
     Ary['MOSEN01009'] = "\"MAIL_CC\" is not described in \"Action parameter information\" of the decision table file."
