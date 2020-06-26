@@ -69,6 +69,7 @@ django.setup()
 from django.db import transaction, IntegrityError
 from django.db.models import F
 from django.conf import settings
+from django.urls import reverse
 
 # --------------------------------
 # ロガー追加
@@ -83,6 +84,7 @@ from web_app.models.models import User, EventsRequest, RhdmResponse, RhdmRespons
 from libs.commonlibs.define import *
 from libs.commonlibs.dt_component import DecisionTableComponent
 from libs.commonlibs.aes_cipher import AESCipher
+from libs.webcommonlibs.oase_mail import OASEMailSMTP, OASEMailUnknownEventNotify
 
 urllib3.disable_warnings(InsecureRequestWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -143,13 +145,13 @@ class Driver:
         self.lost_flag  = False
         self.err_flag   = False
         self.none_cont  = False
+        self.ruletype   = None
 
-        ruletype = None
         try:
-            ruletype = RuleType.objects.get(rule_type_id=rule_type_id)
+            self.ruletype = RuleType.objects.get(rule_type_id=rule_type_id)
             dataobjects = list(DataObject.objects.filter(rule_type_id=rule_type_id).order_by('data_object_id').values_list('label', flat=True))
             dataobjects = list(dict.fromkeys(dataobjects))
-            dtcomp = DecisionTableComponent(ruletype.rule_table_name)
+            dtcomp = DecisionTableComponent(self.ruletype.rule_table_name)
 
         except RuleType.DoesNotExist as e:
             self.lost_flag = True
@@ -178,7 +180,7 @@ class Driver:
         self._lookup = 'ksession-dtables' 
         self.__insert_vars.append(self.action_ins_name)
         self.request_type_id = request_type_id
-        self.__container_id = self.get_containerid(request_type_id, ruletype)
+        self.__container_id = self.get_containerid(request_type_id, self.ruletype)
 
         if not self.__container_id:
             self.err_flag  = True
@@ -693,6 +695,16 @@ class Agent:
                     EventsRequest.objects.filter(request_id=event_req.request_id).update(
                         status=status, last_update_timestamp=self.now, last_update_user=self.user.user_name)
 
+                    #--------------------------
+                    # ルールにマッチしなかった場合は未知事象通知
+                    #--------------------------
+                    if status == RULE_UNMATCH:
+                        self._notify_unknown_event(
+                            event_req.trace_id,
+                            event_req.request_type_id,
+                            event_req.event_info
+                        )
+
                 #--------------------------
                 #ルールにマッチした場合の処理
                 #--------------------------
@@ -839,6 +851,65 @@ class Agent:
             raise Exception('Cannot make dm response action data.')
 
         RhdmResponseAction.objects.bulk_create(rhdm_res_act_data)
+
+
+    def _notify_unknown_event(self, trace_id, req_type, evinfo):
+        """
+        未知事象のイベントを通知する
+        """
+
+        logger.logic_log(
+            'LOSI00001', 'TraceID:%s, req_type:%s, notify_type:%s, mail_addr:%s' % (
+                trace_id,
+                req_type,
+                self.dmctl.driver.ruletype.unknown_event_notification,
+                self.dmctl.driver.ruletype.mail_address
+            )
+        )
+
+        # 本番環境リクエスト以外は通知対象外
+        if req_type != PRODUCTION:
+            logger.logic_log('LOSI00002', 'Not Production. TraceID:%s' % (trace_id))
+            return
+
+        # 対象ルールの通知設定チェック
+        if self.dmctl.driver.ruletype.unknown_event_notification != '1': # 1:メール通知
+            logger.logic_log('LOSI00002', 'Not notify. TraceID:%s' % (trace_id))
+            return
+
+        if not self.dmctl.driver.ruletype.mail_address:
+            logger.logic_log('LOSI00002', 'No mail address is defined. TraceID:%s' % (trace_id))
+            return
+
+        mail_list = self.dmctl.driver.ruletype.mail_address.split(';')
+
+        # メール署名用URL
+        url = getattr(settings, 'HOST_NAME', None)
+        if not url:
+            logger.logic_log('LOSI00002', 'No host is defined. TraceID:%s' % (trace_id))
+            return
+
+        url = url.rstrip('/')
+
+        login_url   = reverse('web_app:top:login')
+        inquiry_url = reverse('web_app:top:inquiry')
+        login_url   = '%s%s' % (url, login_url)
+        inquiry_url = '%s%s' % (url, inquiry_url)
+
+        # メール情報作成
+        smtp = OASEMailSMTP()
+        for m in mail_list:
+            m = m.strip()
+            notify_mail = OASEMailUnknownEventNotify(
+                m,
+                self.dmctl.driver.ruletype.rule_type_name,
+                evinfo,
+                inquiry_url,
+                login_url
+            )
+            smtp.send_mail(notify_mail)
+
+        logger.logic_log('LOSI00002', 'Send mail. TraceID:%s' % (trace_id))
 
 
 def multi(event_req_list, mode):

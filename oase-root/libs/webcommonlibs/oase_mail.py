@@ -597,3 +597,51 @@ class OASEMailModifyMailAddressNotify(OASEMailBase):
         self.add_signature()
 
 
+class OASEMailUnknownEventNotify(OASEMailBase):
+
+    """
+    [クラス概要]
+      メールアドレス変更通知メール
+    """
+
+    # メール情報
+    MAILACC   = "noreply@omcs.jp.nec.com"
+    SUBJECT   = "未知事象通知(仮)"
+    CONFIG_ID = "UNKNOWN_EVENT_NOTIFY"
+
+    def __init__(self, addr_to, dt_name, evinfo, inquiry_url, login_url, charset='utf-8'):
+        """
+        [メソッド概要]
+          初期化処理
+        [引数]
+          addr_to : str 宛先メールアドレス
+          dt_name : str ディシジョンテーブル名
+          evinfo  : str リクエストされたイベント情報
+        """
+        super(OASEMailUnknownEventNotify, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
+        self.create_mail_text(dt_name, evinfo)
+
+    def create_mail_text(self, dt_name, evinfo):
+        """
+        [メソッド概要]
+          メール本文作成
+        [引数]
+          dt_name : str ディシジョンテーブル名
+          evinfo  : str リクエストされたイベント情報
+        """
+        #self.mail_text = System.objects.get(config_id=self.CONFIG_ID).value
+        self.mail_text = (
+            "DTExcelに登録されていないイベント情報です\n"
+            "\n"
+            "ディシジョンテーブル名：\n"
+            "　%s\n"
+            "\n"
+            "イベント情報：\n"
+            "　%s\n"
+        )
+        self.mail_text = self.mail_text % (dt_name, evinfo)
+
+        self.add_header()
+        self.add_signature()
+
+
