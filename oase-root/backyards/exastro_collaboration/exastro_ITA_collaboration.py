@@ -131,7 +131,7 @@ class ITAParameterSheetMenuManager:
         self.ita_config['menuID'] = '2100160001'
         flg, menu_list = self.ita_core.select_create_menu_info_list(
             self.ita_config,
-            'パラメータシート'  # TODO : 多言語対応
+            ['1', ]
         )
 
         logger.logic_log('LOSI28004', 'create_menu_info', flg, self.drv_id, len(menu_list))
@@ -182,7 +182,7 @@ class ITAParameterSheetMenuManager:
         for menu in param_menu_list:
             menu_name = ''
             group_name = ''
-            hostgroup_flg = True if menu[Cstobj.FCMI_USE] in ['ホストグループ用',] else False # TODO : 多言語対応
+            hostgroup_flg = True if menu[Cstobj.FCMI_USE] in ['ホストグループ用', 'For HostGroup'] else False
             vertical_flg = False
             priority = 0
 
