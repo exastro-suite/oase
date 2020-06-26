@@ -1010,7 +1010,7 @@ class ITA1Core(DriverCore):
 
         return 0
 
-    def select_create_menu_info_list(self, config, target=''):
+    def select_create_menu_info_list(self, config, target=[]):
         """
         [概要]
           メニュー作成情報検索メソッド
@@ -1025,8 +1025,8 @@ class ITA1Core(DriverCore):
             Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
         }
 
-        if target:
-            aryfilter[Cstobj.FCMI_TARGET] = {'NORMAL':target}
+        if len(target) > 0:
+            aryfilter[Cstobj.FCMI_TARGET] = {'LIST':target}
         
         self.restobj.rest_set_config(config)
 
