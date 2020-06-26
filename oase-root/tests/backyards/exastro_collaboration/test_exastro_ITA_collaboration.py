@@ -308,13 +308,29 @@ class TestITAParameterSheetMenuManager(object):
         """
 
         # テストケース1(追加・変更パターン)
-        test_menu_list = [[None, '', '1', '1', 'OASE_MenuGroup(Host)', '1:OASE_MenuGroup(Host)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/10 15:04:12', 'T_20200410150412624059', 'メニュー作成機能'], [None, '', '3', '3', '追加メニューグループ（Host）', '3:追加メニューグループ（Host）', '追加メニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/16 17:36:07', 'T_20200416173607725733', 'メニュー作成機能']]
+        test_menu_list = {
+            'menu_list': [
+                [None, '', '1', '1', 'OASE_MenuGroup(Host)', '1:OASE_MenuGroup(Host)', 'OASEメニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/10 15:04:12', 'T_20200410150412624059', 'メニュー作成機能'],
+                [None, '', '3', '3', '追加メニューグループ（Host）', '3:追加メニューグループ（Host）', '追加メニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/16 17:36:07', 'T_20200416173607725733', 'メニュー作成機能'],
+            ],
+            'use_info': {
+                ('OASE_MenuGroup(Host)', 'OASEメニュー'):{'hostgroup_flg': False, 'vertical_flg': False, 'priority': 1},
+                ('追加メニューグループ（Host）', '追加メニュー'):{'hostgroup_flg': False, 'vertical_flg': False, 'priority': 1},
+            }
+        }
 
         self.target.save_menu_info(test_menu_list)
         assert ItaMenuName.objects.count() == 2
 
         # テストケース2(削除パターン)
-        test_menu_list2 = [[None, '', '3', '3', '追加メニューグループ（Host）', '3:追加メニューグループ（Host）', '追加メニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/16 17:36:07', 'T_20200416173607725733', 'メニュー作成機能']]
+        test_menu_list2 = {
+            'menu_list': [
+                [None, '', '3', '3', '追加メニューグループ（Host）', '3:追加メニューグループ（Host）', '追加メニュー', '要', 'サービス提供中', '1', 'する', 'しない', None, None, None, None, '2020/04/16 17:36:07', 'T_20200416173607725733', 'メニュー作成機能']
+            ],
+            'use_info': {
+                ('追加メニューグループ（Host）', '追加メニュー'):{'hostgroup_flg': False, 'vertical_flg': False, 'priority': 1},
+            }
+        }
 
         self.target.save_menu_info(test_menu_list2)
         assert ItaMenuName.objects.count() == 1
