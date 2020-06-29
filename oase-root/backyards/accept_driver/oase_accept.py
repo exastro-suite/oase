@@ -213,13 +213,13 @@ def data_list(body, user, rule_type_id_list, label_count_list):
             rule_type_id_list.update({ruletablename: 0})
             label_count_list.update({ruletablename: 0})
 
-            rset = RuleType.objects.filter(rule_table_name=ruletablename).values(
-                'rule_type_id', 'rule_table_name', 'label_count')
+            rset = RuleType.objects.filter(rule_type_name=ruletablename).values(
+                'rule_type_id', 'rule_type_name', 'label_count')
             for rs in rset:
                 rule_type_id_list.update(
-                    {rs['rule_table_name']: rs['rule_type_id']})
+                    {rs['rule_type_name']: rs['rule_type_id']})
                 label_count_list.update(
-                    {rs['rule_table_name']: rs['label_count']})
+                    {rs['rule_type_name']: rs['label_count']})
 
             ruletype_info = {RULE_TYPE_KEY: rule_type_id_list,
                              LABEL_CNT_KEY: label_count_list}
@@ -337,14 +337,14 @@ def load_ruletype():
 
     else:
         ruletype = list(RuleType.objects.all().values(
-            'rule_type_id', 'rule_table_name', 'label_count'))
+            'rule_type_id', 'rule_type_name', 'label_count'))
         for rt in ruletype:
 
             rule_type_id = {}
             label_count = {}
 
-            rule_type_id[rt['rule_table_name']] = rt['rule_type_id']
-            label_count[rt['rule_table_name']] = rt['label_count']
+            rule_type_id[rt['rule_type_name']] = rt['rule_type_id']
+            label_count[rt['rule_type_name']] = rt['label_count']
             rule_type_id_list.update(rule_type_id)
             label_count_list.update(label_count)
 
