@@ -438,8 +438,11 @@ def modify(request):
 
         # ルールテーブル名自動生成処理
         dict_table_id = RuleType.objects.all().aggregate(Max('rule_type_id'))
-        table_id = dict_table_id['rule_type_id__max']
-        rule_table_name = 'id' + str(table_id + 1).zfill(11)
+        if dict_table_id['rule_type_id__max'] is None:
+            rule_table_name = 'id00000000001'
+        else:
+            table_id = dict_table_id['rule_type_id__max']
+            rule_table_name = 'id' + str(table_id + 1).zfill(11)
 
         # ルール種別のバリデーションチェック
         info = add_record['table_info']
