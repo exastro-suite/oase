@@ -1179,14 +1179,6 @@ var ruleRow = heredocHTML( function(){/*
                         </div>
                       </td>
                     </tr>
-                    <tr>
-                    <th><div class="cell-inner">RuleTable<sup>*</sup></div></th>
-                      <td>
-                        <div class="cell-inner">
-                          <input type="text" id="rule_table_name" required data-maxlength="64" data-type="ruleTableName" placeholder="RuleTable" class="tooltip-input validation-input" title="{% get_message 'MOSJA14011' request.user.get_lang_mode showMsgId=False %}">
-                        </div>
-                      </td>
-                    </tr>
                   </table>
                 </div><!-- /. oase-modal-table -->
               </div><!-- /. oase-modal-block -->
@@ -1441,10 +1433,6 @@ var ruleRow = heredocHTML( function(){/*
                     <th><div class="cell-inner">{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}</div></th>
                     <td><div class="cell-inner"></div></td>
                   </tr>
-                  <tr>
-                    <th><div class="cell-inner">RuleTable</div></th>
-                    <td><div class="cell-inner"></div></td>
-                  </tr>
                 </table>
               </div>
 
@@ -1590,10 +1578,6 @@ var ruleRow = heredocHTML( function(){/*
                   <td><div class="cell-inner">
                   <textarea id="edit-summary" placeholder="{% get_message 'MOSJA00079' request.user.get_lang_mode showMsgId=False %}" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea>
                   </div></td>
-                </tr>
-                <tr>
-                  <th><div class="cell-inner">RuleTable</div></th>
-                  <td><div id="edit-rule-table-name" class="cell-inner"></div></td>
                 </tr>
               </table>
             </div>
