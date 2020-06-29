@@ -151,7 +151,7 @@ def eventsrequest(request):
             # ルール情報の取得
             reqtypeid     = json_str[EventsRequestCommon.KEY_REQTYPE]
             ruletablename = json_str[EventsRequestCommon.KEY_RULETYPE]
-            ruletypeid    = RuleType.objects.get(rule_table_name=ruletablename).rule_type_id
+            ruletypeid    = RuleType.objects.get(rule_type_name=ruletablename).rule_type_id
             evinfo_length = DataObject.objects.filter(rule_type_id=ruletypeid).values('label').distinct().count()
 
             # イベント情報のチェック

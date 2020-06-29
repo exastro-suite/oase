@@ -670,15 +670,15 @@ def rule_pseudo_request(request, rule_type_id):
         with transaction.atomic():
             json_str = request.POST.get('json_str', None)
             post_data = json.loads(json_str)
-            rule_table_name = post_data['ruletable']
-            eventdatetime = post_data['eventdatetime']
-            eventinfo = post_data['eventinfo']
+            rule_table_name = post_data[EventsRequestCommon.KEY_RULETYPE]
+            eventdatetime = post_data[EventsRequestCommon.KEY_EVENTTIME]
+            eventinfo = post_data[EventsRequestCommon.KEY_EVENTINFO]
             if json_str is None:
                 msg = get_message('MOSJA12002', request.user.get_lang_mode())
                 logger.user_log('LOSM12007', request=request)
                 raise Exception()
 
-            rt = RuleType.objects.get(rule_table_name=rule_table_name)
+            rt = RuleType.objects.get(rule_type_id=rule_type_id)
 
             # ルール別アクセス権限チェック
             rule_ids = []
@@ -1858,10 +1858,6 @@ def bulkpseudocall(request, rule_type_id):
         ####################################################
         # リクエスト送信
         ####################################################
-        rule_table_name_list = list(RuleType.objects.filter(rule_type_id=rule_type_id).values('rule_table_name'))
-        rule_table_name_dic = rule_table_name_list[0]
-        rule_table_name = rule_table_name_dic['rule_table_name']
-
         scheme = urlsplit(request.build_absolute_uri(None)).scheme
         url = scheme + '://127.0.0.1:' + request.META['SERVER_PORT'] + reverse('web_app:event:eventsrequest')
         for rule_dic in rule_data_list:
@@ -1880,7 +1876,7 @@ def bulkpseudocall(request, rule_type_id):
 
             # リクエストをJSON形式に変換
             json_str = {}
-            json_str[EventsRequestCommon.KEY_RULETYPE]  = rule_table_name
+            json_str[EventsRequestCommon.KEY_RULETYPE]  = rt.rule_type_name
             json_str[EventsRequestCommon.KEY_REQTYPE]   = defs.STAGING
             json_str[EventsRequestCommon.KEY_EVENTTIME] = event_time
             json_str[EventsRequestCommon.KEY_EVENTINFO] = event_info
