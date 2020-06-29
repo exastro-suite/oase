@@ -54,11 +54,10 @@ function submitTableData(){
     if(confirm(getMessage('MOSJA00002',false)) == true){
 
         //--------------------------------------------
-        // ルール種別名, 概要, RuleTable名の取得
+        // ディシジョンテーブル名, 概要 の取得
         //--------------------------------------------
         tableInfo["rule_type_name"]  = $("#rule_type_name").val();
         tableInfo["summary"]         = $("#summary").val();
-        tableInfo["rule_table_name"] = $("#rule_table_name").val();
 
         //--------------------------------------------
         // 条件名, 条件式のチェック
@@ -212,7 +211,7 @@ function submitAction(){
             // 基本情報エラー処理
             errorMsg = response_json.error_top;
             Object.keys(errorMsg).forEach(function(id) {
-                if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address" && id != "unknown_event_notification") {
+                if(id != "rule_type_name" && id != "summary" && id != "mail_address" && id != "unknown_event_notification") {
                     return true;
                 }
                 errorStr = errorMsg[id];
@@ -286,7 +285,7 @@ function submitTableData2(){
     if(confirm(getMessage('MOSJA11012', false)) == true){
 
         //--------------------------------------------
-        // ルール種別名, 概要, RuleTable名の取得
+        // ディシジョンテーブル名, 概要 の取得
         //--------------------------------------------
         tableInfo["rule_type_name"] = $("#edit-rule-type-name").val();
         tableInfo["summary"]        = $("#edit-summary").val();
@@ -394,7 +393,7 @@ function submitAction2(){
                 // 基本情報エラー処理
                 errorMsg = response_json.error_top;
                 Object.keys(errorMsg).forEach(function(id) {
-                    if(id != "rule_type_name" && id != "summary" && id != "rule_table_name" && id != "mail_address" && id != "unknown_event_notification") {
+                    if(id != "rule_type_name" && id != "summary" && id != "mail_address" && id != "unknown_event_notification") {
                         return true;
                     }
                     errorStr = errorMsg[id];
@@ -423,8 +422,8 @@ function submitAction2(){
 
     if( operate == "delete" ){
       //削除時のアクション
-      var ruleTypeID        = $("#hidDetailID2").val();//ルール種別ID取得
-      var decisionTableName = $("#rule_type_name2").val(); //ルール種別名の取得
+      var ruleTypeID        = $("#hidDetailID2").val();//ディシジョンテーブルID取得
+      var decisionTableName = $("#rule_type_name2").val(); //ディシジョンテーブル名の取得
 
       if(confirm(getMessage('MOSJA11014', false, {table_name:decisionTableName})) == true){
             $.ajax({
@@ -470,7 +469,6 @@ function showNewTable(){
     // 基本情報 初期化
     $("#rule_type_name").val("");
     $("#summary").val("");
-    $("#rule_table_name").val("");
 
     // 初期ルール条件数 初期化
     var ruleTrInput = '';
@@ -536,13 +534,12 @@ function downloadRecordAction(pk){
 ////////////////////////////////////////////////
 function showDetail(pk, copy_flg, del_flg, edit_flg, dl_flg){
 
-    // 基本情報(ルール種別名 概要 RuleTable名)を取得
-    var decisionTableData = []; // ルール種別名 概要 RuleTable名を格納
+    // 基本情報(ディシジョンテーブル名 概要 )を取得
+    var decisionTableData = []; // ディシジョンテーブル名 概要 を格納
     {% for d in decision_table_list %}
         if (pk == {{d.pk}}){
             decisionTableData.push("{{d.rule_type_name|escapejs}}");
             decisionTableData.push("{{d.summary|escapejs}}");
-            decisionTableData.push("{{d.rule_table_name|escapejs}}");
 
             $("#rule_type_name2").val("{{d.rule_type_name|escapejs}}");// formに埋め込み
             switch("{{d.unknown_event_notification|escapejs}}"){
@@ -829,8 +826,8 @@ function createHTMLAccessPermission(tagID, grID, grname, perm1, perm2, perm3, pe
 ////////////////////////////////////////////////
 function deleteTable(){
     $("#btnDelAccess").prop("disabled", true);
-    var ruleTypeID = $("#hidDetailID2").val(); //ルール種別番号の取得
-    ruleTypeID     = ruleTypeID.substr(3); //ルール種別番号の取得
+    var ruleTypeID = $("#hidDetailID2").val(); //ディシジョンテーブル番号の取得
+    ruleTypeID     = ruleTypeID.substr(3); //ディシジョンテーブル番号の取得
 
     //valueに値をセット
     $("#add_record2").val(ruleTypeID);
@@ -853,7 +850,6 @@ function showEditTable() {
 
     $("#edit-rule-type-name").val(decisionTableData[0]);
     $("#edit-summary").text(decisionTableData[1]);
-    $("#edit-rule-table-name").text(decisionTableData[2]);
 
     // ルール条件を埋め込み
     $("#conditional-tbody-EditMode").html(document.getElementById("conditional-tbody").innerHTML);
@@ -861,7 +857,7 @@ function showEditTable() {
     // アクセス権限情報埋め込み
     var html = '';
     {% for d in decision_table_list %}
-        if (decisionTableData[2] == '{{d.rule_table_name|escapejs}}'){
+        if (decisionTableData[0] == '{{d.rule_type_name|escapejs}}'){
             html = '';
             {% if d.group_list|length %}
             html += '<dl>';
@@ -910,7 +906,6 @@ function showCopy() {
     // 基本情報 初期化
     $("#rule_type_name").val("");
     $("#summary").val("");
-    $("#rule_table_name").val("");
 
     // 新規作成画面の条件部をクリア
     $("#data_object tbody").html("");
@@ -964,7 +959,7 @@ function showCopy() {
     });
 
     {% for d in decision_table_list %}
-        if (decisionTableData[2] == '{{d.rule_table_name|escapejs}}'){
+        if (decisionTableData[0] == '{{d.rule_type_name|escapejs}}'){
             html = '';
             {% if d.group_list|length %}
             html += '<dl>';
