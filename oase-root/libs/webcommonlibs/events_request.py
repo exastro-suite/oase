@@ -49,7 +49,7 @@ class EventsRequestCommon():
     # 定数
     ############################################
     # キー名
-    KEY_RULETYPE  = 'ruletable'
+    KEY_RULETYPE  = 'decisiontable'
     KEY_REQTYPE   = 'requesttype'
     KEY_EVENTTIME = 'eventdatetime'
     KEY_EVENTINFO = 'eventinfo'
