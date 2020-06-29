@@ -33,7 +33,7 @@ import urllib.parse
 
 from django.http import HttpResponse, Http404
 from django.shortcuts import render,redirect
-from django.db.models import Q
+from django.db.models import Q, Max
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from rest_framework import serializers
@@ -436,11 +436,20 @@ def modify(request):
             error_msg['New3'] = get_message('MOSJA11018', request.user.get_lang_mode())
             raise Exception()
 
+        # ルールテーブル名自動生成処理
+        dict_table_id = RuleType.objects.all().aggregate(Max('rule_type_id'))
+        if dict_table_id['rule_type_id__max'] is None:
+            rule_table_name = 'id00000000001'
+        else:
+            table_id = dict_table_id['rule_type_id__max']
+            rule_table_name = 'id' + str(table_id + 1).zfill(11)
+
         # ルール種別のバリデーションチェック
         info = add_record['table_info']
-        dtcomp = DecisionTableComponent(info['rule_table_name'])
-        notification = add_record['notificationInfo']
+        info['rule_table_name'] = rule_table_name
 
+        dtcomp = DecisionTableComponent(rule_table_name)
+        notification = add_record['notificationInfo']
         decision_table_data = {
             'rule_type_name'              : info['rule_type_name'],
             'summary'                     : info['summary'],
@@ -514,7 +523,7 @@ def modify(request):
             with transaction.atomic():
 
                 # 権限を追加
-                ruletypeid = RuleType.objects.get(rule_table_name=info['rule_table_name']).rule_type_id
+                ruletypeid = RuleType.objects.get(rule_table_name=rule_table_name).rule_type_id
                 group_list = add_record['group_list']
 
                 # システム管理者グループ追加
@@ -1148,9 +1157,9 @@ def request_record_check(add_record, request):
         raise Http404
 
     # キーの存在確認
-    if not {'rule_type_name', 'summary', 'rule_table_name'} == set(add_record['table_info'].keys()):
+    if not {'rule_type_name', 'summary'} == set(add_record['table_info'].keys()):
         logger.user_log('LOSM14001', add_record['table_info'].keys(), [
-                        'rule_type_name', 'summary', 'rule_table_name'], request=request)
+                        'rule_type_name', 'summary'], request=request)
         raise Http404
 
     if 'group_list' not in add_record:
