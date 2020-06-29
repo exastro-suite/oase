@@ -25,6 +25,7 @@ let ruleTypeName       = "";
 let rulemanage_id      = 0;
 let rule_type_id       = 0;
 let rule_table_name    = "";
+let rule_type_name     = "";
 let operationstatus_id = 0;
 let rule_ids_stg       = [];
 
@@ -221,6 +222,7 @@ function onloadStaging() {
                                     rulemanage_id      = ruleManageId;
                                     rule_type_id       = respdata["data"]["rule_type_id"];
                                     rule_table_name    = respdata["data"]["rule_table_name"];
+                                    rule_type_name     = respdata["data"]["rule_type_name"];
                                     operationstatus_id = respdata["data"]["operation_status_id"];
                                     rule_ids_stg       = respdata["data"]["rule_ids_stg"];
 
@@ -326,6 +328,7 @@ function onloadStaging() {
                             rulemanage_id      = ruleManageId;
                             rule_type_id       = respdata["data"]["rule_type_id"];
                             rule_table_name    = respdata["data"]["rule_table_name"];
+                            rule_type_name     = respdata["data"]["rule_type_name"];
                             operationstatus_id = respdata["data"]["operation_status_id"];
                             rule_ids_stg       = respdata["data"]["rule_ids_stg"];
 
@@ -838,7 +841,7 @@ function pseudoCall() {
     material.style.display = "block";
 
     let ruleTypeId = rule_type_id;
-    let ruleTable  = rule_table_name;
+    let ruleTable  = rule_type_name;
     let url = "rule/pseudo_request/" + rule_type_id;
 
     let inputElements = $('#ruleType_' + ruleTypeId).find('.condition-input');
@@ -853,7 +856,7 @@ function pseudoCall() {
     let dl = document.getElementById("btnLogDownload");
     dl.dataset.eventDate = eventToTime;
 
-    let eventData = {"ruletable": ruleTable, "requesttype": "2", "eventdatetime": eventToTime, "eventinfo": inputDataArray};
+    let eventData = {"decisiontable": ruleTable, "requesttype": "2", "eventdatetime": eventToTime, "eventinfo": inputDataArray};
     let data = {
         "json_str" : JSON.stringify(eventData),
         "csrfmiddlewaretoken" : document.getElementsByName("csrfmiddlewaretoken")[0].value
