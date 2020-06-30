@@ -60,7 +60,7 @@ ZABBIX_MESSAGE = [{
                      'hosts': [
                        {
                          'hostid': '10084',
-                         'host': 'Zabbix server' 
+                         'host': 'Zabbix server'
                        }
                      ]
                    },
@@ -88,7 +88,7 @@ ZABBIX_MESSAGE = [{
                      'hosts': [
                        {
                          'hostid': '10084',
-                         'host': 'Zabbix server' 
+                         'host': 'Zabbix server'
                        }
                      ]
                    }]
@@ -96,13 +96,13 @@ ZABBIX_MESSAGE = [{
 # 整形後zabbixメッセージ
 FORMAT_RESULT ={'request': [
                   {
-                     'ruletable': 'zabbixtest',
+                     'decisiontable': 'ZABBIX_TEST用',
                      'requesttype': '1',
                      'eventdatetime': '2019/11/05 15:49:28',
                      'eventinfo': ['15984', 'CPU usage is 20%']
                   },
                   {
-                     'ruletable': 'zabbixtest',
+                     'decisiontable': 'ZABBIX_TEST用',
                      'requesttype': '1',
                      'eventdatetime': '2019/11/05 15:53:38',
                      'eventinfo': ['15985', 'CPU usage is 50%']
@@ -189,7 +189,7 @@ def set_data():
                 last_update_user            = 'administrator'
             )
             rule_type.save(force_insert=True)
-            
+
             # テスト用ラベル作衛
             label0 = DataObject(
                 rule_type_id              = rule_type.rule_type_id,
@@ -200,7 +200,7 @@ def set_data():
                 last_update_user          = 'administrator'
             )
             label0.save(force_insert=True)
-            
+
             label1 = DataObject(
                 rule_type_id              = rule_type.rule_type_id,
                 conditional_name          = '説明',
@@ -210,7 +210,7 @@ def set_data():
                 last_update_user          = 'administrator'
             )
             label1.save(force_insert=True)
-            
+
             # テスト用ZABBIX監視アダプタ作成
             zabbix = ZabbixAdapter(
                 zabbix_disp_name          = 'ZABBIX',
@@ -222,10 +222,9 @@ def set_data():
                 rule_type_id              = rule_type.rule_type_id,
                 last_update_timestamp     = now,
                 last_update_user          = 'administrator'
-            
             )
             zabbix.save(force_insert=True)
-            
+
             # テスト用ZABBIX突合情報作成
             match1 = ZabbixMatchInfo(
                 zabbix_adapter_id         = zabbix.zabbix_adapter_id,
@@ -235,7 +234,7 @@ def set_data():
                 last_update_user          = 'administrator'
             )
             match1.save(force_insert=True)
-            
+
             match2 = ZabbixMatchInfo(
                 zabbix_adapter_id         = zabbix.zabbix_adapter_id,
                 data_object_id            = label1.data_object_id,
@@ -244,7 +243,7 @@ def set_data():
                 last_update_user          = 'administrator'
             )
             match2.save(force_insert=True)
-            
+
             return rule_type.rule_type_id, zabbix.zabbix_adapter_id
 
     except Exception as e:
@@ -271,7 +270,6 @@ def test_formatting_eventinfo():
 
     backyardlibs_module = import_module('libs.backyardlibs.monitoring_adapter.ZABBIX.ZABBIX_formatting')
     formatting_eventinfo = getattr(backyardlibs_module, 'formatting_eventinfo')
-    
 
 
     # データ整形異常ルート
@@ -291,7 +289,7 @@ def test_message_formatting(zabbix_table):
     """
     zabbixメッセージをリクエストデータに整形するテスト
     """
-    
+
     # インポート
     backyardlibs_module = import_module('libs.backyardlibs.monitoring_adapter.ZABBIX.ZABBIX_formatting')
     message_formatting  = getattr(backyardlibs_module, 'message_formatting')
@@ -299,7 +297,7 @@ def test_message_formatting(zabbix_table):
 
     # 試験データセット
     rule_type_id, zabbix_adapter_id = set_data()
-    
+
     # メッセージデータなし
     res, data = message_formatting('', rule_type_id, zabbix_adapter_id)
     assert res == False
@@ -327,7 +325,7 @@ def test_message_formatting(zabbix_table):
 
     # メイン正常ルート
     res, data = message_formatting(ZABBIX_MESSAGE, rule_type_id, zabbix_adapter_id)
-    assert res == True 
+    assert res == True
     assert FORMAT_RESULT == data
 
     # 試験データ初期化
