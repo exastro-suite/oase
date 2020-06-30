@@ -365,7 +365,6 @@ def load_ruletype():
 if __name__ == '__main__':
 
     # 初期化
-    # data_obj_list = []
     loop_count = 0
     thread_flg = False
 
