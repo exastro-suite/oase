@@ -92,6 +92,8 @@ LABEL_CNT_KEY = 'label_count'
 
 mem_client = memcache.Client([settings.CACHES['default']['LOCATION'], ])
 
+data_obj_list = []
+
 
 ################################################################
 def check_key_error(trace_id, json_str):
@@ -263,6 +265,7 @@ def data_list(body, user, rule_type_id_list, label_count_list):
         if result_valid == False:
             msg = '%s' % oters.errors
             logger.user_log('LOSM22003', trace_id, msg)
+            return False
 
         # 正常の場合はリスト登録
         else:
@@ -283,8 +286,11 @@ def data_list(body, user, rule_type_id_list, label_count_list):
             )
             data_obj_list.append(data_object)
 
+            return True
+
     except Exception as e:
         logger.system_log('LOSM22004', traceback.format_exc())
+        return False
 
 
 ################################################
@@ -359,7 +365,7 @@ def load_ruletype():
 if __name__ == '__main__':
 
     # 初期化
-    data_obj_list = []
+    # data_obj_list = []
     loop_count = 0
     thread_flg = False
 
@@ -382,7 +388,7 @@ if __name__ == '__main__':
         if method_frame:
 
             # DB登録リストを作成
-            data_list(body, user, rule_type_id_list, label_count_list)
+            _ = data_list(body, user, rule_type_id_list, label_count_list)
 
             # RabbitMQから取得データを消費
             channel.basic_ack(method_frame.delivery_tag)
