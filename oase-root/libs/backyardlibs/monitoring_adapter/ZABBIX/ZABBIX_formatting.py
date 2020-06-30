@@ -23,10 +23,7 @@
 
 [戻り値]
   HTTPレスポンス
-
-
 """
-
 
 import traceback
 import datetime
@@ -39,21 +36,22 @@ from web_app.models.ZABBIX_monitoring_models import ZabbixMatchInfo
 from libs.commonlibs.oase_logger import OaseLogger
 logger = OaseLogger.get_instance()
 
+
 ################################################
 # メッセージを整形する
 ################################################
-def message_formatting(zabbix_message, rule_type_id, zabbix_adapter_id ):
+def message_formatting(zabbix_message, rule_type_id, zabbix_adapter_id):
     """
     [メソッド概要]
       一括用に取得データを整形する
     """
 
-    logger.logic_log('LOSI00001', 'zabbix_message: %s, rule_type_id: %s, zabbix_adapter_id: %s' % (len(zabbix_message),rule_type_id,zabbix_adapter_id))
+    logger.logic_log('LOSI00001', 'zabbix_message: %s, rule_type_id: %s, zabbix_adapter_id: %s' % (len(zabbix_message), rule_type_id, zabbix_adapter_id))
 
     result            = True
     form_data         = {}
     request_data_list = []
-    ruletable         = ''
+    ruletypename      = ''
 
     try:
 
@@ -63,24 +61,25 @@ def message_formatting(zabbix_message, rule_type_id, zabbix_adapter_id ):
             result = False
             raise
 
-        # ruletable名取得
-        ruletable = RuleType.objects.get(pk=rule_type_id).rule_table_name
+        # ルール種別名称取得
+        ruletypename = RuleType.objects.get(pk=rule_type_id).rule_type_name
 
         # zabbix_response_key取得
-        key_list = list(ZabbixMatchInfo.objects.filter(zabbix_adapter_id=zabbix_adapter_id).order_by('zabbix_match_id').values_list('zabbix_response_key',flat=True))
-        
+        key_list = list(ZabbixMatchInfo.objects.filter(zabbix_adapter_id=zabbix_adapter_id).order_by(
+            'zabbix_match_id').values_list('zabbix_response_key', flat=True))
+
         # zabbix_message内のresultをループ
         for data_dic in zabbix_message:
 
             # データ整形
             eventinfo = []
             result = formatting_eventinfo(key_list, data_dic, eventinfo)
-            
+
             # データの不整合があった場合はそのデータを無視する
             if result == False:
                 continue
 
-            request_data  = { 'ruletable'     : ruletable,
+            request_data  = { 'decisiontable' : ruletypename,
                               'requesttype'   : '1',
                               'eventdatetime' : '',
                               'eventinfo'     : '',
@@ -100,18 +99,16 @@ def message_formatting(zabbix_message, rule_type_id, zabbix_adapter_id ):
         logger.system_log('LOSM25006', rule_type_id)
         logger.logic_log('LOSM00001', 'rule_type_id: %s, Traceback: %s' % (rule_type_id, traceback.format_exc()))
 
-
     except Exception as e:
         if result:
             result = False
             logger.system_log('LOSM25007')
             logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
 
-
     logger.logic_log('LOSI00002', 'result: %s' % (result))
 
     return result, form_data
-    
+
 
 ################################################
 # リクエスト用データへ整形
@@ -144,5 +141,3 @@ def formatting_eventinfo(key_list, data_dic, eventinfo):
         return False
 
     return True
-    
-
