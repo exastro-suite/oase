@@ -13,21 +13,21 @@
 # limitations under the License.
 #
 
-import pytest
 import datetime
 import json
-import pytz
-
-from django.urls import reverse
-from django.http import Http404
-from django.test import Client, RequestFactory
-from django.db import transaction
 from importlib import import_module
 
+import pytest
+import pytz
+from django.db import transaction
+from django.http import Http404
+from django.test import Client, RequestFactory
+from django.urls import reverse
 from libs.commonlibs.common import Common
+from libs.commonlibs.dt_component import DecisionTableComponent
 from web_app.models.models import Group, PasswordHistory, RuleType, User
-from web_app.views.rule.decision_table import _select, DecisionTableAuthByRule
-
+from web_app.views.rule.decision_table import DecisionTableAuthByRule, _select
+from libs.webcommonlibs.common import RequestToApply
 
 @pytest.mark.django_db
 class TestDecisionTableSelect:
@@ -176,7 +176,7 @@ class TestModifyDetail:
     @pytest.mark.django_db
     def test_modidy_detail_ok(self, monkeypatch):
         """
-        抽出条件テーブル登録処理
+        抽出条件テーブル変更処理
         ※ 正常系
         """
         admin = get_adminstrator()
@@ -192,7 +192,6 @@ class TestModifyDetail:
         response = admin.post('/oase_web/rule/decision_table/modify/9999/', {'add_record':json_data})
         resp_content = json.loads(response.content.decode('utf-8'))
 
-
         assert response.status_code == 200
         assert resp_content['status'] == 'success'
 
@@ -202,7 +201,7 @@ class TestModifyDetail:
     @pytest.mark.django_db
     def test_modidy_detail_ng(self, monkeypatch):
         """
-        抽出条件テーブル登録処理
+        抽出条件テーブル変更処理
         ※ 異常系(メールアドレス不正)
         """
         admin = get_adminstrator()
@@ -215,11 +214,56 @@ class TestModifyDetail:
         json_str = {"table_info":{"rule_type_name":"pytest","summary":""},"group_list":[],"notificationInfo":{"unknown_event_notification":"1","mail_address":"aaaaaacom"}}
         json_data = json.dumps(json_str)
 
-        response = admin.post('/oase_web/rule/decision_table/modify/9999/', {'add_record':json_data})
+        assert response.status_code == 200
+        assert resp_content['status'] == 'failure'
+
+        self.del_test_data()
+
+
+    @pytest.mark.django_db
+    def test_modify_ok(self, monkeypatch):
+        """
+        抽出条件テーブル登録処理
+        ※ 正常系
+        """
+        admin = get_adminstrator()
+        self.del_test_data()
+        self.set_test_data()
+
+        sample = {'request': 'CREATE', 'table_info': {'rule_type_name': 'pytest', 'summary': '', 'rule_table_name': 'id00000000001'}, 'data_obj_info': [{'conditional_name': 'a', 'label': 'label0', 'conditional_expression_id': 1}], 'notificationInfo': {'unknown_event_notification': '1', 'mail_address': 'pytest@example.com'}, 'user_id': 1, 'label_count': 1, 'lang': 'JA'}
+
+        monkeypatch.setattr(RequestToApply, 'operate', lambda sample, request=None:(True, {}))
+
+        # 登録データ
+        json_str = {"table_info":{"rule_type_name":"pytest","summary":""},"data_obj_info":[{"conditional_name":"a","conditional_expression_id":"1","row_id":"New1"}],"group_list":[],"notificationInfo":{"unknown_event_notification":"1","mail_address":"pytest@example.com"}}
+        json_data = json.dumps(json_str)
+
+        response = admin.post('/oase_web/rule/decision_table/modify', {'add_record':json_data})
         resp_content = json.loads(response.content.decode('utf-8'))
 
+        assert response.status_code == 200
+        self.del_test_data()
 
-        assert response.status_code != 200
+
+    @pytest.mark.django_db
+    def test_modify_ng(self, monkeypatch):
+        """
+        抽出条件テーブル登録処理
+        ※ 異常系(メールアドレス不正)
+        """
+        admin = get_adminstrator()
+        self.del_test_data()
+
+        monkeypatch.setattr(RequestToApply, 'operate', lambda RequestToApply, b, request=None:True)
+
+        # 登録データ
+        json_str = {"table_info":{"rule_type_name":"pytest","summary":""},"data_obj_info":[{"conditional_name":"a","conditional_expression_id":"1","row_id":"New1"}],"group_list":[],"notificationInfo":{"unknown_event_notification":"1","mail_address":"pytestexamplecom"}}
+        json_data = json.dumps(json_str)
+
+        response = admin.post('/oase_web/rule/decision_table/modify', {'add_record':json_data})
+        resp_content = json.loads(response.content.decode('utf-8'))
+
+        assert response.status_code == 200
         assert resp_content['status'] == 'failure'
 
         self.del_test_data()
