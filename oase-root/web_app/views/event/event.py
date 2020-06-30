@@ -337,10 +337,10 @@ def bulk_eventsrequest(request):
                 rule_type_id_list.update({ruletablename:0})
                 label_count_list.update({ruletablename:0})
 
-                rset = RuleType.objects.filter(rule_table_name=ruletablename).values('rule_type_id', 'rule_table_name', 'label_count')
+                rset = RuleType.objects.filter(rule_type_name=ruletablename).values('rule_type_id', 'rule_type_name', 'label_count')
                 for rs in rset:
-                    rule_type_id_list.update({rs['rule_table_name']:rs['rule_type_id']})
-                    label_count_list.update({rs['rule_table_name']:rs['label_count']})
+                    rule_type_id_list.update({rs['rule_type_name']:rs['rule_type_id']})
+                    label_count_list.update({rs['rule_type_name']:rs['label_count']})
 
                 ruletype_info = {RULE_TYPE_KEY:rule_type_id_list, LABEL_CNT_KEY:label_count_list}
                 mem_client.set(ACCEPT_RULE_KEY, ruletype_info)
