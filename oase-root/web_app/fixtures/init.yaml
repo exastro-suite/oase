@@ -147,23 +147,6 @@
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
-- model: web_app.User
-  pk: -2140000006
-  fields:
-    login_id: oase_ITA_collabo
-    user_name: OASE_ITA連携プロシージャ
-    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
-    mail_address: sample@xxx.bbb.ccc
-    lang_mode_id: 1
-    disp_mode_id: 1
-    disuse_flag: 1
-    pass_exp_check_flag: 0
-    pass_hist_check_flag: 0
-    account_lock_times: 0
-    account_lock_flag: 0
-    last_update_timestamp: 2019-07-01T00:00:00+0900
-    last_update_user: システム管理者
-
 
 ################################
 # ユーザグループ管理
@@ -220,14 +203,6 @@
   pk: -2140000005
   fields:
     user_id: -2140000005
-    group_id: 1
-    last_update_timestamp: 2019-07-01T00:00:00+0900
-    last_update_user: システム管理者
-
-- model: web_app.UserGroup
-  pk: -2140000006
-  fields:
-    user_id: -2140000006
     group_id: 1
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
@@ -822,8 +797,6 @@
 
       Operation Autonomy Support Engine ログイン
       %s
-      
-      (C)Operation Autonomy Support Engine
       =====================================================
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
@@ -1015,6 +988,46 @@
     config_id: MONITORING_LOG
     value: 7
     maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 56
+  fields:
+    config_name: 未知事象通知件名
+    category: OASE_MAIL
+    config_id: UNKNOWN_EVENT_MAIL_SUBJECT
+    value: |
+      [OASE]未知事象通知
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 57
+  fields:
+    config_name: 未知事象通知本文
+    category: OASE_MAIL
+    config_id: UNKNOWN_EVENT_MAIL_CONTENT
+    value: |
+      設定されたルールにマッチされないイベント情報がOASEに投入されました。
+      未知事象となりますのでご確認ください。
+
+      [ディシジョンテーブル名]
+      %(decision_table_name)s
+
+      [イベント発生日時]
+      %(event_to_time)s
+
+      [リクエスト受信日時]
+      %(request_reception_time)s
+
+      [イベント情報]
+      %(event_info)s
+
+      [トレースID]
+      %(trace_id)s
+    maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
