@@ -699,10 +699,17 @@ class Agent:
                     # ルールにマッチしなかった場合は未知事象通知
                     #--------------------------
                     if status == RULE_UNMATCH:
+                        notify_param = {
+                            'decision_table_name' : self.dmctl.driver.ruletype.rule_type_name,
+                            'event_to_time' : event_req.event_to_time,
+                            'request_reception_time' : event_req.request_reception_time,
+                            'event_info' : event_req.event_info,
+                            'trace_id' : event_req.trace_id,
+                        }
+
                         self._notify_unknown_event(
-                            event_req.trace_id,
                             event_req.request_type_id,
-                            event_req.event_info
+                            notify_param
                         )
 
                 #--------------------------
@@ -853,19 +860,40 @@ class Agent:
         RhdmResponseAction.objects.bulk_create(rhdm_res_act_data)
 
 
-    def _notify_unknown_event(self, trace_id, req_type, evinfo):
+    def _notify_unknown_event(self, req_type, notify_param):
         """
         未知事象のイベントを通知する
         """
 
         logger.logic_log(
             'LOSI00001', 'TraceID:%s, req_type:%s, notify_type:%s, mail_addr:%s' % (
-                trace_id,
+                notify_param.get('trace_id'),
                 req_type,
                 self.dmctl.driver.ruletype.unknown_event_notification,
                 self.dmctl.driver.ruletype.mail_address
             )
         )
+
+        # キーチェック
+        err_keys = []
+        key_list = [
+            'decision_table_name',
+            'event_to_time',
+            'request_reception_time',
+            'event_info',
+            'trace_id',
+        ]
+
+        for k in key_list:
+            if k not in notify_param:
+                err_keys.append(k)
+
+        if len(err_keys) > 0:
+            logger.logic_log('LOSI00002', 'Invalid notify parameter. keys:%s' % (err_keys))
+            return
+
+        trace_id = notify_param['trace_id']
+
 
         # 本番環境リクエスト以外は通知対象外
         if req_type != PRODUCTION:
@@ -902,8 +930,7 @@ class Agent:
             m = m.strip()
             notify_mail = OASEMailUnknownEventNotify(
                 m,
-                self.dmctl.driver.ruletype.rule_type_name,
-                evinfo,
+                notify_param,
                 inquiry_url,
                 login_url
             )
