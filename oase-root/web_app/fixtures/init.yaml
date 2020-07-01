@@ -822,8 +822,6 @@
 
       Operation Autonomy Support Engine ログイン
       %s
-      
-      (C)Operation Autonomy Support Engine
       =====================================================
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
@@ -1015,6 +1013,46 @@
     config_id: MONITORING_LOG
     value: 7
     maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 56
+  fields:
+    config_name: 未知事象通知件名
+    category: OASE_MAIL
+    config_id: UNKNOWN_EVENT_MAIL_SUBJECT
+    value: |
+      [OASE]未知事象通知
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 57
+  fields:
+    config_name: 未知事象通知本文
+    category: OASE_MAIL
+    config_id: UNKNOWN_EVENT_MAIL_CONTENT
+    value: |
+      設定されたルールにマッチされないイベント情報がOASEに投入されました。
+      未知事象となりますのでご確認ください。
+
+      [ディシジョンテーブル名]
+      %(decision_table_name)s
+
+      [イベント発生日時]
+      %(event_to_time)s
+
+      [リクエスト受信日時]
+      %(request_reception_time)s
+
+      [イベント情報]
+      %(event_info)s
+
+      [トレースID]
+      %(trace_id)s
+    maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
