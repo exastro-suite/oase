@@ -219,14 +219,15 @@ class OASEMailBase(object):
 
 
         # 前文,署名の初期化
+        self.header = '' 
+        self.signature = ''
+
         try:
             if lang == 'jp':
                 header, signature = System.objects.filter(config_id__in=['MAIL_HEADER_JP','MAIL_SIGNATURE_JP']).order_by('item_id')
                 self.header = header.value
                 self.signature = signature.value %(self.inquiry_url, self.login_url)
         except Exception as e:
-            self.header = '' 
-            self.signature = ''
             logger.system_log('LOSM00001', traceback.format_exc())
 
     def add_header(self):
@@ -606,10 +607,10 @@ class OASEMailUnknownEventNotify(OASEMailBase):
 
     # メール情報
     MAILACC   = "noreply@omcs.jp.nec.com"
-    SUBJECT   = "未知事象通知(仮)"
-    CONFIG_ID = "UNKNOWN_EVENT_NOTIFY"
+    SUBJECT   = "UNKNOWN_EVENT_MAIL_SUBJECT"
+    CONFIG_ID = "UNKNOWN_EVENT_MAIL_CONTENT"
 
-    def __init__(self, addr_to, dt_name, evinfo, inquiry_url, login_url, charset='utf-8'):
+    def __init__(self, addr_to, notify_param, inquiry_url, login_url, charset='utf-8'):
         """
         [メソッド概要]
           初期化処理
@@ -618,10 +619,23 @@ class OASEMailUnknownEventNotify(OASEMailBase):
           dt_name : str ディシジョンテーブル名
           evinfo  : str リクエストされたイベント情報
         """
-        super(OASEMailUnknownEventNotify, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
-        self.create_mail_text(dt_name, evinfo)
 
-    def create_mail_text(self, dt_name, evinfo):
+        key_list = [
+            'decision_table_name',
+            'event_to_time',
+            'request_reception_time',
+            'event_info',
+            'trace_id'
+        ]
+
+        for k in key_list:
+            if k not in notify_param:
+                notify_param[k] = ''
+
+        super(OASEMailUnknownEventNotify, self).__init__(self.MAILACC, addr_to, '', '', inquiry_url, login_url, charset)
+        self.create_mail_text(notify_param)
+
+    def create_mail_text(self, notify_param):
         """
         [メソッド概要]
           メール本文作成
@@ -629,17 +643,11 @@ class OASEMailUnknownEventNotify(OASEMailBase):
           dt_name : str ディシジョンテーブル名
           evinfo  : str リクエストされたイベント情報
         """
-        #self.mail_text = System.objects.get(config_id=self.CONFIG_ID).value
-        self.mail_text = (
-            "DTExcelに登録されていないイベント情報です\n"
-            "\n"
-            "ディシジョンテーブル名：\n"
-            "　%s\n"
-            "\n"
-            "イベント情報：\n"
-            "　%s\n"
-        )
-        self.mail_text = self.mail_text % (dt_name, evinfo)
+
+        self.subject = System.objects.get(config_id=self.SUBJECT).value
+        self.mail_text = System.objects.get(config_id=self.CONFIG_ID).value
+
+        self.mail_text = self.mail_text % (notify_param)
 
         self.add_header()
         self.add_signature()
