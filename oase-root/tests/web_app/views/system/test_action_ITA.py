@@ -208,7 +208,7 @@ class TestITADriverInfo(object):
         arg1 = ItaDriver.objects.all()
         arg2 = [1,]
 
-        result = self.target.get_editable_driver_ids(arg1, arg2)
+        result = self.target.get_driver_ids(arg1, arg2, [ALLOWED_MENTENANCE,])
 
         assert len(result) > 0
 

@@ -23,7 +23,9 @@ import pytz
 
 from importlib import import_module
 from django.db import transaction
+from django.conf import settings
 
+from libs.commonlibs.aes_cipher import AESCipher
 from web_app.models.models import RuleType, DataObject
 
 oase_root_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../..')
@@ -91,7 +93,7 @@ def set_data():
                 zabbix_disp_name          = 'ZABBIX',
                 hostname                  = 'pytest-host',
                 username                  = 'pytest',
-                password                  = 'pytest',
+                password                  = AESCipher(settings.AES_KEY).encrypt('pytest'),
                 protocol                  = 'http',
                 port                      = 80,
                 rule_type_id              = rule_type.rule_type_id,
