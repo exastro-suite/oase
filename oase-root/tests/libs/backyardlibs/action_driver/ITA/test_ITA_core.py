@@ -319,9 +319,10 @@ def test_select_create_menu_info_list_NG(monkeypatch):
     core = create_ita1core()
     configs = get_configs()
 
-    def method_dummy_false(*args, **kwargs):
+    def method_dummy_false(aryfilter, ary_result):
         """異常系用"""
-        return {}
+        ary_result['status'] = '-1'
+        return False
 
     monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_false)
     flg, getdata = core.select_create_menu_info_list(configs, 'パラメータシート')
@@ -363,9 +364,10 @@ def test_select_menu_list_NG(monkeypatch):
     core.restobj.rest_set_config(get_configs())
     configs = get_configs()
 
-    def method_dummy_false(*args, **kwargs):
+    def method_dummy_false(aryfilter, ary_result):
         """異常系用"""
-        return {}
+        ary_result['status'] = '-1'
+        return False
 
     monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_false)
     flg, getdata = core.select_menu_list(configs, None, None, [], [])
