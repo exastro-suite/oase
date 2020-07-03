@@ -1721,9 +1721,9 @@ def test_make_parameter_item_info_ok_specifyhost_all():
         'SYMPHONY_CLASS_ID' : 1,
     }
     target_host = {
-        1:{'H':['[H]Host1001', ], 'HG':[]},
-        2:{'HG':['[HG]HostGr2001', ], 'H':[]},
-        5:{'H':['[H]Host5001', ], 'HG':['[HG]HostGr5002', ]}
+        '1':{'H':['[H]Host1001', ], 'HG':[]},
+        '2':{'HG':['[HG]HostGr2001', ], 'H':[]},
+        '5':{'H':['[H]Host5001', ], 'HG':['[HG]HostGr5002', ]}
     }
 
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)

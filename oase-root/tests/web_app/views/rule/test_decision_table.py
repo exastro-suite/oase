@@ -214,6 +214,9 @@ class TestModifyDetail:
         json_str = {"table_info":{"rule_type_name":"pytest","summary":""},"group_list":[],"notificationInfo":{"unknown_event_notification":"1","mail_address":"aaaaaacom"}}
         json_data = json.dumps(json_str)
 
+        response = admin.post('/oase_web/rule/decision_table/modify/9999/', {'add_record':json_data})
+        resp_content = json.loads(response.content.decode('utf-8'))
+
         assert response.status_code == 200
         assert resp_content['status'] == 'failure'
 
