@@ -64,7 +64,7 @@ class TestOaseAcceptDataList:
     oase_accept.data_list テストクラス
     """
 
-    def test_data_list_ok(self):
+    def test_data_list_ok(self, monkeypatch):
         """
         正常系
         """
@@ -72,6 +72,8 @@ class TestOaseAcceptDataList:
         user = User.objects.get(user_id=1)
         rule_type_id_list = {'pytest_name': 9999}
         label_count_list = {'pytest_name': 1}
+
+        monkeypatch.setattr(EventsRequestSerializer, 'is_valid', lambda data=None:True)
 
         json_str = {
             'decisiontable': 'pytest_name',
@@ -103,7 +105,5 @@ class TestOaseAcceptDataList:
             'traceid': 'TOS202006300025273975321dfee20a399d466e92ee3610457efc6b'
         }
 
-        body = json.dumps(json_str).encode('utf-8')
-
-        assert not data_list(body, user, rule_type_id_list, label_count_list)
+        assert not data_list(json_str, user, rule_type_id_list, label_count_list)
 
