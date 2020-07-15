@@ -26,9 +26,7 @@ def test_is_addresses_ok():
     """
     assert is_addresses('')
     assert is_addresses("aZ0123456789!#$%&'*+-/=?^_`.{|}~@example.com")
-    assert is_addresses('"a() <>[]:;@"@example.com')
-    # assert is_addresses('"a() <>[]:;,@def"@example.com')  # todo 失敗する
-    assert is_addresses('sample@example.org,sample@example.ne.jp,sample@example.com')
+    assert is_addresses('sample@example.org;sample@example.ne.jp;sample@example.com')
 
 
 def test_is_addresses_ng():
