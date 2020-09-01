@@ -79,6 +79,7 @@ class ITAManager(AbstractManager):
     ACTIONPARAM_KEYS = [
         'ITA_NAME',
         'SYMPHONY_CLASS_ID',
+        'CONDUCTOR_CLASS_ID',
         'OPERATION_ID',
         'SERVER_LIST',
         'MENU_ID',
