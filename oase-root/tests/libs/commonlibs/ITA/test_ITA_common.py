@@ -78,10 +78,12 @@ def set_data_ita_driver(ita_disp_name):
                 ita_disp_name=ita_disp_name,
                 symphony_instance_no=1,
                 symphony_class_id=1,
+                conductor_instance_no=1,
+                conductor_class_id=1,
                 operation_id=1,
                 symphony_workflow_confirm_url=url,
+                conductor_workflow_confirm_url=url,
                 restapi_error_info=None,
-                parameter_item_info='info_test',
                 last_update_timestamp=now,
                 last_update_user='pytest'
             ).save(force_insert=True)
@@ -317,6 +319,86 @@ def test_symphony_class_id_check_ng_reserved(ita_table):
 
 
 ################################################
+# CONDUCTOR_CLASS_IDテスト
+@pytest.mark.django_db
+def test_conductor_class_id_check_ok(ita_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    CONDUCTOR_CLASS_IDの正常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+
+    # テストデータ設定
+    check_info = {'ITA_NAME':ita_disp_name, 'CONDUCTOR_CLASS_ID':'1', 'OPERATION_ID':'1'}
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    # テスト実施
+    message_list = []
+    conductor_class_id_check(check_info, conditions, message_list)
+    assert len(message_list) == 0
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
+
+
+@pytest.mark.django_db
+def test_conductor_class_id_check_ng_noval(ita_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    CONDUCTOR_CLASS_IDの異常系(値なし)
+    """
+
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+
+    # テストデータ設定
+    check_info = {'ITA_NAME':ita_disp_name, 'CONDUCTOR_CLASS_ID':'', 'OPERATION_ID':'1'}
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    # テスト実施
+    message_list = []
+    conductor_class_id_check(check_info, conditions, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03207'
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
+
+
+@pytest.mark.django_db
+def test_conductor_class_id_check_ng_reserved(ita_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    CONDUCTOR_CLASS_IDの異常系(存在しない予約変数)
+    """
+
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+
+    # テストデータ設定
+    check_info = {'ITA_NAME':ita_disp_name, 'CONDUCTOR_CLASS_ID':'{{ VAR_条件0 }}', 'OPERATION_ID':'1'}
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    # テスト実施
+    message_list = []
+    conductor_class_id_check(check_info, conditions, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03137'
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
+
+
+################################################
 # OPERATION_IDテスト
 @pytest.mark.django_db
 def test_operation_id_check_ok(ita_table):
@@ -503,31 +585,6 @@ def test_menu_id_check_ok(ita_table):
     # テストデータ削除
     delete_data_for_ita_driver()
 
-@pytest.mark.django_db
-def test_menu_id_check_ok_hostgroup_name_host_name_nomal(ita_table):
-    """
-    ホストグループ名とホスト名のバリデーションチェック処理テスト
-    HOSTGROUP_NAMEとHOST_NAME使用時の正常系
-    """
-
-    # テストデータ初期化
-    delete_data_for_ita_driver()
-    ita_disp_name = 'action43'
-    conditions = {'条件1', '条件2'}
-
-    # テストデータ設定
-    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'1', 'HOSTGROUP_NAME':'24:hostgroup', 'HOST_NAME':'26:hostname', 'CONVERT_FLG':'True'}
-    act_info = {"driver_name": 'ITA'}
-    set_data_ita_driver(ita_disp_name)
-
-    # テスト実施
-    message_list = []
-    menu_id_check(check_info['MENU_ID'], check_info, conditions, message_list)
-    assert len(message_list) == 0
-
-    # テストデータ削除
-    delete_data_for_ita_driver()
-
 
 @pytest.mark.django_db
 def test_menu_id_check_ng_menu_id_noval(ita_table):
@@ -654,31 +711,6 @@ def test_menu_id_check_ng_menu_ids_convert_flg_true(ita_table):
     message_list = []
     menu_id_check(check_info['MENU_ID'], check_info, conditions, message_list)
     assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03145'
-
-    # テストデータ削除
-    delete_data_for_ita_driver()
-
-@pytest.mark.django_db
-def test_menu_id_check_ng_hostgroup_name_host_name_noval(ita_table):
-    """
-    ホストグループ名とホスト名のバリデーションチェック処理テスト
-    HOSTGROUP_NAMEとHOST_NAME使用時の異常系
-    """
-
-    # テストデータ初期化
-    delete_data_for_ita_driver()
-    ita_disp_name = 'action43'
-    conditions = {'条件1', '条件2'}
-
-    # テストデータ設定
-    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'MENU_ID':'1', 'HOSTGROUP_NAME':'', 'HOST_NAME':'', 'CONVERT_FLG':'True'}
-    act_info = {"driver_name": 'ITA'}
-    set_data_ita_driver(ita_disp_name)
-
-    # テスト実施
-    message_list = []
-    menu_id_check(check_info['MENU_ID'], check_info, conditions, message_list)
-    assert len(message_list) == 2 and message_list[0]['id'] == 'MOSJA03146' and message_list[1]['id'] == 'MOSJA03147'
 
     # テストデータ削除
     delete_data_for_ita_driver()
@@ -874,16 +906,16 @@ def test_check_dt_act_params_ita_name_ng_notexists(ita_table):
 def test_check_dt_act_params_symphony_class_id_ng_nokey(ita_table):
     """
     アクションパラメータのバリデーションチェック処理テスト
-    SYMPHONY_CLASS_IDの異常系(キーなし)
+    SYMPHONY_CLASS_ID、CONDUCTOR_CLASS_IDの異常系(キーなし)
     """
     # テストデータ初期化
     delete_data_for_ita_driver()
     ita_disp_name = 'action43'
     conditions = {'条件1', '条件2'}
     ############################################
-    # 異常テスト(SYMPHONY_CLASS_IDのキーなし)
+    # 異常テスト(SYMPHONY_CLASS_ID、CONDUCTOR_CLASS_IDのキーなし)
     ############################################
-    expected_msg = {'id': 'MOSJA03113', 'param': 'SYMPHONY_CLASS_ID'}
+    expected_msg = {'id': 'MOSJA03108', 'param': None}
     param_list = ['ITA_NAME=action43', 'SERVER_LIST=mas-pj-dev']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
@@ -922,6 +954,31 @@ def test_check_dt_act_params_symphony_class_id_ng_noval(ita_table):
     # テストデータ削除
     delete_data_for_ita_driver()
 
+@pytest.mark.django_db
+def test_check_dt_act_params_conductor_class_id_ng_noval(ita_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    CONDUCTOR_CLASS_IDの異常系(値なし)
+    """
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+    ############################################
+    # 異常テスト(CONDUCTOR_CLASS_IDの値なし)
+    ############################################
+    expected_msg = {'id': 'MOSJA03207', 'param': None}
+    param_list = ['ITA_NAME=action43',
+                  'CONDUCTOR_CLASS_ID=', 'SERVER_LIST=mas-pj-dev']
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    message_list = check_dt_action_params(param_list, act_info, conditions)
+    assert len(message_list) == 1
+    assert message_list[0] == expected_msg
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
 
 @pytest.mark.django_db
 def test_check_dt_act_params_symphony_class_id_ng_reserved(ita_table):
@@ -948,6 +1005,30 @@ def test_check_dt_act_params_symphony_class_id_ng_reserved(ita_table):
     # テストデータ削除
     delete_data_for_ita_driver()
 
+@pytest.mark.django_db
+def test_check_dt_act_params_conductor_class_id_ng_reserved(ita_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    CONDUCTOR_CLASS_IDの異常系(予約変数誤り)
+    """
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    conditions = {'条件1', '条件2'}
+    ############################################
+    # 異常テスト(CONDUCTOR_CLASS_IDの予約変数誤り)
+    ############################################
+    expected_msg = {'id': 'MOSJA03137', 'param': 'CONDUCTOR_CLASS_ID'}
+    param_list = ['ITA_NAME=action43',
+                  'CONDUCTOR_CLASS_ID={{ VAR_条件1  }}', 'SERVER_LIST=mas-pj-dev']
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    message_list = check_dt_action_params(param_list, act_info, conditions)
+    assert len(message_list) == 1
+    assert message_list[0] == expected_msg
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
 
 @pytest.mark.django_db
 def test_check_dt_action_params(ita_table):
@@ -966,6 +1047,22 @@ def test_check_dt_action_params(ita_table):
     expected_msg = {'id': 'MOSJA03139', 'param': 'OPERATION_ID, SERVER_LIST, MENU_ID'}
     param_list = ['ITA_NAME=action43', 'SYMPHONY_CLASS_ID=1',
                   'OPERATION_ID=1', 'SERVER_LIST=mas-pj-dev']
+    act_info = {"driver_name": 'ITA'}
+    set_data_ita_driver(ita_disp_name)
+
+    message_list = check_dt_action_params(param_list, act_info, conditions)
+    assert len(message_list) == 1
+    assert message_list[0] == expected_msg
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
+
+    ############################################
+    # 異常テスト(SYMPHONY_CLASS_IDとCONDUCTOR_CLASS_IDが共存)
+    ############################################
+    expected_msg = {'id': 'MOSJA03139', 'param': 'SYMPHONY_CLASS_ID, CONDUCTOR_CLASS_ID'}
+    param_list = ['ITA_NAME=action43', 'SYMPHONY_CLASS_ID=1', 'CONDUCTOR_CLASS_ID=1',
+                  'OPERATION_ID=1']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -1041,7 +1138,6 @@ def test_get_history_data_ok(ita_table):
     assert result['MOSJA13026'] == 1
     assert result['MOSJA13027'] == 'https://pytest-host-name:443/'
     assert result['MOSJA13028'] == None
-    assert result['MOSJA13084'] == 'info_test'
 
     # テストデータ削除
     delete_data_for_ita_driver()
