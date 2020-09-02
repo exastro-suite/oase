@@ -283,12 +283,20 @@ def get_history_data(action_his_id):
     try:
         history = ItaActionHistory.objects.get(action_his_id=action_his_id)
         result['MOSJA13023'] = history.ita_disp_name
-        result['MOSJA13024'] = history.symphony_instance_no
-        result['MOSJA13025'] = history.symphony_class_id
-        result['MOSJA13026'] = history.operation_id
-        result['MOSJA13027'] = history.symphony_workflow_confirm_url
-        result['MOSJA13028'] = history.restapi_error_info
-        result['MOSJA13084'] = history.parameter_item_info  # MOSJA13084:連携項目
+        if history.symphony_instance_no:
+            result['MOSJA13024'] = history.symphony_instance_no
+            result['MOSJA13025'] = history.symphony_class_id
+            result['MOSJA13026'] = history.operation_id
+            result['MOSJA13027'] = history.symphony_workflow_confirm_url
+            result['MOSJA13028'] = history.restapi_error_info
+            result['MOSJA13084'] = history.parameter_item_info  # MOSJA13084:連携項目
+        else:
+            result['MOSJA13085'] = history.conductor_instance_no
+            result['MOSJA13086'] = history.conductor_class_id
+            result['MOSJA13026'] = history.operation_id
+            result['MOSJA13087'] = history.conductor_workflow_confirm_url
+            result['MOSJA13028'] = history.restapi_error_info
+            result['MOSJA13084'] = history.parameter_item_info  # MOSJA13084:連携項目
 
     except ItaActionHistory.DoesNotExist:
         logger.system_log('LOSE00001', action_his_id, traceback.format_exc())
