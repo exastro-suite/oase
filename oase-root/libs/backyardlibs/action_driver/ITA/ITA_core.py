@@ -170,6 +170,100 @@ class ITA1Rest:
         ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01028')
         return True
 
+    def rest_conductor_execute(
+            self,
+            conductor_class_no,
+            operation_id,
+            list_conductor_instance_id,
+            ary_result,
+            resp_id,
+            exe_order):
+        """
+        [概要]
+          ITA RestAPI Conductor実行メゾット
+        """
+        logger.logic_log(
+            'LOSI00001', 'trace_id: %s, conductor_class_no: %s, operation_id: %s, list_conductor_instance_id: %s' %
+            (self.trace_id, conductor_class_no, operation_id, list_conductor_instance_id))
+        # プロクシ設定
+        proxies = {
+            "http": None,
+            "https": None,
+        }
+
+        keystr = self.user + ':' + self.password
+        access_key_id = base64.encodestring(keystr.encode('utf8')).decode("ascii").replace('\n', '')
+        url = "{}://{}:{}/default/menu/07_rest_api_ver1.php?no={}".format(
+            self.protocol, self.host, self.portno, self.menu_id)
+
+        logger.system_log('LOSI01000', url, self.trace_id)
+
+        headers = {
+            'host': '%s:%s' % (self.host, self.portno),
+            'Content-Type': 'application/json',
+            'Authorization': access_key_id
+        }
+
+        # X-Command
+        headers['X-Command'] = 'EXECUTE'
+
+        # ConductorクラスIDとオペレーションを設定
+        ary_execute = {}
+        ary_execute['CONDUCTOR_CLASS_NO'] = conductor_class_no
+        ary_execute['OPERATION_ID'] = operation_id
+
+        str_para_json_encoded = json.dumps(ary_execute)
+
+        try:
+            response = requests.post(url, headers=headers,timeout=30,verify=False,data=str_para_json_encoded.encode('utf-8'),proxies=proxies)
+            ary_result['status'] = response.status_code
+            ary_result['text'] = response.text
+
+            try:
+                json_string = json.dumps(response.json(), ensure_ascii=False, separators=(',', ': '))
+                ary_result['response'] = json.loads(json_string)
+
+                if ary_result['status'] != 200:
+                    ary_result['response'] = json_string
+                    logger.system_log('LOSM01305', self.trace_id, ary_execute['CONDUCTOR_CLASS_NO'],
+                                      ary_execute['OPERATION_ID'], ary_result['status'], ary_result['text'])
+                    logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+                    ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01072')
+                    return False
+
+                if ary_result['response']['status'] != 'SUCCEED':
+                    ary_result['response'] = json_string
+                    logger.logic_log('LOSM01305', self.trace_id, ary_execute['CONDUCTOR_CLASS_NO'],
+                                     ary_execute['OPERATION_ID'], ary_result['status'], ary_result['text'])
+                    logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+                    ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01073')
+                    return False
+
+                list_conductor_instance_id.append(ary_result['response']['resultdata']['CONDUCTOR_INSTANCE_ID'])
+
+            except Exception as ex:
+                ary_result['status'] = '-1'
+                back_trace = ActionDriverCommonModules.back_trace()
+                ary_result['response'] = back_trace + '\nresponse.status_code:' + \
+                    str(response.status_code) + '\nresponse.text\n' + response.text
+                logger.system_log('LOSM01301', self.trace_id, traceback.format_exc())
+                logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+                ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01074')
+                return False
+
+        except Exception as ex:
+            ary_result['status'] = '-1'
+            back_trace = ActionDriverCommonModules.back_trace()
+            ary_result['response'] = back_trace + '\nhttp header\n' + str(headers)
+            logger.system_log('LOSM01301', self.trace_id, traceback.format_exc())
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+            ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01075')
+            return False
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01076')
+        return True
+
     def rest_insert(self, insert_row_data, ary_result):
         """
         [概要]
@@ -420,19 +514,20 @@ class ITA1Core(DriverCore):
         ITAアクション処理クラス
     """
 
-    def __init__(self, trace_id, symphony_class_no, response_id, execution_order):
+    def __init__(self, trace_id, symphony_class_no, response_id, execution_order, conductor_class_no):
         """
         [概要]
         コンストラクタ
         """
-        logger.logic_log(
-            'LOSI00001', 'trace_id: %s, symphony_class_no: %s, response_id: %s, execution_order: %s' %
-            (trace_id, symphony_class_no, response_id, execution_order))
+        logger.logic_log( 'LOSI00001',
+            'trace_id: %s, symphony_class_no: %s, response_id: %s, execution_order: %s, conductor_class_no: %s' %
+            (trace_id, symphony_class_no, response_id, execution_order, conductor_class_no))
         self.trace_id = trace_id
         self.response_id = response_id
         self.execution_order = execution_order
         self.symphony_class_no = symphony_class_no
         self.restobj = ITA1Rest(trace_id)
+        self.conductor_class_no = conductor_class_no
 
         logger.logic_log('LOSI00002', 'None')
 
@@ -580,7 +675,7 @@ class ITA1Core(DriverCore):
 
 
     def select_symphony_movement_master(self, ary_ita_config, ary_movement_list):
-        
+
         logger.logic_log('LOSI00001', 'trace_id: %s, ary_ita_config: %s' % (self.trace_id, ary_ita_config))
         row_data_000311 = []
 
@@ -592,7 +687,7 @@ class ITA1Core(DriverCore):
             logger.system_log('LOSE01011', self.trace_id, 'C_MOVEMENT_CLASS_MNG', self.response_id, self.execution_order)
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
             return ret
-        
+
         # ary_movement_list
         #     movement_id:{'ORCHESTRATOR_ID':x,'MovementIDName':movement_id:MovementName}
         # SymphonyClassに紐づくMovement待避
@@ -601,6 +696,7 @@ class ITA1Core(DriverCore):
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, '0'))
         return 0
+
 
     def select_ita_master(self, ary_ita_config, ary_action_server_list, ary_movement_list, ary_action_server_id_name):
         """
@@ -705,6 +801,44 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0, symphony_instance_id, symphony_url
 
+    def conductor_execute(self, ary_ita_config, operation_id):
+        """
+        [概要]
+        Conductor実行メゾット
+        """
+        # Conductor実行
+        logger.logic_log('LOSI00001', 'trace_id: %s, ary_ita_config: %s, operation_id: %s' %
+                         (self.trace_id, ary_ita_config, operation_id))
+        logger.system_log('LOSI01000', 'Conductor Execute', self.trace_id)
+
+        target_table = 'CONDUCTOR'
+        ary_ita_config['menuID'] = '2100180004'
+        self.restobj.rest_set_config(ary_ita_config)
+        ary_result = {}
+        list_conductor_instance_id = []
+        conductor_instance_id = 0
+        conductor_url = ''
+
+        ret = self.restobj.rest_conductor_execute(
+            self.conductor_class_no,
+            operation_id,
+            list_conductor_instance_id,
+            ary_result,
+            self.response_id,
+            self.execution_order)
+        if not ret:
+            logger.system_log('LOSE01026', self.trace_id, target_table, self.response_id, self.execution_order, self.conductor_class_no)
+            logger.system_log('LOSE01000', self.trace_id, target_table, 'Insert', ary_result['status'])
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_REST_ERROR))
+            return Cstobj.RET_REST_ERROR, conductor_instance_id, conductor_url
+
+        # Conductor instance_idと作業確認URL更新
+        conductor_instance_id = list_conductor_instance_id[0]
+        conductor_url = "{}://{}:{}/default/menu/01_browse.php?no=2100180005&conductor_instance_id={}".format(ary_ita_config['Protocol'], ary_ita_config['Host'],ary_ita_config['PortNo'],list_conductor_instance_id[0])
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0, conductor_instance_id, conductor_url
+
     def get_last_info(self, ary_config, symphony_instance_no, operation_id):
         """
         [概要]
@@ -731,6 +865,40 @@ class ITA1Core(DriverCore):
 
         try:
             status_id = int(ary_result['response']['resultdata']['SYMPHONY_INSTANCE_INFO']['STATUS_ID'])
+        except KeyError as e:
+            logger.system_log('LOSE01024', self.trace_id)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, status_id))
+            return status_id
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, status_id))
+        return status_id
+
+    def get_last_info_conductor(self, ary_config, conductor_instance_no, operation_id):
+        """
+        [概要]
+        実行結果取得メゾット(Conductor用)
+        """
+        logger.logic_log(
+            'LOSI00001', 'trace_id: %s, ary_config: %s, conductor_instance_no: %s, operation_id: %s' %
+            (self.trace_id, ary_config, conductor_instance_no, operation_id))
+
+        ary_config['menuID'] = '2100180005'
+        status_id = -1
+        self.restobj.rest_set_config(ary_config)
+        ary_result = {}
+        insert_row_data = {"CONDUCTOR_INSTANCE_ID": conductor_instance_no}
+
+        result = self.restobj.rest_info(
+            insert_row_data,
+            operation_id,
+            ary_result
+        )
+        if not result:
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, status_id))
+            return status_id
+
+        try:
+            status_id = int(ary_result['response']['resultdata']['CONDUCTOR_INSTANCE_INFO']['STATUS_ID'])
         except KeyError as e:
             logger.system_log('LOSE01024', self.trace_id)
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, status_id))
