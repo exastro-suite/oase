@@ -545,14 +545,26 @@ def test_check_action_parameters():
     assert result == {'msg_id': 'MOSJA01006', 'key': 'ITA_NAME'}
 
     ########################################################
-    # 異常終了パターン　必須キー(SYMPHONY_CLASS_ID)チェック
+    # 異常終了パターン　必須キー(SYMPHONY_CLASS_ID or CONDUCTOR_CLASS_ID)チェック
     ########################################################
     testITA = ITAManager(trace_id, response_id, last_update_user)
     testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
     testITA.aryActionParameter['SERVER_LIST'] = 1
 
     result = testITA.check_action_parameters()
-    assert result == {'msg_id': 'MOSJA01006', 'key': 'SYMPHONY_CLASS_ID'}
+    assert result == {'msg_id': 'MOSJA01063', 'key': ['SYMPHONY_CLASS_ID', 'CONDUCTOR_CLASS_ID']}
+
+    ########################################################
+    # 異常終了パターン　排他キー(SYMPHONY_CLASS_ID, CONDUCTOR_CLASS_ID)チェック
+    ########################################################
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.aryActionParameter['CONDUCTOR_CLASS_ID'] = 1
+    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
+    testITA.aryActionParameter['OPERATION_ID'] = 1
+
+    result = testITA.check_action_parameters()
+    assert result == {'msg_id': 'MOSJA01062', 'key': ['SYMPHONY_CLASS_ID', 'CONDUCTOR_CLASS_ID']}
 
     ####################################################################
     # 異常終了パターン 排他キー(OPERATION_ID, SERVER_LIST)チェック
@@ -566,6 +578,30 @@ def test_check_action_parameters():
     result = testITA.check_action_parameters()
     assert result == {'msg_id': 'MOSJA01062',
                       'key': ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
+
+    ############################################
+    # 正常終了パターン SYMPHONY_CLASS_ID
+    ############################################
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
+    testITA.aryActionParameter['OPERATION_ID'] = 1
+
+    result = testITA.check_action_parameters()
+
+    assert not result
+
+    ############################################
+    # 正常終了パターン CONDUCTOR_CLASS_ID
+    ############################################
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['CONDUCTOR_CLASS_ID'] = 1
+    testITA.aryActionParameter['ITA_NAME'] = ita_disp_name
+    testITA.aryActionParameter['OPERATION_ID'] = 1
+
+    result = testITA.check_action_parameters()
+
+    assert not result
 
     ############################################
     # 正常終了パターン OPERATION_ID
@@ -710,7 +746,7 @@ def test_act_ptrn_menuid_convertflg_true_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 4
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -746,7 +782,7 @@ def test_act_ptrn_menuid_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -782,7 +818,7 @@ def test_act_ptrn_menuid_hostgroup_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -818,7 +854,7 @@ def test_act_ptrn_menuid_host_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -854,7 +890,7 @@ def test_act_ptrn_menuid_hostgroup_host_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -890,7 +926,7 @@ def test_act_ptrn_multiple_menuid_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -925,7 +961,7 @@ def test_act_ptrn_multiple_menuid_hostgroup_convertflg_false_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
@@ -1345,7 +1381,7 @@ def test_act_ptrn_serverlist_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f: 3)
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
@@ -1548,7 +1584,7 @@ def test_act_ok(monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
 
-    monkeypatch.setattr(testITA, 'ita_action_history_insert', lambda a, b, c, d, e: 3)
+    monkeypatch.setattr(testITA, 'ita_action_history_insert', lambda a, b, c, d, e, f, g: 3)
     monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
@@ -1588,7 +1624,7 @@ def test_ita_action_history_insert_ok():
     testITA = ITAManager(trace_id, response_id, last_update_user)
     testITA.action_history = ActionHistory.objects.all()[0]
 
-    itaacthist = testITA.ita_action_history_insert(param_info, 1, 1, 'http://hoge.example.com/', 1)
+    itaacthist = testITA.ita_action_history_insert(param_info, 1, 1, 'http://hoge.example.com/', 1, 1, 'http://conductor.example.com/')
 
     assert itaacthist != None
 
@@ -1620,8 +1656,8 @@ def test_ita_action_history_update_ok():
     testITA = ITAManager(trace_id, response_id, last_update_user)
     testITA.action_history = ActionHistory.objects.all()[0]
 
-    itaacthist = testITA.ita_action_history_insert(param_info, 1, 1, 'http://hoge.example.com/', 1)
-    itaacthist = testITA.ita_action_history_insert(param_info, 9, 9, 'http://hoge.example.com/', 1)
+    itaacthist = testITA.ita_action_history_insert(param_info, 1, 1, 'http://hoge.example.com/', 1, 1, 'http://conductor.example.com/')
+    itaacthist = testITA.ita_action_history_insert(param_info, 9, 9, 'http://hoge.example.com/', 1, 1, 'http://conductor.example.com/')
 
     assert itaacthist != None
     assert itaacthist.operation_id == 9
