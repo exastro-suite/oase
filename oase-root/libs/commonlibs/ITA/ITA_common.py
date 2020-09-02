@@ -15,6 +15,7 @@
 """
 [概要]
   ITAドライバーのライブラリ
+
 """
 import traceback
 from web_app.models.ITA_models import ItaDriver
@@ -47,8 +48,20 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     # ITA_NAME チェック
     message_list = ita_name_check(check_info, act_info, message_list)
 
-    # SYMPHONY_CLASS_ID チェック
-    message_list = symphony_class_id_check(check_info, conditions, message_list)
+    # 重複チェック
+    if 'SYMPHONY_CLASS_ID' in check_info and 'CONDUCTOR_CLASS_ID' in check_info:
+        logger.logic_log('LOSM00035', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'SYMPHONY_CLASS_ID, CONDUCTOR_CLASS_ID'})
+    elif 'SYMPHONY_CLASS_ID' in check_info:
+        # SYMPHONY_CLASS_ID チェック
+        message_list = symphony_class_id_check(check_info, conditions, message_list)
+    elif 'CONDUCTOR_CLASS_ID' in check_info:
+        # CONDUCTOR_CLASS_ID チェック
+        message_list = conductor_class_id_check(check_info, conditions, message_list)
+    else:
+        # どちらも記述がない場合
+        message_list.append({'id': 'MOSJA03108', 'param': None})
 
     # OPERATION_ID チェック
     if 'OPERATION_ID' in check_info:
@@ -130,6 +143,33 @@ def symphony_class_id_check(check_info, conditions, message_list):
     elif not DriverCommon.has_right_reserved_value(conditions, check_info['SYMPHONY_CLASS_ID']):
         logger.logic_log('LOSM00023', check_info['SYMPHONY_CLASS_ID'])
         message_list.append({'id': 'MOSJA03137', 'param': 'SYMPHONY_CLASS_ID'})
+
+    return message_list
+
+
+def conductor_class_id_check(check_info, conditions, message_list):
+    """
+    [概要]
+    CONDUCTOR_CLASS_IDのバリデーションチェックを行う
+    [引数]
+    check_info        : チェック情報
+    conditions        : 条件名
+    message_list      : メッセージリスト
+    [戻り値]
+    message_list      : メッセージリスト
+    """
+
+    if 'CONDUCTOR_CLASS_ID' not in check_info:
+        logger.logic_log('LOSM00033', check_info)
+        message_list.append({'id': 'MOSJA03113', 'param': 'CONDUCTOR_CLASS_ID'})
+
+    elif check_info['CONDUCTOR_CLASS_ID'] == '':
+        logger.logic_log('LOSM00034', check_info)
+        message_list.append({'id': 'MOSJA03207', 'param': None})
+
+    elif not DriverCommon.has_right_reserved_value(conditions, check_info['CONDUCTOR_CLASS_ID']):
+        logger.logic_log('LOSM00023', check_info['CONDUCTOR_CLASS_ID'])
+        message_list.append({'id': 'MOSJA03137', 'param': 'CONDUCTOR_CLASS_ID'})
 
     return message_list
 
