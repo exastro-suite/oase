@@ -31,7 +31,6 @@ def get_configs():
     }
     return configs
 
-
 def create_ita1core():
     """
     ITA1Coreのインスタンスを作成して返す
@@ -40,8 +39,19 @@ def create_ita1core():
     symphony_class_no_ = '1'
     response_id = '2'
     execution_order = '3'
-    return ITA1Core(trace_id, symphony_class_no_, response_id, execution_order)
+    conductor_class_no = ''
+    return ITA1Core(trace_id, symphony_class_no_, response_id, execution_order, conductor_class_no)
 
+def create_ita1core_c():
+    """
+    ITA1Coreのインスタンスを作成して返す
+    """
+    trace_id = '-' * 40
+    symphony_class_no_ = ''
+    response_id = '2'
+    execution_order = '3'
+    conductor_class_no = '4'
+    return ITA1Core(trace_id, symphony_class_no_, response_id, execution_order, conductor_class_no)
 
 def method_dummy_true(*args, **kwargs):
     """正常系用 request.postの戻り値"""
@@ -56,7 +66,20 @@ def method_dummy_data(*args, **kwargs):
     """正常系用"""
     return [[None, '', '1', '3', '1', '1', '2', None, '1', None, '2020/02/20 09:26:35', 'T_20200220092635765311', 'システム管理者']]
 
+def test_get_last_info_conductor(monkeypatch):
+    """
+    get_last_info_conductorのテスト
+    """
 
+    ary_config = get_configs()
+    conductor_instance_no = '1'
+    operation_id = '27'
+    core = create_ita1core_c()
+    core.restobj.rest_set_config(get_configs())
+
+    monkeypatch.setattr(core.restobj, 'rest_info', method_dummy_true)
+    result = core.get_last_info_conductor(ary_config, conductor_instance_no, operation_id)
+    assert(result)
 
 def test_select_c_movement_class_mng_true(monkeypatch):
     """
