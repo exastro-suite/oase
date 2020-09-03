@@ -93,6 +93,57 @@ def set_data_ita_driver(ita_disp_name):
         print(e)
 
 
+def set_data_ita_driver_conductor(ita_disp_name):
+    """
+    ITAへの確認機能のテストに必要なデータをDBに登録
+    """
+    module = import_module('web_app.models.ITA_models')
+    ItaDriver = getattr(module, 'ItaDriver')
+    ItaActionHistory = getattr(module, 'ItaActionHistory')
+
+    # パスワードを暗号化
+    cipher = AESCipher(settings.AES_KEY)
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    encrypted_password = cipher.encrypt('pytest')
+    url = 'https://pytest-host-name:443/'
+
+    try:
+        with transaction.atomic():
+
+            # ITAアクションマスタ
+            ItaDriver(
+                ita_disp_name=ita_disp_name,
+                protocol='https',
+                hostname='pytest-host-name',
+                port='443',
+                username='pytest',
+                password=encrypted_password,
+                last_update_user='pytest',
+                last_update_timestamp=now
+            ).save(force_insert=True)
+
+            ItaActionHistory(
+                ita_action_his_id=1,
+                action_his_id=1,
+                ita_disp_name=ita_disp_name,
+                symphony_instance_no=None,
+                symphony_class_id=None,
+                conductor_instance_no=1,
+                conductor_class_id=1,
+                operation_id=1,
+                symphony_workflow_confirm_url='',
+                conductor_workflow_confirm_url=url,
+                restapi_error_info=None,
+                parameter_item_info='info_test',
+                last_update_timestamp=now,
+                last_update_user='pytest'
+            ).save(force_insert=True)
+
+    except Exception as e:
+        print(e)
+
+
 def delete_data_for_ita_driver():
     """
     テストで使用したデータの削除
@@ -1188,6 +1239,32 @@ def test_get_history_data_ok(ita_table):
     assert result['MOSJA13025'] == 1
     assert result['MOSJA13026'] == 1
     assert result['MOSJA13027'] == 'https://pytest-host-name:443/'
+    assert result['MOSJA13028'] == None
+    assert result['MOSJA13084'] == 'info_test'
+
+    # テストデータ削除
+    delete_data_for_ita_driver()
+
+@pytest.mark.django_db
+def test_get_history_data_conductor_ok(ita_table):
+    """
+    ITAアクション履歴の取得処理テスト(Conductor)
+    ACTION_HIS_IDの正常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_ita_driver()
+    ita_disp_name = 'action43'
+    set_data_ita_driver_conductor(ita_disp_name)
+    action_his_id = 1
+    result = get_history_data(action_his_id)
+
+    assert len(result) > 0
+    assert result['MOSJA13023'] == ita_disp_name
+    assert result['MOSJA13085'] == 1
+    assert result['MOSJA13086'] == 1
+    assert result['MOSJA13026'] == 1
+    assert result['MOSJA13087'] == 'https://pytest-host-name:443/'
     assert result['MOSJA13028'] == None
     assert result['MOSJA13084'] == 'info_test'
 
