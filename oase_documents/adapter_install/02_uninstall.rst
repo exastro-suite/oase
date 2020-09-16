@@ -21,9 +21,11 @@ OASE本体をインストールされた際のoase-root直下で実施します�
 
 **例）zabbixアダプタアンインストール例**
 
+ディレクトリパスは「1 監視アダプタインストール」にして指定したディレクトリパスにしてください。
+
 ::
 
- python3 manage.py adapter_installer -p /exastro/plugins -u 1
+ python3 manage.py adapter_installer -p [ディレクトリパス]/plugins -u 1
 
 
 2.1.2 オプション
