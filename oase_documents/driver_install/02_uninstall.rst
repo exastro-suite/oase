@@ -17,13 +17,15 @@ OASE本体をインストールされた際のoase-root直下で実施します�
 
 ::
 
- python3 manage.py adapter_installer -p [pluginsパス] -u [アンインストール対象ID]
+ python3 manage.py driver_installer -p [pluginsパス] -u [アンインストール対象ID]
 
 **例）ITAドライバアンインストール例**
 
+ディレクトリパスは「1 ドライバインストール」にして指定したディレクトリパスにしてください。
+
 ::
 
- python3 manage.py driver_installer -p /exastro/plugins -u 1
+ python3 manage.py driver_installer -p [ディレクトリパス]/plugins -u 1
 
 
 
