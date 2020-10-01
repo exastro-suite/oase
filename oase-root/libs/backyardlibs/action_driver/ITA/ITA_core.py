@@ -698,6 +698,65 @@ class ITA1Core(DriverCore):
         return 0
 
 
+    def select_c_movement_class_mng_conductor(self, result):
+        """
+        [概要]
+        "Conductor紐付Node一覧"検索メゾット
+        正常終了なら0を、異常があればエラーコードを返す。
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s' % (self.trace_id))
+        target_table = 'C_NODE_CLASS_MNG'
+        self.restobj.menu_id = '2100180007'
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            Cstobj.CNCM_CONDUCTOR_CLASS_NO: {'LIST': {0: self.conductor_class_no}}
+        }
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+        if ret:
+            row_count = self.restobj.rest_get_row_count(ary_result)
+            if row_count < 1:
+                # Movement未登録
+                logger.system_log('LOSE01027', self.trace_id, target_table, self.response_id, self.execution_order, self.conductor_class_no)
+                logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
+                ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01078')
+                return Cstobj.RET_DATA_ERROR
+            select_data = self.restobj.rest_get_row_data(ary_result)
+            for row in select_data:
+                result.append(row)
+        else:
+            logger.system_log('LOSE01000', self.trace_id, target_table, 'Filter', ary_result['status'])
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_REST_ERROR))
+            ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01077')
+            return Cstobj.RET_REST_ERROR
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0
+
+
+    def select_conductor_movement_master(self, ary_ita_config, ary_movement_list):
+
+        logger.logic_log('LOSI00001', 'trace_id: %s, ary_ita_config: %s' % (self.trace_id, ary_ita_config))
+        row_data_180007 = []
+
+        # Conductor紐付Node一覧取得
+        logger.system_log('LOSI01000', 'C_NODE_CLASS_MNG select', self.trace_id)
+        self.restobj.rest_set_config(ary_ita_config)
+        ret = self.select_c_movement_class_mng_conductor(row_data_180007)
+        if ret > 0:
+            logger.system_log('LOSE01011', self.trace_id, 'C_NODE_CLASS_MNG', self.response_id, self.execution_order)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret
+
+        for row in row_data_180007:
+            if row[Cstobj.CNCM_NODE_TYPE_ID] == 3:
+                ary_movement_list[row[Cstobj.CNCM_PATTERN_ID]] = {
+                    'ORCHESTRATOR_ID': row[Cstobj.CNCM_ORCHESTRATOR_ID], 'MovementIDName': ''}
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, '0'))
+        return 0
+
+
     def select_ita_master(self, ary_ita_config, ary_action_server_list, ary_movement_list, ary_action_server_id_name):
         """
         [概要]
