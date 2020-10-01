@@ -110,7 +110,7 @@ class ITAParameterSheetMenuManager:
         self.ita_config['user'] = drv_info['username']
         self.ita_config['password'] = cipher.decrypt(drv_info['password'])
         self.ita_config['menuID'] = ''
-        self.ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+        self.ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0, 0)
 
     def get_menu_list(self):
         """

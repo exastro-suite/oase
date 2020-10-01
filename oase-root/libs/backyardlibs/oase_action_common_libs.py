@@ -69,6 +69,17 @@ class ConstantModules:
     CMCM_UPDATE_LAST_UPDATE_TIMESTAMP = 11
     CMCM_LAST_UPDATE_USER             = 12
 
+    ## C_NODE_CLASS_MNG
+    CNCM_NODE_CLASS_NO                =  2
+    CNCM_NODE_NAME                    =  3
+    CNCM_NODE_TYPE_ID                 =  4
+    CNCM_ORCHESTRATOR_ID              =  5
+    CNCM_PATTERN_ID                   =  6
+    CNCM_CONDUCTOR_CLASS_NO           =  7
+    CNCM_CONDUCTOR_CALL_CLASS_NO      =  8
+    CNCM_OPERATION_NO_IDBH            =  9
+    CNCM_SKIP_FLAG                    = 10
+
     ## C_STM_LIST
     CSL_SYSTEM_ID                     =  2
     CSL_HARDAWRE_TYPE_ID              =  3
