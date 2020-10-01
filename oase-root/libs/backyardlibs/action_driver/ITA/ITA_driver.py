@@ -103,7 +103,7 @@ class ITAManager(AbstractManager):
         self.ita_driver = None  # model
 
 
-    def ita_action_history_insert(self,aryAnzActionParameter,SymphonyInstanceNO,
+    def ita_action_history_insert(self, aryAnzActionParameter, SymphonyInstanceNO,
             OperationID,SymphonyWorkflowURL, exe_order, conductor_instance_id, conductor_url, parameter_item_info=''):
         """
         [概要]
@@ -613,7 +613,7 @@ class ITAManager(AbstractManager):
                                 parameter_item_info = parameter_item_info + pci['parameter_value']
                         elif pci['ita_order'] == 0:
                             # TODO 多言語化対応
-                            parameter_item_info = parameter_item_info + "[ホスト名:" 
+                            parameter_item_info = parameter_item_info + "[ホスト名:"
                             parameter_item_info = parameter_item_info + pci['parameter_value']
                         elif pii['ita_order'] == pci['ita_order']:
                             parameter_item_info = parameter_item_info + ", "
@@ -653,10 +653,12 @@ class ITAManager(AbstractManager):
 
         if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
             code = self.ITAobj.select_symphony_movement_master(self.ary_ita_config, self.ary_movement_list)
+        else:
+            code = self.ITAobj.select_conductor_movement_master(self.ary_ita_config, self.ary_movement_list)
 
-            if code > 0:
-                logger.system_log('LOSE01107', self.trace_id, code)
-                return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+        if code > 0:
+            logger.system_log('LOSE01107', self.trace_id, code)
+            return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         operation_name = '%s%s' % (self.trace_id, exec_order)
 
