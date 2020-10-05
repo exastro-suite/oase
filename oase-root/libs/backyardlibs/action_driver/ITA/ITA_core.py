@@ -749,7 +749,7 @@ class ITA1Core(DriverCore):
             return ret
 
         for row in row_data_180007:
-            if row[Cstobj.CNCM_NODE_TYPE_ID] == 3:
+            if row[Cstobj.CNCM_NODE_TYPE_ID] == '3':
                 ary_movement_list[row[Cstobj.CNCM_PATTERN_ID]] = {
                     'ORCHESTRATOR_ID': row[Cstobj.CNCM_ORCHESTRATOR_ID], 'MovementIDName': ''}
 
