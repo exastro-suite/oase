@@ -141,6 +141,84 @@ def test_select_c_pattern_per_orch_true(monkeypatch):
     monkeypatch.setattr(core.restobj, 'rest_get_row_data', method_dummy_data)
     assert core.select_c_pattern_per_orch(result) == 0
 
+def test_select_c_movement_class_mng_conductor_true(monkeypatch):
+    """
+    select_c_movement_class_mng_conductor()の正常系テスト
+    """
+
+    def method_dummy_data(*args, **kwargs):
+        """正常系用"""
+        return [[None, '', '1', '3', '1', '1', '2', None, '1', None, '2020/02/20 09:26:35', 'T_20200220092635765311', 'システム管理者']]
+
+    result = []
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    # 正常系
+    monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_count', method_dummy_count)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_data', method_dummy_data)
+    assert core.select_c_movement_class_mng_conductor(result) == 0
+
+def test_select_c_movement_class_mng_conductor_false(monkeypatch):
+    """
+    select_c_movement_class_mng_conductor()の異常系テスト
+    """
+
+    def method_dummy_false(aryfilter, ary_result):
+        """異常系用"""
+        ary_result['status'] = '-1'
+        return False
+
+    result = []
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    # 異常系
+    monkeypatch.setattr(core.restobj, 'rest_select', method_dummy_false)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_count', method_dummy_count)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_data', method_dummy_data)
+    assert core.select_c_movement_class_mng_conductor(result) == 100
+
+def test_select_conductor_movement_master_true(monkeypatch):
+    """
+    select_conductor_movement_master()の正常系テスト
+    """
+
+    def method_dummy_data(*args, **kwargs):
+        """正常系用"""
+        return [[None, '', '1', '3', '1', '1', '2', None, '1', None, '2020/02/20 09:26:35', 'T_20200220092635765311', 'システム管理者']]
+
+    result = {}
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    # 正常系
+    monkeypatch.setattr(core, 'select_c_movement_class_mng_conductor', method_dummy_true)
+    assert core.select_conductor_movement_master(get_configs(), result) == True
+
+def test_select_conductor_movement_master_false(monkeypatch):
+    """
+    select_conductor_movement_master()の異常系テスト
+    """
+
+    #def method_dummy_false(aryfilter, ary_result):
+    #    """異常系用"""
+    #    ary_result['status'] = '-1'
+    #    return False
+
+    def method_dummy_false(*args, **kwargs):
+        """異常系用"""
+        return False
+
+    result = []
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    # 異常系
+    monkeypatch.setattr(core, 'select_c_movement_class_mng_conductor', method_dummy_false)
+    assert core.select_conductor_movement_master(get_configs(), result) == False
+
 def test_select_ita_master(monkeypatch):
     """
     select_ita_master()のテスト
