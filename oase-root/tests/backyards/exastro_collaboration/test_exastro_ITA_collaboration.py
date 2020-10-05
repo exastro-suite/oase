@@ -187,7 +187,7 @@ class TestITAParameterSheetMenuManager(object):
         """
 
         patch_return = []
-        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0, 0)
         monkeypatch.setattr(ITA1Core, 'select_create_menu_info_list', lambda x, y, z: (False, patch_return))
 
         flg, get_data = self.target.get_menu_list()
@@ -269,7 +269,7 @@ class TestITAParameterSheetMenuManager(object):
         }
 
         patch_return = []
-        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0, 0)
 
         flg, get_data = self.target.get_hostgroup_flg(menu_list)
 
@@ -315,7 +315,7 @@ class TestITAParameterSheetMenuManager(object):
         }
 
         patch_return = []
-        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0)
+        ita_core = ITA1Core('TOS_Backyard_ParameterSheetMenuManager', 0, 0, 0, 0)
 
         flg, get_data = self.target.get_menu_item_list(ret_info)
         ret_info['item_list'] = patch_return
