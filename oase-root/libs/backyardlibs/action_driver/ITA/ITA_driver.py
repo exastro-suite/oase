@@ -192,6 +192,7 @@ class ITAManager(AbstractManager):
         hostgroup_name = None
         conductor_instance_id = None
         conductor_url = ''
+        event_info_list = []
 
         param_info = json.loads(rhdm_res_act.action_parameter_info)
 
@@ -501,7 +502,7 @@ class ITAManager(AbstractManager):
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
 
             # 連携項目整形
-            parameter_item_info = self.make_parameter_item_info(menu_id_list, rhdm_res_act, target_host_name)
+            parameter_item_info = self.make_parameter_item_info(menu_id_list, rhdm_res_act, target_host_name, event_info_list, convert_flg)
 
             # ITAアクション履歴登録
             ret = self.ita_action_history_insert(
@@ -559,7 +560,7 @@ class ITAManager(AbstractManager):
         logger.logic_log('LOSI00002', 'return: PROCESSED')
         return ACTION_HISTORY_STATUS.EXASTRO_REQUEST, DetailStatus
 
-    def make_parameter_item_info(self, menu_id_list, rhdm_res_act, target_host_name):
+    def make_parameter_item_info(self, menu_id_list, rhdm_res_act, target_host_name, event_info_list, convert_flg):
         """
         [概要]
         """
@@ -577,54 +578,87 @@ class ITAManager(AbstractManager):
 
         parameter_item_info = ''
 
-        for i,mn in enumerate(menu_name):
-            if i == 0:
-                parameter_item_info = str(mn['menu_id']) + ":" + mn['menu_name']
-            else:
-                parameter_item_info = parameter_item_info + ", " + str(mn['menu_id']) + ":" + mn['menu_name']
+        if convert_flg.upper() == 'FALSE':
+            for i,mn in enumerate(menu_name):
+                if i == 0:
+                    parameter_item_info = str(mn['menu_id']) + ":" + mn['menu_name']
+                else:
+                    parameter_item_info = parameter_item_info + ", " + str(mn['menu_id']) + ":" + mn['menu_name']
 
-            for j,pii in enumerate(param_item_info):
-                menu_id_prev = 0
-                for k,pci in enumerate(param_commit_info):
-                    if mn['menu_id'] == pii['menu_id'] and mn['menu_id'] == pci['menu_id']:
-                        if menu_id_prev != pci['menu_id'] and len(target_host_name) > 0:
-                            if target_host_name.get(str(mn['menu_id'])) != None:
-                                if len(target_host_name[str(mn['menu_id'])]['HG']) > 0 and \
-                                   len(target_host_name[str(mn['menu_id'])]['H']) > 0:
-                                    hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
-                                    h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
+                host_flg = False
+
+                for j,pii in enumerate(param_item_info):
+                    menu_id_prev = 0
+                    for k,pci in enumerate(param_commit_info):
+                        if mn['menu_id'] == pii['menu_id'] and mn['menu_id'] == pci['menu_id']:
+                            if menu_id_prev != pci['menu_id'] and \
+                               host_flg == False and \
+                               (len(target_host_name[str(mn['menu_id'])]['HG']) > 0 or \
+                               len(target_host_name[str(mn['menu_id'])]['H']) > 0):
+                                if target_host_name.get(str(mn['menu_id'])) != None:
+                                    if len(target_host_name[str(mn['menu_id'])]['HG']) > 0 and \
+                                       len(target_host_name[str(mn['menu_id'])]['H']) > 0:
+                                        hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
+                                        h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
+                                        # TODO 多言語化対応
+                                        parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                        parameter_item_info = parameter_item_info + hg_hostname
+                                        parameter_item_info = parameter_item_info + "," + h_hostname
+                                        host_flg = True
+                                    elif len(target_host_name[str(mn['menu_id'])]['HG']) > 0:
+                                        hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
+                                        # TODO 多言語化対応
+                                        parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                        parameter_item_info = parameter_item_info + hg_hostname
+                                        host_flg = True
+                                    elif len(target_host_name[str(mn['menu_id'])]['H']) > 0:
+                                        h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
+                                        # TODO 多言語化対応
+                                        parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                        parameter_item_info = parameter_item_info + h_hostname
+                                        host_flg = True
+                                elif pci['ita_order'] == 0 and host_flg == False:
                                     # TODO 多言語化対応
-                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
-                                    parameter_item_info = parameter_item_info + hg_hostname
-                                    parameter_item_info = parameter_item_info + "," + h_hostname
-                                elif len(target_host_name[str(mn['menu_id'])]['HG']) > 0:
-                                    hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
-                                    # TODO 多言語化対応
-                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
-                                    parameter_item_info = parameter_item_info + hg_hostname
-                                elif len(target_host_name[str(mn['menu_id'])]['H']) > 0:
-                                    h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
-                                    # TODO 多言語化対応
-                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
-                                    parameter_item_info = parameter_item_info + h_hostname
-                            elif pci['ita_order'] == 0:
+                                    parameter_item_info = parameter_item_info + "[ホスト名:"
+                                    parameter_item_info = parameter_item_info + pci['parameter_value']
+                                    host_flg = True
+                            elif pci['ita_order'] == 0 and host_flg == False:
                                 # TODO 多言語化対応
                                 parameter_item_info = parameter_item_info + "[ホスト名:"
                                 parameter_item_info = parameter_item_info + pci['parameter_value']
-                        elif pci['ita_order'] == 0:
-                            # TODO 多言語化対応
-                            parameter_item_info = parameter_item_info + "[ホスト名:"
-                            parameter_item_info = parameter_item_info + pci['parameter_value']
-                        elif pii['ita_order'] == pci['ita_order']:
-                            parameter_item_info = parameter_item_info + ", "
-                            parameter_item_info = parameter_item_info + pii['item_name']
-                            parameter_item_info = parameter_item_info + ":"
-                            parameter_item_info = parameter_item_info + pci['parameter_value']
+                                host_flg = True
+                            elif (pii['ita_order'] + 1) == pci['ita_order']:
+                                parameter_item_info = parameter_item_info + ", "
+                                parameter_item_info = parameter_item_info + pii['item_name']
+                                parameter_item_info = parameter_item_info + ":"
+                                parameter_item_info = parameter_item_info + pci['parameter_value']
 
-                    menu_id_prev = pci['menu_id']
+                        menu_id_prev = pci['menu_id']
 
-                if j == len(param_item_info) - 1:
-                    parameter_item_info = parameter_item_info + "]"
+                    if j == len(param_item_info) - 1:
+                        parameter_item_info = parameter_item_info + "]"
+
+        else:
+            for i,mn in enumerate(menu_name):
+                if i == 0:
+                    parameter_item_info = str(mn['menu_id']) + ":" + mn['menu_name']
+                for j,pii in enumerate(param_item_info):
+                    if j == 0:
+                        # TODO 多言語化対応
+                        parameter_item_info = parameter_item_info + "[ホスト名:"
+                        parameter_item_info = parameter_item_info + event_info_list[j]
+                        parameter_item_info = parameter_item_info + ", "
+                        parameter_item_info = parameter_item_info + pii['item_name']
+                        parameter_item_info = parameter_item_info + ":"
+                        parameter_item_info = parameter_item_info + event_info_list[j+1]
+                    else:
+                        parameter_item_info = parameter_item_info + ", "
+                        parameter_item_info = parameter_item_info + pii['item_name']
+                        parameter_item_info = parameter_item_info + ":"
+                        parameter_item_info = parameter_item_info + event_info_list[j+1]
+
+                    if j == len(param_item_info) - 1:
+                        parameter_item_info = parameter_item_info + "]"
 
         return parameter_item_info
 
