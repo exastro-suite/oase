@@ -1684,7 +1684,11 @@ def test_make_parameter_item_info_ok():
         'SYMPHONY_CLASS_ID' : 1,
     }
     target_host = {
+        '1':{'H':[], 'HG':[]},
+        '2':{'H':[], 'HG':[]}
     }
+    event_info_list = []
+    assert_parameter_item_info = '1:pytest用メニュー1[ホスト名:HostName], 2:pytest用メニュー2[ホスト名:HostGroupName]'
 
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
 
@@ -1693,10 +1697,9 @@ def test_make_parameter_item_info_ok():
 
     set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
 
-    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act, target_host)
+    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act, target_host, event_info_list, 'False')
 
-    assert 'ItemName1001' in parameter_item_info
-    assert 'ParamData2001' in parameter_item_info
+    assert assert_parameter_item_info == parameter_item_info
 
     delete_data_param_information()
 
@@ -1720,8 +1723,11 @@ def test_make_parameter_item_info_ok_specifyhost_nomatch():
         'SYMPHONY_CLASS_ID' : 1,
     }
     target_host = {
-        99:{'H':'Host99', 'HG':'HostGroup99'}
+        '1':{'H':['Host99'], 'HG':['HostGroup99']},
+        '2':{'H':['Host99'], 'HG':['HostGroup99']}
     }
+    event_info_list = []
+    assert_parameter_item_info = '1:pytest用メニュー1[ホスト名/ホストグループ名:HostGroup99,Host99], 2:pytest用メニュー2[ホスト名/ホストグループ名:HostGroup99,Host99]'
 
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
 
@@ -1730,10 +1736,9 @@ def test_make_parameter_item_info_ok_specifyhost_nomatch():
 
     set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
 
-    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act, target_host)
+    parameter_item_info = testITA.make_parameter_item_info([1, 2], rhdm_res_act, target_host, event_info_list, 'False')
 
-    assert 'ItemName1001' in parameter_item_info
-    assert 'ParamData2001' in parameter_item_info
+    assert assert_parameter_item_info == parameter_item_info
 
     delete_data_param_information()
 
@@ -1761,6 +1766,8 @@ def test_make_parameter_item_info_ok_specifyhost_all():
         '2':{'HG':['[HG]HostGr2001', ], 'H':[]},
         '5':{'H':['[H]Host5001', ], 'HG':['[HG]HostGr5002', ]}
     }
+    event_info_list = []
+    assert_parameter_item_info = '1:pytest用メニュー1[ホスト名/ホストグループ名:[H]Host1001], 2:pytest用メニュー2[ホスト名/ホストグループ名:[HG]HostGr2001], 5:pytest用メニュー5[ホスト名/ホストグループ名:[HG]HostGr5002,[H]Host5001]'
 
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
 
@@ -1769,12 +1776,9 @@ def test_make_parameter_item_info_ok_specifyhost_all():
 
     set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
 
-    parameter_item_info = testITA.make_parameter_item_info([1, 2, 5], rhdm_res_act, target_host)
+    parameter_item_info = testITA.make_parameter_item_info([1, 2, 5], rhdm_res_act, target_host, event_info_list, 'False')
 
-    assert 'Host1001' in parameter_item_info
-    assert 'HostGr2001' in parameter_item_info
-    assert 'Host5001' in parameter_item_info
-    assert 'HostGr5002' in parameter_item_info
+    assert assert_parameter_item_info == parameter_item_info
 
     delete_data_param_information()
 
@@ -1797,6 +1801,7 @@ def test_make_parameter_item_info_ok_nomatch():
         'ITA_NAME':ita_disp_name,
         'SYMPHONY_CLASS_ID' : 1,
     }
+    event_info_list = []
 
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
 
@@ -1805,9 +1810,47 @@ def test_make_parameter_item_info_ok_nomatch():
 
     set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
 
-    parameter_item_info = testITA.make_parameter_item_info([99], rhdm_res_act, {})
+    parameter_item_info = testITA.make_parameter_item_info([99], rhdm_res_act, {}, event_info_list, 'False')
 
     assert parameter_item_info == ''
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_make_parameter_item_info_convert_true_ok():
+    """
+    パラメーター項目情報作成メソッドのテスト
+    正常系(加工あり)
+    """
+
+    ItaDriver = get_ita_driver()
+    ITAManager = get_ita_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+    param_info = {
+        'ITA_NAME':ita_disp_name,
+        'SYMPHONY_CLASS_ID' : 1,
+    }
+    target_host = {
+        '1':{'H':[], 'HG':[]}
+    }
+    event_info_list = ['HostName', 'ItemName1001']
+    assert_parameter_item_info = '1:pytest用メニュー1[ホスト名:HostName, ItemName1001:ItemName1001]'
+
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, param_info)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.ita_driver = ItaDriver.objects.all()[0]
+
+    set_data_param_item(testITA.ita_driver.ita_driver_id, response_id, rhdm_res_act.execution_order)
+
+    parameter_item_info = testITA.make_parameter_item_info([1], rhdm_res_act, target_host, event_info_list, 'True')
+
+    assert assert_parameter_item_info == parameter_item_info
 
     delete_data_param_information()
 
