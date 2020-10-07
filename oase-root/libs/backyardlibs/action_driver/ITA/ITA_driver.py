@@ -237,20 +237,28 @@ class ITAManager(AbstractManager):
 
             if retry:
                 # 再実行の際、登録前にエラーになっていた場合は登録処理から行う。
-                ret = self.ITAobj.select_ope_ita_master(
-                    self.ary_ita_config, operation_id)
+                operation_data = []
+                operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
+                ret = self.ITAobj._select_c_operation_list_by_operation_name(
+                    operation_name, operation_data, False)
+
                 if ret == Cstobj.RET_DATA_ERROR:
                     ActionDriverCommonModules.SaveActionLog(
                         self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
                     ret = self.ITAobj.insert_ita_master(
                         self.ary_ita_config, self.ary_movement_list, self.ary_action_server_id_name, list_operation_id)
+                    if ret > 0:
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+                    operation_id = list_operation_id[0]
+                elif ret == 0:
+                    operation_id = operation_data[0][Cstobj.COL_OPERATION_NO_IDBH]
 
             else:
                 ret = self.ITAobj.insert_ita_master(
                     self.ary_ita_config, self.ary_movement_list, self.ary_action_server_id_name, list_operation_id)
                 if ret > 0:
                     DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-            operation_id = list_operation_id[0]
+                operation_id = list_operation_id[0]
 
         # MENU_IDのパターン
         elif key_menu_id in check_info:
@@ -1017,10 +1025,13 @@ class ITAManager(AbstractManager):
 
         if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
             code = self.ITAobj.select_ita_master(self.ary_ita_config, self.listActionServer, self.ary_movement_list, self.ary_action_server_id_name)
+        else:
+            code = self.ITAobj.select_ita_master_conductor(self.ary_ita_config, self.listActionServer, self.ary_movement_list, self.ary_action_server_id_name)
 
-            if code > 0:
-                logger.system_log('LOSE01107', self.trace_id, code)
-                return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+        if code > 0:
+            logger.system_log('LOSE01107', self.trace_id, code)
+            return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
         return 0, 0
 
     def set_driver(self, exe_order):
