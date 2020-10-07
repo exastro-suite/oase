@@ -531,7 +531,7 @@ class ITA1Core(DriverCore):
 
         logger.logic_log('LOSI00002', 'None')
 
-    def select_c_pattern_per_orch(self, ary_movement_list):
+    def select_c_pattern_per_orch(self, ary_movement_list, msg_flg=True):
         """
         [概要]
         Movement一覧検索メゾット
@@ -553,8 +553,12 @@ class ITA1Core(DriverCore):
                     # Movement未登録
                     logger.system_log('LOSE01017', self.trace_id, target_table, self.response_id, self.execution_order, movement_id)
                     logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
-                    ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01020')
+                    if msg_flg:
+                        ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01020')
+                    else:
+                        ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01079')
                     return Cstobj.RET_DATA_ERROR
+
                 select_data = self.restobj.rest_get_row_data(ary_result)
                 ary_movement_list[movement_id]['MovementIDName'] = movement_id + ':' + select_data[0][Cstobj.CPPO_PATTERN_NAME]
             else:
@@ -784,6 +788,50 @@ class ITA1Core(DriverCore):
         logger.system_log('LOSI01000', 'C_PATTERN_PER_ORCH select', self.trace_id)
 
         ret = self.select_c_pattern_per_orch(ary_movement_list)
+        if ret > 0:
+            logger.system_log('LOSE01011', self.trace_id, 'C_PATTERN_PER_ORCH', self.response_id, self.execution_order)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret
+
+        # 機器一覧からアクション先サーバのPkey取得
+        logger.system_log('LOSI01000', 'C_STM_LIST select', self.trace_id)
+
+        ret = self.select_c_stm_list(ary_ita_config, ary_action_server_list, ary_action_server_id_name)
+        if ret > 0:
+            logger.system_log('LOSE01011', self.trace_id, 'C_STM_LIST', self.response_id, self.execution_order)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, '0'))
+        return 0
+
+
+    def select_ita_master_conductor(self, ary_ita_config, ary_action_server_list, ary_movement_list, ary_action_server_id_name):
+        """
+        [概要]
+        ITAマスタ情報存在確認(conductor用)
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s, ary_ita_config: %s' % (self.trace_id, ary_ita_config))
+        row_data_180007 = []
+
+        # Conductor紐付Node一覧取得
+        logger.system_log('LOSI01000', 'C_NODE_CLASS_MNG select', self.trace_id)
+        self.restobj.rest_set_config(ary_ita_config)
+        ret = self.select_c_movement_class_mng_conductor(row_data_180007)
+        if ret > 0:
+            logger.system_log('LOSE01011', self.trace_id, 'C_NODE_CLASS_MNG', self.response_id, self.execution_order)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret
+
+        for row in row_data_180007:
+            if row[Cstobj.CNCM_NODE_TYPE_ID] == '3':
+                ary_movement_list[row[Cstobj.CNCM_PATTERN_ID]] = {
+                    'ORCHESTRATOR_ID':row[Cstobj.CNCM_ORCHESTRATOR_ID],'MovementIDName':''}
+
+        # Movement一覧からMovement取得取得
+        logger.system_log('LOSI01000', 'C_PATTERN_PER_ORCH select', self.trace_id)
+
+        ret = self.select_c_pattern_per_orch(ary_movement_list, False)
         if ret > 0:
             logger.system_log('LOSE01011', self.trace_id, 'C_PATTERN_PER_ORCH', self.response_id, self.execution_order)
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
