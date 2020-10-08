@@ -191,6 +191,78 @@ def test_check_ita_master(ita_table, monkeypatch):
     # テストデータ削除
     delete_data_param_information()
 
+    ############################################
+    # 正常終了パターン
+    ############################################
+    # テストデータ作成 operation_id
+    ita_disp_name = 'action43'
+    set_data_ita_driver(ita_disp_name)
+    execution_order = 1
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['CONDUCTOR_CLASS_ID'] = 1
+    testITA.aryActionParameter['ITA_NAME'] = 'action43'
+
+    parm_info = '{"ACTION_PARAMETER_INFO": ["OPERATION_ID=1", "ITA_NAME=ITA176", "CONDUCTOR_CLASS_ID=1"]}'
+    json_parm = json.loads(parm_info)
+    testITA.set_action_server_list(json_parm, 1, 1)
+
+    testITA.set_driver(execution_order)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master_conductor', lambda a, b, c, d, e: (0))
+    status, detail = testITA.check_ita_master(execution_order)
+
+    # テスト結果判定
+    assert status == 0
+    assert detail == 0
+
+    # テストデータ削除
+    delete_data_param_information()
+
+    ############################################
+    # 正常終了パターン
+    ############################################
+    # テストデータ作成 Server_list
+    ita_disp_name = 'action43'
+    set_data_ita_driver(ita_disp_name)
+    execution_order = 1
+    testITA.aryActionParameter['CONDUCTOR_CLASS_ID'] = 1
+    testITA.aryActionParameter['ITA_NAME'] = 'action43'
+
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=mas-pj-dev", "ITA_NAME=ITA176", "CONDUCTOR_CLASS_ID=1"]}'
+    json_parm = json.loads(parm_info)
+    testITA.set_action_server_list(json_parm, 1, 1)
+
+    testITA.set_driver(execution_order)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master_conductor', lambda a, b, c, d, e: (0))
+    status, detail = testITA.check_ita_master(execution_order)
+
+    # テスト結果判定
+    assert status == 0
+    assert detail == 0
+
+    # テストデータ削除
+    delete_data_param_information()
+
+    ############################################
+    # ITAへの確認機能テスト　失敗パターン
+    ############################################
+    # テストデータ作成
+    ita_disp_name = 'dummy'
+    set_data_ita_driver(ita_disp_name)
+    execution_order = 2
+    testITA.aryActionParameter['CONDUCTOR_CLASS_ID'] = 5
+    testITA.aryActionParameter['ITA_NAME'] = 'dummy'
+
+    testITA.set_driver(execution_order)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master_conductor', lambda a, b, c, d, e: (100))
+    status, detail = testITA.check_ita_master(execution_order)
+
+    # テスト結果判定
+    assert status != 0
+    assert detail != 0
+
+    # テストデータ削除
+    delete_data_param_information()
+
 
 def set_data_for_last_info(ita_disp_name, execution_order):
     """
