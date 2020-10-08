@@ -242,6 +242,28 @@ def test_select_ita_master(monkeypatch):
 
     # todo 異常系
 
+
+def test_select_ita_master_conductor_ok(monkeypatch):
+    """
+    select_ita_master_conductor()のテスト
+    """
+
+    core = create_ita1core_c()
+    configs = get_configs()
+    servers = ["host1", "host2"]
+    movementid_data = {}
+    servername_serverid = {}
+
+    monkeypatch.setattr(core, 'select_c_movement_class_mng_conductor', lambda a: (0))
+    monkeypatch.setattr(core, 'select_c_pattern_per_orch', lambda a, b: (0))
+    monkeypatch.setattr(core, 'select_c_stm_list', lambda a, b, c: (0))
+
+    ret = core.select_ita_master_conductor(configs, servers, movementid_data, servername_serverid)
+
+    # 正常系
+    assert ret == 0
+
+
 #def test_insert_ita_master(monkeypatch):
 #    """
 #    insert_ita_master()のテスト
