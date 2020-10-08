@@ -1023,7 +1023,7 @@ class ITA1Core(DriverCore):
         # オペレーションID登録
         logger.system_log('LOSI01000', 'C_OPERATION_LIST insert', self.trace_id)
 
-        row_data_000304 = [0] * Cstobj.TBL_COL_MAX
+        row_data_000304 = {}
         row_data_000304[Cstobj.COL_FUNCTION_NAME] = '登録'
         row_data_000304[Cstobj.COL_OPERATION_NAME] = '%s%s' % (self.trace_id, self.execution_order)
         row_data_000304[Cstobj.COL_OPERATION_DATE] = datetime.datetime.now(pytz.timezone('UTC')).strftime("%Y/%m/%d")
@@ -1070,7 +1070,7 @@ class ITA1Core(DriverCore):
                 del row_data_bapl
                 server_id_name = action_server_id_names[server_name]
 
-                row_data_bapl = [0] * Cstobj.BAPL_LAST_UPDATE_USER
+                row_data_bapl = {}
                 row_data_bapl[Cstobj.COL_FUNCTION_NAME] = '登録'
                 row_data_bapl[Cstobj.BAPL_OPERATION_NO_UAPK] = operation_id_name
                 row_data_bapl[Cstobj.BAPL_PATTERN_ID] = movement_id_name
