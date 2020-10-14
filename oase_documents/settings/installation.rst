@@ -4,6 +4,8 @@
 
 OASEのインストール手順を下記に示します。
 
+.. note:: ディレクトリのパスは構築するOSによって「centos」を読み替えて作成してください。
+
 1. 事前準備
 -----------
 
@@ -1324,17 +1326,153 @@ requestsモジュールのインストール
  # cd migrations/
  # touch __init__.py
 
-| 2. init_custom.yamlのvalue値を環境によって適切に変更する
+| 2. init_custom.yamlの作成
 
-init_custom.yamlのValue値はデフォルト空白となっていますので、適切な値を記入してください。
+下記のコマンドにてinit_custom.yamlを作成してください。
 
 .. code-block:: rst
 
  # cd /home/centos/OASE/oase-root/web_app/fixtures
  # vi init_custom.yaml
 
+| 内容は下記の通りにしてください。  
+| また、init_custom.yamlのvalue値は環境によって異なるため適切な値を記入してください。
+
+.. code-block:: rst
+
+ ################################
+ # システム設定
+ ################################
+ - model: web_app.System
+   pk: 2
+   fields:
+     config_name: ルールファイル設置ルートパス
+     category: RULE
+     config_id: RULEFILE_ROOTPATH
+     value: /home/centos/work/rule/
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 26
+   fields:
+     config_name: DMリクエスト送信先
+     category: DMSETTINGS
+     config_id: DM_IPADDRPORT
+     value: 
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 27
+   fields:
+     config_name: DMユーザID
+     category: DMSETTINGS
+     config_id: DM_USERID
+     value: 
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 28
+   fields:
+     config_name: DMパスワード
+     category: DMSETTINGS
+     config_id: DM_PASSWD
+     value: 
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 29
+   fields:
+     config_name: 適用君待ち受け情報
+     category: APPLYSETTINGS
+     config_id: APPLY_IPADDRPORT
+     value: 127.0.0.1:50001
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 31
+   fields:
+     config_name: OASEメールSMTP
+     category: OASE_MAIL
+     config_id: OASE_MAIL_SMTP
+     value: {"IPADDR":"127.0.0.1","PORT":25,"AUTH":False}
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 32
+   fields:
+     config_name: Maven repositoryパス
+     category: RULE
+     config_id: MAVENREP_PATH
+     value: /root/.m2/repository/com/oase/
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 50
+   fields:
+     config_name: RabbitMQユーザID
+     category: RABBITMQ
+     config_id: MQ_USER_ID
+     value: 
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 51
+   fields:
+     config_name: RabbitMQパスワード
+     category: RABBITMQ
+     config_id: MQ_PASSWORD
+     value: 
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 52
+   fields:
+     config_name: RabbitMQIPアドレス
+     category: RABBITMQ
+     config_id: MQ_IPADDRESS
+     # RABBITMQを入れたサーバのIPアドレス
+     value: 
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+ 
+ - model: web_app.System
+   pk: 53
+   fields:
+     config_name: RabbitMQキュー名
+     category: RABBITMQ
+     config_id: MQ_QUEUE_NAME
+     # 任意の名称
+     value: 
+     maintenance_flag: 0
+     last_update_timestamp: 2019-07-01T00:00:00+0900
+     last_update_user: システム管理者
+
+
 MQ_PASSWORDのvalue値は以下のコマンドを実行して表示された値を設定して下さい。
 password@1の箇所は"3.3. RabbitMQ Serverインストール"で設定した{RabbitMQパスワード}に置き換えてください。
+
+.. code-block:: rst
+
+ # python /home/centos/OASE/tool/encrypter.py 'password@1'
 
 DM_PASSWDのvalue値は以下のコマンドを実行して表示された値を設定して下さい。
 password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管理パスワード}に置き換えてください。
@@ -1474,6 +1612,7 @@ password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管�
     }
  }
 
+.. note:: default.confがない場合は、viコマンドによりoase.confを作成してください。
 
 | 5. uwsgi.iniの修正
 
@@ -1611,12 +1750,14 @@ password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管�
         <id>http_proxy</id>
         <active>true</active>
         <protocol>http</protocol>
-        <host>proxygate2.nic.nec.co.jp</host>
-        <nonProxyHosts>localhost|10.197.19.*|proxygate2.nic.nec.co.jp</nonProxyHosts>
+        <host>{プロキシサーバのホスト名}</host>
+        <nonProxyHosts>{プロキシ対象外のホストまたはIPアドレス}</nonProxyHosts>
         <port>8080</port>
       </proxy>
       *- ここまで -*
     </proxies>
+
+.. note:: nonProxyHostsは | (パイプ)で区切ることで複数記述することができます。
 
 .. code-block:: bash
 
@@ -1700,16 +1841,16 @@ password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管�
             <id>http_proxy</id>
             <active>true</active>
             <protocol>http</protocol>
-            <host>proxygate2.nic.nec.co.jp</host>
-            <nonProxyHosts>localhost|10.197.19.*|proxygate2.nic.nec.co.jp</nonProxyHosts>
+            <host>{プロキシサーバのホスト名}</host>
+            <nonProxyHosts>{プロキシ対象外のホストまたはIPアドレス}</nonProxyHosts>
             <port>8080</port>
           </proxy>
           <proxy>
             <id>https_proxy</id>
             <active>true</active>
             <protocol>https</protocol>
-            <host>proxygate2.nic.nec.co.jp</host>
-            <nonProxyHosts>localhost|10.197.19.*|proxygate2.nic.nec.co.jp</nonProxyHosts>
+            <host>{プロキシサーバのホスト名}</host>
+            <nonProxyHosts>{プロキシ対象外のホストまたはIPアドレス}</nonProxyHosts>
             <port>8080</port>
           </proxy>
         </proxies>
@@ -1755,6 +1896,8 @@ password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管�
             <activeProfile>jboss-ga</activeProfile>
         </activeProfiles>
     </settings>
+
+.. note:: nonProxyHostsは | (パイプ)で区切ることで複数記述することができます。
 
 
 4.4. Decision Server の設定
@@ -1923,3 +2066,11 @@ password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管�
  # systemctl status uwsgi
  # systemctl start uwsgi
  # systemctl enable uwsgi
+
+
+| OASEのインストール作業は以上となります。
+| 次にドライバインストールを行いますので、「環境構築マニュアル -ドライバインストール編-」をご参照ください。
+| 監視ツールと連携を行う場合は「環境構築マニュアル -アダプタインストール編-」をご参照ください。
+| ActiveDirectoryを行いたい場合は「環境構築マニュアル -ActiveDirectory編-」をご参照ください。
+
+
