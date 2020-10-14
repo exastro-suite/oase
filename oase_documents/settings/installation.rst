@@ -1335,7 +1335,7 @@ requestsモジュールのインストール
  # cd /home/centos/OASE/oase-root/web_app/fixtures
  # vi init_custom.yaml
 
-| 内容は下記の通りにしてください。  
+| 内容は下記を参考にしてください。  
 | また、init_custom.yamlのvalue値は環境によって異なるため適切な値を記入してください。
 
 .. code-block:: rst
