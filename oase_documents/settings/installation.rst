@@ -1045,7 +1045,7 @@ java（openJDK）インストール
 .. note:: 参考
 
  | ディシジョンマネージャは環境によって作成できるディシジョンテーブル数が変動します。
- | ディシジョンテーブルの最大作成可能数はデフォルトでは4ファイルとなります。
+ | ディシジョンテーブルの最大作成可能数はデフォルトでは4ファイル程度となります。
  | 記載ルール数またはルール自体の複雑度によってディシジョンテーブル作成数が前後する可能性があります。
  | より多くのディシジョンテーブルの作成を実施したい場合はチューニングが必要となります。
 
@@ -1056,9 +1056,9 @@ java（openJDK）インストール
  | /var/log/jboss-eap/console.log
  | OutOfMemoryErrorの障害が発生している場合は再起動コマンドを実行してください。
  | # systemctl restart jboss-eap-rhel.service
- | 再起動後、以下のコマンドを実行して、キーコンテナの一覧を確認します。
+ | 再起動後、以下のコマンドを実行して、KIEコンテナーの一覧を確認します。
  | # curl -u [RHDM管理ユーザー名]:[RHDM管理パスワード] -H "accept: application/json" -X GET "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers"
- | 削除したいキーコンテナのcontainer-idを指定して以下のコマンドを実行することにより、キーコンテナが削除されます。
+ | 削除したいKIEコンテナーのcontainer-idを指定して以下のコマンドを実行することにより、KIEコンテナーが削除されます。
  | # curl -u [RHDM管理ユーザー名]:[RHDM管理パスワード] -X DELETE "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers/default-kieserver/containers/[container-id]" -H "accept: application/json"
  | ※IPアドレスはRHDMをインストールしたサーバのアドレス
 
