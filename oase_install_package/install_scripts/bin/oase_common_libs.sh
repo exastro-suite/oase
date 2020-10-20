@@ -130,14 +130,14 @@ function check_answer_vars() {
     fi
 
     # config_id: DM_USERID
-    if [ -z "${rhdm_adminname}" ]; then
-        log "ERROR : rhdm_adminname should be enter to RHDM Administrator name"
+    if [ -z "${drools_adminname}" ]; then
+        log "ERROR : drools_adminname should be enter to RHDM Administrator name"
         _error_flag=true
     fi
 
     # config_id: DM_PASSWD
-    if [ -z "${rhdm_password}" ]; then
-        log "ERROR : rhdm_password should be enter to RHDM Administrator password"
+    if [ -z "${drools_password}" ]; then
+        log "ERROR : drools_password should be enter to RHDM Administrator password"
         _error_flag=true
     fi
 
