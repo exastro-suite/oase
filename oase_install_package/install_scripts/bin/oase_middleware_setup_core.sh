@@ -422,7 +422,7 @@ log "INFO : Start changing the settings."
 ################################################################################
 
 OASE_DIR="${oase_directory}"
-JBOSS_ROOT_DIR="${jboss_root_directory}"
+JBOSS_ROOT_DIR="${wildfly_root_directory}"
 OASE_ROOT_DIR="$OASE_DIR"/OASE/oase-root
 UWSGI_LOG_DIR=/var/log/uwsgi
 UWSGI_INI_FILE="$OASE_ROOT_DIR"/uwsgi.ini
@@ -437,8 +437,8 @@ MAVEN_CONF_SETTINGS_FILE="${M2_HOME}"/conf/settings.xml
 M2_SETTINGS_DIR=/root/.m2
 M2_SETTINGS_FILE="${M2_SETTINGS_DIR}"/settings.xml
 STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/standalone/configuration/standalone-full.xml
-RHDM_ADMINNAME=${rhdm_adminname}
-RHDM_PASSWORD=${rhdm_password}
+RHDM_ADMINNAME=${drools_adminname}
+RHDM_PASSWORD=${drools_password}
 OASE_ENV_DIR=${OASE_ROOT_DIR}/confs/backyardconfs/services
 OASE_ENV_FILE=${OASE_ENV_DIR}/oase_env
 
