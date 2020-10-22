@@ -100,6 +100,12 @@ if [ -z "$user_exits" ]; then
     log "INFO : Start CREATE USER."
     ################################################################################
 
+    result=$(echo "SET GLOBAL validate_password.length=4;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.mixed_case_count=0;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.number_count=0;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.special_char_count=0;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.policy=LOW;" | mysql -u root -p${db_root_password} 2>&1)
+
     result=$(echo "CREATE USER '"${db_username}"' IDENTIFIED BY '"${db_password}"';" | mysql -u root -p${db_root_password} 2>&1)
     check_result $? "$result"
 

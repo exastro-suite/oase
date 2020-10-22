@@ -176,8 +176,9 @@ WantedBy=multi-user.target
 EOS
 }
 
+
 ############################################################
-create_jboss_conf() {
+create_drools_service() {
 
     if [ $# -ne 1 ]; then
         log "ERROR : missing required positional argument"
@@ -185,50 +186,21 @@ create_jboss_conf() {
         exit 1
     fi
 
-cat << EOS > "$JBOSS_CONF_FILE"
-# General configuration for the init.d scripts,
-# not necessarily for JBoss EAP itself.
-# default location: /etc/default/jboss-eap
+cat << EOS > "$DROOLS_SERVICE_FILE"
+[Unit]
+Description=Drools
+After=syslog.target network.target
 
-## Location of JDK
-# JAVA_HOME="/usr/lib/jvm/default-java"
-JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk
+[Service]
+ExecStart=$1/wildfly-14.0.1.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=0.0.0.0
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill $MAINPID
 
-## Location of JBoss EAP
-# JBOSS_HOME="/opt/jboss-eap"
-JBOSS_HOME=$1
-
-## The username who should own the process.
-# JBOSS_USER=jboss-eap
-JBOSS_USER=root
-
-## The mode JBoss EAP should start, standalone or domain
-# JBOSS_MODE=standalone
-JBOSS_MODE=standalone
-
-## Configuration for standalone mode
-# JBOSS_CONFIG=standalone.xml
-JBOSS_CONFIG=standalone-full.xml
-
-## Configuration for domain mode
-# JBOSS_DOMAIN_CONFIG=domain.xml
-# JBOSS_HOST_CONFIG=host-master.xml
-
-## The amount of time to wait for startup
-#STARTUP_WAIT=60
-
-## The amount of time to wait for shutdown
-#SHUTDOWN_WAIT=60
-
-## Location to keep the console log
-# JBOSS_CONSOLE_LOG="/var/log/jboss-eap/console.log"
-JBOSS_CONSOLE_LOG="/var/log/jboss-eap/console.log"
-
-## Additionals args to include in startup
-# JBOSS_OPTS="--admin-only -b 127.0.0.1"
-JBOSS_OPTS="-Dfile.encoding=UTF-8 -Djboss.bind.address=0.0.0.0 -Ddrools.dateformat=\"yyyy-MM-dd HH:mm\""
+[Install]
+WantedBy=multi-user.target
 EOS
 }
+
 
 ############################################################
 create_maven_conf_settings() {
@@ -436,11 +408,12 @@ JBOSS_EAP_RHEL_SH=$INITD_DIR/jboss-eap-rhel.sh
 MAVEN_CONF_SETTINGS_FILE="${M2_HOME}"/conf/settings.xml
 M2_SETTINGS_DIR=/root/.m2
 M2_SETTINGS_FILE="${M2_SETTINGS_DIR}"/settings.xml
-STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/standalone/configuration/standalone-full.xml
+STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
 RHDM_ADMINNAME=${drools_adminname}
 RHDM_PASSWORD=${drools_password}
 OASE_ENV_DIR=${OASE_ROOT_DIR}/confs/backyardconfs/services
 OASE_ENV_FILE=${OASE_ENV_DIR}/oase_env
+DROOLS_SERVICE_FILE=/lib/systemd/system/drools.service
 
 
 if [ ! -e "$UWSGI_SOCK_DIR" ]; then
@@ -572,18 +545,20 @@ if [ -e "$JBOSS_CONF_FILE" ]; then
 
 fi
 
-create_jboss_conf "$JBOSS_ROOT_DIR"
-chmod +x "$JBOSS_CONF_FILE"
+create_drools_service "$JBOSS_ROOT_DIR"
 
-# jboss-eap-rhel.sh
-if [ ! -e "$OASE_JBOSS_EAP_RHEL_SH" ]; then
-    log ""$OASE_JBOSS_EAP_RHEL_SH" not exists."
+# drools.service
+if [ ! -e "$DROOLS_SERVICE_FILE" ]; then
+    log ""$DROOLS_SERVICE_FILE" not exists."
     log "INFO : Abort installation." 
     exit 1
 fi
 
-cp -fp "$OASE_JBOSS_EAP_RHEL_SH" "$JBOSS_EAP_RHEL_SH"
-chmod +x "$JBOSS_EAP_RHEL_SH"
+if [ -e "$DROOLS_SERVICE_FILE" ]; then
+
+    # Check if backup file exists
+    make_backup_file $DROOLS_SERVICE_FILE $NOW
+fi
 
 # oase_env settings
 if [ ! -e "$OASE_ENV_DIR" ]; then
