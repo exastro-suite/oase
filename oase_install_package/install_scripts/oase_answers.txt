@@ -1,4 +1,4 @@
-#Select install mode. ("Install" or "Uninstall")
+#Select install mode. ("Install")
 # e.g) install_mode:Install
 install_mode:Install
 
@@ -117,7 +117,7 @@ oase_session_engine:
 # e.g) ev_location:127.0.0.1
 ev_location:
 
-# Select language. ("en_us" or "ja")
+# Select language. ("ja")
 # e.g) oase_language:ja
 oase_language:ja
 
