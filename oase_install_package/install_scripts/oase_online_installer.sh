@@ -41,6 +41,12 @@ export OASE_INSTALL_LOG_FILE
 function oase_install() {
     log "INFO : Start to install"
 
+    bash ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
+    if [ $? -ne 0 ]; then
+        log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh"
+        return 1
+    fi
+
     bash ${OASE_INSTALL_BIN_DIR}/oase_deployment_core.sh
     if [ $? -ne 0 ]; then
         log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_deployment_core.sh"
@@ -100,6 +106,7 @@ _some_var=`cat << EOF
         ${OASE_INSTALL_BIN_DIR}/oase_middleware_setup_core.sh
         ${OASE_INSTALL_BIN_DIR}/oase_service_setup_core.sh
     ${OASE_INSTALL_BIN_DIR}/oase_uninstall_core.sh
+    ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
 EOF`
 
 for _some_sh in ${_some_var};do
