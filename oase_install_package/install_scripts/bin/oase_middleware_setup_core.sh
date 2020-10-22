@@ -322,13 +322,15 @@ edit_standalone_full() {
     fi
 
     # insert property
-    sed -i -e '/<property name="org.kie.server.pwd" value="${VAULT::vaulted::controller.password::1}"\/>/a \        <property name="kie.maven.settings.custom" value="/opt/apache-maven/conf/settings.xml"\/>' $1
-
-    # change property
-    sed -i -e 's/<property name="org.kie.server.controller.user" value="controllerUser"\/>/<property name="org.kie.server.controller.user" value="'${RHDM_ADMINNAME}'"\/>/g' $1
-    sed -i -e 's/<property name="org.kie.server.controller.pwd" value="${VAULT::vaulted::controller.password::1}"\/>/<property name="org.kie.server.controller.pwd" value="'${RHDM_PASSWORD}'"\/>/g' $1
-    sed -i -e 's/<property name="org.kie.server.user" value="controllerUser"\/>/<property name="org.kie.server.user" value="'${RHDM_ADMINNAME}'"\/>/g' $1
-    sed -i -e 's/<property name="org.kie.server.pwd" value="${VAULT::vaulted::controller.password::1}"\/>/<property name="org.kie.server.pwd" value="'${RHDM_PASSWORD}'"\/>/g' $1
+    sed -i -e '/<\/extensions>/a \    <system-properties>' $1
+    sed -i -e '/<system-properties>/a \        <property name="org.kie.server.controller" value="http://localhost:8080/decision-central/rest/controller"\/>' $1
+    sed -i -e '/<property name="org.kie.server.controller" value=/a \        <property name="org.kie.server.controller.user" value="'${RHDM_ADMINNAME}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.controller.user" value="'${RHDM_ADMINNAME}'"\/>/a \        <property name="org.kie.server.controller.pwd" value="'${RHDM_PASSWORD}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.controller.pwd" value="'${RHDM_PASSWORD}'"\/>/a \        <property name="org.kie.server.id" value="default-kieserver"\/>' $1
+    sed -i -e '/<property name="org.kie.server.id" value="default-kieserver"\/>/a \        <property name="org.kie.server.location" value="http://localhost:8080/kie-server/services/rest/server"\/>' $1
+    sed -i -e '/<property name="org.kie.server.location" value=/a \        <property name="org.kie.server.user" value="'${RHDM_ADMINNAME}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.user" value="'${RHDM_ADMINNAME}'"\/>/a \        <property name="org.kie.server.pwd" value="'${RHDM_PASSWORD}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.pwd" value="'${RHDM_PASSWORD}'"\/>/a \    <\/system-properties>' $1
 }
 
 ############################################################
