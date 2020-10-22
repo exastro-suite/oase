@@ -531,6 +531,95 @@ configure_drools(){
         expect \"yes/no?\"
         send \"yes\\r\"
     " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    # standalone.conf書き換え
+    cd ${wildfly_root_directory}/wildfly-14.0.1.Final/bin >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    mv standalone.conf standalone.conf.oase_bk
+    cat << EOS > "standalone.conf"
+## -*- shell-script -*- ######################################################
+##                                                                          ##
+##  WildFly bootstrap Script Configuration                                  ##
+##                                                                          ##
+##############################################################################
+
+#
+# This file is optional; it may be removed if not needed.
+#
+
+#
+# Specify the maximum file descriptor limit, use "max" or "maximum" to use
+# the default, as queried by the system.
+#
+# Defaults to "maximum"
+#
+#MAX_FD="maximum"
+
+#
+# Specify the profiler configuration file to load.
+#
+# Default is to not load profiler configuration file.
+#
+#PROFILER=""
+
+#
+# Specify the location of the Java home directory.  If set then $JAVA will
+# be defined to $JAVA_HOME/bin/java, else $JAVA will be "java".
+#
+#JAVA_HOME="/opt/java/jdk"
+
+# tell linux glibc how many memory pools can be created that are used by malloc
+# MALLOC_ARENA_MAX="5"
+
+#
+# Specify the exact Java VM executable to use.
+#
+#JAVA=""
+
+if [ "x$JBOSS_MODULES_SYSTEM_PKGS" = "x" ]; then
+   JBOSS_MODULES_SYSTEM_PKGS="org.jboss.byteman"
+fi
+
+# Uncomment the following line to prevent manipulation of JVM options
+# by shell scripts.
+#
+#PRESERVE_JAVA_OPTS=true
+
+#
+# Specify options to pass to the Java VM.
+#
+if [ "x$JAVA_OPTS" = "x" ]; then
+   JAVA_OPTS="-Xms64m -Xmx1024m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=1024m -Djava.net.preferIPv4Stack=true"
+   JAVA_OPTS="$JAVA_OPTS -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true"
+else
+   echo "JAVA_OPTS already set in environment; overriding default settings with values: $JAVA_OPTS"
+fi
+
+# Sample JPDA settings for remote socket debugging
+#JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_socket,address=8787,server=y,suspend=n"
+
+# Sample JPDA settings for shared memory debugging
+#JAVA_OPTS="$JAVA_OPTS -agentlib:jdwp=transport=dt_shmem,server=y,suspend=n,address=jboss"
+
+# Uncomment to not use JBoss Modules lockless mode
+#JAVA_OPTS="$JAVA_OPTS -Djboss.modules.lockless=false"
+
+# Uncomment to gather JBoss Modules metrics
+#JAVA_OPTS="$JAVA_OPTS -Djboss.modules.metrics=true"
+
+# Uncomment to enable the experimental JDK 11 support for ByteBuddy
+# ByteBuddy is the default bytecode provider of Hibernate ORM
+#JAVA_OPTS="$JAVA_OPTS -Dnet.bytebuddy.experimental=true"
+
+# Uncomment this to run with a security manager enabled
+# SECMGR="true"
+
+# Uncomment this in order to be able to run WildFly on FreeBSD
+# when you get "epoll_create function not implemented" message in dmesg output
+#JAVA_OPTS="$JAVA_OPTS -Djava.nio.channels.spi.SelectorProvider=sun.nio.ch.PollSelectorProvider"
+
+# Uncomment this out to control garbage collection logging
+# GC_LOG="true"
+EOS
 }
 
 #Maven install
@@ -549,6 +638,15 @@ configure_maven(){
 
     source /etc/profile >> "$OASE_INSTALL_LOG_FILE" 2>&1
     mvn --version >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    MAVEN_DIRECTORY=/root/.m2/repository
+    MAVEN_PACKAGE=$OASE_INSTALL_PACKAGE_DIR/OASE/oase-contents/oase_maven.tar.gz
+
+    mkdir -p "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp -fp "$MAVEN_PACKAGE" "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    tar -zxvf oase_maven.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    rm -f oase_maven.tar.gz
 }
 
 #Django install
