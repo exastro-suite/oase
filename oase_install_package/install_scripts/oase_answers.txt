@@ -57,9 +57,9 @@ wildfly_root_directory:/exastro/WildFly
 ##############################
 # Decide the Administrator name, password.
 # e.g) drools_adminname:admin0000
-drools_adminname:administrator
+drools_adminname:admin0000
 # e.g) drools_password:password@1
-drools_password:password
+drools_password:password@1
 
 # Enter IP address & port for Decision Manager.
 # e.g) dm_ipaddrport:localhost:8080
