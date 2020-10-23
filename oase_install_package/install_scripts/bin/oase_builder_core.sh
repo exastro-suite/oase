@@ -195,19 +195,6 @@ configure_yum_env() {
 }
 
 
-# OS
-configure_os() {
-
-    # stop and disable firewalld
-    #--------CentOS7/8,RHEL7/8--------
-    systemctl stop firewalld >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    systemctl disable firewalld >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
-    # disable SELinux
-    setenforce 0 >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    sed -i`backup_suffix` -e 's/^SELINUX *=.*$/SELINUX=disabled/' /etc/selinux/config >> "$OASE_INSTALL_LOG_FILE" 2>&1
-}
-
 # python
 configure_python() {
     # package
@@ -695,9 +682,6 @@ make_oase() {
     #    fi
     #fi
 
-    log "INFO : OS setting"
-    configure_os
-
     log "INFO : python3.6 install"
     configure_python
 
@@ -722,7 +706,7 @@ make_oase() {
     log "INFO : drools instal"
     configure_drools
     
-    log "INOF : Maven install"
+    log "INFO : Maven install"
     configure_maven
     
     log "INFO : Django install"
