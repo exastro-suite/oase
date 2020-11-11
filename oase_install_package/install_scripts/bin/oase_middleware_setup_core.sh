@@ -531,14 +531,16 @@ fi
 create_m2_settings "$M2_SETTINGS_FILE"
 
 # Decision Server settings
-if [ -e "$STANDALONE_FULL_FILE" ]; then
+if [ ! -e "$STANDALONE_FULL_FILE".oase_bk ]; then
+    if [ -e "$STANDALONE_FULL_FILE" ]; then
 
-    # Check if backup file exists
-    make_backup_file $STANDALONE_FULL_FILE $NOW
+        # Check if backup file exists
+        make_backup_file $STANDALONE_FULL_FILE $NOW
 
+    fi
+
+    edit_standalone_full "$STANDALONE_FULL_FILE"
 fi
-
-edit_standalone_full "$STANDALONE_FULL_FILE"
 
 if [ -e "$JBOSS_CONF_FILE" ]; then
 
