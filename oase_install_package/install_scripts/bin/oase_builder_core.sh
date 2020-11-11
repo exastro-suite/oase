@@ -278,8 +278,8 @@ configure_memcache() {
 
     # enable and start memcached
     #--------CentOS7/8,RHEL7/8--------
+    systemctl start memcached >> "$OASE_INSTALL_LOG_FILE" 2>&1
     systemctl enable memcached >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
 }
 
 # RabbitMQ Server
