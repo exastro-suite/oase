@@ -57,8 +57,6 @@ list_pip_package() {
 }
 
 yum_install() {
-    #if [ "${MODE}" == "remote" -o "$LINUX_OS" == "RHEL7" -o "$LINUX_OS" == "CentOS7" ]; then
-    #    if [ $# -gt 0 ]; then
     echo "----------Installation[$@]----------" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     #Installation
     yum install -y "$@" >> "$OASE_INSTALL_LOG_FILE" 2>&1
@@ -72,8 +70,6 @@ yum_install() {
             func_exit
         fi
     done
-    #    fi
-    #fi
 }
 
 
@@ -141,16 +137,16 @@ yum_repository() {
 
             # Check Creating repository
             if [ "${REPOSITORY}" != "yum_all" ]; then
-               case "${linux_os}" in
+                case "${linux_os}" in
                     "CentOS7") create_repo_check remi-php72 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
                     "RHEL7") create_repo_check remi-php72 rhel-7-server-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
                     "RHEL7_AWS") create_repo_check remi-php72 rhui-rhel-7-server-rhui-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
                     "CentOS8") create_repo_check PowerTools >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
                     "RHEL8") create_repo_check codeready-builder-for-rhel-8 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
                     "RHEL8_AWS") create_repo_check codeready-builder-for-rhel-8-rhui-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                esac 
+                esac
                 if [ $? -ne 0 ]; then
-                   log "ERROR:Failed to get repository"
+                    log "ERROR:Failed to get repository"
                     func_exit
                 fi
             fi
@@ -177,21 +173,6 @@ configure_yum_env() {
             fi
         fi
     fi
-
-    # install yum-utils and createrepo
-    #if [ "${LINUX_OS}" == "CentOS7" -o "${LINUX_OS}" == "RHEL7" ]; then
-    #    log "yum-utils and createrepo install"
-    #    if [ "${MODE}" == "remote" ]; then
-    #        yum_install ${YUM__ENV_PACKAGE}
-    #    fi
-    #    yum_package_check yum-utils createrepo
-    #fi
-
-    #if [ "${MODE}" == "remote" ]; then
-    #    yum_repository ${YUM_REPO_PACKAGE["yum-env-enable-repo"]}
-    #    yum_repository ${YUM_REPO_PACKAGE["yum-env-disable-repo"]}
-    #fi
-    #yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
 }
 
 
@@ -399,13 +380,13 @@ configure_mysql() {
             expect \"mysql>\"
             send \"quit\\r\"
         " >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        
+
         #my.conf
         myconf
 
         #mysql restart
         systemctl restart mysqld  >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        
+
         #mysqlclient install
         yum list installed | grep "mysql-community-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         if [ $? -eq 1 ]; then
@@ -414,10 +395,10 @@ configure_mysql() {
             SKIP_ARRAY+=("mysql-community-devel")
             echo "install skip mysql-community-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
-        
+
         # Check installation  mysql-community-devel packages
         yum_package_check ${YUM_PACKAGE["mysql-community-devel"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        
+
         #pip install mysqlclient
         pip3 list | grep mysqlclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
         if [ $? -eq 1 ]; then
@@ -430,7 +411,7 @@ configure_mysql() {
             SKIP_ARRAY+=("mysqlclient")
             echo "install skip mysqlclient" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
-        
+
         #pip install mysql_connector_python
         pip3 list | grep mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
         if [ $? -eq 1 ]; then
@@ -443,7 +424,7 @@ configure_mysql() {
             SKIP_ARRAY+=("mysql_connector_python")
             echo "install skip mysql_connector_python" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
-        
+
         pip3 list >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 }
@@ -735,7 +716,7 @@ standalone_conf() {
 #JAVA=""
 
 if [ "x$JBOSS_MODULES_SYSTEM_PKGS" = "x" ]; then
-   JBOSS_MODULES_SYSTEM_PKGS="org.jboss.byteman"
+    JBOSS_MODULES_SYSTEM_PKGS="org.jboss.byteman"
 fi
 
 # Uncomment the following line to prevent manipulation of JVM options
@@ -747,10 +728,10 @@ fi
 # Specify options to pass to the Java VM.
 #
 if [ "x$JAVA_OPTS" = "x" ]; then
-   JAVA_OPTS="-Xms64m -Xmx1024m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=1024m -Djava.net.preferIPv4Stack=true"
-   JAVA_OPTS="$JAVA_OPTS -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true"
+    JAVA_OPTS="-Xms64m -Xmx1024m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=1024m -Djava.net.preferIPv4Stack=true"
+    JAVA_OPTS="$JAVA_OPTS -Djboss.modules.system.pkgs=$JBOSS_MODULES_SYSTEM_PKGS -Djava.awt.headless=true"
 else
-   echo "JAVA_OPTS already set in environment; overriding default settings with values: $JAVA_OPTS"
+    echo "JAVA_OPTS already set in environment; overriding default settings with values: $JAVA_OPTS"
 fi
 
 # Sample JPDA settings for remote socket debugging
@@ -822,10 +803,10 @@ make_oase() {
 
     log "INFO : drools instal"
     configure_drools
-    
+
     log "INFO : Maven install"
     configure_maven
-    
+
     log "INFO : Django install"
     configure_django
 
@@ -835,25 +816,10 @@ make_oase() {
 ################################################################################
 # main
 
-#yum update
-
-# answerfile読み込み
-#read_answerfile
-#
-#if [ "$ACTION" == "Install" ]; then
-#    if [ "$exec_mode" == 2 ]; then
-#        log "==========[START OASE BUILDER OFFLINE]=========="
-#        END_MESSAGE="==========[END OASE BUILDER OFFLINE]=========="
-#
-#    elif [ "$exec_mode" == 3 ]; then
 MODE="remote"
 LINUX_OS='RHEL7'
 REPOSITORY="${LINUX_OS}"
 
-#declare -a SKIP_ARRAY=()
-
-# yum package (for yum)
-#declare -A YUM_PACKAGE_YUM_ENV;
 YUM_PACKAGE_YUM_ENV=(
     ["remote"]="yum-utils createrepo"
 )
@@ -878,26 +844,6 @@ YUM_PACKAGE=(
     ["nginx"]="nginx"
     ["java"]="java-1.8.0-openjdk java-1.8.0-openjdk-devel"
 )
-
-
-#if [ "$ACTION" == "Install" ]; then
-#    if [ "$exec_mode" == 2 ]; then
-#        log "==========[START ITA BUILDER OFFLINE]=========="
-#        END_MESSAGE="==========[END ITA BUILDER OFFLINE]=========="
-#        
-#    elif [ "$exec_mode" == 3 ]; then
-#        log "==========[START ITA BUILDER ONLINE]=========="
-#        END_MESSAGE="==========[END ITA BUILDER ONLINE]=========="
-#    fi
-#    
-#    make_ita
-#elif [ "$ACTION" == "Download" ]; then
-#    log "==========[START ITA GATHER LIBRARY]=========="
-#    END_MESSAGE="==========[END ITA GATHER LIBRARY]=========="
-#    download
-#else
-#    log "Unknown parameter \"$ACTION\"" | tee -a "$ITA_BUILDER_LOG_FILE"
-#fi
 
 log "==========[START OASE BUILDER ONLINE]=========="
 END_MESSAGE="==========[END OASE BUILDER ONLINE]=========="
