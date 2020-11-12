@@ -43,7 +43,6 @@ export SKIP_ARRAY
 function oase_install() {
     log "INFO : Start to install"
 
-    #bash ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
     source ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
     if [ $? -ne 0 ]; then
         log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh"
