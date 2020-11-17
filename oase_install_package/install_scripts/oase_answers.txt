@@ -121,3 +121,6 @@ ev_location:
 # e.g) oase_language:ja
 oase_language:ja
 
+# Select Operation System. ("CentOS7" or "RHEL7")
+# e.g) oase_os:RHEL7
+oase_os:
