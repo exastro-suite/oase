@@ -150,9 +150,8 @@ if [ ${install_mode} = "Install" ]; then
 
     echo "["`date +"%Y-%m-%d %H:%M:%S"`"] #####################################" | tee -a "$OASE_INSTALL_LOG_FILE"
     echo "["`date +"%Y-%m-%d %H:%M:%S"`"] SKIP LIST(Please check the Settings) " | tee -a "$OASE_INSTALL_LOG_FILE"
-    echo "["`date +"%Y-%m-%d %H:%M:%S"`"] #####################################" | tee -a "$OASE_INSTALL_LOG_FILE"
     for skip_pkg in ${SKIP_ARRAY[@]}; do
-        echo "["`date +"%Y-%m-%d %H:%M:%S"`"] $skip_pkg" | tee -a "$OASE_INSTALL_LOG_FILE"
+        echo "["`date +"%Y-%m-%d %H:%M:%S"`"] ・${skip_pkg}" | tee -a "$OASE_INSTALL_LOG_FILE"
     done
 
     if [ $? -ne 0 ]; then
