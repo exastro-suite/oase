@@ -108,7 +108,7 @@ yum_repository() {
 
         # no repo to be installed if the first argument starts "-".
         if [[ "$repo" =~ ^[^-] ]]; then
-            if [ "$LINUX_OS" == "RHEL7" ]; then
+            if [ "$oase_os" == "RHEL7" ]; then
                 rpm -ivh "$repo" >> "$OASE_INSTALL_LOG_FILE" 2>&1
             else
                 yum install -y "$repo" >> "$OASE_INSTALL_LOG_FILE" 2>&1
@@ -129,28 +129,25 @@ yum_repository() {
         fi
 
         if [ $# -gt 0 ]; then
-            if [ "${LINUX_OS}" == "CentOS7" -o "${LINUX_OS}" == "RHEL7" ]; then
+            if [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
                 yum-config-manager "$@" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            elif [ "${LINUX_OS}" == "CentOS8" -o "${LINUX_OS}" == "RHEL8" ]; then
+            elif [ "${oase_os}" == "CentOS8" -o "${oase_os}" == "RHEL8" ]; then
                 dnf config-manager "$@" >> "$OASE_INSTALL_LOG_FILE" 2>&1
             fi
 
             # Check Creating repository
-            if [ "${REPOSITORY}" != "yum_all" ]; then
-                case "${linux_os}" in
-                    "CentOS7") create_repo_check remi-php72 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                    "RHEL7") create_repo_check remi-php72 rhel-7-server-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                    "RHEL7_AWS") create_repo_check remi-php72 rhui-rhel-7-server-rhui-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                    "CentOS8") create_repo_check PowerTools >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                    "RHEL8") create_repo_check codeready-builder-for-rhel-8 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                    "RHEL8_AWS") create_repo_check codeready-builder-for-rhel-8-rhui-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                esac
-                if [ $? -ne 0 ]; then
-                    log "ERROR:Failed to get repository"
-                    func_exit
-                fi
+            case "${oase_os}" in
+                "CentOS7") create_repo_check remi-php72 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+                "RHEL7") create_repo_check remi-php72 rhel-7-server-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+                "RHEL7_AWS") create_repo_check remi-php72 rhui-rhel-7-server-rhui-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+                "CentOS8") create_repo_check PowerTools >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+                "RHEL8") create_repo_check codeready-builder-for-rhel-8 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+                "RHEL8_AWS") create_repo_check codeready-builder-for-rhel-8-rhui-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+            esac
+            if [ $? -ne 0 ]; then
+                log "ERROR:Failed to get repository"
+                func_exit
             fi
-            yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
     fi
 }
@@ -164,7 +161,7 @@ configure_yum_env() {
 
     #mirror list is Japan only.
     if [ ! -e /etc/yum/pluginconf.d/fastestmirror.conf ]; then
-        if [ "$LINUX_OS" == "RHEL7" ]; then
+        if [ "$oase_os" == "RHEL7" ]; then
             yum --enablerepo=rhel-7-server-optional-rpms install -y yum-plugin-fastestmirror >> "$OASE_INSTALL_LOG_FILE" 2>&1
             ls /etc/yum/pluginconf.d/fastestmirror.conf >> "$OASE_INSTALL_LOG_FILE" 2>&1 | xargs grep "include_only=.jp" >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
@@ -191,13 +188,24 @@ configure_python() {
     #-----------------------------------------------------------
 
     # install some packages
-    yum list installed | grep -e python3-devel.x86_64 -e python3-libs.x86_64 -e python3-pip.noarch >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        yum-config-manager --enable rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        yum_install ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    else
-        echo "install skip python3-devel.x86_64 python3-libs.x86_64 python3-pip.noarch" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL7" ]; then
+        yum list installed | grep -e python3-devel.x86_64 -e python3-libs.x86_64 -e python3-pip.noarch >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum-config-manager --enable rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum_install ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip python3-devel.x86_64 python3-libs.x86_64 python3-pip.noarch" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+    elif [ "${oase_os}" == "CentOS7" ]; then
+        yum list installed | grep -e python36u.x86_64 -e python36u-libs.x86_64 -e python36u-devel.x86_64 -e python36u-pip.noarch >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            yum install -y epel-release >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum-config-manager --enable epel >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum_install ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip python36u python36u-libs  python36u-devel python36u-pip" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
     fi
 
     # python link
@@ -817,8 +825,8 @@ make_oase() {
 # main
 
 MODE="remote"
-LINUX_OS='RHEL7'
-REPOSITORY="${LINUX_OS}"
+#LINUX_OS='RHEL7'
+#REPOSITORY="${LINUX_OS}"
 
 YUM_PACKAGE_YUM_ENV=(
     ["remote"]="yum-utils createrepo"
