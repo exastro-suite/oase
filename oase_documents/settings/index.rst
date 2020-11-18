@@ -3,11 +3,10 @@
 =================================
 
 .. toctree::
-   :maxdepth: 5
+   :maxdepth: 4
    :caption: 目次 
 
    introduction
    construction_flow
    installation
-   installation_centos
    environmental_setting
