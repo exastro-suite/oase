@@ -146,6 +146,10 @@ class ZabbixApi(object):
                 'status': 0,
                 'value': 1,
             },
+            'selectHosts': [
+                'hostid',
+                'host'
+            ],
             'lastChangeSince' : last_change_since,
         }
 

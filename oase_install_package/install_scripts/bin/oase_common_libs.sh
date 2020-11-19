@@ -130,14 +130,14 @@ function check_answer_vars() {
     fi
 
     # config_id: DM_USERID
-    if [ -z "${rhdm_adminname}" ]; then
-        log "ERROR : rhdm_adminname should be enter to RHDM Administrator name"
+    if [ -z "${drools_adminname}" ]; then
+        log "ERROR : drools_adminname should be enter to RHDM Administrator name"
         _error_flag=true
     fi
 
     # config_id: DM_PASSWD
-    if [ -z "${rhdm_password}" ]; then
-        log "ERROR : rhdm_password should be enter to RHDM Administrator password"
+    if [ -z "${drools_password}" ]; then
+        log "ERROR : drools_password should be enter to RHDM Administrator password"
         _error_flag=true
     fi
 
@@ -212,6 +212,18 @@ function check_answer_vars() {
     # config_id: db_erase
     if [ -z "${db_erase}" ]; then
         log "ERROR : db_erase should be enter to value(erase or leave)"
+        _error_flag=true
+    fi
+
+    #################################
+    ### oase_builder_core.sh 用
+    # config_id: oase_os
+    if [ -z "${oase_os}" ]; then
+        log "ERROR : oase_os should be enter to value(CentOS7 or RHEL7)"
+        _error_flag=true
+    fi
+    if [ "${oase_os}" != 'CentOS7' -a "${oase_os}" != 'RHEL7' ]; then
+        log "ERROR : oase_os should be set to CentOS7 or RHEL7"
         _error_flag=true
     fi
 
