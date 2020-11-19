@@ -134,7 +134,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # wget https://github.com/exastro-suite/oase/archive/vx.x.x.tar.gz
+ # wget https://github.com/exastro-suite/oase/releases/download/vx.x.x/exastro-oase-x.x.x.tar.gz
 
 .. note:: バージョン（x.x.x）は適宜変更してください。
 
@@ -146,7 +146,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # tar zxf vx.x.x.tar.gz
+ # tar zxf exastro-oase-x.x.x.tar.gz
 
 
 3.1.3. ディレクトリ移動
@@ -156,7 +156,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # cd oase-x.x.x/oase_install_package/install_scripts
+ # cd oase/oase_install_package/install_scripts
 
 
 3.1.4. アンサーファイルの編集
