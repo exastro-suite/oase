@@ -128,12 +128,20 @@ def formatting_eventinfo(key_list, data_dic, eventinfo):
       False: 整形失敗
     """
 
+    hosts_list = []
+
     # リクエスト用データへ整形開始
     for zabbix_key in key_list:
 
         # ZABBIX項目名が存在したら配列に追加
         if zabbix_key in data_dic and data_dic[zabbix_key] != None:
-            eventinfo.append(data_dic[zabbix_key])
+            if zabbix_key == 'hosts':
+                for hosts_data in data_dic[zabbix_key]:
+                    if 'host' in hosts_data:
+                        eventinfo.append(hosts_data['host'])
+
+            else:
+                eventinfo.append(data_dic[zabbix_key])
 
     # zabbix_response_keyとeventinfoの数が合わなかったらデータ作成終了
     if len(key_list) != len(eventinfo):

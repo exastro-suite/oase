@@ -1,4 +1,4 @@
-#Select install mode. ("Install" or "Uninstall")
+#Select install mode. ("Install")
 # e.g) install_mode:Install
 install_mode:Install
 
@@ -8,16 +8,16 @@ install_mode:Install
 ##############################
 # Decide the RabbitMQ_username.
 # e.g) RabbitMQ_username:sample_rabbitmq_username
-RabbitMQ_username:
+RabbitMQ_username:administrator
 
 # Decide the RabbitMQ_password.
 # e.g) RabbitMQ_password:sample_rabbitmq_password
-RabbitMQ_password:
+RabbitMQ_password:password
 
 
 # Decide the RabbitMQ_queuename.
 # e.g) RabbitMQ_queuename:oase
-RabbitMQ_queuename:
+RabbitMQ_queuename:oase
 
 # Enter IP address for RabbitMQ.
 # e.g) RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
@@ -28,15 +28,15 @@ RabbitMQ_ipaddr:
 ##############################
 # Enter the MySQL root user's password
 # e.g) db_root_password:sample_root_password
-db_root_password:
+db_root_password:password
 
 # Decide the database name, username, and password for OASE.
 # e.g) db_name:sample_db_name
-db_name:
+db_name:OASE_DB
 # e.g) db_username:sample_db_username
-db_username:
+db_username:OASE_USER
 # e.g) db_password:sample_db_password
-db_password:
+db_password:OASE_PASSWD
 
 # In uninstall mode,
 # Select "erase" or "leave" oase database
@@ -45,25 +45,25 @@ db_erase:
 
 
 ##############################
-# JBoss EAP
+# WildFly
 ##############################
-# Enter JBoss install directory.
-# e.g) jboss_root_directory:/exastro/JBoss/EAP-7.2.0
-jboss_root_directory:
+# Enter WildFly install directory.
+# e.g) wildfly_root_directory:/exastro/WildFly
+wildfly_root_directory:/exastro/WildFly
 
 
 ##############################
-# RHDM
+# Drools
 ##############################
 # Decide the Administrator name, password.
-# e.g) rhdm_adminname:admin0000
-rhdm_adminname:
-# e.g) rhdm_password:password@1
-rhdm_password:
+# e.g) drools_adminname:admin0000
+drools_adminname:admin0000
+# e.g) drools_password:password@1
+drools_password:password@1
 
 # Enter IP address & port for Decision Manager.
 # e.g) dm_ipaddrport:localhost:8080
-dm_ipaddrport:
+dm_ipaddrport:localhost:8080
 
 
 ##############################
@@ -71,7 +71,7 @@ dm_ipaddrport:
 ##############################
 # Enter root path for RULEFILE.
 # e.g) rulefile_rootpath:/exastro/rule
-rulefile_rootpath:
+rulefile_rootpath:/exastro/rule
 
 
 ##############################
@@ -79,7 +79,7 @@ rulefile_rootpath:
 ##############################
 # Enter IP address & port for APPLY SERVICE.
 # e.g) apply_ipaddrport:127.0.0.1:50001
-apply_ipaddrport:
+apply_ipaddrport:127.0.0.1:50001
 
 
 ##############################
@@ -87,7 +87,7 @@ apply_ipaddrport:
 ##############################
 # Enter repository path for Maven.
 # e.g) mavenrep_path:/root/.m2/repository/com/oase/
-mavenrep_path:
+mavenrep_path:/root/.m2/repository/com/oase/
 
 
 ##############################
@@ -95,7 +95,7 @@ mavenrep_path:
 ##############################
 # Enter smtp settings.
 # e.g) oasemail_smtp:"{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}"
-oasemail_smtp:
+oasemail_smtp:"{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}"
 
 
 ##############################
@@ -103,7 +103,7 @@ oasemail_smtp:
 ##############################
 # Enter OASE install directory.
 # e.g) oase_directory:/exastro
-oase_directory:
+oase_directory:/exastro
 
 
 ##############################
@@ -117,22 +117,10 @@ oase_session_engine:
 # e.g) ev_location:127.0.0.1
 ev_location:
 
-# Select language. ("en_us" or "ja")
+# Select language. ("ja")
 # e.g) oase_language:ja
 oase_language:ja
 
-# Select Operation System. ("RHEL6" or "RHEL7")
+# Select Operation System. ("CentOS7" or "RHEL7")
 # e.g) oase_os:RHEL7
-#oase_os:
-
-
-##############################
-# インストール対象選択
-##############################
-# Select targets you need to install.
-# yes : need
-# no  : no need
-oase_base:yes
-# ZABBIX_adapter:yes
-# ITA_driver:yes
-# mail_driver:yes
+oase_os:
