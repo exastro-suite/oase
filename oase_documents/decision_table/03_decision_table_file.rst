@@ -216,30 +216,32 @@ ITAドライバ
 
 | **アクションパラメータ情報（必須）※ダブルクオーテーションは使用不可**
 
-* ITA_NAMEおよびSYMPHONY_CLASS_IDは必須です。
+* ITA_NAMEおよびSYMPHONY_CLASS_IDまたはCONDUCTOR_CLASS_IDは必須です。
 * ITA_NAMEはOASE画面のシステム-アクション設定-ITA_driverの名前と紐づけます。
-* SYMPHONY_CLASS_IDはITA画面の基本コンソール-Symphonyクラス一覧のSymphonyクラスIDと紐づけます。
+* SYMPHONY_CLASS_IDはITA画面のSymphony-Symphonyクラス一覧のSymphonyクラスIDと紐づけます。
+* CONDUCTOR_CLASS_IDはITA画面のConductor-Conductorクラス一覧のConductorクラスIDと紐づけます。
 * OPERATION_IDはITA画面の基本コンソール-投入オペレーション一覧のオペレーションIDと紐づけます。
 * SERVER_LISTは実行対象となるホスト名を記述します。ホスト名はITA画面の基本コンソール-機器一覧のホスト名と紐づけます。複数記載する場合はコロン(:)で区切って記述します。
 * MENU_IDはITAで作成されたパラメータシートのメニューIDと紐づけます。メニューIDはITA画面の管理コンソール-メニュー管理から確認できます。複数記載する場合はコロン(:)で区切って記述します。
 * HOSTGROUP_NAMEはMENU_IDに紐づいたホストグループIDを記載します。MENU_IDと併せてコロン（:）で区切って記載します。1つのMENU_IDに複数のホストグループを紐づける場合はアンド（&）で区切って記載します。
 * 複数のMENU_IDを設定する場合はパイプ（|）で区切って記載します。HOST_NAMEにつきましても、HOSTGROUP_NAMEと同様です。
 * CONVERT_FLGはTRUEまたはFALSEを設定します。MENU_ID指定の時に必須になります。
-* SYMPHONY_CLASS_ID,OPERATION_ID,SERVER_LIST,MENU_IDの値に {{ VAR_条件名 }} と記入すると条件部の値を当てはめることができます。
+* SYMPHONY_CLASS_ID,CONDUCTOR_CLASS_ID,OPERATION_ID,SERVER_LIST,MENU_IDの値に {{ VAR_条件名 }} と記入すると条件部の値を当てはめることができます。
 * {{ VAR_条件名 }} の条件名には :doc:`02_screen_structure` の新規追加画面にて入力された条件名を記入してください。
 
 
 
 | **OPERATION_IDを指定した場合**
 | ITAに事前に準備しておいた [ オペレーション - Symphony ] で作業を実行できます。
+| ITAに事前に準備しておいた [ オペレーション - Conductor ] で作業を実行できます。
 
 | **SERVER_LISTを指定した場合**
-| ITAのSymphonyに対して、OASEから作業対象ホストを指定して作業を実行できます。
-| （ITAでのオペレーションは自動払い出しになります）
+| ITAのSymphonyまたはConductorに対して、OASEから作業対象ホストを指定して作業を実行できます。
+| (ITAでのオペレーションは自動払い出しになります)
 
 | **MENU_IDを指定した場合**
-| ITAのパラメータシートと連携して、指定したSymphonyに対して作業を実行できます。
-| （ITAでのオペレーションは自動払い出しになります）
+| ITAのパラメータシートと連携して、指定したSymphonyまたはConductorに対して作業を実行できます。
+| (ITAでのオペレーションは自動払い出しになります)
 | MENU_ID指定の場合は、CONVERT_FLGが必須になります。
 
 | **MENU_ID指定かつCONVERT_FLGがTRUEの場合**
@@ -260,15 +262,11 @@ ITAドライバ
 
 ::
 
- ITA_NAME=action43,SYMPHONY_CLASS_ID=2
+ ITA_NAME=action43,SYMPHONY_CLASS_ID=2,OPERATION_ID=10
 
 ::
 
  ITA_NAME=action43,SYMPHONY_CLASS_ID={{ VAR_条件名 }},OPERATION_ID=10
-
-::
-
- ITA_NAME=action43,SYMPHONY_CLASS_ID=2,OPERATION_ID=10
 
 ::
 
@@ -285,6 +283,31 @@ ITAドライバ
 ::
 
  ITA_NAME=action43,SYMPHONY_CLASS_ID=2,MENU_ID=1:2:3:4,HOSTGROUP_NAME=1:HG1,HOST_NAME=2:H2&H3|3:H4|4:H5&H6&H7,CONVERT_FLG=FALSE
+
+::
+
+ ITA_NAME=action43,CONDUCTOR_CLASS_ID=2,OPERATION_ID=10
+
+::
+
+ ITA_NAME=action43,CONDUCTOR_CLASS_ID={{ VAR_条件名 }},OPERATION_ID=10
+
+::
+
+ ITA_NAME=action43,CONDUCTOR_CLASS_ID=2,SERVER_LIST=hostname1:hostname2
+
+::
+
+ ITA_NAME=action43,CONDUCTOR_CLASS_ID=2,MENU_ID=1,CONVERT_FLG=TRUE
+
+::
+
+ ITA_NAME=action43,CONDUCTOR_CLASS_ID=2,MENU_ID=1:2,CONVERT_FLG=FALSE
+
+::
+
+ ITA_NAME=action43,CONDUCTOR_CLASS_ID=2,MENU_ID=1:2:3:4,HOSTGROUP_NAME=1:HG1,HOST_NAME=2:H2&H3|3:H4|4:H5&H6&H7,CONVERT_FLG=FALSE
+
 
 .. note::
    OPERATION_ID,SERVER_LIST,MENU_IDを同時に設定した場合エラーとなります。
