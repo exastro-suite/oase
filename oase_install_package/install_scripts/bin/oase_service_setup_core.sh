@@ -205,6 +205,7 @@ if [ ! -e "$SERVICE_ACCEPT_SERVICE" ]; then
 fi
 
 # start services
+log "INFO : Start OASE service"
 run_systemctl nginx.service
 run_systemctl uwsgi.service
 run_systemctl oase-action.service
@@ -213,27 +214,8 @@ run_systemctl oase-apply.service
 run_systemctl oase-accept.service
 
 # jboss-eap-rhel service start
-log "INFO : Start Red Hat Decision Manager service"
-result=$(chkconfig --add jboss-eap-rhel.sh 2>&1)
-if [ $? -ne 0 ]; then
-    log "ERROR : $result"
-    log "INFO : Abort installation." 
-    exit 1
-fi
-
-result=$(service jboss-eap-rhel start 2>&1)
-if [ $? -ne 0 ]; then
-    log "ERROR : $result"
-    log "INFO : Abort installation." 
-    exit 1
-fi
-
-result=$(chkconfig jboss-eap-rhel.sh on  2>&1)
-if [ $? -ne 0 ]; then
-    log "ERROR : $result"
-    log "INFO : Abort installation." 
-    exit 1
-fi
+log "INFO : Start Drools service"
+run_systemctl drools.service
 
 
 ################################################################################

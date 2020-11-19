@@ -249,10 +249,10 @@
    :scale: 100%
    :align: center
 
-   図 2.2-2-2 固有項目(Exastro IT Automation)
+   図 2.2-2-2 固有項目(ITA Symphony実行の場合)
 
 
-.. csv-table:: 表 2.2-2-2 固有項目(Exastro IT Automation)の説明
+.. csv-table:: 表 2.2-2-2 固有項目(ITA Symphony実行の場合)の説明
    :header: No., 構成要素, 説明
    :widths: 5, 20, 60
 
@@ -264,15 +264,36 @@
    6, RESTAPI異常時の詳細内容,OASE-ITA間のREST結果が異常であった場合、エラー内容が表示されます。
    7, 連携項目,メニューID指定によるITAアクションを実施した際に、ITA側に連携した値が表示されます。
 
+
+.. figure:: ../images/action_history/action_history_14.png
+   :scale: 100%
+   :align: center
+
+   図 2.2-2-3 固有項目(ITA Conductor実行の場合)
+
+
+.. csv-table:: 表 2.2-2-3 固有項目(ITA Conductor実行の場合)の説明
+   :header: No., 構成要素, 説明
+   :widths: 5, 20, 60
+
+   1, ITA表示名,ディシジョンテーブルファイルに記載した、ITA_NAMEが表示されます。
+   2, Conductorインスタンス番号,ITAで実行されたConductor作業一覧のIDが表示されます。
+   3, ConductorクラスID,ITAで実行されたConductorクラス一覧のIDが表示されます。
+   4, オペレーションID,ITAで実行された投入オペレーション一覧のIDが表示されます。
+   5, Conductor作業確認URL,ITAの実行結果参照用の、Conductor作業確認のURLが表示されます。
+   6, RESTAPI異常時の詳細内容,OASE-ITA間のREST結果が異常であった場合、エラー内容が表示されます。
+   7, 連携項目,メニューID指定によるITAアクションを実施した際に、ITA側に連携した値が表示されます。
+
+
 * 履歴詳細画面における、mail の項目は次の通りです。
 
 .. figure:: ../images/action_history/action_history_13.png
    :scale: 100%
    :align: center
 
-   図 2.2-2-3 固有項目(mail)
+   図 2.2-2-4 固有項目(mail)
 
-.. csv-table:: 表 2.2-2-3 固有項目(mail)の説明
+.. csv-table:: 表 2.2-2-4 固有項目(mail)の説明
    :header: No., 構成要素, 説明
    :widths: 5, 20, 60
 
@@ -292,6 +313,6 @@
    :scale: 100%
    :align: center
 
-   図 2.2-2-4 ドライバアンインストールについて
+   図 2.2-2-5 ドライバアンインストールについて
 
 

@@ -100,6 +100,12 @@ if [ -z "$user_exits" ]; then
     log "INFO : Start CREATE USER."
     ################################################################################
 
+    result=$(echo "SET GLOBAL validate_password.length=4;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.mixed_case_count=0;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.number_count=0;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.special_char_count=0;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "SET GLOBAL validate_password.policy=LOW;" | mysql -u root -p${db_root_password} 2>&1)
+
     result=$(echo "CREATE USER '"${db_username}"' IDENTIFIED BY '"${db_password}"';" | mysql -u root -p${db_root_password} 2>&1)
     check_result $? "$result"
 
@@ -145,8 +151,8 @@ encrypter=$oase_directory/OASE/tool/encrypter.py
 date=`date +"%Y-%m-%dT%H:%M:%S"`
 create_initcustom 2  "ルールファイル設置ルートパス"  "RULE"          "RULEFILE_ROOTPATH" ${rulefile_rootpath}  $date
 create_initcustom 26 "DMリクエスト送信先"            "DMSETTINGS"    "DM_IPADDRPORT"     ${dm_ipaddrport}      $date
-create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${rhdm_adminname}     $date
-encrypted_password=$(python3 $encrypter ${rhdm_password} 2>&1)
+create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${drools_adminname}   $date
+encrypted_password=$(python3 $encrypter ${drools_password} 2>&1)
 check_result $? $encrypted_password
 create_initcustom 28 "DMパスワード"                  "DMSETTINGS"    "DM_PASSWD"         $encrypted_password   $date
 create_initcustom 29 "適用君待ち受け情報"            "APPLYSETTINGS" "APPLY_IPADDRPORT"  ${apply_ipaddrport}   $date
