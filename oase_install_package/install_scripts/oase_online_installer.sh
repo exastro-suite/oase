@@ -29,17 +29,25 @@ readonly OASE_INSTALL_LOGS_DIR=${OASE_INSTALL_SCRIPTS_DIR}/logs
 readonly OASE_ANSWER_FILE=${OASE_INSTALL_SCRIPTS_DIR}/oase_answers.txt
 readonly OASE_COMMON_LIBS=${OASE_INSTALL_BIN_DIR}/oase_common_libs.sh
 readonly OASE_INSTALL_LOG_FILE=${OASE_INSTALL_LOGS_DIR}/oase_install.log
+declare -a -x SKIP_ARRAY=()
 
 export OASE_INSTALL_SCRIPTS_DIR
 export OASE_INSTALL_PACKAGE_DIR
 export OASE_PKG_ROOT_DIR
 export OASE_INSTALL_BIN_DIR
 export OASE_INSTALL_LOG_FILE
+export SKIP_ARRAY
 
 ################################################################################
 # functions
 function oase_install() {
     log "INFO : Start to install"
+
+    source ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
+    if [ $? -ne 0 ]; then
+        log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh"
+        return 1
+    fi
 
     bash ${OASE_INSTALL_BIN_DIR}/oase_deployment_core.sh
     if [ $? -ne 0 ]; then
@@ -100,15 +108,14 @@ _some_var=`cat << EOF
         ${OASE_INSTALL_BIN_DIR}/oase_middleware_setup_core.sh
         ${OASE_INSTALL_BIN_DIR}/oase_service_setup_core.sh
     ${OASE_INSTALL_BIN_DIR}/oase_uninstall_core.sh
+    ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
 EOF`
-
 for _some_sh in ${_some_var};do
     if [ ! -f ${_some_sh} ]; then
         echo "ERROR : ${_some_sh} no such file"
         exit 1
     fi
 done
-
 #-----------------------------------------------------------
 # 共通処理の読み込み
 #-----------------------------------------------------------
@@ -118,12 +125,10 @@ if [ $? -ne 0 ]; then
     echo "ERROR : Failed to read ${OASE_COMMON_LIBS}"
     exit 1
 fi
-log "INFO : Finished to read ${OASE_COMMON_LIBS}" 
-
+log "INFO : Finished to read ${OASE_COMMON_LIBS}"
 log "#####################################"
 log "INFO : oase_online_install.sh start"
 log "#####################################"
-
 #-----------------------------------------------------------
 # answerfileの読み込み
 #-----------------------------------------------------------
@@ -131,46 +136,47 @@ if [ ! -f ${OASE_ANSWER_FILE} ]; then
     log "ERROR : ${OASE_ANSWER_FILE} no such file"
     exit 1
 fi
-
 read_answerfile ${OASE_ANSWER_FILE}
 if [ $? -ne 0 ]; then
     log "ERROR : Failed to read ${OASE_ANSWER_FILE}"
     exit 1
 fi
-
 #-----------------------------------------------------------
 # 子プロセス呼び出し
 #-----------------------------------------------------------
 if [ ${install_mode} = "Install" ]; then
     log "INFO : Mode=Install Selected"
     oase_install
+
+    echo "["`date +"%Y-%m-%d %H:%M:%S"`"] #####################################" | tee -a "$OASE_INSTALL_LOG_FILE"
+    echo "["`date +"%Y-%m-%d %H:%M:%S"`"] SKIP LIST(Please check the Settings) " | tee -a "$OASE_INSTALL_LOG_FILE"
+    for skip_pkg in ${SKIP_ARRAY[@]}; do
+        echo "["`date +"%Y-%m-%d %H:%M:%S"`"] ・${skip_pkg}" | tee -a "$OASE_INSTALL_LOG_FILE"
+    done
+
     if [ $? -ne 0 ]; then
         log "#####################################"
         log "ERROR : Install Failed"
-        log "#####################################\n"
+        log "#####################################"
         exit 1
     fi
-
     log "#####################################"
     log "INFO : Install Finished"
-    log "#####################################\n"
+    log "#####################################"
     exit 0
-
 elif [ ${install_mode} = "Uninstall" ]; then
     log "INFO : Mode=Uninstall Selected"
     oase_uninstall
     if [ $? -ne 0 ]; then
         log "#####################################"
         log "ERROR : Uninstall Failed"
-        log "#####################################\n"
+        log "#####################################"
         exit 1
     fi
-
     log "#####################################"
     log "INFO : Uninstall Finished"
-    log "#####################################\n"
+    log "#####################################"
     exit 0
-
 else
     log "ERROR : 'install_mode' should be set. (Install or Uninstall)"
     exit 1
