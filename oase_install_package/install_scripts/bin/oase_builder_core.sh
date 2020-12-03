@@ -579,15 +579,15 @@ configure_maven(){
 #Django install
 configure_django(){
     # django
-    pip3 list | grep -e "django==2.2.3" -e "django-crispy-forms" -e "django-filter" -e "django-pure-pagination" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    pip3 list | grep -e "django==2.2.3" -e "django-crispy-forms" -e "django-filter" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     if [ $? -eq 1 ]; then
-        pip3 install django==2.2.3 django-crispy-forms django-filter django-pure-pagination >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip3 install django==2.2.3 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
         if [ $? -ne 0 ]; then
-            log "ERROR:Installation failed django==2.2.3 django-crispy-forms django-filter django-pure-pagination"
+            log "ERROR:Installation failed django==2.2.3 django-crispy-forms django-filter"
             func_exit
         fi
     else
-        echo "install skip django==2.2.3 django-crispy-forms django-filter django-pure-pagination" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip django==2.2.3 django-crispy-forms django-filter" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
     # requests
