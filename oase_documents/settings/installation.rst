@@ -134,7 +134,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # wget https://github.com/exastro-suite/oase/archive/vx.x.x.tar.gz
+ # wget https://github.com/exastro-suite/oase/releases/download/vx.x.x/exastro-oase-x.x.x.tar.gz
 
 .. note:: バージョン（x.x.x）は適宜変更してください。
 
@@ -146,7 +146,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # tar zxf vx.x.x.tar.gz
+ # tar zxf exastro-oase-x.x.x.tar.gz
 
 
 3.1.3. ディレクトリ移動
@@ -156,7 +156,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # cd oase-x.x.x/oase_install_package/install_scripts
+ # cd oase/oase_install_package/install_scripts
 
 
 3.1.4. アンサーファイルの編集
@@ -172,7 +172,7 @@ OASEのインストール手順を下記に示します。
    :widths: 5, 20, 20, 60
 
    1, install_mode, Install, インストールモードの設定（インストール：Install）
-   2, RabbitMQ_username, administrator, RabbitMQのユーザ名
+   2, RabbitMQ_username, admin, RabbitMQのユーザ名
    2, RabbitMQ_password, password, RabbitMQのパスワード
    3, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
    4, RabbitMQ_ipaddr, , RabbitMQを設定したサーバのIPアドレス
@@ -213,7 +213,7 @@ OASEのインストール手順を下記に示します。
  ##############################
  # Decide the RabbitMQ_username.
  # e.g) RabbitMQ_username:sample_rabbitmq_username
- RabbitMQ_username:administrator
+ RabbitMQ_username:admin
 
  # Decide the RabbitMQ_password.
  # e.g) RabbitMQ_password:sample_rabbitmq_password
