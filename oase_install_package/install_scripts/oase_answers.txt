@@ -8,7 +8,7 @@ install_mode:Install
 ##############################
 # Decide the RabbitMQ_username.
 # e.g) RabbitMQ_username:sample_rabbitmq_username
-RabbitMQ_username:administrator
+RabbitMQ_username:admin
 
 # Decide the RabbitMQ_password.
 # e.g) RabbitMQ_password:sample_rabbitmq_password
