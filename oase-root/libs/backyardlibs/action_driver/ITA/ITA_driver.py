@@ -50,6 +50,7 @@ from web_app.models.models import DataObject
 
 from web_app.models.ITA_models import ItaActionHistory
 from web_app.models.ITA_models import ItaDriver
+from web_app.models.ITA_models import ItaActionSystem
 from web_app.models.ITA_models import ItaParameterMatchInfo
 from web_app.models.ITA_models import ItaParametaCommitInfo, ItaMenuName
 from web_app.models.ITA_models import ItaParameterItemInfo
@@ -193,6 +194,7 @@ class ITAManager(AbstractManager):
         conductor_instance_id = None
         conductor_url = ''
         event_info_list = []
+        instance_check = True
 
         param_info = json.loads(rhdm_res_act.action_parameter_info)
 
@@ -275,13 +277,13 @@ class ITAManager(AbstractManager):
             if key_hostgroup_name in check_info:
                 hostgroup_name = check_info[key_hostgroup_name]
                 if not hostgroup_name:
-                    raise OASEError('', 'LOSE0113X', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
+                    raise OASEError('', 'LOSE01139', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
                                     'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
 
             if key_dt_host_name in check_info:
                 dt_host_name = check_info[key_dt_host_name]
                 if not dt_host_name:
-                    raise OASEError('', 'LOSE0113X', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
+                    raise OASEError('', 'LOSE01140', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
                                     'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
 
             menu_id = check_info[key_menu_id]
@@ -523,6 +525,9 @@ class ITAManager(AbstractManager):
                 conductor_url,
                 parameter_item_info
             )
+            # 履歴の保存に失敗した場合は、異常終了とする
+            if ret == None:
+                return ACTION_EXEC_ERROR, DetailStatus
 
             return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, DetailStatus
 
@@ -535,11 +540,21 @@ class ITAManager(AbstractManager):
         if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
             code, symphony_instance_id, symphony_url = self.ITAobj.symphony_execute(
                 self.ary_ita_config, operation_id)
+            if symphony_instance_id == '':
+                instance_check = False
+                symphony_instance_id = None
+            else:
+                ActionDriverCommonModules.SaveActionLog(self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01028')
         else:
             code, conductor_instance_id, conductor_url = self.ITAobj.conductor_execute(
                 self.ary_ita_config, operation_id)
+            if conductor_instance_id == '':
+                instance_check = False
+                conductor_instance_id = None
+            else:
+                ActionDriverCommonModules.SaveActionLog(self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01076')
 
-        if code == 0:
+        if code == 0 and instance_check != False:
             ActionStatus = PROCESSED
 
         else:
@@ -558,11 +573,14 @@ class ITAManager(AbstractManager):
             conductor_instance_id,
             conductor_url
         )
+        # 履歴の保存に失敗した場合は、異常終了とする
+        if ret == None:
+            return ACTION_EXEC_ERROR, DetailStatus
 
-        # Symphonyに失敗した場合は異常終了する。
+        # SymphonyまたはConductorに失敗した場合は異常終了する。
         if ActionStatus != PROCESSED:
             logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-            ActionDriverCommonModules.SaveActionLog(self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01040')
+            ActionDriverCommonModules.SaveActionLog(self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01080')
             return ACTION_EXEC_ERROR, DetailStatus
 
         logger.logic_log('LOSI00002', 'return: PROCESSED')
@@ -671,7 +689,7 @@ class ITAManager(AbstractManager):
         return parameter_item_info
 
 
-    def act_with_menuid(self, act_his_id, exec_order):
+    def act_with_menuid(self, act_his_id, exec_order, limit_dt):
         """
         [概要]
         """
@@ -684,6 +702,9 @@ class ITAManager(AbstractManager):
         conductor_url = ''
         symphony_class_id = None
         conductor_class_id = None
+        ActionStatus = ACTION_EXEC_ERROR
+        instance_check = True
+        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
 
         if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
             symphony_class_id = self.aryActionParameter['SYMPHONY_CLASS_ID']
@@ -769,6 +790,24 @@ class ITAManager(AbstractManager):
             subst_count += ret
 
         if subst_count < total_count:
+
+            # タイムリミットを算出
+            limit_sec = 30
+            try:
+                limit_sec = int(ItaActionSystem.objects.filter(config_id='SUBSTITUTION_TIME').value)
+
+            except Exception as e:
+                logger.logic_log('LOSI00005', traceback.format_exc())
+
+            limit_now = datetime.datetime.now(pytz.timezone('UTC'))
+            limit_dt += datetime.timedelta(seconds=limit_sec)
+
+            # タイムリミットを超過していた場合は異常終了
+            if limit_now > limit_dt:
+                logger.logic_log('LOSM01306', self.trace_id, subst_count, total_count, limit_sec, limit_dt)
+                ActionDriverCommonModules.SaveActionLog(self.response_id, exec_order, self.trace_id, 'MOSJA01081')
+                return ACTION_HISTORY_STATUS.ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
             logger.logic_log('LOSI00002', 'trace_id: %s, subst_count: %s, total_count: %s' % (self.trace_id, subst_count, total_count))
             return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, ACTION_HISTORY_STATUS.DETAIL_STS.NONE
 
@@ -776,10 +815,23 @@ class ITAManager(AbstractManager):
             # Symphony実行()
             code, symphony_instance_id, symphony_url = self.ITAobj.symphony_execute(
                 self.ary_ita_config, operation_id)
+            if symphony_instance_id == '':
+                instance_check = False
+                symphony_instance_id = None
+            else:
+                ActionDriverCommonModules.SaveActionLog(self.response_id, exec_order, self.trace_id, 'MOSJA01028')
         else:
             # Conductor実行()
             code, conductor_instance_id, conductor_url = self.ITAobj.conductor_execute(
                 self.ary_ita_config, operation_id)
+            if conductor_instance_id == '':
+                instance_check = False
+                conductor_instance_id = None
+            else:
+                ActionDriverCommonModules.SaveActionLog(self.response_id, exec_order, self.trace_id, 'MOSJA01076')
+
+        if code == 0 and instance_check != False:
+            ActionStatus = PROCESSED
 
         # ITAアクション履歴登録
         logger.logic_log('LOSI01104', str(exec_order), self.trace_id)
@@ -792,6 +844,15 @@ class ITAManager(AbstractManager):
             conductor_instance_id,
             conductor_url
         )
+        # 履歴の保存に失敗した場合は、異常終了とする
+        if ret == None:
+            return ACTION_EXEC_ERROR, DetailStatus
+
+        # SymphonyまたはConductorに失敗した場合は異常終了する。
+        if ActionStatus != PROCESSED:
+            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+            ActionDriverCommonModules.SaveActionLog(self.response_id, exec_order, self.trace_id, 'MOSJA01080')
+            return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_SYMP_FAIL
 
         logger.logic_log('LOSI00002', 'return: PROCESSED')
         return ACTION_HISTORY_STATUS.EXASTRO_REQUEST, ACTION_HISTORY_STATUS.DETAIL_STS.NONE
