@@ -26,6 +26,7 @@ from django.utils import timezone
  DOSL07006:ITAメニュー名管理
  DOSL07007:ITAドライバ権限管理
  DOSL07008:ITAメニュー項目情報
+ DOSL07009:ITAドライバシステム設定
 """
 
 
@@ -180,3 +181,23 @@ class ItaParameterItemInfo(models.Model):
 
     def __str__(self):
         return str(self.ita_parameter_item_info_id)
+
+
+class ItaActionSystem(models.Model):
+    """
+    DOSL07009:ITAドライバシステム設定
+    """
+    item_id = models.AutoField("項番", primary_key=True)
+    config_name = models.CharField("項目名", max_length=64, null=True, blank=True)
+    category = models.CharField("分類", max_length=32, null=True, blank=True)
+    config_id = models.CharField("識別ID", max_length=32, unique=True)
+    value = models.CharField("設定値", max_length=4000, null=True, blank=True)
+    maintenance_flag = models.IntegerField("メンテナンス要否フラグ", null=True)
+    last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
+    last_update_user = models.CharField("最終更新者", max_length=64)
+
+    class Meta:
+        db_table = 'OASE_T_ITA_ACTION_SYSTEM'
+
+    def __str__(self):
+        return "%s(%s)" % (self.config_name, self.value)
