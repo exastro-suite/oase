@@ -167,7 +167,6 @@ class ITA1Rest:
             return False
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
-        ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01028')
         return True
 
     def rest_conductor_execute(
@@ -261,7 +260,6 @@ class ITA1Rest:
             return False
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
-        ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01076')
         return True
 
     def rest_insert(self, insert_row_data, ary_result):

@@ -9,4 +9,5 @@
    introduction
    construction_flow
    installation
+   installation_docker
    environmental_setting
