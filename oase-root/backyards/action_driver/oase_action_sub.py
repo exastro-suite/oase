@@ -114,7 +114,7 @@ from collections import defaultdict
 # todo db操作系外だし　ライブラリに移動するか？
 #-----------------------------------------------
 
-def update_action_history(action_history, status, detail, user, retry=False, countup=0):
+def update_action_history(action_history, status, detail, user, retry=False, countup=0, mod_last_update=True):
     """
     [概要]
       アクション履歴更新メゾット
@@ -132,8 +132,9 @@ def update_action_history(action_history, status, detail, user, retry=False, cou
 
             action_history.action_retry_count = action_history.action_retry_count + countup
             action_history.status_update_id = gethostname()
-            action_history.last_update_user = user
-            action_history.last_update_timestamp = ActCommon.getStringNowDateTime()
+            if mod_last_update:
+                action_history.last_update_user = user
+                action_history.last_update_timestamp = ActCommon.getStringNowDateTime()
             action_history.save(force_update=True)
 
     except Exception as e:
@@ -1158,11 +1159,21 @@ class ActionDriverSubModules:
 
             self.set_driver_manager(act_his.action_type_id)
             self.driver_manager.set_information(rhdm_res_act, act_his)
-            status, detail = self.driver_manager.act_with_menuid(act_his_id, rhdm_res_act.execution_order)
+            status, detail = self.driver_manager.act_with_menuid(
+                act_his_id,
+                rhdm_res_act.execution_order,
+                act_his.last_update_timestamp
+            )
 
             retry_flag = True if act_his.retry_status is not None else False
-            update_action_history(act_his, status, detail, self.user, retry=retry_flag)
-            ActCommon.SaveActionLog(act_his.response_id, act_his.execution_order, trace_id, 'MOSJA01068')
+            update_action_history(act_his, status, detail, self.user, retry=retry_flag, mod_last_update=False)
+
+            if status == ACTION_EXEC_ERROR:
+                return False
+            elif status == ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE:
+                ActCommon.SaveActionLog(act_his.response_id, act_his.execution_order, trace_id, 'MOSJA01082')
+            else:
+                ActCommon.SaveActionLog(act_his.response_id, act_his.execution_order, trace_id, 'MOSJA01068')
 
         except ActionHistory.DoesNotExist:
             logger.system_log('LOSE01120', act_his_id)
