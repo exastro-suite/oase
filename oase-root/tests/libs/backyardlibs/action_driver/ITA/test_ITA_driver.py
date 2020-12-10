@@ -263,6 +263,47 @@ def test_check_ita_master(ita_table, monkeypatch):
     # テストデータ削除
     delete_data_param_information()
 
+    ############################################
+    # ITAへの確認機能テスト　失敗パターン(IDなし)
+    ############################################
+    # テストデータ作成
+    ita_disp_name = 'dummy'
+    set_data_ita_driver(ita_disp_name)
+    execution_order = 2
+    testITA.aryActionParameter['CONDUCTOR_CLASS_ID'] = None
+    testITA.aryActionParameter['ITA_NAME'] = 'dummy'
+
+    testITA.set_driver(execution_order)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master_conductor', lambda a, b, c, d, e: (100))
+    status, detail = testITA.check_ita_master(execution_order)
+
+    # テスト結果判定
+    assert status != 0
+    assert detail != 0
+
+    # テストデータ削除
+    delete_data_param_information()
+
+    ############################################
+    # ITAへの確認機能テスト　失敗パターン(IDなし)
+    ############################################
+    # テストデータ作成
+    ita_disp_name = 'dummy'
+    set_data_ita_driver(ita_disp_name)
+    execution_order = 2
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = None
+    testITA.aryActionParameter['ITA_NAME'] = 'dummy'
+
+    testITA.set_driver(execution_order)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master_conductor', lambda a, b, c, d, e: (100))
+    status, detail = testITA.check_ita_master(execution_order)
+
+    # テスト結果判定
+    assert status != 0
+    assert detail != 0
+
+    # テストデータ削除
+    delete_data_param_information()
 
 def set_data_for_last_info(ita_disp_name, execution_order):
     """
@@ -1044,6 +1085,43 @@ def test_act_ptrn_multiple_menuid_hostgroup_convertflg_false_ok(monkeypatch):
 
     status, detai = testITA.act(rhdm_res_act)
     assert status == ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE
+
+    delete_data_param_information()
+
+@pytest.mark.django_db
+def test_act_ptrn_ita_action_history_ng(monkeypatch):
+    """
+    ITAアクションを実行メソッドのテスト
+    アクション履歴登録の失敗パターン
+    """
+    ITAManager = get_ita_manager()
+    ItaDriver = get_ita_driver()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1","CONVERT_FLG=FALSE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info, 4)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    #アクション履歴登録失敗
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: None)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    status, detai = testITA.act(rhdm_res_act)
+    status = ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE
+    assert status == 2106
 
     delete_data_param_information()
 
