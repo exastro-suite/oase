@@ -1521,6 +1521,8 @@ class OASEMessageID:
     Ary['MOSEN01078'] = "ディシジョンテーブルファイルの「アクションパラメータ情報」の\"CONDUCTOR_CLASS_ID\"が、ansible以外のConductor紐付Node一覧として登録されています。"
     Ary['MOSEN01079'] = "ディシジョンテーブルファイルの「アクションパラメータ情報」の\"CONDUCTOR_CLASS_ID\"で指定されているConductor紐付Node一覧の情報が不正です。"
     Ary['MOSEN01080'] = "ITAの作業実行に失敗したため、処理を中断します。"
+    Ary['MOSEN01081'] = "ITAの代入値管理情報取得時の設定上限時間を超過したため、処理を中断します。"
+    Ary['MOSEN01082'] = "ITAの代入値自動登録の完了待ちです。"
     Ary['MOSEN03001'] = "Invalid request."
     Ary['MOSEN03002'] = "Upload completed."
     Ary['MOSEN03003'] = "The application process has completed."
