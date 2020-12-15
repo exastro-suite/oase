@@ -305,6 +305,7 @@ class OASELogID:
     Ary['LOSM12068'] = "Failed to register data at the start of apply_request process. [traceback: {}]"
     Ary['LOSM12069'] = "Unexpected error. [traceback: {}]"
     Ary['LOSM12070'] = "Invalid operation status. [ope_sts: {}, rule_manage_id: {}]"
+    Ary['LOSM12071'] = "Failed to delete kie-container. {}"
     Ary['LOSM13001'] = "Invalid request. Must be POST. Not GET. (TraceID:{})"
     Ary['LOSM13002'] = "Invalid request. \"{}\" key does not exist. (TraceID:{})"
     Ary['LOSM13003'] = "Unmatch, Number of event information elements. (TraceID:{}, RuleTypeID:{}, RequestNum:{}, NeedNum:{})"
