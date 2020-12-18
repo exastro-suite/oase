@@ -193,7 +193,7 @@ OASEのインストール手順を下記に示します。
    19, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
    20, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
    21, oase_language, ja, OASEの言語設定（日本語：ja）
-   22, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7）
+   22, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
 
 
 3.1.5. アンサーファイルのサンプル
@@ -326,7 +326,7 @@ OASEのインストール手順を下記に示します。
  # e.g) oase_language:ja
  oase_language:ja
 
- # Select Operation System. ("CentOS7" or "RHEL7")
+ # Select Operation System. ("CentOS7" or "RHEL7" or "RHEL8")
  # e.g) oase_os:RHEL7
  oase_os:RHEL7
 
