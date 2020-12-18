@@ -219,10 +219,10 @@ function check_answer_vars() {
     ### oase_builder_core.sh 用
     # config_id: oase_os
     if [ -z "${oase_os}" ]; then
-        log "ERROR : oase_os should be enter to value(CentOS7 or RHEL7)"
+        log "ERROR : oase_os should be enter to value(CentOS7 or RHEL7 or RHEL7)"
         _error_flag=true
     fi
-    if [ "${oase_os}" != 'CentOS7' -a "${oase_os}" != 'RHEL7' ]; then
+    if [ "${oase_os}" != 'CentOS7' -a "${oase_os}" != 'RHEL7' -a "${oase_os}" != 'RHEL8' ]; then
         log "ERROR : oase_os should be set to CentOS7 or RHEL7"
         _error_flag=true
     fi
