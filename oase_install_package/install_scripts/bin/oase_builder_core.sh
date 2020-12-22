@@ -197,6 +197,15 @@ configure_python() {
         else
             echo "install skip python3-devel.x86_64 python3-libs.x86_64 python3-pip.noarch" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
+    elif [ "${oase_os}" == "RHEL8" ]; then
+        yum list installed | grep -c -e python3-devel.x86_64 -e python3-libs.x86_64 -e python3-pip.noarch >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -lt 3 ]; then
+            yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            #yum-config-manager --enable rhel-8-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum_install ${YUM_PACKAGE["python_rhel8"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip python3-devel.x86_64 python3-libs.x86_64 python3-pip.noarch" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
     elif [ "${oase_os}" == "CentOS7" ]; then
         yum list installed | grep -e python36u.x86_64 -e python36u-libs.x86_64 -e python36u-devel.x86_64 -e python36u-pip.noarch >> "$OASE_INSTALL_LOG_FILE" 2>&1
         if [ $? -eq 1 ]; then
@@ -211,43 +220,75 @@ configure_python() {
     # python link
     ln -s /bin/python3.6 /bin/python3 >> "$OASE_INSTALL_LOG_FILE" 2>&1
     ln -sf /bin/python3 /bin/python >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    python3.6 -m pip install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL8" ]; then
+        python3.6 -m pip3 install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        python3.6 -m pip install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
 
     # pika
-    pip3 list | grep pika >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        pip3 install pika >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        if [ $? -ne 0 ]; then
-            log "ERROR:Installation failed pika"
-            func_exit
+    if [ "${oase_os}" == "RHEL8" ]; then
+        pip3 list --format=legacy | grep pika >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip3 install pika >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ $? -ne 0 ]; then
+                log "ERROR:Installation failed pika"
+                func_exit
+            fi
+        else
+            echo "install skip pika" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
     else
-        echo "install skip pika" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip list | grep pika >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip install pika >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ $? -ne 0 ]; then
+                log "ERROR:Installation failed pika"
+                func_exit
+            fi
+        else
+            echo "install skip pika" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
     fi
 
     # retry
-    pip3 list | grep retry >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        pip3 install retry >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        if [ $? -ne 0 ]; then
-            log "ERROR:Installation failed retry"
-            func_exit
+    if [ "${oase_os}" == "RHEL8" ]; then
+        pip3 list --format=legacy | grep retry >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip3 install retry >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ $? -ne 0 ]; then
+                log "ERROR:Installation failed retry"
+                func_exit
+            fi
+        else
+            echo "install skip retry" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
     else
-        echo "install skip retry" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip list | grep retry >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip install retry >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ $? -ne 0 ]; then
+                log "ERROR:Installation failed retry"
+                func_exit
+            fi
+        else
+            echo "install skip retry" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
     fi
 
-    #!/usr/bin/python → #!/usr/bin/python2.7
-    grep "python2.7" /usr/bin/yum >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        cp /usr/bin/yum /usr/bin/old_yum
-        sed  -i -e 's/python/python2.7/' /usr/bin/yum
-    fi
+    if [ "${oase_os}" != "RHEL8" ]; then
+        #!/usr/bin/python → #!/usr/bin/python2.7
+        grep "python2.7" /usr/bin/yum >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            cp /usr/bin/yum /usr/bin/old_yum
+            sed  -i -e 's/python/python2.7/' /usr/bin/yum
+        fi
 
-    grep "python2.7" /usr/libexec/urlgrabber-ext-down >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        cp /usr/libexec/urlgrabber-ext-down /usr/libexec/old_urlgrabber-ext-down
-        sed  -i -e 's/python/python2.7/' /usr/libexec/urlgrabber-ext-down
+        grep "python2.7" /usr/libexec/urlgrabber-ext-down >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            cp /usr/libexec/urlgrabber-ext-down /usr/libexec/old_urlgrabber-ext-down
+            sed  -i -e 's/python/python2.7/' /usr/libexec/urlgrabber-ext-down
+        fi
     fi
 
 }
@@ -288,7 +329,13 @@ configure_rabbitmq() {
     yum list installed | grep "rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     rabbimq_flg=$?
     if [ $rabbimq_flg -eq 1 ]; then
-        yum -y install rabbitmq-server --enablerepo=epel >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ "${oase_os}" == "RHEL8" ]; then
+            curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum makecache -y --disablerepo='*' --enablerepo='rabbitmq_rabbitmq-server' >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum -y install rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            yum -y install rabbitmq-server --enablerepo=epel >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
     else
         SKIP_ARRAY+=("rabbitmq-server")
         echo "install skip rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
@@ -333,11 +380,17 @@ configure_mysql() {
     if [ $mysql_flg -eq 1 ]; then
         #repo get
         cd /tmp
-        wget --no-check-certificate https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        rpm -Uvh mysql80-community-release-el7-3.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ "${oase_os}" == "RHEL8" ]; then
+            dnf localinstall -y https://dev.mysql.com/get/mysql80-community-release-el8-1.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            dnf module disable mysql -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            dnf install mysql-community-server -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            wget --no-check-certificate https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            rpm -Uvh mysql80-community-release-el7-3.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            # install some packages
+            yum -y --enablerepo mysql80-community install ${YUM_PACKAGE["mysql-server"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
 
-        # install some packages
-        yum -y --enablerepo mysql80-community install ${YUM_PACKAGE["mysql-server"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
         # Check installation erlang packages
         yum_package_check ${YUM_PACKAGE["mysql"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
@@ -408,9 +461,17 @@ configure_mysql() {
         yum_package_check ${YUM_PACKAGE["mysql-community-devel"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
         #pip install mysqlclient
-        pip3 list | grep mysqlclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ "${oase_os}" == "RHEL8" ]; then
+            pip3 list --format=legacy | grep mysqlclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            pip list | grep mysqlclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
         if [ $? -eq 1 ]; then
-            pip install mysqlclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ "${oase_os}" == "RHEL8" ]; then
+                pip3 install mysqlclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            else
+                pip install mysqlclient==2.0.1 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            fi
             if [ $? -ne 0 ]; then
                 log "ERROR:Installation failed mysqlclient"
                 func_exit
@@ -421,9 +482,17 @@ configure_mysql() {
         fi
 
         #pip install mysql_connector_python
-        pip3 list | grep mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ "${oase_os}" == "RHEL8" ]; then
+            pip3 list --format=legacy | grep mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            pip list | grep mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
         if [ $? -eq 1 ]; then
-            pip install mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ "${oase_os}" == "RHEL8" ]; then
+                pip3 install mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            else
+                pip install mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            fi
             if [ $? -ne 0 ]; then
                 log "ERROR:Installation failed mysql_connector_python"
                 func_exit
@@ -433,7 +502,11 @@ configure_mysql() {
             echo "install skip mysql_connector_python" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
 
-        pip3 list >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ "${oase_os}" == "RHEL8" ]; then
+            pip3 list --format=legacy >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            pip list >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
     fi
 }
 
@@ -457,9 +530,17 @@ configure_nginx(){
 #uWSGI install and setting
 configure_uwsgi(){
 
-    pip3 list | grep uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL8" ]; then
+        pip3 list --format=legacy | grep uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        pip list | grep uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
     if [ $? -eq 1 ]; then
-        pip install uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ "${oase_os}" == "RHEL8" ]; then
+            pip3 install uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            pip install uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
         if [ $? -ne 0 ]; then
             log "ERROR:Installation failed uwsgi"
             func_exit
@@ -474,11 +555,11 @@ configure_uwsgi(){
 #JAVA install
 configure_java(){
     #openjdk install
-    yum list installed | grep -e "java-1.8.0-openjdk" -e "java-1.8.0-openjdk-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    yum list installed | grep -e "java-1.8.0-openjdk" | grep -v "java-1.8.0-openjdk-headless.x86_64" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     if [ $? -eq 1 ]; then
         yum -y install ${YUM_PACKAGE["java"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
-        echo "install skip java-1.8.0-openjdk java-1.8.0-openjdk-develi" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip java-1.8.0-openjdk java-1.8.0-openjdk-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
     # Check installation  java packages
@@ -579,9 +660,17 @@ configure_maven(){
 #Django install
 configure_django(){
     # django
-    pip3 list | grep -e "django==2.2.3" -e "django-crispy-forms" -e "django-filter" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        pip3 install django==2.2.3 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL8" ]; then
+        pip_list=`pip3 list --format=legacy | grep -c -e "django==2.2.3" -e "django-crispy-forms" -e "django-filter"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        pip_list=`pip list | grep -c -e "django==2.2.3" -e "django-crispy-forms" -e "django-filter"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+    if [ $pip_list -lt 3 ]; then
+        if [ "${oase_os}" == "RHEL8" ]; then
+            pip3 install django==2.2.3 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            pip install django==2.2.3 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
         if [ $? -ne 0 ]; then
             log "ERROR:Installation failed django==2.2.3 django-crispy-forms django-filter"
             func_exit
@@ -591,9 +680,17 @@ configure_django(){
     fi
 
     # requests
-    pip3 list | grep -e requests -e ldap3 -e pycrypto -e openpyxl -e xlrd -e configparser -e fasteners -e djangorestframework -e python-memcached -e django-simple-history -e pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        pip3 install requests ldap3 pycrypto openpyxl==2.5.14 xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL8" ]; then
+        pip_list=`pip3 list --format=legacy | grep -c -e "requests" -e "ldap3" -e "pycrypto" -e "openpyxl" -e "xlrd" -e "configparser" -e "fasteners" -e "djangorestframework" -e "python-memcached" -e "django-simple-history" -e "pyyaml"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        pip_list=`pip list | grep -c -e "requests" -e "ldap3" -e "pycrypto" -e "openpyxl" -e "xlrd" -e "configparser" -e "fasteners" -e "djangorestframework" -e "python-memcached" -e "django-simple-history" -e "pyyaml"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+    if [ $pip_list -lt 11 ]; then
+        if [ "${oase_os}" == "RHEL8" ]; then
+            pip3 install requests ldap3 pycrypto openpyxl==2.5.14 xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            pip install requests ldap3 pycrypto openpyxl==2.5.14 xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
         if [ $? -ne 0 ]; then
             log "ERROR:Installation failed requests ldap3 pycrypto openpyxl==2.5.14 xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml"
             func_exit
@@ -603,21 +700,39 @@ configure_django(){
     fi
 
     #pytz
-    pip3 list | grep "pytz" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        pip3 list | grep pytz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        if [ $? -ne 0 ]; then
-            pip3 install pytz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL8" ]; then
+        pip3 list --format=legacy | grep "pytz" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip3 list --format=legacy | grep pytz >> "$OASE_INSTALL_LOG_FILE" 2>&1
             if [ $? -ne 0 ]; then
-                log "ERROR:Installation failed pytz"
-                func_exit
+                pip3 install pytz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                if [ $? -ne 0 ]; then
+                    log "ERROR:Installation failed pytz"
+                    func_exit
+                fi
             fi
+        else
+            echo "install skip pytz" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
-    else
-        echo "install skip pytz" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    fi
 
-    pip list >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip3 list --format=legacy >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        pip list | grep "pytz" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip list | grep pytz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ $? -ne 0 ]; then
+                pip install pytz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                if [ $? -ne 0 ]; then
+                    log "ERROR:Installation failed pytz"
+                    func_exit
+                fi
+            fi
+        else
+            echo "install skip pytz" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+
+        pip list >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
 }
 
 #mycof setting
@@ -843,6 +958,7 @@ YUM_PACKAGE=(
     ["memcached"]="memcached"
     ["erlang"]="erlang"
     ["python"]="python36 python36-libs python36-devel python36-pip"
+    ["python_rhel8"]="python3 python3-libs python3-devel python3-pip"
     ["git"]="git"
     ["ansible"]="sshpass expect nc"
     ["mysql-server"]="mysql-server"
