@@ -85,13 +85,6 @@ MAX_COUNT = 100
 
 THREAD_LOCK = threading.Lock()
 
-# ルール種別キャッシュ
-ACCEPT_RULE_KEY = 'accept.rule'
-RULE_TYPE_KEY = 'type_id'
-LABEL_CNT_KEY = 'label_count'
-
-mem_client = memcache.Client([settings.CACHES['default']['LOCATION'], ])
-
 data_obj_list = []
 
 
@@ -223,10 +216,6 @@ def data_list(body, user, rule_type_id_list, label_count_list):
                 label_count_list.update(
                     {rs['rule_type_name']: rs['label_count']})
 
-            ruletype_info = {RULE_TYPE_KEY: rule_type_id_list,
-                             LABEL_CNT_KEY: label_count_list}
-            mem_client.set(ACCEPT_RULE_KEY, ruletype_info)
-
         if ruletablename in rule_type_id_list:
             ruletypeid = rule_type_id_list[ruletablename]
             evinfo_length = label_count_list[ruletablename]
@@ -335,28 +324,17 @@ def load_ruletype():
     rule_type_id_list = {}
     label_count_list = {}
 
-    ruletype_info = mem_client.get(ACCEPT_RULE_KEY)
+    ruletype = list(RuleType.objects.all().values(
+        'rule_type_id', 'rule_type_name', 'label_count'))
+    for rt in ruletype:
 
-    if ruletype_info is not None:
-        rule_type_id_list = ruletype_info[RULE_TYPE_KEY]
-        label_count_list = ruletype_info[LABEL_CNT_KEY]
+        rule_type_id = {}
+        label_count = {}
 
-    else:
-        ruletype = list(RuleType.objects.all().values(
-            'rule_type_id', 'rule_type_name', 'label_count'))
-        for rt in ruletype:
-
-            rule_type_id = {}
-            label_count = {}
-
-            rule_type_id[rt['rule_type_name']] = rt['rule_type_id']
-            label_count[rt['rule_type_name']] = rt['label_count']
-            rule_type_id_list.update(rule_type_id)
-            label_count_list.update(label_count)
-
-        ruletype_info = {RULE_TYPE_KEY: rule_type_id_list,
-                         LABEL_CNT_KEY: label_count_list}
-        mem_client.set(ACCEPT_RULE_KEY, ruletype_info)
+        rule_type_id[rt['rule_type_name']] = rt['rule_type_id']
+        label_count[rt['rule_type_name']] = rt['label_count']
+        rule_type_id_list.update(rule_type_id)
+        label_count_list.update(label_count)
 
     return rule_type_id_list, label_count_list
 
