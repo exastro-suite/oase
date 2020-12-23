@@ -34,7 +34,6 @@ import ast
 import pika
 import time
 import threading
-import memcache
 import copy
 from time import sleep
 
