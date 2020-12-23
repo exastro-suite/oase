@@ -36,7 +36,6 @@ import subprocess
 import traceback
 import ast
 import pika
-import memcache
 
 from django.shortcuts import render, redirect
 from django.conf import settings
@@ -61,14 +60,6 @@ _mq_settings = None
 _channel    = None
 _connection = None
 _properties = None
-
-# ルール種別キャッシュ
-ACCEPT_RULE_KEY = 'accept.rule'
-RULE_TYPE_KEY   = 'type_id'
-LABEL_CNT_KEY   = 'label_count'
-
-mem_client = memcache.Client([settings.CACHES['default']['LOCATION'],])
-
 
 
 mq_lock = multiprocessing.Lock()
@@ -303,11 +294,6 @@ def bulk_eventsrequest(request):
             logger.system_log('LOSM13026')
             raise Exception()
 
-        ruletype_info = mem_client.get(ACCEPT_RULE_KEY)
-        if ruletype_info is not None:
-            rule_type_id_list = ruletype_info[RULE_TYPE_KEY]
-            label_count_list  = ruletype_info[LABEL_CNT_KEY]
-
         for data in json_str['request']:
 
             # キーのチェック
@@ -341,9 +327,6 @@ def bulk_eventsrequest(request):
                 for rs in rset:
                     rule_type_id_list.update({rs['rule_type_name']:rs['rule_type_id']})
                     label_count_list.update({rs['rule_type_name']:rs['label_count']})
-
-                ruletype_info = {RULE_TYPE_KEY:rule_type_id_list, LABEL_CNT_KEY:label_count_list}
-                mem_client.set(ACCEPT_RULE_KEY, ruletype_info)
 
             if ruletablename in rule_type_id_list:
                 ruletypeid    = rule_type_id_list[ruletablename]
