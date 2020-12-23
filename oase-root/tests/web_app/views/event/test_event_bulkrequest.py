@@ -18,7 +18,6 @@ import datetime
 import json
 import pytz
 import requests
-import memcache
 
 from django.test import Client
 from django.db import transaction
@@ -140,9 +139,6 @@ class TestEvent_BulkEventsRequest:
         }
         json_str = json.dumps(json_data)
 
-
-        monkeypatch.setattr(memcache.Client, 'get', self.dummy_none)
-        monkeypatch.setattr(memcache.Client, 'set', self.dummy_pass)
         monkeypatch.setattr(event_view, '_rabbitMQ_conf', self.dummy_pass)
         monkeypatch.setattr(event_view, '_produce', self.dummy_pass)
 
@@ -182,9 +178,6 @@ class TestEvent_BulkEventsRequest:
         }
         json_str = json.dumps(json_data)
 
-
-        monkeypatch.setattr(memcache.Client, 'get', self.dummy_none)
-        monkeypatch.setattr(memcache.Client, 'set', self.dummy_pass)
         monkeypatch.setattr(event_view, '_rabbitMQ_conf', self.dummy_pass)
         monkeypatch.setattr(event_view, '_produce', self.dummy_pass)
 
