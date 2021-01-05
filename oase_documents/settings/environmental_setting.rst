@@ -10,7 +10,7 @@
    :header: No., 設定名, 設定値, 説明
    :widths:   5,     16,     25,   25
 
-   1, OASE_ROOT_DIR, /home/centos/OASE/oase-root,
+   1, OASE_ROOT_DIR, {oase_directory}/OASE/oase-root,
    2, PYTHON_MODULE, /usr/bin/python3,
    3, PYTHONPATH,    OASE_ROOT_DIR,
    4, JAVA_HOME,     /usr/lib/jvm/java-1.8.0-openjdk,
