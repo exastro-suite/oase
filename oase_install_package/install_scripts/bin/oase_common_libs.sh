@@ -53,7 +53,7 @@ function log() {
 ####################
 # read setting file
 function read_setting_file() {
-    log "INFO : Start to read a settingfile" 
+    log "INFO : Start to read a settingfile"
     local _setting_file=${1}
 
     if [ ! -f ${_setting_file} ]; then
@@ -62,20 +62,20 @@ function read_setting_file() {
     fi
 
     while read line; do
-        # convert "foo: bar" to "foo=bar", and keep comment 
+        # convert "foo: bar" to "foo=bar", and keep comment
         if [[ ! ${line} =~ ^# ]] && [[ -n ${line} ]]; then
             _command=`echo "$line" | sed -E 's/^([^#][^:]*+): *(.*)/\1=\2/'`
             eval export ${_command}
         fi
     done < ${_setting_file}
-    log "INFO : Finished to read a settingfile" 
+    log "INFO : Finished to read a settingfile"
 
 }
 
 #check (oase_answers.txt)-----
 function check_answer_vars() {
 
-    log "INFO : Start to check answer vars" 
+    log "INFO : Start to check answer vars"
     local _error_flag=false
 
     if [ -z "${install_mode}" ]; then
@@ -98,10 +98,6 @@ function check_answer_vars() {
     #################################
     ### oase_db_setup_core.sh 用
     # config_id: OASE_SESSION_ENGINE
-    if [ -z "${oase_session_engine}" ]; then
-        log "ERROR : oase_session_engine should be enter to hostname"
-        _error_flag=true
-    fi
 
     # config_id: EV_LOCATION
     if [ -z "${ev_location}" ]; then
@@ -231,7 +227,7 @@ function check_answer_vars() {
         log "ERROR : Something is wrong with the answerfile"
         exit 1
     fi
-    log "INFO : Finished to check answer vars" 
+    log "INFO : Finished to check answer vars"
 }
 
 # answerfile読み込み
@@ -255,7 +251,7 @@ function read_answerfile() {
         log "ERROR : Something is wrong with the answerfile"
         return 1
     fi
-    log "INFO : Finished to read the answerfile"  
+    log "INFO : Finished to read the answerfile" 
 }
 
 ############################################################################
