@@ -293,25 +293,6 @@ configure_python() {
 
 }
 
-# memcache
-configure_memcache() {
-    # install some packages
-    yum list installed | grep "memcached" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        yum_install ${YUM_PACKAGE["memcached"]}
-    else
-        echo "install skip memcached" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    fi
-
-    # Check installation httpd packages
-    yum_package_check ${YUM_PACKAGE["memcached"]}
-
-    # enable and start memcached
-    #--------CentOS7/8,RHEL7/8--------
-    systemctl start memcached >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    systemctl enable memcached >> "$OASE_INSTALL_LOG_FILE" 2>&1
-}
-
 # RabbitMQ Server
 configure_rabbitmq() {
     # install some packages
@@ -681,22 +662,22 @@ configure_django(){
 
     # requests
     if [ "${oase_os}" == "RHEL8" ]; then
-        pip_list=`pip3 list --format=legacy | grep -c -e "requests" -e "ldap3" -e "pycrypto" -e "openpyxl" -e "xlrd" -e "configparser" -e "fasteners" -e "djangorestframework" -e "python-memcached" -e "django-simple-history" -e "pyyaml"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip_list=`pip3 list --format=legacy | grep -c -e "requests" -e "ldap3" -e "pycrypto" -e "openpyxl" -e "xlrd" -e "configparser" -e "fasteners" -e "djangorestframework" -e "django-simple-history" -e "pyyaml"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
-        pip_list=`pip list | grep -c -e "requests" -e "ldap3" -e "pycrypto" -e "openpyxl" -e "xlrd" -e "configparser" -e "fasteners" -e "djangorestframework" -e "python-memcached" -e "django-simple-history" -e "pyyaml"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip_list=`pip list | grep -c -e "requests" -e "ldap3" -e "pycrypto" -e "openpyxl" -e "xlrd" -e "configparser" -e "fasteners" -e "djangorestframework" -e "django-simple-history" -e "pyyaml"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
     if [ $pip_list -lt 11 ]; then
         if [ "${oase_os}" == "RHEL8" ]; then
-            pip3 install requests ldap3 pycrypto openpyxl==2.5.14 xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            pip3 install requests ldap3 pycrypto openpyxl==2.5.14 xlrd==1.2.0 configparser fasteners djangorestframework  django-simple-history pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
-            pip install requests ldap3 pycrypto openpyxl==2.5.14 xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            pip install requests ldap3 pycrypto openpyxl==2.5.14 xlrd==1.2.0 configparser fasteners djangorestframework django-simple-history pyyaml >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
         if [ $? -ne 0 ]; then
-            log "ERROR:Installation failed requests ldap3 pycrypto openpyxl==2.5.14 xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml"
+            log "ERROR:Installation failed requests ldap3 pycrypto openpyxl==2.5.14 xlrd==1.2.0 configparser fasteners djangorestframework django-simple-history pyyaml"
             func_exit
         fi
     else
-        echo "install skip requests ldap3 pycrypto openpyxl xlrd configparser fasteners djangorestframework python-memcached django-simple-history pyyaml" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip requests ldap3 pycrypto openpyxl xlrd configparser fasteners djangorestframework django-simple-history pyyaml" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
     #pytz
@@ -906,9 +887,6 @@ make_oase() {
     log "INFO : python3.6 install"
     configure_python
 
-    log "INFO : memcache setting"
-    configure_memcache
-
     log "INFO : RabbitMQ Server"
     configure_rabbitmq
 
@@ -955,7 +933,6 @@ declare -A YUM_PACKAGE;
 YUM_PACKAGE=(
     ["httpd"]="httpd mod_ssl"
     ["rabbitmq-server"]="rabbitmq-server --enablerepo=epel"
-    ["memcached"]="memcached"
     ["erlang"]="erlang"
     ["python"]="python36 python36-libs python36-devel python36-pip"
     ["python_rhel8"]="python3 python3-libs python3-devel python3-pip"
