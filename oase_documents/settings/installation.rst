@@ -176,10 +176,10 @@ OASEのインストール手順を下記に示します。
    2, RabbitMQ_password, password, RabbitMQのパスワード
    3, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
    4, RabbitMQ_ipaddr, , RabbitMQを設定したサーバのIPアドレス
-   5, db_root_password, password, MySQLのルートユーザのパスワード
-   6, db_name, OASE_DB, MySQLで使用するDB名
-   7, db_username, OASE_USER, MySQLで使用するユーザ名
-   8, db_password, OASE_PASSWD, MySQLのパスワード
+   5, db_root_password, password, MariaDBのルートユーザのパスワード
+   6, db_name, OASE_DB, MariaDBで使用するDB名
+   7, db_username, OASE_USER, MariaDBで使用するユーザ名
+   8, db_password, OASE_PASSWD, MariaDBのパスワード
    9, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
    10, wildfly_root_directory, /exastro/WildFly, WildFlyのインストールディレクトリ
    11, drools_adminname, admin0000, Droolsの管理者名
@@ -229,9 +229,9 @@ OASEのインストール手順を下記に示します。
  RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
 
  ##############################
- # MySQL
+ # MariaDB
  ##############################
- # Enter the MySQL root user's password
+ # Enter the MariaDB root user's password
  # e.g) db_root_password:sample_root_password
  db_root_password:password
 
@@ -314,10 +314,6 @@ OASEのインストール手順を下記に示します。
  ##############################
  # settings.py
  ##############################
- # Select Session management.("db" or "file" or "cache")
- # e.g) oase_session_engine:cache
- oase_session_engine:file
-
  # Decide the EVTIMER SERVER location
  # e.g) ev_location:127.0.0.1
  ev_location:127.0.0.1
@@ -409,14 +405,14 @@ OASEのインストール手順を下記に示します。
   [2020-11-12 08:59:43] #####################################
   [2020-11-12 08:59:43] SKIP LIST(Please check the Settings) 
   [2020-11-12 08:59:43] ・rabbitmq-server
-  [2020-11-12 08:59:43] ・mysql80-community-release
+  [2020-11-12 08:59:43] ・mariadb-server
   [2020-11-12 08:59:43] #####################################
   [2020-11-12 08:59:43] INFO : Install Finished
   [2020-11-12 08:59:43] #####################################
 
 
 | 7. スキップ処理の確認
-| RabbitMQやMySQLをスキップした場合は、OASE用に設定が必要になります。
+| RabbitMQやMariaDBをスキップした場合は、OASE用に設定が必要になります。
 
 | 7.1 RabbitMQ
 | OASE用のユーザ作成を実施するため、以下のコマンドを実行してください。
@@ -441,7 +437,7 @@ OASEのインストール手順を下記に示します。
 
 .. note:: 3.1.4 アンサーファイルの編集にて記述頂きました、ユーザ名/パスワードでユーザ作成してください。
 
-| 7.2 MySQL
+| 7.2 MariaDB
 | OASE用のデータベース、ユーザ作成を実施するため、以下のコマンドを実行してください。
 
 | 1 OASE用のデータベースとユーザ作成
@@ -452,10 +448,10 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- mysql> CREATE DATABASE {db_name} CHARACTER SET utf8;
- mysql> CREATE USER '{db_username}' IDENTIFIED BY '{db_password}';
- mysql> GRANT ALL ON {db_name}.* TO '{db_username}';
- mysql> quit
+ MariaDB [(none)]> CREATE DATABASE {db_name} CHARACTER SET utf8;
+ MariaDB [(none)]> CREATE USER '{db_username}' IDENTIFIED BY '{db_password}';
+ MariaDB [(none)]> GRANT ALL ON {db_name}.* TO '{db_username}';
+ MariaDB [(none)]> quit
 
 .. note:: 3.1.4 アンサーファイルの編集にて記述頂きました、rootパスワード、データベース名、ユーザ名、パスワードで作成してください。
 
