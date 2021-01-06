@@ -101,6 +101,13 @@ create_repo_check(){
     fi
 }
 
+error_check() {
+    DOWNLOAD_CHK=`echo $?`
+    if [ $DOWNLOAD_CHK -ne 0 ]; then
+        log "ERROR:Stop installation"
+        exit
+    fi
+}
 
 yum_repository() {
     if [ $# -gt 0 ]; then
@@ -152,6 +159,24 @@ yum_repository() {
     fi
 }
 
+# enable mariadb repository
+mariadb_repository() {
+    #Not used for offline installation
+    if [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" -o "${oase_os}" == "RHEL8" ]; then
+        local repo=$1
+
+        curl -sS "$repo" | bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+        # Check Creating repository
+        create_repo_check mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -ne 0 ]; then
+            log "ERROR:Failed to get repository"
+            func_exit
+        fi
+
+        yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+}
 
 ################################################################################
 # configuration functions
@@ -354,92 +379,125 @@ configure_rabbitmq() {
 
 }
 
-# MySQL Server
-configure_mysql() {
-    yum list installed | grep "mysql80-community-release" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    mysql_flg=$?
-    if [ $mysql_flg -eq 1 ]; then
-        #repo get
-        cd /tmp
-        if [ "${oase_os}" == "RHEL8" ]; then
-            dnf localinstall -y https://dev.mysql.com/get/mysql80-community-release-el8-1.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            dnf module disable mysql -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            dnf install mysql-community-server -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        else
-            wget --no-check-certificate https://dev.mysql.com/get/mysql80-community-release-el7-3.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            rpm -Uvh mysql80-community-release-el7-3.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            # install some packages
-            yum -y --enablerepo mysql80-community install ${YUM_PACKAGE["mysql-server"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        fi
+# MariaDB
+configure_mariadb() {
 
-        # Check installation erlang packages
-        yum_package_check ${YUM_PACKAGE["mysql"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    # expect setting
+    yum list installed | grep "expect" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ $? -eq 1 ]; then
+        yum -y install ${YUM_PACKAGE["expect"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
-        SKIP_ARRAY+=("mysql80-community-release")
-        echo "install skip mysql80-community-release" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip expect" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+    yum_package_check ${YUM_PACKAGE["expect"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    # make log directory
+    if [ ! -e /var/log/mariadb ]; then
+        mkdir -p -m 777 /var/log/mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
-    # enable and start mysql server
-    systemctl start  mysqld >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    systemctl enable  mysqld >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    #Confirm whether it is installed
+    yum list installed mariadb-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ $? == 0 ]; then
+        log "MariaDB has already been installed."
+        SKIP_ARRAY+=("mariadb-server")
 
-    # skip setting
-    if [ $mysql_flg -eq 1 ]; then
-        # initial password change
-        mysql_password=`cat /var/log/mysqld.log | grep "A temporary password is generated for" | awk '{print substr($0, index($0, "root@localhost:"))}' | sed -e 's/root@localhost: //'` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        systemctl enable mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
+        systemctl start mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
 
-        yum list installed | grep "expect" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        if [ $? -eq 1 ]; then
-            yum -y install ${YUM_PACKAGE["expect"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        #Confirm whether root password has been changed
+        mysql -uroot -p$db_root_password -e "show databases" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? == 0 ]; then
+            log "Root password of MariaDB is already setting."
         else
-            echo "install skip expect" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        fi
-        yum_package_check ${YUM_PACKAGE["expect"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            expect -c "
+                set timeout -1
+                spawn mysql_secure_installation
+                expect \"Enter current password for root \\(enter for none\\):\"
+                send \"\\r\"
+                expect -re \"Switch to unix_socket authentication.* $\"
+                send \"\\r\"
+                expect -re \"Change the root password\\?.* $\"
+                send \"\\r\"
+                expect \"New password:\"
+                send \""${db_root_password}\\r"\"
+                expect \"Re-enter new password:\"
+                send \""${db_root_password}\\r"\"
+                expect -re \"Remove anonymous users\\?.* $\"
+                send \"Y\\r\"
+                expect -re \"Disallow root login remotely\\?.* $\"
+                send \"Y\\r\"
+                expect -re \"Remove test database and access to it\\?.* $\"
+                send \"Y\\r\"
+                expect -re \"Reload privilege tables now\\?.* $\"
+                send \"Y\\r\"
+            " >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
+            #server.cnf
+            servercon
+
+            # restart MariaDB Server
+            #--------CentOS7/8,RHEL7/8--------
+            systemctl restart mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            error_check
+        fi
+        
+    else
+        # enable MariaDB repository
+        mariadb_repository ${YUM_REPO_PACKAGE_MARIADB[${oase_os}]}
+
+        # install some packages
+        echo "----------Installation[MariaDB]----------" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        #Installation
+        yum install -y MariaDB MariaDB-server MariaDB-devel MariaDB-shared >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+        #Check installation
+        if [ $? != 0 ]; then
+            log "ERROR:Installation failed[MariaDB]"
+            func_exit
+        fi
+        
+        yum_package_check MariaDB MariaDB-server
+
+        # enable and start (initialize) MariaDB Server
+        #--------CentOS7,RHEL7--------
+        systemctl enable mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
+        systemctl start mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
+        
         expect -c "
             set timeout -1
-            spawn mysql -u root -p
-            expect \"Enter password:\"
-            send \""${mysql_password}\\r"\"
-            expect \"mysql>\"
-            send \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'passwordPASSWORD@999';\\r\"
-            expect \"mysql>\"
-            send \"SET GLOBAL validate_password.length=4;\\r\"
-            expect \"mysql>\"
-            send \"SET GLOBAL validate_password.mixed_case_count=0;\\r\"
-            expect \"mysql>\"
-            send \"SET GLOBAL validate_password.number_count=0;\\r\"
-            expect \"mysql>\"
-            send \"SET GLOBAL validate_password.special_char_count=0;\\r\"
-            expect \"mysql>\"
-            send \"SET GLOBAL validate_password.policy=LOW;\\r\"
-            expect \"mysql>\"
-            send \"show variables like '%validate_password%';\\r\"
-            expect \"mysql>\"
-            send \"ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '${db_root_password}';\\r\"
-            expect \"mysql>\"
-            send \"status\\r\"
-            expect \"mysql>\"
-            send \"quit\\r\"
+            spawn mysql_secure_installation
+            expect \"Enter current password for root \\(enter for none\\):\"
+            send \"\\r\"
+            expect -re \"Switch to unix_socket authentication.* $\"
+            send \"n\\r\"
+            expect -re \"Change the root password\\?.* $\"
+            send \"Y\\r\"
+            expect \"New password:\"
+            send \""${db_root_password}\\r"\"
+            expect \"Re-enter new password:\"
+            send \""${db_root_password}\\r"\"
+            expect -re \"Remove anonymous users\\?.* $\"
+            send \"Y\\r\"
+            expect -re \"Disallow root login remotely\\?.* $\"
+            send \"Y\\r\"
+            expect -re \"Remove test database and access to it\\?.* $\"
+            send \"Y\\r\"
+            expect -re \"Reload privilege tables now\\?.* $\"
+            send \"Y\\r\"
         " >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-        #my.conf
-        myconf
+        #server.cnf
+        servercon
 
-        #mysql restart
-        systemctl restart mysqld  >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
-        #mysqlclient install
-        yum list installed | grep "mysql-community-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        if [ $? -eq 1 ]; then
-            yum -y --enablerepo mysql80-community install ${YUM_PACKAGE["mysql-community-devel"]}  >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        else
-            SKIP_ARRAY+=("mysql-community-devel")
-            echo "install skip mysql-community-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        fi
-
-        # Check installation  mysql-community-devel packages
-        yum_package_check ${YUM_PACKAGE["mysql-community-devel"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        # restart MariaDB Server
+        #--------CentOS7,RHEL7--------
+        systemctl restart mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
 
         #pip install mysqlclient
         if [ "${oase_os}" == "RHEL8" ]; then
@@ -461,34 +519,8 @@ configure_mysql() {
             SKIP_ARRAY+=("mysqlclient")
             echo "install skip mysqlclient" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
-
-        #pip install mysql_connector_python
-        if [ "${oase_os}" == "RHEL8" ]; then
-            pip3 list --format=legacy | grep mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        else
-            pip list | grep mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        fi
-        if [ $? -eq 1 ]; then
-            if [ "${oase_os}" == "RHEL8" ]; then
-                pip3 install mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            else
-                pip install mysql_connector_python >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            fi
-            if [ $? -ne 0 ]; then
-                log "ERROR:Installation failed mysql_connector_python"
-                func_exit
-            fi
-        else
-            SKIP_ARRAY+=("mysql_connector_python")
-            echo "install skip mysql_connector_python" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        fi
-
-        if [ "${oase_os}" == "RHEL8" ]; then
-            pip3 list --format=legacy >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        else
-            pip list >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        fi
     fi
+
 }
 
 #Apache install and setting
@@ -725,60 +757,78 @@ configure_django(){
     fi
 }
 
-#mycof setting
-myconf() {
-    mv /etc/my.cnf /etc/old_my.cnf >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cat << EOS > "/etc/my.cnf"
-# For advice on how to change settings please see
-# http://dev.mysql.com/doc/refman/8.0/en/server-configuration-defaults.html
+#servercof setting
+servercon() {
+    mv /etc/my.cnf.d/server.cnf /etc/my.cnf.d/old_server.cnf >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cat << EOS > "/etc/my.cnf.d/server.cnf"
+#
+# These groups are read by MariaDB server.
+# Use it for options that only the server (but not clients) should see
+#
+# See the examples of server my.cnf files in /usr/share/mysql/
+#
 
+# this is read by the standalone daemon and embedded servers
+[server]
+
+# this is only for the mysqld standalone daemon
 [mysqld]
-#
-# Remove leading # and set to the amount of RAM for the most important data
-# cache in MySQL. Start at 70% of total RAM for dedicated server, else 10%.
-# innodb_buffer_pool_size = 128M
-#
-# Remove the leading "# " to disable binary logging
-# Binary logging captures changes between backups and is enabled by
-# default. It's default setting is log_bin=binlog
-# disable_log_bin
-#
-# Remove leading # to set options mainly useful for reporting servers.
-# The server defaults are faster for transactions and fast SELECTs.
-# Adjust sizes as needed, experiment to find the optimal values.
-# join_buffer_size = 128M
-# sort_buffer_size = 2M
-# read_rnd_buffer_size = 2M
-#
-# Remove leading # to revert to previous value for default_authentication_plugin,
-# this will increase compatibility with older clients. For background, see:
-# https://dev.mysql.com/doc/refman/8.0/en/server-system-variables.html#sysvar_default_authentication_plugin
-default-authentication-plugin=mysql_native_password
-
 datadir=/var/lib/mysql
 socket=/var/lib/mysql/mysql.sock
+symbolic-links=0
+log-error=/var/log/mariadb/mariadb.log
 
-log-error=/var/log/mysqld.log
-pid-file=/var/run/mysqld/mysqld.pid
-
-log_timestamps=SYSTEM
-character-set-server = utf8
-max_connections=100
-sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
-innodb_buffer_pool_size = 512MB
-innodb_file_per_table
-innodb_log_buffer_size=32M
-innodb_log_file_size=128M
-min_examined_row_limit=100
-key_buffer_size=128M
-join_buffer_size=64M
-max_heap_table_size=32M
-tmp_table_size=32M
-max_sp_recursion_depth=20
+skip-character-set-client-handshake
+explicit_defaults_for_timestamp = true
 transaction-isolation=READ-COMMITTED
+innodb_buffer_pool_size = 512MB
+innodb_log_buffer_size=64M
+innodb_log_file_size=256M
+min_examined_row_limit=100
+join_buffer_size=128M
+query_cache_size=512M
+query_cache_type=1
+max_heap_table_size=64M
+tmp_table_size=64M
+mrr_buffer_size=64M
+max_connections=256
 
-[client]
-default-character-set=utf8
+
+#
+# * Galera-related settings
+#
+[galera]
+# Mandatory settings
+#wsrep_on=ON
+#wsrep_provider=
+#wsrep_cluster_address=
+#binlog_format=row
+#default_storage_engine=InnoDB
+#innodb_autoinc_lock_mode=2
+#
+# Allow server to accept connections on all interfaces.
+#
+#bind-address=0.0.0.0
+#
+# Optional setting
+#wsrep_slave_threads=1
+#innodb_flush_log_at_trx_commit=0
+
+# this is only for embedded server
+[embedded]
+
+# This group is only read by MariaDB servers, not by MySQL.
+# If you use the same .cnf file for MySQL and MariaDB,
+# you can put MariaDB-only options here
+[mariadb]
+disable_unix_socket
+character-set-server = utf8
+
+# This group is only read by MariaDB-10.5 servers.
+# If you use the same .cnf file for MariaDB of different versions,
+# use this group for options that older servers don't understand
+[mariadb-10.5]
+
 EOS
 
 }
@@ -899,8 +949,8 @@ make_oase() {
     log "INFO : RabbitMQ Server"
     configure_rabbitmq
 
-    log "INFO : MySQL install and setting"
-    configure_mysql
+    log "INFO : MariaDB install and setting"
+    configure_mariadb
 
     log "INFO : apache install"
     configure_apache
@@ -919,6 +969,16 @@ make_oase() {
 
 }
 
+################################################################################
+# base
+
+# yum repository package (for mariadb)
+declare -A YUM_REPO_PACKAGE_MARIADB;
+YUM_REPO_PACKAGE_MARIADB=(
+    ["RHEL7"]="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
+    ["RHEL8"]="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
+    ["CentOS7"]="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
+)
 
 ################################################################################
 # main
