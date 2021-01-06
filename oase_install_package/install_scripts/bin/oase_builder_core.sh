@@ -491,46 +491,55 @@ configure_mysql() {
     fi
 }
 
-#Nginx install
-configure_nginx(){
+#Apache install and setting
+configure_apache(){
 
-    yum list installed | grep "nginx" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    yum list installed | grep "httpd" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     if [ $? -eq 1 ]; then
-        yum -y install ${YUM_PACKAGE["nginx"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum -y install ${YUM_PACKAGE["httpd"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
-        echo "install skip nginx" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip httpd" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
-    # Check installation  nginx packages
-    yum_package_check ${YUM_PACKAGE["nginx"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    # Check installation  httpd packages
+    yum_package_check ${YUM_PACKAGE["httpd"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-    systemctl start nginx >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    systemctl stop nginx >> "$OASE_INSTALL_LOG_FILE" 2>&1
-}
-
-#uWSGI install and setting
-configure_uwsgi(){
-
+    # mod_wsgi setting
     if [ "${oase_os}" == "RHEL8" ]; then
-        pip3 list --format=legacy | grep uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum list installed | grep "redhat-rpm-config" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            yum install -y redhat-rpm-config >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip redhat-rpm-config" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+
+        yum list installed | grep "mod_ssl" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            yum install -y mod_ssl >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip mod_ssl" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+
+        pip3 list --format=legacy | grep mod_wsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
-        pip list | grep uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip list | grep mod_wsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
     if [ $? -eq 1 ]; then
         if [ "${oase_os}" == "RHEL8" ]; then
-            pip3 install uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            pip3 install mod_wsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
-            pip install uwsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            pip install mod_wsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
         if [ $? -ne 0 ]; then
-            log "ERROR:Installation failed uwsgi"
+            log "ERROR:Installation failed mod_wsgi"
             func_exit
         fi
+        httpd_pash=`find / -type f | grep -E "*mod_wsgi-py*"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cp $httpd_pash /usr/lib64/httpd/modules >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
-        echo "install skip uwsgi" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip mod_wsgi" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
-    uwsgi --version >> "$OASE_INSTALL_LOG_FILE" 2>&1
 }
 
 #JAVA install
@@ -893,11 +902,8 @@ make_oase() {
     log "INFO : MySQL install and setting"
     configure_mysql
 
-    log "INFO : nginx install"
-    configure_nginx
-
-    log "INFO : uwsgi install"
-    configure_uwsgi
+    log "INFO : apache install"
+    configure_apache
 
     log "INFO : JAVA install"
     configure_java
@@ -931,7 +937,7 @@ YUM__ENV_PACKAGE="${YUM_PACKAGE_YUM_ENV[${MODE}]}"
 # yum install packages
 declare -A YUM_PACKAGE;
 YUM_PACKAGE=(
-    ["httpd"]="httpd mod_ssl"
+    ["httpd"]="httpd httpd-devel"
     ["rabbitmq-server"]="rabbitmq-server --enablerepo=epel"
     ["erlang"]="erlang"
     ["python"]="python36 python36-libs python36-devel python36-pip"
@@ -942,7 +948,6 @@ YUM_PACKAGE=(
     ["mysql"]="mysql"
     ["expect"]="expect"
     ["mysql-community-devel"]="mysql-community-devel"
-    ["nginx"]="nginx"
     ["java"]="java-1.8.0-openjdk java-1.8.0-openjdk-devel"
 )
 
