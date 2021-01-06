@@ -179,27 +179,27 @@ function check_answer_vars() {
         _error_flag=true
     fi
 
-    # MySQL root password
+    # MariaDB root password
     if [ -z "${db_root_password}" ]; then
-        log "ERROR : db_root_password should be enter to  MySQL root password."
+        log "ERROR : db_root_password should be enter to  MariaDB root password."
         _error_flag=true
     fi
 
-    # MySQL database name
+    # MariaDB database name
     if [ -z "${db_name}" ]; then
-        log "ERROR : db_name should be enter to  MySQL database name."
+        log "ERROR : db_name should be enter to  MariaDB database name."
         _error_flag=true
     fi
 
-    # MySQL username
+    # MariaDB username
     if [ -z "${db_username}" ]; then
-        log "ERROR : db_username should be enter to  MySQL username."
+        log "ERROR : db_username should be enter to  MariaDB username."
         _error_flag=true
     fi
 
-    # MySQL user's password
+    # MariaDB user's password
     if [ -z "${db_password}" ]; then
-        log "ERROR : db_password should be enter to  MySQL user password"
+        log "ERROR : db_password should be enter to  MariaDB user password"
         _error_flag=true
     fi
 
