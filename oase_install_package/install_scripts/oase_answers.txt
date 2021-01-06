@@ -24,9 +24,9 @@ RabbitMQ_queuename:oase
 RabbitMQ_ipaddr:
 
 ##############################
-# MySQL
+# MariaDB
 ##############################
-# Enter the MySQL root user's password
+# Enter the MariaDB root user's password
 # e.g) db_root_password:sample_root_password
 db_root_password:password
 
