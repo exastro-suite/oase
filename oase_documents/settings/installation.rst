@@ -7,49 +7,7 @@ OASEのインストール手順を下記に示します。
 1. 事前準備
 -----------
 
-1.1 ファイアーウォール停止
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-・ステータス確認
-
-.. code-block:: rst
-
- # systemctl status firewalld
-
-★Active: activeの場合
-
-.. code-block:: rst
-
- # systemctl stop firewalld
- # systemctl disable firewalld
-
-
-1.2. SELinux無効化
-~~~~~~~~~~~~~~~~~~
-
-・ステータス確認
-
-.. code-block:: rst
-
- # getenforce
-
-★Enforcingの場合
-
-.. code-block:: rst
-
- # vi /etc/sysconfig/selinux
-
-.. code-block:: bash
-
- SELINUX=disabled
-
- ※ Enforcing から disabled へ変更
-
-.. code-block:: rst
- 
- # reboot
-
-1.3. タイムゾーンを設定する
+1.1. タイムゾーンを設定する
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: rst
@@ -66,7 +24,7 @@ OASEのインストール手順を下記に示します。
 
  # timedatectl set-timezone Asia/Tokyo
 
-1.4. 自分自身のホスト名について名前解決できること
+1.2. 自分自身のホスト名について名前解決できること
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: rst
