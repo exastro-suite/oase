@@ -206,8 +206,7 @@ fi
 
 # start services
 log "INFO : Start OASE service"
-run_systemctl nginx.service
-run_systemctl uwsgi.service
+run_systemctl httpd.service
 run_systemctl oase-action.service
 run_systemctl oase-agent.service
 run_systemctl oase-apply.service

@@ -109,10 +109,6 @@ oase_directory:/exastro
 ##############################
 # settings.py
 ##############################
-# Select Session management.("db" or "file" or "cache")
-# e.g) oase_session_engine:cache
-oase_session_engine:
-
 # Decide the EVTIMER SERVER location
 # e.g) ev_location:127.0.0.1
 ev_location:
