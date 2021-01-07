@@ -31,6 +31,26 @@ webコンテンツ、BackYardコンテンツ、データベースは、次のよ
    :header: No., FROM, TO, プロトコル, 主な用途
    :widths: 5, 20, 20, 30, 50
 
-   1, 端末, Web, http(s) [80(443)/tcp], OASEのWebコンテンツへのアクセス
-   2, Web/BackYard, MariaDB, tcp [3306/tcp], DBサーバへのアクセス
+   1, 端末, Web, "http(s)
+                 [80(443)/tcp]", OASEのWebコンテンツへのアクセス
+   2, Web/BackYard, MariaDB, "tcp
+                             [3306/tcp]", DBサーバへのアクセス
+   3, Web, RabbitMQ, "tcp
+                     [4369/tcp
+                      5672/tcp
+                       25672/tcp]", メッセージの送受信
+   4, 端末, RabbitMQ, "tcp
+                      [15672/tcp]", メッセージキューの管理
+   5, BackYard, RHDM, "http
+                      [8080/tcp]", ディシジョンテーブルのコンテナ管理
+   6, 端末, RHDM, "http
+                  [9990/tcp]", ディシジョンテーブルのコンテナ管理
+   7, web, BackYard, "tcp
+                     [50001/tcp]", ディシジョンテーブルのファイル管理
+   8, BackYard, Exastro IT Automation, "http(s)
+                                       [80(443)/tcp]※", Exastro IT Automationの作業実行をリクエストする
+   9, web/BackYard, SMTP, "tcp
+                          [25/tcp]※", メールを送信する
+
+※代表的な例を記載。OASE外部のサービスに準拠するため適宜変更してください。
 
