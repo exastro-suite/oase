@@ -152,6 +152,9 @@ OASEのインストール手順を下記に示します。
    20, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
    21, oase_language, ja, OASEの言語設定（日本語：ja）
    22, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
+   23, oase_domain, exastro-oase.local, OASEのドメイン名
+   24, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス
+   25, private_key_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス
 
 
 3.1.5. アンサーファイルのサンプル
@@ -283,6 +286,27 @@ OASEのインストール手順を下記に示します。
  # Select Operation System. ("CentOS7" or "RHEL7" or "RHEL8")
  # e.g) oase_os:RHEL7
  oase_os:RHEL7
+
+
+ ##############################
+ # SSLサーバ証明書
+ ##############################
+ # Enter the oase domain name.
+ # e.g) oase_domain:exastro-oase.local
+ oase_domain:exastro-oase.local
+
+ # Enter when using user-specified certificates and private keys.
+ # If no file path is entered for both "certificate_path" and "private_key_path",
+ # the OASE installer creates and installs a self-certificate and private key
+ # using the values entered in "oase_domain".
+
+ # Enter the file path where the certificate to be install.
+ # e.g) certificate_path:/temp/etc_pki_tls_certs/exastro-oase.crt
+ certificate_path:
+
+ # Enter the file path where the private key to be install.
+ # e.g) private_key_path:/temp/etc_pki_tls_certs/exastro-oase.key
+ private_key_path:
 
 
 3.1.6. 環境構築ツール（オンライン版）実行
