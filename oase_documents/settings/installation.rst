@@ -153,8 +153,8 @@ OASEのインストール手順を下記に示します。
    21, oase_language, ja, OASEの言語設定（日本語：ja）
    22, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
    23, oase_domain, exastro-oase.local, OASEのドメイン名
-   24, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス
-   25, private_key_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス
+   24, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
+   25, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
 
 
 3.1.5. アンサーファイルのサンプル
