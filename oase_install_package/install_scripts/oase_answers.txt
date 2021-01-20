@@ -45,21 +45,21 @@ db_erase:
 
 
 ##############################
-# WildFly
+# JBoss EAP
 ##############################
-# Enter WildFly install directory.
-# e.g) wildfly_root_directory:/exastro/WildFly
-wildfly_root_directory:/exastro/WildFly
+# Enter JBoss install directory.
+# e.g) jboss_root_directory:/exastro/JBossEAP
+jboss_root_directory:/exastro/JBossEAP
 
 
 ##############################
-# Drools
+# RHDM
 ##############################
 # Decide the Administrator name, password.
-# e.g) drools_adminname:admin0000
-drools_adminname:admin0000
-# e.g) drools_password:password@1
-drools_password:password@1
+# e.g) rhdm_adminname:admin0000
+rhdm_adminname:admin0000
+# e.g) rhdm_password:password@1
+rhdm_password:password@1
 
 # Enter IP address & port for Decision Manager.
 # e.g) dm_ipaddrport:localhost:8080
@@ -120,3 +120,24 @@ oase_language:ja
 # Select Operation System. ("CentOS7" or "RHEL7" or "RHEL8")
 # e.g) oase_os:RHEL7
 oase_os:
+
+
+##############################
+# SSLサーバ証明書
+##############################
+# Enter the oase domain name.
+# e.g) oase_domain:exastro-oase.local
+oase_domain:exastro-oase.local
+
+# Enter when using user-specified certificates and private keys.
+# If no file path is entered for both "certificate_path" and "private_key_path",
+# the OASE installer creates and installs a self-certificate and private key
+# using the values entered in "oase_domain".
+
+# Enter the file path where the certificate to be install.
+# e.g) certificate_path:/temp/etc_pki_tls_certs/exastro-oase.crt
+certificate_path:
+
+# Enter the file path where the private key to be install.
+# e.g) private_key_path:/temp/etc_pki_tls_certs/exastro-oase.key
+private_key_path:
