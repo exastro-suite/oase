@@ -28,7 +28,7 @@ readonly OASE_BACKUP_FILE_SUFFIX='.oase_bk'
 readonly OASE_UNINSTALING_FILE_SUFFIX='.oase_during_uninstallation'
 
 JBOSS_CONF_FILE=/etc/default/jboss-eap.conf
-JBOSS_ROOT_DIR="${wildfly_root_directory}"
+JBOSS_ROOT_DIR="${jboss_root_directory}"
 STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/standalone/configuration/standalone-full.xml
 
 KERNEL_PARAM_FILE=/etc/sysctl.conf

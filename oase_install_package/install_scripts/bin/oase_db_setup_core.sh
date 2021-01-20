@@ -151,8 +151,8 @@ encrypter=$oase_directory/OASE/tool/encrypter.py
 date=`date +"%Y-%m-%dT%H:%M:%S"`
 create_initcustom 2  "ルールファイル設置ルートパス"  "RULE"          "RULEFILE_ROOTPATH" ${rulefile_rootpath}  $date
 create_initcustom 26 "DMリクエスト送信先"            "DMSETTINGS"    "DM_IPADDRPORT"     ${dm_ipaddrport}      $date
-create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${drools_adminname}   $date
-encrypted_password=$(python3 $encrypter ${drools_password} 2>&1)
+create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${rhdm_adminname}   $date
+encrypted_password=$(python3 $encrypter ${rhdm_password} 2>&1)
 check_result $? $encrypted_password
 create_initcustom 28 "DMパスワード"                  "DMSETTINGS"    "DM_PASSWD"         $encrypted_password   $date
 create_initcustom 29 "適用君待ち受け情報"            "APPLYSETTINGS" "APPLY_IPADDRPORT"  ${apply_ipaddrport}   $date

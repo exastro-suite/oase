@@ -443,7 +443,7 @@ configure_mariadb() {
             systemctl restart mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
             error_check
         fi
-        
+
     else
         # enable MariaDB repository
         mariadb_repository ${YUM_REPO_PACKAGE_MARIADB[${oase_os}]}
@@ -458,7 +458,7 @@ configure_mariadb() {
             log "ERROR:Installation failed[MariaDB]"
             func_exit
         fi
-        
+
         yum_package_check MariaDB MariaDB-server
 
         # enable and start (initialize) MariaDB Server
@@ -467,7 +467,7 @@ configure_mariadb() {
         error_check
         systemctl start mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
         error_check
-        
+
         expect -c "
             set timeout -1
             spawn mysql_secure_installation
@@ -554,6 +554,13 @@ configure_apache(){
 
         pip3 list --format=legacy | grep mod_wsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
+        yum list installed | grep "mod_ssl" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            yum install -y mod_ssl >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip mod_ssl" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+
         pip list | grep mod_wsgi >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
     if [ $? -eq 1 ]; then
@@ -592,13 +599,13 @@ configure_java(){
 #Drools install
 configure_drools(){
     #WildFly install
-    if [ -d ${wildfly_root_directory} ]; then
-        echo "install skip Drools" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ -d ${jboss_root_directory} ]; then
+        echo "install skip RHDM" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         return
     fi
 
-    mkdir -p ${wildfly_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cd ${wildfly_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    mkdir -p ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     wget https://download.jboss.org/wildfly/14.0.1.Final/wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
     tar -xzvf wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
@@ -607,30 +614,30 @@ configure_drools(){
     rm -f wildfly-14.0.1.Final.tar.gz
 
     #Business entral Workbench WildFly 14 War install
-    cd ${wildfly_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
     wget https://download.jboss.org/drools/release/7.22.0.Final/business-central-7.22.0.Final-wildfly14.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     #Kie server install
-    cd ${wildfly_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
     wget https://repo1.maven.org/maven2/org/kie/server/kie-server/7.22.0.Final/kie-server-7.22.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-    cd ${wildfly_root_directory}/wildfly-14.0.1.Final/standalone/deployments
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments
     mv business-central-7.22.0.Final-wildfly14.war decision-central.war
     mv kie-server-7.22.0.Final-ee8.war kie-server.war
 
     #wildfly user add
-    cd ${wildfly_root_directory}/wildfly-14.0.1.Final/bin
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin
     expect -c "
         set timeout -1
         spawn ./add-user.sh
         expect \"(a):\"
         send \"b\\r\"
         expect \"Username :\"
-        send \""${drools_adminname}\\r"\"
+        send \""${rhdm_adminname}\\r"\"
         expect \"Password :\"
-        send \""${drools_password}\\r"\"
+        send \""${rhdm_password}\\r"\"
         expect \"Re-enter Password :\"
-        send \""${drools_password}\\r"\"
+        send \""${rhdm_password}\\r"\"
         expect \"What groups do you want this user to belong to\"
         send \"admin,kie-server,rest-all\\r\"
         expect \"Is this correct yes/no?\"
@@ -835,7 +842,7 @@ EOS
 
 #standalone.conf setting
 standalone_conf() {
-    cd ${wildfly_root_directory}/wildfly-14.0.1.Final/bin >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin >> "$OASE_INSTALL_LOG_FILE" 2>&1
     mv standalone.conf standalone.conf.oase_bk
 
     cat << EOS > "standalone.conf"
@@ -958,7 +965,7 @@ make_oase() {
     log "INFO : JAVA install"
     configure_java
 
-    log "INFO : drools instal"
+    log "INFO : RHDM instal"
     configure_drools
 
     log "INFO : Maven install"
