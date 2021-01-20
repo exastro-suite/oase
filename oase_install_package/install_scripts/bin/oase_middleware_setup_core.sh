@@ -44,12 +44,12 @@ Alias /static ${oase_directory}/OASE/oase-root/web_app/static
 </Directory>
 
 <VirtualHost *:443 >
-  ServerName exastro-oase
+  ServerName $OASE_DOMAIN
   ServerAlias *
   DocumentRoot ${oase_directory}/OASE/oase-root
   SSLEngine  on
-  SSLCertificateFile ${oase_directory}/OASE/oase-root/exastro-oase.crt
-  SSLCertificateKeyFile ${oase_directory}/OASE/oase-root/cakey-nopass.pem
+  SSLCertificateFile /etc/pki/tls/certs/$CERTIFICATE_FILE
+  SSLCertificateKeyFile /etc/pki/tls/certs/$PRIVATE_KEY_FILE
 </VirtualHost>
 
 <VirtualHost *:80 >
@@ -284,7 +284,7 @@ log "INFO : Start changing the settings."
 ################################################################################
 
 OASE_DIR="${oase_directory}"
-JBOSS_ROOT_DIR="${wildfly_root_directory}"
+JBOSS_ROOT_DIR="${jboss_root_directory}"
 OASE_ROOT_DIR="$OASE_DIR"/OASE/oase-root
 SERVICE_FILE_DIR=/etc/systemd/system
 OASE_JBOSS_EAP_RHEL_SH="$JBOSS_ROOT_DIR"/bin/init.d/jboss-eap-rhel.sh
@@ -294,12 +294,14 @@ MAVEN_CONF_SETTINGS_FILE="${M2_HOME}"/conf/settings.xml
 M2_SETTINGS_DIR=/root/.m2
 M2_SETTINGS_FILE="${M2_SETTINGS_DIR}"/settings.xml
 STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
-RHDM_ADMINNAME=${drools_adminname}
-RHDM_PASSWORD=${drools_password}
+RHDM_ADMINNAME=${rhdm_adminname}
+RHDM_PASSWORD=${rhdm_password}
 OASE_ENV_DIR=${OASE_ROOT_DIR}/confs/backyardconfs/services
 OASE_ENV_FILE=${OASE_ENV_DIR}/oase_env
 DROOLS_SERVICE_FILE=/lib/systemd/system/drools.service
-
+CERTIFICATE_PATH=${certificate_path}
+PRIVATE_KEY_PATH=${private_key_path}
+OASE_DOMAIN=${oase_domain}
 
 # sysctl.conf
 if [ ! -e "$KERNEL_PARAM_FILE" ]; then
@@ -318,6 +320,99 @@ else
     sed -i -e "/^net.core.somaxconn/s/.*/net.core.somaxconn = 16384/g" $KERNEL_PARAM_FILE
 fi
 sysctl -p >/dev/null 2>&1
+
+
+# 秘密鍵と証明書のファイル名を取得(OASE自己証明書を作成する場合は証明書署名要求ファイル名も設定)
+if [ "$CERTIFICATE_PATH" != "" -a "$PRIVATE_KEY_PATH" != "" ]; then
+    CERTIFICATE_FILE=$(echo $(basename ${CERTIFICATE_PATH})) >/dev/null 2>&1
+    PRIVATE_KEY_FILE=$(echo $(basename ${PRIVATE_KEY_PATH})) >/dev/null 2>&1
+else
+    CERTIFICATE_FILE="$OASE_DOMAIN.crt"
+    PRIVATE_KEY_FILE="$OASE_DOMAIN.key"
+    CSR_FILE="$OASE_DOMAIN.csr"
+    echo "subjectAltName=DNS:$OASE_DOMAIN" > /tmp/san.txt
+fi
+
+if [ "${CERTIFICATE_PATH}" != "" -a "${PRIVATE_KEY_PATH}" != "" ]; then
+    # CERTIFICATE_PATH と PRIVATE_KEY_PATH がoase_answers.txtに両方入力されている場合は、ユーザー指定の証明書・秘密鍵を設置
+    # ユーザー指定証明書・秘密鍵設置
+    if test -e "${CERTIFICATE_PATH}" ; then
+        if test -e "${PRIVATE_KEY_PATH}" ; then
+            # 両方の指定のパスにファイルが存在する場合のみ/etc/pki/tls/certs/にファイルをコピー
+            cp -p "${CERTIFICATE_PATH}" /etc/pki/tls/certs/ >/dev/null 2>&1
+            cp -p "${PRIVATE_KEY_PATH}" /etc/pki/tls/certs/ >/dev/null 2>&1
+        else
+            # 指定のパスにファイルがない場合は異常終了
+            log "ERORR : ${PRIVATE_KEY_PATH} does not be found."
+            log "INFO : Abort installation."
+            rm -f /tmp/san.txt >/dev/null 2>&1
+            exit 1
+        fi
+    else
+        # 指定のパスにファイルがない場合は異常終了
+        log "ERORR : ${CERTIFICATE_PATH} does not be found."
+        log "INFO : Abort installation."
+        rm -f /tmp/san.txt >/dev/null 2>&1
+        exit 1
+    fi
+elif [ "${CERTIFICATE_PATH}" = "" -a "${PRIVATE_KEY_PATH}" = "" ]; then
+    # CERTIFICATE_PATH と PRIVATE_KEY_PATH がどちらも入力されていない場合は、OASEで作成する自己証明書・秘密鍵を設置
+    # 秘密鍵を生成
+    openssl genrsa 2048 > /tmp/"$PRIVATE_KEY_FILE" 2>> "$OASE_INSTALL_LOG_FILE"
+    # 証明書署名要求を生成
+    expect -c "
+    set timeout -1
+    spawn openssl req -new -key /tmp/${PRIVATE_KEY_FILE} -out /tmp/${CSR_FILE}
+    expect \"Country Name\"
+    send \"JP\\r\"
+    expect \"State or Province Name\"
+    send \"\\r\"
+    expect \"Locality Name\"
+    send \"\\r\"
+    expect \"Organization Name\"
+    send \"\\r\"
+    expect \"Organizational Unit Name\"
+    send \"\\r\"
+    expect \"Common Name\"
+    send \"${OASE_DOMAIN}\\r\"
+    expect \"Email Address\"
+    send \"\\r\"
+    expect \"A challenge password\"
+    send \"\\r\"
+    expect \"An optional company name\"
+    send \"\\r\"
+    interact
+    " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    # サーバ証明書を生成
+    openssl x509 -days 3650 -req -signkey /tmp/"$PRIVATE_KEY_FILE" -extfile /tmp/san.txt < /tmp/"$CSR_FILE" > /tmp/"$CERTIFICATE_FILE" 2>> "$OASE_INSTALL_LOG_FILE"
+    # 作成した証明書署名要求を削除
+    rm -f /tmp/"$CSR_FILE" >/dev/null 2>&1
+    rm -f /tmp/san.txt >/dev/null 2>&1
+    mv /tmp/"$PRIVATE_KEY_FILE" /etc/pki/tls/certs/ >/dev/null 2>&1
+    mv /tmp/"$CERTIFICATE_FILE" /etc/pki/tls/certs/ >/dev/null 2>&1
+else
+    # CERTIFICATE_PATH と PRIVATE_KEY_PATH どちらか一方だけ入力されている場合は異常終了
+    if [ "${CERTIFICATE_PATH}" = "" ]; then
+        log "ERORR : Should be Enter [certificate_path]."
+        log 'INFO : Abort installation.'
+        rm -f /tmp/san.txt >/dev/null 2>&1
+        exit 1
+    elif [ "${PRIVATE_KEY_PATH}" = "" ]; then
+        log "ERORR : Should be Enter [private_key_path]."
+        log 'INFO : Abort installation.'
+        rm -f /tmp/san.txt >/dev/null 2>&1
+        exit 1
+    fi
+fi
+
+# /etc/pki/tls/certs/ に秘密鍵とサーバ証明書が設置できたかをチェック
+if ! test -e /etc/pki/tls/certs/"$PRIVATE_KEY_FILE" ; then
+    log "WARNING : Failed to place /etc/pki/tls/certs/$PRIVATE_KEY_FILE."
+fi
+if ! test -e /etc/pki/tls/certs/"$CERTIFICATE_FILE" ; then
+    log "WARNING : Failed to place /etc/pki/tls/certs/$CERTIFICATE_FILE."
+fi
+
 
 # oase.conf
 if [ -e "$OASE_CONF_FILE" ]; then
