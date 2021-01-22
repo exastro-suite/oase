@@ -80,6 +80,7 @@ class ITAManager(AbstractManager):
     ACTIONPARAM_KEYS = [
         'ITA_NAME',
         'SYMPHONY_CLASS_ID',
+        'CONDUCTOR_CLASS_ID',
         'OPERATION_ID',
         'SERVER_LIST',
         'MENU_ID',
@@ -500,8 +501,20 @@ class ITAManager(AbstractManager):
 
                 for sh in set_host:
                     host_name = sh
-                    ret = self.ITAobj.insert_c_parameter_sheet(
-                        host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
+                    # 検索結果によりあったら、update なかったら、insert
+                    ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
+                        self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
+                    if ret_select is None:
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                    if ret_select > 0:
+                        ret = self.ITAobj.update_c_parameter_sheet(
+                            self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result)
+                    elif ret_select == 0:
+                        ret = self.ITAobj.insert_c_parameter_sheet(
+                            host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
+
                     if ret == Cstobj.RET_REST_ERROR:
                         logger.system_log('LOSE01110', ActionStatus, self.trace_id)
                         DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
