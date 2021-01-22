@@ -52,6 +52,7 @@ class OASELogID:
     Ary['LOSE01025'] = "RestAPI access error. (TraceID:{} MenuID:{} Command:{} Responsecode:{})"
     Ary['LOSE01026'] = "Conductor execute failed. (Table:{} response id:{} execution_order:{} conductor class no:{})"
     Ary['LOSE01027'] = "Movement unregistered. (TraceID: {} Table:{} response id:{} execution_order:{} conductor class no:{})"
+    Ary['LOSE01028'] = "Update failed. (TraceID: {} Table:{} response id:{} execution_order:{})"
     Ary['LOSE01100'] = "Failed to insert records into OASE_T_MAIL_ACTION_HISTORY. (TraceID: {}, Traceback: {})"
     Ary['LOSE01101'] = "Failed to insert records into OASE_T_ITA_ACTION_HISTORY. (TraceID: {}, Traceback: {})"
     Ary['LOSE01102'] = "Failed to insert records into OASE_T_ACTION_HISTORY. (TraceID: {}, Traceback: {})"

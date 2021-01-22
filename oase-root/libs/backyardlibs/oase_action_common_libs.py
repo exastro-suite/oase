@@ -98,6 +98,7 @@ class ConstantModules:
     TBL_COL_MAX                       =  COL_LAST_UPDATE_USER + 1
 
     ## C_PARAMETER_SHEET
+    COL_PARAMETER_NO                  =  2
     COL_HOSTNAME                      =  3
     COL_OPERATION_ID                  =  4
     COL_OPERATION_NAME_PARAM          =  5
