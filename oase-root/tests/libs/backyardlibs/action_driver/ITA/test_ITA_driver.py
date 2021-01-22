@@ -864,6 +864,8 @@ def test_act_ptrn_menuid_convertflg_true_ok(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -900,6 +902,8 @@ def test_act_ptrn_menuid_convertflg_false_ok(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -936,12 +940,90 @@ def test_act_ptrn_menuid_hostgroup_convertflg_false_ok(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
 
     status, detai = testITA.act(rhdm_res_act)
     assert status == ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_act_ptrn_menuid_hostgroup_convertflg_false_update_ok(monkeypatch):
+    """
+    ITAアクションを実行メソッドのテスト
+    アクションパラーメータにMENU_ID,CONVERT_FLG=FALSE を指定したパターン
+    レコード重複OK
+    """
+    ITAManager = get_ita_manager()
+    ItaDriver = get_ita_driver()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1", "HOSTGROUP_NAME=1:HG1&HG2", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1","CONVERT_FLG=FALSE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info, 4)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (1, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    status, detai = testITA.act(rhdm_res_act)
+    assert status == ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_act_ptrn_menuid_hostgroup_convertflg_false_update_ng(monkeypatch):
+    """
+    ITAアクションを実行メソッドのテスト
+    アクションパラーメータにMENU_ID,CONVERT_FLG=FALSE を指定したパターン
+    レコード重複NG
+    """
+    ITAManager = get_ita_manager()
+    ItaDriver = get_ita_driver()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    ita_disp_name = 'ITA176'
+
+    parm_info = '{"ACTION_PARAMETER_INFO": ["MENU_ID=1", "HOSTGROUP_NAME=1:HG1&HG2", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1","CONVERT_FLG=FALSE"]}'
+    rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info, 4)
+
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
+    testITA.ita_driver = ItaDriver.objects.get(ita_disp_name=ita_disp_name)
+
+    monkeypatch.setattr(ITAManager, 'ita_action_history_insert', lambda a, b, c, d, e, f, g, h, i: 3)
+    monkeypatch.setattr(ITA1Core, 'select_ita_master', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
+    monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
+    monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (None, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
+    monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
+
+    status, detai = testITA.act(rhdm_res_act)
+    assert status == ACTION_HISTORY_STATUS.ACTION_EXEC_ERROR
 
     delete_data_param_information()
 
@@ -972,6 +1054,8 @@ def test_act_ptrn_menuid_host_convertflg_false_ok(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1008,6 +1092,8 @@ def test_act_ptrn_menuid_hostgroup_host_convertflg_false_ok(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1044,6 +1130,8 @@ def test_act_ptrn_multiple_menuid_convertflg_false_ok(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1079,6 +1167,8 @@ def test_act_ptrn_multiple_menuid_hostgroup_convertflg_false_ok(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1115,6 +1205,8 @@ def test_act_ptrn_ita_action_history_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1146,6 +1238,8 @@ def test_ptrn_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1183,6 +1277,8 @@ def test_ptrn_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (False, ''))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1206,6 +1302,8 @@ def test_ptrn_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (False, []))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (0))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
@@ -1229,6 +1327,8 @@ def test_ptrn_menuid_act_ng(monkeypatch):
     monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c, d: (0))
     monkeypatch.setattr(ITA1Core, 'insert_operation', lambda a, b: (True, 'hoge'))
     monkeypatch.setattr(ITA1Core, 'select_operation', lambda a, b, c: (True, [{cmod.COL_OPERATION_NO_IDBH:1, cmod.COL_OPERATION_NAME:'ope_name', cmod.COL_OPERATION_DATE:'20181231000000'}]))
+    monkeypatch.setattr(ITA1Core, 'select_c_parameter_sheet', lambda a, b, c, d, e: (0, []))
+    monkeypatch.setattr(ITA1Core, 'update_c_parameter_sheet', lambda a, b, c, d, e, f, g, h: (0))
     monkeypatch.setattr(ITA1Core, 'insert_c_parameter_sheet', lambda a, b, c, d, e, f, g: (cmod.RET_REST_ERROR))
     monkeypatch.setattr(ITA1Core, 'select_ope_ita_master', lambda a, b, c: (0))
     monkeypatch.setattr(ITA1Core, 'symphony_execute', lambda a, b, c: (0, 1, 'https'))
