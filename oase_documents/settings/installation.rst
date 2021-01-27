@@ -129,7 +129,7 @@ OASEのインストール手順を下記に示します。
    :header: No., 項目名, 初期値, 説明
    :widths: 5, 20, 20, 60
 
-   1, install_mode, Install, インストールモードの設定（インストール：Install）
+   1, install_mode, Install_Online, インストールモードの設定（オンラインインストール：Install_Online/オフラインインストール：Install_Offline/ライブラリ収集：Gather_Library）
    2, RabbitMQ_username, admin, RabbitMQのユーザ名
    2, RabbitMQ_password, password, RabbitMQのパスワード
    3, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
@@ -164,9 +164,9 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- #Select install mode. ("Install")
- # e.g) install_mode:Install
- install_mode:Install
+ #Select install mode. ("Install_Online" or "Install_Offline" or "Gather_Library")
+ # e.g) install_mode:Install_Online
+ install_mode:Install_Online
 
 
  ##############################
@@ -316,7 +316,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # sh oase_online_installer.sh
+ # sh oase_installer.sh
 
 
 | 2. 処理の確認
