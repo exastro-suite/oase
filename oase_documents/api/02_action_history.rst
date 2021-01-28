@@ -31,7 +31,6 @@
 
    1, Host, ホスト名,
    2, Content-Type, 形式名,値は「application/json」で固定
-   3, Authorization, 認証情報, Base64形式 
 
 
 2.1.3 パラメータ
