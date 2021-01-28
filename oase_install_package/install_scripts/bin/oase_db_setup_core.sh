@@ -117,6 +117,9 @@ fi
 result=$(echo "GRANT ALL ON "${db_name}".* TO '"${db_username}"';" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
 
+result=$(echo "grant all privileges on *.* to '"${db_username}"'@'localhost' identified by '"${db_password}"' with grant option;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+check_result $? "$result"
+
 ################################################################################
 log "INFO : DB existence check is completed."
 ################################################################################

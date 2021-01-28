@@ -1,0 +1,24 @@
+### Requirements without Version Specifiers
+pika
+retry
+mod_wsgi
+django-crispy-forms
+django-filter
+requests
+ldap3
+pycrypto
+configparser
+fasteners
+djangorestframework
+django-simple-history
+pyyaml
+pytz
+
+
+### Requirements with Version Specifiers
+mysqlclient==2.0.1
+django==2.2.3
+openpyxl==2.5.14
+xlrd==1.2.0
+
+

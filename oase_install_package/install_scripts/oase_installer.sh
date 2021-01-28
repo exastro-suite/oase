@@ -16,7 +16,7 @@
 ############################################################
 #
 # 【概要】
-#    環境構築ツール(オンラインインストール用)
+#    環境構築ツール(Operation Autonomy Support Engine)
 #
 ############################################################
 # global variables
@@ -43,6 +43,12 @@ export SKIP_ARRAY
 function oase_install() {
     log "INFO : Start to install"
 
+    if [ ${install_mode} = "Install_Online" ]; then
+        exec_mode=3
+    else
+        exec_mode=2
+    fi
+
     source ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
     if [ $? -ne 0 ]; then
         log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh"
@@ -61,6 +67,18 @@ function oase_install() {
         return 1
     fi
     log "INFO : Finished to install"
+}
+
+function gather_library() {
+    log "INFO : Start to gather library"
+
+    exec_mode=1
+    source ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
+    if [ $? -ne 0 ]; then
+        log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh"
+        return 1
+    fi
+    log "INFO : Finished to gather library"
 }
 
 function oase_uninstall() {
@@ -127,7 +145,7 @@ if [ $? -ne 0 ]; then
 fi
 log "INFO : Finished to read ${OASE_COMMON_LIBS}"
 log "#####################################"
-log "INFO : oase_online_install.sh start"
+log "INFO : oase_installer.sh start"
 log "#####################################"
 #-----------------------------------------------------------
 # answerfileの読み込み
@@ -144,9 +162,10 @@ fi
 #-----------------------------------------------------------
 # 子プロセス呼び出し
 #-----------------------------------------------------------
-if [ ${install_mode} = "Install" ]; then
-    log "INFO : Mode=Install Selected"
+if [ ${install_mode} = "Install_Online" ]; then
+    log "INFO : Mode=Online Install Selected"
     oase_install
+    INSTALL_ONLINE=$?
 
     echo "["`date +"%Y-%m-%d %H:%M:%S"`"] #####################################" | tee -a "$OASE_INSTALL_LOG_FILE"
     echo "["`date +"%Y-%m-%d %H:%M:%S"`"] SKIP LIST(Please check the Settings) " | tee -a "$OASE_INSTALL_LOG_FILE"
@@ -154,14 +173,50 @@ if [ ${install_mode} = "Install" ]; then
         echo "["`date +"%Y-%m-%d %H:%M:%S"`"] ・${skip_pkg}" | tee -a "$OASE_INSTALL_LOG_FILE"
     done
 
-    if [ $? -ne 0 ]; then
+    if [ ${INSTALL_ONLINE} -ne 0 ]; then
         log "#####################################"
-        log "ERROR : Install Failed"
+        log "ERROR : Online Install Failed"
         log "#####################################"
         exit 1
     fi
     log "#####################################"
-    log "INFO : Install Finished"
+    log "INFO : Online Install Finished"
+    log "#####################################"
+    exit 0
+elif [ ${install_mode} = "Install_Offline" ]; then
+    log "INFO : Mode=Offline Install Selected"
+    oase_install
+    INSTALL_OFFLINE=$?
+
+    echo "["`date +"%Y-%m-%d %H:%M:%S"`"] #####################################" | tee -a "$OASE_INSTALL_LOG_FILE"
+    echo "["`date +"%Y-%m-%d %H:%M:%S"`"] SKIP LIST(Please check the Settings) " | tee -a "$OASE_INSTALL_LOG_FILE"
+    for skip_pkg in ${SKIP_ARRAY[@]}; do
+        echo "["`date +"%Y-%m-%d %H:%M:%S"`"] ・${skip_pkg}" | tee -a "$OASE_INSTALL_LOG_FILE"
+    done
+
+    if [ ${INSTALL_OFFLINE} -ne 0 ]; then
+        log "#####################################"
+        log "ERROR : Offline Install Failed"
+        log "#####################################"
+        exit 1
+    fi
+    log "#####################################"
+    log "INFO : Offline Install Finished"
+    log "#####################################"
+    exit 0
+elif [ ${install_mode} = "Gather_Library" ]; then
+    log "INFO : Mode=Gather Library Selected"
+    gather_library
+    GATHER_LIBRARY=$?
+
+    if [ ${GATHER_LIBRARY} -ne 0 ]; then
+        log "#####################################"
+        log "ERROR : Gather Library Failed"
+        log "#####################################"
+        exit 1
+    fi
+    log "#####################################"
+    log "INFO : Gather Library Finished"
     log "#####################################"
     exit 0
 elif [ ${install_mode} = "Uninstall" ]; then
@@ -178,6 +233,6 @@ elif [ ${install_mode} = "Uninstall" ]; then
     log "#####################################"
     exit 0
 else
-    log "ERROR : 'install_mode' should be set. (Install or Uninstall)"
+    log "ERROR : 'install_mode' should be set. (Install_Online or Gather_Library or Uninstall)"
     exit 1
 fi
