@@ -101,6 +101,16 @@ create_repo_check(){
     fi
 }
 
+
+download_check() {
+    DOWNLOAD_CHK=`echo $?`
+    if [ $DOWNLOAD_CHK -ne 0 ]; then
+        log "ERROR:Download of file failed"
+        exit
+    fi
+}
+
+
 error_check() {
     DOWNLOAD_CHK=`echo $?`
     if [ $DOWNLOAD_CHK -ne 0 ]; then
@@ -143,18 +153,35 @@ yum_repository() {
             fi
 
             # Check Creating repository
-            case "${oase_os}" in
-                "CentOS7") create_repo_check remi-php72 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                "RHEL7") create_repo_check remi-php72 rhel-7-server-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                "RHEL7_AWS") create_repo_check remi-php72 rhui-rhel-7-server-rhui-optional-rpms  >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                "CentOS8") create_repo_check PowerTools >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                "RHEL8") create_repo_check codeready-builder-for-rhel-8 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-                "RHEL8_AWS") create_repo_check codeready-builder-for-rhel-8-rhui-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
-            esac
-            if [ $? -ne 0 ]; then
-                log "ERROR:Failed to get repository"
-                func_exit
+            if [ "${REPOSITORY}" != "yum_all" ]; then
+                case "${oase_os}" in
+                    "CentOS7") create_repo_check remi-php72 >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+                    "RHEL7")
+                        if [ "${CLOUD_REPO}" == "RHEL7_RHUI2" ]; then
+                            create_repo_check remi-php72 rhui-rhel-7-server-rhui-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                        elif [ "${CLOUD_REPO}" == "RHEL7_RHUI2_AWS" ]; then
+                            create_repo_check remi-php72 rhui-REGION-rhel-server-optional >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                        elif [ "${CLOUD_REPO}" == "RHeL7_RHUI3" ]; then
+                            create_repo_check remi-php72 rhel-7-server-rhui-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                        else
+                            create_repo_check remi-php72 rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                        fi
+                    ;;
+                    "CentOS8") create_repo_check PowerTools >> "$OASE_INSTALL_LOG_FILE" 2>&1 ;;
+                    "RHEL8")
+                        if [ "${CLOUD_REPO}" == "RHEL8_RHUI" ]; then
+                            create_repo_check codeready-builder-for-rhel-8-rhui-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                        else
+                            create_repo_check codeready-builder-for-rhel-8 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+                        fi
+                    ;;
+                esac
+                if [ $? -ne 0 ]; then
+                    log "ERROR:Failed to get repository"
+                    func_exit
+                fi
             fi
+            yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
     fi
 }
@@ -178,6 +205,46 @@ mariadb_repository() {
     fi
 }
 
+
+cloud_repo_setting(){
+    yum repolist all &> /tmp/oase_repolist.txt
+    if [ -e /tmp/oase_repolist.txt ]; then
+        if [ "${oase_os}" == "RHEL8" ]; then
+            if grep -q codeready-builder-for-rhel-8-rhui-rpms /tmp/oase_repolist.txt ; then
+                CLOUD_REPO="RHEL8_RHUI"
+            elif grep -q codeready-builder-for-rhel-8-"${ARCH}"-rpms /tmp/oase_repolist.txt ; then
+                CLOUD_REPO="physical"
+            else
+                log "ERROR : The repository required to install OASE cannot be found.
+codeready-builder-for-rhel-8-${ARCH}-rpms
+codeready-builder-for-rhel-8-rhui-rpms"
+                func_exit
+            fi
+        elif [ "${oase_os}" == "RHEL7" ]; then
+            if grep -q rhui-rhel-7-server-rhui-optional-rpms /tmp/oase_repolist.txt ; then
+                CLOUD_REPO="RHEL7_RHUI2"
+            elif grep -q rhui-REGION-rhel-server-optional /tmp/oase_repolist.txt ; then
+                CLOUD_REPO="RHEL7_RHUI2_AWS"
+            elif grep -q rhel-7-server-rhui-optional-rpms /tmp/oase_repolist.txt ; then
+                CLOUD_REPO="RHEL7_RHUI3"
+            elif grep -q rhel-7-server-optional-rpms /tmp/oase_repolist.txt ; then
+                CLOUD_REPO="physical"
+            else
+                log "ERROR : The repository required to install OASE cannnot be found.
+rhui-rhel-7-server-rhui-optional-rpms
+rhui-REGION-rhel-server-optional
+rhel-7-server-rhui-optional-rpms
+rhel-7-server-optional-rpms"
+                func_exit
+            fi
+        fi
+    else
+        log 'ERROR:Failed to create /tmp/oase_repolist.txt.'
+        func_exit
+    fi
+}
+
+
 ################################################################################
 # configuration functions
 
@@ -198,26 +265,57 @@ configure_yum_env() {
 }
 
 
+# RPM install
+install_rpm() {
+    RPM_INSTALL_CMD="rpm -Uvh --replacepkgs --nodeps"
+    LOOP_CNT=0
+
+    #get name of RPM
+    for pathfile in ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/*.rpm; do
+        RPM_INSTALL_CMD="${RPM_INSTALL_CMD} ${pathfile}"
+        LOOP_CNT=$(( LOOP_CNT+1 ))
+    done
+
+    #RPM install
+    if [ ${LOOP_CNT} -gt 0 ]; then
+        ${RPM_INSTALL_CMD} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
+    fi
+}
+
+# Pypi install
+install_pypi() {
+    PIP_INSTALL_CMD="pip install"
+    LOOP_CNT=0
+
+    if [ "${oase_os}" == "RHEL8" ]; then
+        PIP_INSTALL_CMD="pip3 install"
+    fi
+
+    #get name of pypi
+    for pathfile in ${DOWNLOAD_DIR["pip"]}/*.tar.gz; do
+        PIP_INSTALL_CMD="${PIP_INSTALL_CMD} ${pathfile}"
+        LOOP_CNT=$(( LOOP_CNT+1 ))
+    done
+
+    #pypi install
+    if [ ${LOOP_CNT} -gt 0 ]; then
+        ${PIP_INSTALL_CMD} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
+    fi
+}
+
+
 # python
 configure_python() {
-    # package
-    #-----------------------------------------------------------
-    # directory
-
-    YUM_ENV_PACKAGE_LOCAL_DIR="${LOCAL_DIR["yum"]}/yum-env"
-    YUM_ALL_PACKAGE_LOCAL_DIR="${LOCAL_DIR["yum"]}/yum_all"
-
-    YUM_ENV_PACKAGE_DOWNLOAD_DIR="${DOWNLOAD_DIR["yum"]}/yum-env"
-    YUM_ALL_PACKAGE_DOWNLOAD_DIR="${DOWNLOAD_DIR["yum"]}/yum_all"
-
-    #-----------------------------------------------------------
 
     # install some packages
     if [ "${oase_os}" == "RHEL7" ]; then
         yum list installed | grep -e python3-devel.x86_64 -e python3-libs.x86_64 -e python3-pip.noarch >> "$OASE_INSTALL_LOG_FILE" 2>&1
         if [ $? -eq 1 ]; then
             yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            yum-config-manager --enable rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            subscription-manager repos --enable rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            subscription-manager repos --enable rhel-server-rhscl-7-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
             yum_install ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
             echo "install skip python3-devel.x86_64 python3-libs.x86_64 python3-pip.noarch" >> "$OASE_INSTALL_LOG_FILE" 2>&1
@@ -940,15 +1038,8 @@ make_oase() {
 
     # configure_yum_env() will setup repository.
     log "INFO : Set up repository"
-    configure_yum_env
+    #configure_yum_env
 
-    # offline install(RHEL8 or CentOS8)
-    #if [ "$LINUX_OS" == "RHEL8" -o "$LINUX_OS" == "CentOS8" ]; then
-    #    if [ "${MODE}" == "local" ]; then
-    #        log "RPM install"
-    #        install_rpm
-    #    fi
-    #fi
 
     log "INFO : python3.6 install"
     configure_python
@@ -965,7 +1056,7 @@ make_oase() {
     log "INFO : JAVA install"
     configure_java
 
-    log "INFO : RHDM instal"
+    log "INFO : RHDM install"
     configure_drools
 
     log "INFO : Maven install"
@@ -976,8 +1067,439 @@ make_oase() {
 
 }
 
+make_oase_offline() {
+
+    # offline install(RHEL8 or CentOS8)
+    if [ "${MODE}" == "local" ]; then
+        log "RPM install"
+        install_rpm
+    fi
+
+    # offline install (pypi)
+    if [ "${MODE}" == "local" ]; then
+        log "Pypi install"
+        install_pypi
+    fi
+
+
+    # configure_python
+    log "INFO : configure python"
+
+    ln -s /bin/python3.6 /bin/python3 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    ln -sf /bin/python3 /bin/python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    if [ "${oase_os}" != "RHEL8" ]; then
+        #!/usr/bin/python → #!/usr/bin/python2.7
+        grep "python2.7" /usr/bin/yum >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            cp /usr/bin/yum /usr/bin/old_yum
+            sed  -i -e 's/python/python2.7/' /usr/bin/yum
+        fi
+
+        grep "python2.7" /usr/libexec/urlgrabber-ext-down >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            cp /usr/libexec/urlgrabber-ext-down /usr/libexec/old_urlgrabber-ext-down
+            sed  -i -e 's/python/python2.7/' /usr/libexec/urlgrabber-ext-down
+        fi
+    fi
+
+
+    # configure_rabbitmq
+    log "INFO : configure rabbitmq"
+
+    rabbitmq-plugins list >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    rabbitmq-plugins enable rabbitmq_management >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    rabbitmq-plugins list >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    systemctl start rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    systemctl enable rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    rabbitmqctl add_user ${RabbitMQ_username} ${RabbitMQ_password} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    rabbitmqctl set_user_tags ${RabbitMQ_username} administrator >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    rabbitmqctl set_permissions -p / ${RabbitMQ_username} ".*" ".*" ".*" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+
+    # configure_mariadb
+    log "INFO : configure mariadb"
+
+    if [ ! -e /var/log/mariadb ]; then
+        mkdir -p -m 777 /var/log/mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    systemctl enable mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    error_check
+    systemctl start mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    error_check
+
+    mysql -uroot -p$db_root_password -e "show databases" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ $? == 0 ]; then
+        log "Root password of MariaDB is already setting."
+    else
+        expect -c "
+            set timeout -1
+            spawn mysql_secure_installation
+            expect \"Enter current password for root \\(enter for none\\):\"
+            send \"\\r\"
+            expect -re \"Switch to unix_socket authentication.* $\"
+            send \"\\r\"
+            expect -re \"Change the root password\\?.* $\"
+            send \"\\r\"
+            expect \"New password:\"
+            send \""${db_root_password}\\r"\"
+            expect \"Re-enter new password:\"
+            send \""${db_root_password}\\r"\"
+            expect -re \"Remove anonymous users\\?.* $\"
+            send \"Y\\r\"
+            expect -re \"Disallow root login remotely\\?.* $\"
+            send \"Y\\r\"
+            expect -re \"Remove test database and access to it\\?.* $\"
+            send \"Y\\r\"
+            expect -re \"Reload privilege tables now\\?.* $\"
+            send \"Y\\r\"
+        " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+        servercon
+
+        systemctl restart mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        error_check
+    fi
+
+
+    # configure_apache
+    log "INFO : configureapache"
+
+    httpd_pash=`find / -type f | grep -E "*mod_wsgi-py*"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp $httpd_pash /usr/lib64/httpd/modules >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+
+    # configure_java
+    log "INFO : configure java"
+
+
+    # configure_drools
+    log "INFO : configure RHDM"
+
+    mkdir -p ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/wildfly-14.0.1.Final.tar.gz . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    tar -xzvf wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    chown -R root:root wildfly-14.0.1.Final
+    rm -f wildfly-14.0.1.Final.tar.gz
+
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/business-central-7.22.0.Final-wildfly14.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/kie-server-7.22.0.Final-ee8.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments
+    mv business-central-7.22.0.Final-wildfly14.war decision-central.war
+    mv kie-server-7.22.0.Final-ee8.war kie-server.war
+
+    cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin
+    expect -c "
+        set timeout -1
+        spawn ./add-user.sh
+        expect \"(a):\"
+        send \"b\\r\"
+        expect \"Username :\"
+        send \""${rhdm_adminname}\\r"\"
+        expect \"Password :\"
+        send \""${rhdm_password}\\r"\"
+        expect \"Re-enter Password :\"
+        send \""${rhdm_password}\\r"\"
+        expect \"What groups do you want this user to belong to\"
+        send \"admin,kie-server,rest-all\\r\"
+        expect \"Is this correct yes/no?\"
+        send \"yes\\r\"
+        expect \"yes/no?\"
+        send \"yes\\r\"
+    " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    standalone_conf
+
+
+    # configure_maven
+    log "INFO : configure maven"
+
+    cd /tmp >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/apache-maven-3.6.1-bin.tar.gz . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    tar -xzvf apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    mv apache-maven-3.6.1 /opt/ >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd /opt >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    ln -s /opt/apache-maven-3.6.1 apache-maven >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    cp /etc/profile /etc/old_profile.bk >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    grep "M2_HOME" /etc/profile >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ $? -eq 1 ]; then
+        sed -i -e '$a export M2_HOME=/opt/apache-maven' /etc/profile >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        sed -i -e '$a export PATH=$PATH:$M2_HOME/bin' /etc/profile >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    source /etc/profile >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    mvn --version >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    MAVEN_DIRECTORY=/root/.m2/repository
+    MAVEN_PACKAGE=$OASE_INSTALL_PACKAGE_DIR/OASE/oase-contents/oase_maven.tar.gz
+
+    mkdir -p "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp -fp "$MAVEN_PACKAGE" "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    tar -zxvf oase_maven.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    rm -f oase_maven.tar.gz
+
+
+    # configure_django
+    log "INFO : configure django"
+
+}
+
+
+###############################################################################
+# make OASE
+
+download() {
+    # First yum-utils and createrepo must be downloaded, because dependencies
+    # are not downloaded if they are already installed.
+
+    # configure_yum_env() will setup repository.
+    log "Set up repository"
+    #configure_yum_env
+
+
+    # Download python packages.
+    log "INFO : Download packages[${YUM_PACKAGE["python"]}]"
+
+    if [ "${oase_os}" == "RHEL7" ]; then
+        yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        subscription-manager repos --enable rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        subscription-manager repos --enable rhel-server-rhscl-7-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    elif [ "${oase_os}" == "RHEL8" ]; then
+        yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    elif [ "${oase_os}" == "CentOS7" ]; then
+        yum install -y epel-release >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum-config-manager --enable epel >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+    download_check
+
+
+    # Download erlang packages.
+    log "INFO : Download packages[${YUM_PACKAGE["erlang"]}]"
+
+    if [ "${oase_os}" == "RHEL8" ]; then
+        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    elif [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    fi
+    download_check
+
+
+    # Download RabbitMQ packages.
+    log "INFO : Download packages[YUM_PACKAGE["rabbitmq-server"]]"
+
+    if [ "${oase_os}" == "RHEL8" ]; then
+        curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum makecache -y --disablerepo='*' --enablerepo='rabbitmq_rabbitmq-server' >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["rabbitmq-server"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    else
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["rabbitmq-server"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    fi
+    download_check
+
+
+    # Download expect packages.
+    log "INFO : Download packages[${YUM_PACKAGE["expect"]}]"
+
+    if [ "${oase_os}" == "RHEL8" ]; then
+        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["expect"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    elif [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["expect"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    fi
+    download_check
+
+
+    # Download MariaDB packages.
+    log "INFO : Download packages[${YUM_PACKAGE["mariadb"]}]"
+
+    mariadb_repository ${YUM_REPO_PACKAGE_MARIADB[${oase_os}]}
+    if [ "${oase_os}" == "RHEL8" ]; then
+        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["mariadb"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    elif [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["mariadb"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    fi
+    download_check
+
+
+    # Download Apache packages.
+    log "INFO : Download packages[${YUM_PACKAGE["httpd"]}]"
+
+    if [ "${oase_os}" == "RHEL8" ]; then
+        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["httpd"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    elif [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["httpd"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    fi
+    download_check
+
+
+    # Download JAVA packages.
+    log "INFO : Download packages[${YUM_PACKAGE["java"]}]"
+
+    if [ "${oase_os}" == "RHEL8" ]; then
+        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["java"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    elif [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
+        yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["java"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    fi
+    download_check
+
+
+    # wget Drools & Maven.
+    wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/wildfly/14.0.1.Final/wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/drools/release/7.22.0.Final/business-central-7.22.0.Final-wildfly14.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://repo1.maven.org/maven2/org/kie/server/kie-server/7.22.0.Final/kie-server-7.22.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+
+    #----------------------------------------------------------------------
+    # Download pip packages.
+    yum_install python3
+    yum_install python3-devel
+    yum_install httpd
+    yum_install httpd-devel
+    yum_install redhat-rpm-config
+    yum_install MariaDB-devel
+
+    # python link
+    ln -s /bin/python3.6 /bin/python3 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    ln -sf /bin/python3 /bin/python >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL8" ]; then
+        python3.6 -m pip3 install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        python3.6 -m pip install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    local download_dir="${DOWNLOAD_DIR["pip"]}" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    mkdir -p "$download_dir" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    log "Download packages[pip]"
+    pip3 download -d "$download_dir" --no-binary :all: -r "$OASE_PIPLIST_FILE" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    download_check
+
+    #----------------------------------------------------------------------
+    #Create the installer archive
+    OASE_VERSION="1.2.0"
+    DATE=`date +"%Y%m%d%H%M%S"`
+
+    OFFLINE_INSTALL_FILE="oase_Ver"$OASE_VERSION"_offline_"$DATE".tar.gz"
+
+    log "Create an offline installer archive in [$OASE_PACKAGE_OPEN_DIR/$OFFLINE_INSTALL_FILE]"
+    (
+        if [ ! -e "$OASE_PACKAGE_OPEN_DIR/$OFFLINE_INSTALL_FILE" ]; then
+            cd $OASE_PACKAGE_OPEN_DIR >> "$OASE_INSTALL_LOG_FILE" 2>&1;
+            tar zcf $OFFLINE_INSTALL_FILE oase_install_package >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            log "Already exist[$OFFLINE_INSTALL_FILE]"
+            log "nothing to do"
+        fi
+    )
+
+}
+
+
+################################################################################
+# global variables
+
+OASE_PACKAGE_OPEN_DIR=$(cd $(dirname $OASE_INSTALL_PACKAGE_DIR);pwd)
+OASE_PIPLIST_FILE=$OASE_INSTALL_SCRIPTS_DIR/list/requirements.txt
+
+if [ "${exec_mode}" == "1" ]; then
+    ACTION="Download"
+elif [ "${exec_mode}" == "2" -o "${exec_mode}" == "3" ]; then
+    ACTION="Install"
+fi
+
+if [ "${exec_mode}" == "1" -o "${exec_mode}" == "3" ]; then
+    MODE="remote"
+elif [ "${exec_mode}" == "2" ]; then
+    MODE="local"
+fi
+
+if [ "${exec_mode}" == "1" -o "${exec_mode}" == "3" ]; then
+    REPOSITORY="${oase_os}"
+elif [ "${exec_mode}" == "2" ]; then
+    REPOSITORY="yum_all"
+fi
+
+
+#クラウド環境用リポジトリフラグ設定
+ARCH=$(arch)
+CLOUD_REPO="physical"
+# オフラインインストール時以外かつRHEL8、RHEL7の場合は、インストール環境のyum repolist allをgrepする。
+#if [ "${exec_mode}" == "1" -o "${exec_mode}" == "3" ]; then
+#    if [ "${oase_os}" == "RHEL8" -o "${oase_os}" == "RHEL7" ]; then
+#        cloud_repo_setting
+#    fi
+#fi
+
+
 ################################################################################
 # base
+
+LOCAL_BASE_DIR=/var/lib/oase
+
+declare -A LOCAL_DIR;
+LOCAL_DIR=(
+    ["yum"]="$LOCAL_BASE_DIR/yum"
+)
+
+
+DOWNLOAD_BASE_DIR=$OASE_INSTALL_SCRIPTS_DIR/rpm_files
+
+declare -A DOWNLOAD_DIR;
+DOWNLOAD_DIR=(
+    ["yum"]="$DOWNLOAD_BASE_DIR/yum"
+    ["pip"]="$DOWNLOAD_BASE_DIR/pip"
+    ["tar-gz"]="$DOWNLOAD_BASE_DIR/tar-gz"
+)
+
+
+#-----------------------------------------------------------
+# package
+
+# yum repository package (for yum-env-enable-repo)
+declare -A YUM_REPO_PACKAGE_YUM_ENV_ENABLE_REPO;
+YUM_REPO_PACKAGE_YUM_ENV_ENABLE_REPO=(
+    ["RHEL8"]="https://dl.fedoraproject.org/pub/epel/epel-release-latest-8.noarch.rpm"
+    ["RHEL7"]="https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm"
+    ["CentOS7"]="epel-release"
+    ["yum_all"]="--enable yum_all"
+)
+
+# yum repository package (for yum-env-disable-repo)
+declare -A YUM_REPO_PACKAGE_YUM_ENV_DISABLE_REPO;
+YUM_REPO_PACKAGE_YUM_ENV_DISABLE_REPO=(
+    ["RHEL8"]=""
+    ["RHEL7"]=""
+    ["CentOS7"]=""
+    ["yum_all"]="--disable base extras updates epel"
+)
 
 # yum repository package (for mariadb)
 declare -A YUM_REPO_PACKAGE_MARIADB;
@@ -985,43 +1507,129 @@ YUM_REPO_PACKAGE_MARIADB=(
     ["RHEL7"]="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
     ["RHEL8"]="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
     ["CentOS7"]="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
+    ["yum_all"]=""
 )
 
+# all yum repository packages
+declare -A YUM_REPO_PACKAGE;
+YUM_REPO_PACKAGE=(
+    ["yum-env-enable-repo"]=${YUM_REPO_PACKAGE_YUM_ENV_ENABLE_REPO[${REPOSITORY}]}
+    ["yum-env-disable-repo"]=${YUM_REPO_PACKAGE_YUM_ENV_DISABLE_REPO[${REPOSITORY}]}
+)
+
+
 ################################################################################
-# main
+# yum package
 
-MODE="remote"
-#LINUX_OS='RHEL7'
-#REPOSITORY="${LINUX_OS}"
+#-----------------------------------------------------------
+# directory
 
+YUM_ENV_PACKAGE_LOCAL_DIR="${LOCAL_DIR["yum"]}/yum-env"
+YUM_ALL_PACKAGE_LOCAL_DIR="${LOCAL_DIR["yum"]}/yum_all"
+
+YUM_ENV_PACKAGE_DOWNLOAD_DIR="${DOWNLOAD_DIR["yum"]}/yum-env"
+YUM_ALL_PACKAGE_DOWNLOAD_DIR="${DOWNLOAD_DIR["yum"]}/yum_all"
+
+
+#-----------------------------------------------------------
+# package
+
+# yum package (for yum)
+declare -A YUM_PACKAGE_YUM_ENV;
 YUM_PACKAGE_YUM_ENV=(
     ["remote"]="yum-utils createrepo"
 )
+
+# yum package (for python)
+declare -A YUM_PACKAGE_PYTHON;
+YUM_PACKAGE_PYTHON=(
+    ["RHEL7"]="python36 python36-libs python36-devel python36-pip"
+    ["RHEL8"]="python3 python3-libs python3-devel python3-pip"
+    ["CentOS7"]="python36 python36-libs python36-devel python36-pip"
+    ["yum_all"]=""
+)
+
+# yum package (for rabbitmq)
+declare -A YUM_PACKAGE_RABBIT;
+YUM_PACKAGE_RABBIT=(
+    ["RHEL7"]="rabbitmq-server --enablerepo=epel"
+    ["RHEL8"]="rabbitmq-server"
+    ["CentOS7"]="rabbitmq-server --enablerepo=epel"
+    ["yum_all"]=""
+)
+
+# yum package (for apache)
+declare -A YUM_PACKAGE_APACHE;
+YUM_PACKAGE_APACHE=(
+    ["RHEL7"]="httpd httpd-devel mod_ssl"
+    ["RHEL8"]="httpd httpd-devel redhat-rpm-config mod_ssl"
+    ["CentOS7"]="httpd httpd-devel mod_ssl"
+    ["yum_all"]=""
+)
+
 
 # yum first install packages
 YUM__ENV_PACKAGE="${YUM_PACKAGE_YUM_ENV[${MODE}]}"
 
 # yum install packages
 declare -A YUM_PACKAGE;
-YUM_PACKAGE=(
-    ["httpd"]="httpd httpd-devel"
-    ["rabbitmq-server"]="rabbitmq-server --enablerepo=epel"
-    ["erlang"]="erlang"
-    ["python"]="python36 python36-libs python36-devel python36-pip"
-    ["python_rhel8"]="python3 python3-libs python3-devel python3-pip"
-    ["git"]="git"
-    ["ansible"]="sshpass expect nc"
-    ["mysql-server"]="mysql-server"
-    ["mysql"]="mysql"
-    ["expect"]="expect"
-    ["mysql-community-devel"]="mysql-community-devel"
-    ["java"]="java-1.8.0-openjdk java-1.8.0-openjdk-devel"
-)
+if [ "${exec_mode}" == "1" ]; then
+    YUM_PACKAGE=(
+        ["httpd"]="${YUM_PACKAGE_APACHE[${REPOSITORY}]}"
+        ["rabbitmq-server"]="${YUM_PACKAGE_RABBIT[${REPOSITORY}]}"
+        ["erlang"]="erlang"
+        ["python"]="${YUM_PACKAGE_PYTHON[${REPOSITORY}]}"
+        ["expect"]="expect"
+        ["mariadb"]="MariaDB MariaDB-server MariaDB-devel MariaDB-shared"
+        ["java"]="java-1.8.0-openjdk java-1.8.0-openjdk-devel"
+    )
+else
+    YUM_PACKAGE=(
+        ["httpd"]="httpd httpd-devel"
+        ["rabbitmq-server"]="rabbitmq-server --enablerepo=epel"
+        ["erlang"]="erlang"
+        ["python"]="python36 python36-libs python36-devel python36-pip"
+        ["python_rhel8"]="python3 python3-libs python3-devel python3-pip"
+        ["git"]="git"
+        ["ansible"]="sshpass expect nc"
+        ["mysql-server"]="mysql-server"
+        ["mysql"]="mysql"
+        ["expect"]="expect"
+        ["mysql-community-devel"]="mysql-community-devel"
+        ["java"]="java-1.8.0-openjdk java-1.8.0-openjdk-devel"
+    )
+fi
 
-log "==========[START OASE BUILDER ONLINE]=========="
-END_MESSAGE="==========[END OASE BUILDER ONLINE]=========="
 
-make_oase
+################################################################################
+# main
+
+#LINUX_OS='RHEL7'
+#REPOSITORY="${LINUX_OS}"
+
+
+if [ "$exec_mode" == 1 ]; then
+    log "==========[START OASE GATHER LIBRARY]=========="
+    END_MESSAGE="==========[END OASE GATHER LIBRARY]=========="
+
+    download
+
+elif [ "$exec_mode" == 2 ]; then
+    log "==========[START OASE BUILDER OFFLINE]=========="
+    END_MESSAGE="==========[END OASE BUILDER OFFLINE]=========="
+
+    make_oase_offline
+
+elif [ "$exec_mode" == 3 ]; then
+    log "==========[START OASE BUILDER ONLINE]=========="
+    END_MESSAGE="==========[END OASE BUILDER ONLINE]=========="
+
+    make_oase
+
+else
+    log "Unknown parameter \"$ACTION\"" | tee -a "$OASE_INSTALL_LOG_FILE"
+
+fi
 
 log "$END_MESSAGE"
 
