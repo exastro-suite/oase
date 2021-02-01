@@ -761,6 +761,7 @@ class ITAManager(AbstractManager):
 
         # オーケストレーターID別の変数カウントを取得
         var_count = {}
+        move_info = {}
         for orch_id, movement_ids in orch_move_list.items():
             menu_id, target_table, target_col = self.orchestrator_id_to_menu_movement(orch_id)
             if not menu_id or not target_table:
@@ -769,14 +770,27 @@ class ITAManager(AbstractManager):
 
             if orch_id not in var_count:
                 var_count[orch_id] = 0
+                move_info[orch_id] = []
 
-            ret = self.ITAobj.select_e_movent_list(self.ary_ita_config, movement_ids, orch_id, menu_id, target_table, target_col, var_count)
+            ret = self.ITAobj.select_e_movent_list(self.ary_ita_config, movement_ids, orch_id, menu_id, target_table, target_col, var_count, move_info)
             if ret > 0:
                 logger.system_log('LOSE01011', self.trace_id, 'C_PATTERN_PER_ORCH', self.response_id, exec_order)
                 logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
 
                 ActionDriverCommonModules.SaveActionLog(self.response_id, exec_order, self.trace_id, 'MOSJA01040')
                 return ACTION_EXEC_ERROR, DetailStatus
+
+        # 代入値登録のタイムリミットを算出
+        limit_sec = 30
+        try:
+            limit_sec = int(ItaActionSystem.objects.filter(config_id='SUBSTITUTION_TIME').value)
+
+        except Exception as e:
+            logger.logic_log('LOSI00005', traceback.format_exc())
+
+        limit_now = datetime.datetime.now(pytz.timezone('UTC'))
+        limit_dt += datetime.timedelta(seconds=limit_sec)
+
 
         # 変数カウントのあるパラメーターシートに対して取得要求
         total_count = 0
@@ -788,32 +802,34 @@ class ITAManager(AbstractManager):
                 continue
 
             menu_id, target_table = self.orchestrator_id_to_menu_id(orch_id)
-
             if not menu_id or not target_table:
                 logger.logic_log('LOSI00002', 'orchestrator_id: %s, menu_id: %s, target_table: %s' % (orch_id, menu_id, target_table))
-
                 return ACTION_EXEC_ERROR, DetailStatus
 
-            ret = self.ITAobj.select_substitution_value_mng(self.ary_ita_config, operation_id_name, menu_id, target_table)
+            movement_names = [] if orch_id not in move_info else move_info[orch_id]
+            ret = self.ITAobj.select_substitution_value_mng(self.ary_ita_config, operation_id_name, movement_names, menu_id, target_table)
             if ret is None or (isinstance(ret, list) and len(ret) <= 0):
                 logger.logic_log('LOSI00002', 'orchestrator_id: %s, menu_id: %s, target_table: %s' % (orch_id, menu_id, target_table))
+
+                # タイムリミットを超過していた場合は異常終了
+                if limit_now > limit_dt:
+                    logger.logic_log('LOSM01306', self.trace_id, 'XXX', 'XXX', limit_sec, limit_dt)
+                    ActionDriverCommonModules.SaveActionLog(self.response_id, exec_order, self.trace_id, 'MOSJA01081')
+                    return ACTION_HISTORY_STATUS.ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
                 return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, ACTION_HISTORY_STATUS.DETAIL_STS.NONE
 
             subst_count += ret
 
+
+        # ITA側が変数を必要としない(変数カウント0)場合
+        if total_count == 0:
+            logger.logic_log('LOSI00002', 'trace_id: %s, subst_count: %s, total_count: %s' % (self.trace_id, subst_count, total_count))
+            return ACTION_HISTORY_STATUS.ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+
+        # 代入値登録が未完了の場合
         if subst_count < total_count:
-
-            # タイムリミットを算出
-            limit_sec = 30
-            try:
-                limit_sec = int(ItaActionSystem.objects.filter(config_id='SUBSTITUTION_TIME').value)
-
-            except Exception as e:
-                logger.logic_log('LOSI00005', traceback.format_exc())
-
-            limit_now = datetime.datetime.now(pytz.timezone('UTC'))
-            limit_dt += datetime.timedelta(seconds=limit_sec)
 
             # タイムリミットを超過していた場合は異常終了
             if limit_now > limit_dt:
