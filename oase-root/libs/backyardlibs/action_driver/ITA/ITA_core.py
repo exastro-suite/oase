@@ -1293,23 +1293,29 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: 0' % (self.trace_id))
         return 0
 
-    def select_substitution_value_mng(self, config, operation_name, menu_id, target_table):
+    def select_substitution_value_mng(self, config, operation_name, movement_names, menu_id, target_table):
         """
         [概要]
           代入値管理検索メゾット
         """
         logger.logic_log('LOSI00001', 'trace_id: %s, operation_name: %s, menu_id: %s, target_table: %s' % (self.trace_id, operation_name, menu_id, target_table))
-        aryfilter = {Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
-                        3:{'NORMAL':operation_name}
+
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            3:{'NORMAL':operation_name},
         }
 
         config['menuID'] = menu_id
         self.restobj.rest_set_config(config)
+        row_count = 0
 
         ary_result = {}
         ret = self.restobj.rest_select(aryfilter,ary_result)
         if ret:
-            row_count  = self.restobj.rest_get_row_count(ary_result)
+            for row in ary_result['response']['resultdata']['CONTENTS']['BODY']:
+                for movement_name in movement_names:
+                    if row[5].startswith(movement_name):
+                        row_count = row_count + 1
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
             return row_count
         else:
@@ -1317,7 +1323,7 @@ class ITA1Core(DriverCore):
             ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01065')
             return None
 
-    def select_e_movent_list(self, config, movement_ids, orch_id, menu_id, target_table, target_col, var_count):
+    def select_e_movent_list(self, config, movement_ids, orch_id, menu_id, target_table, target_col, var_count, move_info):
         """
         [概要]
           ムーブメント一覧ビュー検索メゾット
@@ -1342,6 +1348,9 @@ class ITA1Core(DriverCore):
                 row_data = self.restobj.rest_get_row_data(ary_result)
                 for r in row_data:
                     num += int(r[target_col])
+                    move_id_name = '%s:%s' % (str(r[2]), str(r[3]))
+                    if move_id_name not in move_info[orch_id]:
+                        move_info[orch_id].append(move_id_name)
             var_count[orch_id] += num
         else:
             logger.system_log('LOSE01000', self.trace_id, target_table, 'Filter', ary_result['status'])
