@@ -2439,3 +2439,104 @@ def set_data_param_information(exec_order, ita_disp_name, trace_id, parm_info, a
         print(e)
 
     return rhdm_response_action
+
+
+################################################################
+# 代入値登録待ちテスト
+################################################################
+@pytest.mark.django_db
+def test_act_with_menuid_ng_noparam(monkeypatch):
+    """
+    代入値登録待ちのテスト
+    異常系：アクションパラーメータに必須キーなし
+    """
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+
+    # ITA関連クラスのインスタンス生成
+    ITAManager = get_ita_manager()  # ITA_driver.py
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    # テスト
+    result_flag = True
+    try:
+        testITA.act_with_menuid(1, 1, now)
+
+    except Exception as e:
+        result_flag = False
+
+    assert result_flag == False
+
+
+################################################################
+@pytest.mark.django_db
+def test_act_with_menuid_ng_movement_err(monkeypatch):
+    """
+    代入値登録待ちのテスト
+    異常系：symphony紐づけmovement取得エラー
+    """
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+
+    # ITA関連クラスのインスタンス生成
+    ITAManager = get_ita_manager()  # ITA_driver.py
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    # テストデータ作成
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 4
+
+    # monkeypatch
+    monkeypatch.setattr(ITAManager, 'set_ary_ita_config', lambda a: None)
+    monkeypatch.setattr(ITA1Core, 'select_symphony_movement_master', lambda a, b, c: (100))
+
+    # テスト
+    sts, code = testITA.act_with_menuid(1, 1, now)
+
+    assert sts  == ACTION_DATA_ERROR
+    assert code == ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
+
+################################################################
+@pytest.mark.django_db
+def test_act_with_menuid_ng_operation_err(monkeypatch):
+    """
+    代入値登録待ちのテスト
+    異常系：オペレーション取得エラー
+    """
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+
+    # ITA関連クラスのインスタンス生成
+    #ItaDriver = get_ita_driver()    # models.py : ItaDriverクラス
+    ITAManager = get_ita_manager()  # ITA_driver.py
+    testITA = ITAManager(trace_id, response_id, last_update_user)
+
+    # テストデータ作成
+    testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 4
+    testITA.ary_movement_list = {
+        '1' : {
+            'ORCHESTRATOR_ID' : '3',
+        },
+    }
+
+    # monkeypatch
+    monkeypatch.setattr(ITAManager, 'set_ary_ita_config', lambda a: None)
+    monkeypatch.setattr(ITA1Core, 'select_symphony_movement_master', lambda a, b, c: (0))
+    monkeypatch.setattr(ITA1Core, '_select_c_operation_list_by_operation_name', lambda a, b, c: (100))
+
+    # テスト
+    sts, code = testITA.act_with_menuid(1, 1, now)
+
+    assert sts  == ACTION_EXEC_ERROR
+    assert code == ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+
