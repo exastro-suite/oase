@@ -124,6 +124,7 @@ class ConstantModules:
 
     ## E_ANSIBLE_xxx_PATTERN
     EAP_PATTERN_ID                    = 2
+    EAP_PATTERN_NAME                  = 3
     EAP_LEGACY_VAR_COUNT              = 10
     EAP_PIONEER_VAR_COUNT             = 8
     EAP_LEGACYROLE_VAR_COUNT          = 10
