@@ -129,32 +129,32 @@ OASEのインストール手順を下記に示します。
    :header: No., 項目名, 初期値, 説明
    :widths: 5, 20, 20, 60
 
-   1, install_mode, Install_Online, インストールモードの設定（オンラインインストール：Install_Online/オフラインインストール：Install_Offline/ライブラリ収集：Gather_Library）
+   1, install_mode, Install_Online, インストールモードの設定（オンラインインストール：Install_Online/オフラインインストール：Install_Offline/ライブラリ収集：Gather_Library/アンインストール：Uninstall）
    2, RabbitMQ_username, admin, RabbitMQのユーザ名
-   2, RabbitMQ_password, password, RabbitMQのパスワード
-   3, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
-   4, RabbitMQ_ipaddr, , RabbitMQを設定したサーバのIPアドレス
-   5, db_root_password, password, MariaDBのルートユーザのパスワード
-   6, db_name, OASE_DB, MariaDBで使用するDB名
-   7, db_username, OASE_USER, MariaDBで使用するユーザ名
-   8, db_password, OASE_PASSWD, MariaDBのパスワード
-   9, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
-   10, wildfly_root_directory, /exastro/WildFly, WildFlyのインストールディレクトリ
-   11, drools_adminname, admin0000, Droolsの管理者名
-   12, drools_password, password@1, Droolsの管理者パスワード
-   13, dm_ipaddrport, localhost:8080, ディシジョンマネージャを設定したサーバのIPアドレス
-   14, rulefile_rootpath, /exastro/rule, ルールファイルを格納するディレクトリ
-   15, apply_ipaddrport, 127.0.0.1:50001, アプライサービスを設定したサーバのIPアドレス
-   16, mavenrep_path, /root/.m2/repository/com/oase/, Mavenリポジトリのディレクトリ
-   17, oasemail_smtp, "{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}", OASEで使用するメールのSMTP設定
-   18, oase_directory, /exastro, OASEのインストールディレクトリ
-   19, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
-   20, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
-   21, oase_language, ja, OASEの言語設定（日本語：ja）
-   22, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
-   23, oase_domain, exastro-oase.local, OASEのドメイン名
-   24, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
-   25, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
+   3, RabbitMQ_password, password, RabbitMQのパスワード
+   4, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
+   5, RabbitMQ_ipaddr, , RabbitMQを設定したサーバのIPアドレス
+   6, db_root_password, password, MariaDBのルートユーザのパスワード
+   7, db_name, OASE_DB, MariaDBで使用するDB名
+   8, db_username, OASE_USER, MariaDBで使用するユーザ名
+   9, db_password, OASE_PASSWD, MariaDBのパスワード
+   10, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
+   11, wildfly_root_directory, /exastro/WildFly, WildFlyのインストールディレクトリ
+   12, drools_adminname, admin0000, Droolsの管理者名
+   13, drools_password, password@1, Droolsの管理者パスワード
+   14, dm_ipaddrport, localhost:8080, ディシジョンマネージャを設定したサーバのIPアドレス
+   15, rulefile_rootpath, /exastro/rule, ルールファイルを格納するディレクトリ
+   16, apply_ipaddrport, 127.0.0.1:50001, アプライサービスを設定したサーバのIPアドレス
+   17, mavenrep_path, /root/.m2/repository/com/oase/, Mavenリポジトリのディレクトリ
+   18, oasemail_smtp, "{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}", OASEで使用するメールのSMTP設定
+   19, oase_directory, /exastro, OASEのインストールディレクトリ
+   20, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
+   21, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
+   22, oase_language, ja, OASEの言語設定（日本語：ja）
+   23, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
+   24, oase_domain, exastro-oase.local, OASEのドメイン名
+   25, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
+   26, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
 
 
 3.1.5. アンサーファイルのサンプル
@@ -164,7 +164,8 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- #Select install mode. ("Install_Online" or "Install_Offline" or "Gather_Library")
+ # Select install mode. 
+ # ("Install_Online","Install_Offline","Gather_Library","Uninstall")
  # e.g) install_mode:Install_Online
  install_mode:Install_Online
 
