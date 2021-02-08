@@ -461,12 +461,15 @@ configure_rabbitmq() {
         rabbitmq-plugins enable rabbitmq_management >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
         rabbitmq-plugins list >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
 
-        # enable and start rabbitmq server
-        #--------CentOS7/8,RHEL7/8--------
-        systemctl start rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        systemctl enable rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    # enable and start rabbitmq server
+    #--------CentOS7/8,RHEL7/8--------
+    systemctl start rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    systemctl enable rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
+    # skip user
+    if [ $rabbimq_flg -eq 1 ]; then
         # user add
         rabbitmqctl add_user ${RabbitMQ_username} ${RabbitMQ_password} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
@@ -631,6 +634,13 @@ configure_apache(){
         echo "install skip httpd" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
+    yum list installed | grep "httpd-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ $? -eq 1 ]; then
+        yum -y install ${YUM_PACKAGE["httpd-devel"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        echo "install skip httpd-devel" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
     # Check installation  httpd packages
     yum_package_check ${YUM_PACKAGE["httpd"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
@@ -752,18 +762,16 @@ configure_drools(){
 configure_maven(){
     if [ -e /opt/apache-maven-3.6.1 ]; then
         echo "install skip Maven" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        return
+    else
+        cd /tmp >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        wget https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        tar -xzvf apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        mv apache-maven-3.6.1 /opt/ >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cd /opt >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        ln -s /opt/apache-maven-3.6.1 apache-maven >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
-    cd /tmp >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    wget https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    tar -xzvf apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
-    mv apache-maven-3.6.1 /opt/ >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cd /opt >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    ln -s /opt/apache-maven-3.6.1 apache-maven >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
-    cp /etc/profile /etc/old_profile.bk >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cp /etc/profile /etc/profile.oase_bk >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     grep "M2_HOME" /etc/profile >> "$OASE_INSTALL_LOG_FILE" 2>&1
     if [ $? -eq 1 ]; then
@@ -777,11 +785,15 @@ configure_maven(){
     MAVEN_DIRECTORY=/root/.m2/repository
     MAVEN_PACKAGE=$OASE_INSTALL_PACKAGE_DIR/OASE/oase-contents/oase_maven.tar.gz
 
-    mkdir -p "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cp -fp "$MAVEN_PACKAGE" "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cd "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    tar -zxvf oase_maven.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    rm -f oase_maven.tar.gz
+    if [ -e $MAVEN_DIRECTORY ]; then
+        echo "install skip Maven package" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    else
+        mkdir -p "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cp -fp "$MAVEN_PACKAGE" "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cd "$MAVEN_DIRECTORY" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        tar -zxvf oase_maven.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f oase_maven.tar.gz
+    fi
 }
 
 #Django install
