@@ -468,6 +468,12 @@ if [ -e "$JBOSS_CONF_FILE" ]; then
 
 fi
 
+if [ -e "$DROOLS_SERVICE_FILE" ]; then
+
+    # Check if backup file exists
+    make_backup_file $DROOLS_SERVICE_FILE $NOW
+fi
+
 create_drools_service "$JBOSS_ROOT_DIR"
 
 # drools.service
@@ -475,12 +481,6 @@ if [ ! -e "$DROOLS_SERVICE_FILE" ]; then
     log ""$DROOLS_SERVICE_FILE" not exists."
     log "INFO : Abort installation." 
     exit 1
-fi
-
-if [ -e "$DROOLS_SERVICE_FILE" ]; then
-
-    # Check if backup file exists
-    make_backup_file $DROOLS_SERVICE_FILE $NOW
 fi
 
 # oase_env settings
