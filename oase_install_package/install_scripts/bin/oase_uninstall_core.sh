@@ -403,6 +403,15 @@ error_flag=false
 #----------------------------------------
 # 各種 middleware サービス停止
 #----------------------------------------
+if [ ${db_erase} = 'erase' ]; then
+    # DB削除の場合はRHDMコンテナ全削除コマンド
+    python3 ${oase_directory}/OASE/oase-root/manage.py delete_decision_table >> ${OASE_INSTALL_LOG_FILE}
+    if [ $? -gt 0 ]; then
+        log 'ERROR : Uninstallation is incompleted!'
+        exit 1
+    fi
+fi
+
 disable_service 'httpd drools rabbitmq-server'
 if [ $? -gt 0 ]; then
     error_flag=true
