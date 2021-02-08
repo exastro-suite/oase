@@ -27,15 +27,16 @@
 readonly OASE_BACKUP_FILE_SUFFIX='.oase_bk'
 readonly OASE_UNINSTALING_FILE_SUFFIX='.oase_during_uninstallation'
 
-JBOSS_CONF_FILE=/etc/default/jboss-eap.conf
 JBOSS_ROOT_DIR="${jboss_root_directory}"
-STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/standalone/configuration/standalone-full.xml
+JBOSS_CONF_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/bin/standalone.conf
+STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
 
 KERNEL_PARAM_FILE=/etc/sysctl.conf
-NGINX_CONF_FILE=/etc/nginx/nginx.conf
-OASE_CONF_FILE=/etc/nginx/conf.d/oase.conf
-UWSGI_SOCK_DIR=/home/uWSGI
-INITD_DIR=/etc/init.d
+OASE_CONF_FILE=/etc/httpd/conf.d/oase.conf
+
+MAVEN_CONF_SETTINGS_FILE=/opt/apache-maven/conf/settings.xml
+M2_SETTINGS_DIR=/root/.m2
+M2_SETTINGS_FILE="${M2_SETTINGS_DIR}"/settings.xml
 
 NOW_STRING=$(date "+_%Y%m%d%H%M%S")
 
@@ -47,7 +48,6 @@ function disable_service() {
 
     local _error_flag=false
 
-    # TODO parallel化？
     for _service in $@; do
         log "INFO : Start to stop ${_service}"
         systemctl stop ${_service}
@@ -58,23 +58,13 @@ function disable_service() {
             log "INFO : Finished to stop ${_service}"
         fi
 
-        if [ ${_service} = jboss-eap-rhel ]; then
-            log "INFO : Start to delete ${_service}.sh"
-            chkconfig --del ${_service}.sh
-            if [ $? -gt 0 ]; then
-                log "ERROR : Failed to delete ${_service}.sh"
-            else
-                log "INFO : Finished to delete ${_service}.sh"
-            fi
+        log "INFO : Start to disable ${_service}"
+        systemctl disable ${_service}
+        if [ $? -gt 0 ]; then
+            log "ERROR : Failed to disable ${_service}"
+            _error_flag=true
         else
-            log "INFO : Start to disable ${_service}"
-            systemctl disable ${_service}
-            if [ $? -gt 0 ]; then
-                log "ERROR : Failed to disable ${_service}"
-                _error_flag=true
-            else
-                log "INFO : Finished to disable ${_service}"
-            fi
+            log "INFO : Finished to disable ${_service}"
         fi
     done
 
@@ -184,31 +174,13 @@ function delete_middleware_confs() {
 
     local _error_flag=false
 
-    # 環境操作のため今は対象外（環境含めたインストールの際に復活させる）
-    # # /etc/profile (maven用)
-    # repair_conffile '/etc/profile' 'repair_command_etc_profile'
-    # if [ $? -gt 0 ]; then
-    #     _error_flag=true
-    # fi
-
-    # /etc/sysctl.conf (uwsgi用)
-    repair_conffile "${KERNEL_PARAM_FILE}"
+    # /etc/profile (maven用)
+    repair_conffile '/etc/profile'
     if [ $? -gt 0 ]; then
         _error_flag=true
     fi
 
-    remove_directory "${UWSGI_SOCK_DIR}"
-    if [ $? -gt 0 ]; then
-        _error_flag=true
-    fi
-
-    # nginx
-    repair_conffile "${NGINX_CONF_FILE}"
-    if [ $? -gt 0 ]; then
-        _error_flag=true
-    fi
-
-    repair_conffile "${OASE_CONF_FILE}"
+    /bin/rm -f "${OASE_CONF_FILE}"
     if [ $? -gt 0 ]; then
         _error_flag=true
     fi
@@ -224,7 +196,12 @@ function delete_middleware_confs() {
         _error_flag=true
     fi
 
-    remove_file "${INITD_DIR}/jboss-eap-rhel.sh"
+    repair_conffile "${MAVEN_CONF_SETTINGS_FILE}"
+    if [ $? -gt 0 ]; then
+        _error_flag=true
+    fi
+
+    /bin/rm -f "${M2_SETTINGS_FILE}"
     if [ $? -gt 0 ]; then
         _error_flag=true
     fi
@@ -244,15 +221,14 @@ function delete_service() {
     local _error_flag=false
 
     local _systemd_dir=$1
-    # TODO parallel化？
+
     for _service in $@; do
         if [ ${_service} = ${_systemd_dir} ]; then
             continue # $1だけ飛ばす
         fi
         log "INFO : Start to remove ${_service}.service"
         local _original_file=${_systemd_dir}/${_service}.service
-        local _backup_file=${_original_file}${OASE_BACKUP_FILE_SUFFIX}${NOW_STRING}
-        /bin/mv ${_original_file} ${_backup_file}
+        /bin/rm -f ${_original_file}
         if [ $? -gt 0 ]; then
             log "ERROR : Failed to remove ${_service}.service"
             _error_flag=true
@@ -342,7 +318,7 @@ function drop_oase_db() {
     fi
 
     log "INFO : Start to drop user"
-    mysql -u root -p${db_root_password} -e "DROP USER IF EXISTS ${db_username}@'%';"
+    mysql -u root -p${db_root_password} -e "DROP USER IF EXISTS ${db_username}@'localhost';"
     if [ $? -gt 0 ]; then
         log "ERROR : Failed to drop user"
         _error_flag=true
@@ -384,6 +360,36 @@ function delete_oase_contents() {
     fi
 }
 
+
+function delete_server_certificate() {
+    log "INFO : Start to delete server certificate"
+
+    if [ "$certificate_path" != "" -a "$private_key_path" != "" ]; then
+        CRT_FILE=$(echo $(basename ${certificate_path}))
+        KEY_FILE=$(echo $(basename ${private_key_path}))
+    else
+        CRT_FILE="$oase_domain.crt"
+        KEY_FILE="$oase_domain.key"
+    fi
+
+    if [ -e /etc/pki/tls/certs/"$CRT_FILE" ]; then
+        rm -f /etc/pki/tls/certs/"$CRT_FILE"
+    fi
+
+    if [ -e /etc/pki/tls/certs/"$KEY_FILE" ]; then
+        rm -f /etc/pki/tls/certs/"$KEY_FILE"
+    fi
+
+    if [ -e /etc/pki/tls/certs/"$CRT_FILE" ]; then
+        log "WARNING : Failed to delete ${CRT_FILE}."
+    fi
+
+    if [ -e /etc/pki/tls/certs/"$KEY_FILE" ]; then
+        log "WARNING : Failed to delete ${KEY_FILE}."
+    fi
+
+}
+
 ################################################################################
 # main
 
@@ -397,12 +403,12 @@ error_flag=false
 #----------------------------------------
 # 各種 middleware サービス停止
 #----------------------------------------
-disable_service 'nginx uwsgi jboss-eap-rhel'
+disable_service 'httpd drools rabbitmq-server'
 if [ $? -gt 0 ]; then
     error_flag=true
 fi
 
-delete_service '/etc/systemd/system' 'nginx uwsgi'
+delete_service '/usr/lib/systemd/system' 'drools'
 if [ $? -gt 0 ]; then
     error_flag=true
 fi
@@ -446,6 +452,14 @@ fi
 # OASEソース削除
 #----------------------------------------
 delete_oase_contents
+if [ $? -gt 0 ]; then
+    error_flag=true
+fi
+
+#----------------------------------------
+# サーバ証明書削除
+#----------------------------------------
+delete_server_certificate
 if [ $? -gt 0 ]; then
     error_flag=true
 fi
