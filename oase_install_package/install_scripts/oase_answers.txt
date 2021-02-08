@@ -1,4 +1,5 @@
-#Select install mode. ("Install_Online" or "Install_Offline" or "Gather_Library")
+# Select install mode. 
+# ("Install_Online","Install_Offline","Gather_Library","Uninstall")
 # e.g) install_mode:Install_Online
 install_mode:Install_Online
 
@@ -20,7 +21,7 @@ RabbitMQ_password:password
 RabbitMQ_queuename:oase
 
 # Enter IP address for RabbitMQ.
-# e.g) RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
+# e.g) RabbitMQ_ipaddr:127.0.0.1
 RabbitMQ_ipaddr:
 
 ##############################
