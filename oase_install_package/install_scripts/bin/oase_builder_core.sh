@@ -709,6 +709,10 @@ configure_drools(){
     #WildFly install
     if [ -d ${jboss_root_directory} ]; then
         echo "install skip RHDM" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+        # standalone.conf書き換え
+        standalone_conf
+
         return
     fi
 

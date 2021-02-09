@@ -1341,6 +1341,10 @@ def delete(request):
         }
 
     except Exception as e:
+        if not msg:
+            logger.system_log('LOSM00001', traceback.format_exc())
+            msg = 'MOSJA03217'
+
         ret_info = {
             'result': 'NG',
             'msg': msg,
