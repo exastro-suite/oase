@@ -17,8 +17,11 @@
   
 """
 
+import sys
+
 from django.core.management.base import BaseCommand
 from backyards.apply_driver.oase_apply import delete as apply_delete
+from web_app.templatetags.common import get_message
 from web_app.models.models import RuleType
 
 
@@ -41,6 +44,12 @@ class Command(BaseCommand):
             req_info['user_id']    = uid
             req_info['ruletypeid'] = rid
 
-            apply_delete(req_info)
+            resp_info = apply_delete(req_info)
+            if resp_info['result'] != 'OK':
+                print(get_message(resp_info['msg'], 'EN'))
+                sys.exit(1)
+
+
+        sys.exit(0)
 
 
