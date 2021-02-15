@@ -50,6 +50,7 @@ DOSL99009:ホワイトリストIPアドレス管理
 DOSL99010:ドライバ種別管理
 DOSL99011:監視種別管理
 DOSL99012:監視アダプタ種別管理
+DOSL14001:SSO情報管理
 """
 
 from django.db import models
@@ -94,6 +95,7 @@ class User(AbstractBaseUser):
     account_lock_time = models.DateTimeField("アカウントロック日時", max_length=64, null=True)
     disuse_flag = models.CharField("廃止フラグ", max_length=1, default='0')
     ad_data_flag = models.CharField("AD連携対象フラグ", max_length=1, default='0')
+    sso_id = models.IntegerField("SSOID",default=0)
     pass_exp_check_flag = models.BooleanField("パスワード有効期限チェックフラグ", default=True)
     pass_hist_check_flag = models.BooleanField("パスワード履歴チェックフラグ", default=True)
     account_lock_times = models.IntegerField("アカウントロック回数", default=0)
@@ -459,7 +461,7 @@ class PasswordHistory(models.Model):
         db_table = 'OASE_T_PASSWORD_HISTORY'
 
     def __str__(self):
-        return str(self.passwrod_id)
+        return str(self.password_id)
 
 
 class DataObject(models.Model):
@@ -741,3 +743,33 @@ class AdapterType(models.Model):
 
     def __str__(self):
         return "%s(%s)_%s" % (self.name, str(self.adapter_type_id), self.version)
+
+
+class SsoInfo(models.Model):
+    """
+    DOSL14001:SSO情報管理
+    """
+    sso_id = models.AutoField("SSOID", primary_key=True)
+    provider_name = models.CharField("プロバイダー名",  max_length=128)
+    auth_type = models.IntegerField("認証方式")
+    logo = models.CharField("ロゴ", max_length=64,null=True)
+    visible_flag = models.IntegerField("表示フラグ")
+    clientid = models.CharField("clientId", max_length=256)
+    clientsecret = models.CharField("clientSecret", max_length=256)
+    authorizationuri = models.CharField("authorizationUri", max_length=256)
+    accesstokenuri = models.CharField("accessTokenUri", max_length=256)
+    resourceowneruri = models.CharField("resourceOwnerUri", max_length=256)
+    scope = models.CharField("scope", max_length=256,null=True)
+    id = models.CharField("id", max_length=256)
+    name = models.CharField("name", max_length=256)
+    email = models.EmailField("email", max_length=256,null=True)
+    imageurl = models.CharField("imageUrl", max_length=256,null=True)
+    proxy = models.CharField("proxy", max_length=256,null=True)
+    last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
+    last_update_user = models.CharField("最終更新者", max_length=64)
+
+    class Meta:
+        db_table = 'OASE_T_SSO_INFO'
+
+    def __str__(self):
+        return str(self.sso_id)
