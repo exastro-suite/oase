@@ -24,6 +24,14 @@
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
+- model: web_app.Group
+  pk: 2
+  fields:
+    group_name: SSOデフォルトグループ
+    summary: SSOユーザーの初回ログイン時に自動割り当てされるグループ
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
 
 ################################
 # ユーザ管理
@@ -373,6 +381,166 @@
     menu_id: 2141001008
     rule_type_id: 0
     permission_type_id: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000015
+  fields:
+    group_id: 1
+    menu_id: 2141002008
+    rule_type_id: 0
+    permission_type_id: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000016
+  fields:
+    group_id: 2
+    menu_id: 2141001006
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000017
+  fields:
+    group_id: 2
+    menu_id: 2141001007
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000018
+  fields:
+    group_id: 2
+    menu_id: 2141001004
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000019
+  fields:
+    group_id: 2
+    menu_id: 2141001005
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000020
+  fields:
+    group_id: 2
+    menu_id: 2141001003
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000021
+  fields:
+    group_id: 2
+    menu_id: 2141002001
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000022
+  fields:
+    group_id: 2
+    menu_id: 2141002002
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000023
+  fields:
+    group_id: 2
+    menu_id: 2141002003
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000024
+  fields:
+    group_id: 2
+    menu_id: 2141002004
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000025
+  fields:
+    group_id: 2
+    menu_id: 2141002006
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000026
+  fields:
+    group_id: 2
+    menu_id: 2141002007
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000027
+  fields:
+    group_id: 2
+    menu_id: 2141003001
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000028
+  fields:
+    group_id: 2
+    menu_id: 2141003002
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000029
+  fields:
+    group_id: 2
+    menu_id: 2141001008
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000030
+  fields:
+    group_id: 2
+    menu_id: 2141002008
+    rule_type_id: 0
+    permission_type_id: 3
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
@@ -1232,6 +1400,15 @@
   fields:
     menu_group_id: 2140001000
     menu_name: リクエスト履歴
+    login_necessity: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.Menu
+  pk: 2141002008
+  fields:
+    menu_group_id: 2140002000
+    menu_name: SSO設定
     login_necessity: 1
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
