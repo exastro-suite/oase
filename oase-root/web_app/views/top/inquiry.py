@@ -46,11 +46,7 @@ def inquiry(request):
 
     logger.logic_log('LOSI00001', 'None', request=request)
 
-    data = {
-        'mainmenu_list' : request.user_config.get_menu_list(),
-        'user_name'     : request.user.user_name,
-        'lang_mode'     : request.user.get_lang_mode(),
-    }
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'None', request=request)
 

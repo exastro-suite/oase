@@ -100,12 +100,12 @@ class SimpleMiddleware:
             raise PermissionDenied
 
         response = self.get_response(request)
-        
+
         # 負荷テスト設定
         if ENABLE_LOAD_TEST:
             elapsed_time = time.time() - start_time
             loadtest_logger.warn('処理終了 所要時間[%s]' % (elapsed_time))
-        
+
         return response
 
 
@@ -181,17 +181,17 @@ class SimpleMiddleware:
         ########################################################
         # 認証前のリクエスト時はログイン画面へ遷移
         if not request.session:
-            return self.get_redirect(request, 'LOSI00015')
+            return self.get_redirect(request, 'LOSI00015', view_kwargs)
 
         # セッション情報が異常の場合、ログイン画面へ遷移
         if '_auth_user_id' not in request.session:
-            return self.get_redirect(request, 'LOSM00017')
+            return self.get_redirect(request, 'LOSM00017', view_kwargs)
 
         if '_auth_user_backend' not in request.session:
-            return self.get_redirect(request, 'LOSM00018')
+            return self.get_redirect(request, 'LOSM00018', view_kwargs)
 
         if 'cookie_age' not in request.session:
-            return self.get_redirect(request, 'LOSM00019')
+            return self.get_redirect(request, 'LOSM00019', view_kwargs)
 
         # 認証時に使用したバックエンドクラスからユーザー情報取得
         backend_path = request.session['_auth_user_backend']
@@ -201,7 +201,7 @@ class SimpleMiddleware:
 
         if request.user == None:
             request.session['msg'] = 'MOSJA10016'
-            return self.get_redirect(request, 'LOSM00020')
+            return self.get_redirect(request, 'LOSM00020', view_kwargs)
 
         # セッション有効期限切れの場合、ログイン画面へ遷移
         now = datetime.datetime.now(pytz.timezone('UTC'))
@@ -209,7 +209,7 @@ class SimpleMiddleware:
         if now > TimeConversion.get_time_conversion_utc(request.session['cookie_age'], 'UTC', request):
             request.session.clear()
             request.session.flush()
-            return self.get_redirect(request, 'LOSI00014')
+            return self.get_redirect(request, 'LOSI00014', view_kwargs)
 
         # セッション有効期間を取得(デフォルト30分)
         timeout_val = System.objects.get(config_id='SESSION_TIMEOUT').value
@@ -244,7 +244,7 @@ class SimpleMiddleware:
 
         return None
 
-    def get_redirect(self, request, msgid):
+    def get_redirect(self, request, msgid, view_kwargs):
 
         """
         [メソッド概要]
@@ -259,6 +259,8 @@ class SimpleMiddleware:
         allowed_path = []
         allowed_path.append(reverse('web_app:top:login'))
         allowed_path.append(reverse('web_app:top:login_auth'))
+        allowed_path.append(reverse('web_app:top:sso_auth', kwargs={'sso_id':0} if 'sso_id' not in view_kwargs else view_kwargs))
+        allowed_path.append(reverse('web_app:top:sso_callback'))
         allowed_path.append(reverse('web_app:event:eventsrequest'))
         allowed_path.append(reverse('web_app:top:pass_initialize'))
         allowed_path.append(reverse('web_app:top:onetime_pass_exec'))
@@ -310,9 +312,12 @@ class SimpleMiddleware:
         """
 
         ########################################################
-        # AD連携をしていない場合のみ、チェックを実施
+        # SSO/AD連携をしていない場合のみ、チェックを実施
         ########################################################
         if request.session['_auth_user_backend'].endswith('ActiveDirectoryAuthBackend'):
+            return 'normal'
+
+        if request.session['_auth_user_backend'].endswith('SSOClientAuthBackend'):
             return 'normal'
 
         ########################################################

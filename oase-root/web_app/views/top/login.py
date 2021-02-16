@@ -48,7 +48,7 @@ from libs.webcommonlibs.oase_exception import *
 from libs.webcommonlibs.decorator import *
 from libs.webcommonlibs.oase_mail import OASEMailSMTP, OASEMailAddBlackList
 from libs.webcommonlibs.common import Common, get_client_ipaddr
-from web_app.models.models import LoginLogIPAddress, BlackListIPAddress, System
+from web_app.models.models import LoginLogIPAddress, BlackListIPAddress, System, SsoInfo
 
 logger = OaseLogger.get_instance() # ロガー初期化
 
@@ -217,12 +217,29 @@ def login(request):
     if 'msg' in request.session:
         msg = request.session.pop('msg')
 
+    del_session_keys = ['sso_id', 'state', 'sso_name', 'sso_imageurl']
+    for dsk in del_session_keys:
+        if dsk in request.session:
+            request.session.pop(dsk)
+
+    sso_list = []
+    try:
+        rset = SsoInfo.objects.filter(visible_flag__gt=0).values('sso_id', 'provider_name', 'logo').order_by('sso_id')
+        for rs in rset:
+            sso_list.append(
+                {'id': rs['sso_id'], 'name': rs['provider_name'], 'logo': rs['logo']}
+            )
+
+    except Exception as e:
+        logger.system_log('LOSM00001', traceback.format_exc())
+
     data = {
         'msg'           : msg,
         'logout'        : logout,
         'ad_collabo'    : ad_collabo,
         'pass_init_url' : pass_init_url,
         'lang_mode'     : 'JA',
+        'sso_list'      : sso_list,
     }
 
     logger.logic_log('LOSI00002', '', request=request)
@@ -350,7 +367,7 @@ def auth(request):
 
 
 ################################################
-@check_allowed_ad(settings.LOGIN_REDIRECT_URL)
+@check_allowed_backend(settings.LOGIN_REDIRECT_URL, ['ActiveDirectoryAuthBackend', 'SSOClientAuthBackend'])
 def pass_ch(request):
 
     logger.logic_log('LOSI00001', 'None', request=request)
@@ -393,11 +410,10 @@ def pass_ch(request):
         'loginId'       : request.user.login_id,
         'passGen'       : pass_gen,
         'passCon'       : pass_con,
-        'mainmenu_list' : request.user_config.get_menu_list(),
-        'user_name'     : request.user.user_name,
         'pass_init_url' : pass_init_url,
-        'lang_mode'     : 'JA',
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     data_for_log = {key: value for key, value in data.items() if key != 'mainmenu_list'}
 

@@ -123,13 +123,12 @@ def index(request):
 
     data = {
         'message'              : msg,
-        'mainmenu_list'        : request.user_config.get_menu_list(), 
-        'user_name'            : request.user.user_name,
         'table_list'           : table_list,
         'user_name'            : request.user.user_name,
         'can_update'           : rule_ids_admin,
-        'lang_mode'            : lang,
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'none', request=request)
     return render(request, 'rule/request_history.html', data)

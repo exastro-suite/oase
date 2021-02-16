@@ -81,7 +81,18 @@ page_base_tpl.html
       <div class="oase-header-user">
         <div class="oase-header-user-inner">
           <dl>
-            <dt class="user-name"><em class="owf owf-user"></em><span>{{user_name}}</span></dt>
+            <dt class="user-name">
+              {% if sso_image %}
+              <em class="owf"><img src="{{sso_image}}" style="width:16px; height:16px;"></img></em>
+              <span>{{user_name}}</span>
+              {% elif sso_name %}
+              <em class="owf owf-user"></em>
+              <span>{{sso_name}}&nbsp;{{user_name}}</span>
+              {% else %}
+              <em class="owf owf-user"></em>
+              <span>{{user_name}}</span>
+              {% endif %}
+            </dt>
             <dd class="user-setting"><a href="{% url 'web_app:user:personal_config' %}" class="tooltip" title="{% get_message 'MOSJA00032' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-gear"></em></a></dd>
           </dl>
         </div>

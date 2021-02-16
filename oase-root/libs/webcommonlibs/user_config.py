@@ -301,7 +301,7 @@ class UserConfig(object):
 
             # ルール種別ごとの権限を取得
             else:
-                admin_group_ids      = set([1, ])  # 1=システム管理者グループ
+                admin_group_ids      = set([defs.GROUP_DEFINE.GROUP_ID_ADMIN, ])  # 1=システム管理者グループ
                 user_group_ids       = set(self.cls_access_permission.group_id_list)
                 user_admin_group_ids = list(user_group_ids & admin_group_ids)
 
@@ -403,4 +403,30 @@ class UserConfig(object):
         """
 
         return self.cls_access_permission.get_mainmenu_info()
+
+
+    def get_templates_data(self, request):
+        """
+        [メソッド概要]
+          ユーザの設定情報に基づき、テンプレート共通データを取得する
+        [戻り値]
+          data : テンプレート表示に必要な情報
+        """
+
+        data = {}
+        data['mainmenu_list'] = self.cls_access_permission.get_mainmenu_info()
+        data['user_name']     = request.user.user_name
+        data['lang_mode']     = request.user.get_lang_mode()
+        data['sso_name']      = ''
+        data['sso_image']     = ''
+
+        if 'sso_name' in request.session:
+            data['sso_name']  = request.session['sso_name']
+
+        if 'sso_imageurl' in request.session:
+            data['sso_image'] = request.session['sso_imageurl']
+
+
+        return data
+
 

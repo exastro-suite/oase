@@ -392,6 +392,21 @@ class DABASE_OPECODE():
     OPELIST_ADD     = [{'k':'', 'v':OPE_NOTHING}, {'k':'追加', 'v':OPE_INSERT}, ]
     OPELIST_MOD     = [{'k':'', 'v':OPE_NOTHING}, {'k':'更新', 'v':OPE_UPDATE}, {'k':'削除', 'v':OPE_DELETE}, ]
 
+
+#-------------------
+# 特殊なグループ
+#-------------------
+class GROUP_DEFINE():
+
+    # 特殊なグループID
+    GROUP_ID_ADMIN = 1
+    GROUP_ID_SSO   = 2
+    GROUP_ID_MAX   = 2
+
+    # 削除禁止グループID
+    PROTECTED_GROUP_IDS = [GROUP_ID_ADMIN, GROUP_ID_SSO]
+
+
 #-------------------
 # メニューカテゴリー／アイテム
 #-------------------
