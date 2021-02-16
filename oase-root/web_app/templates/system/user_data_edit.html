@@ -46,7 +46,11 @@ Copyright 2019 NEC Corporation
         </select>
       </div></div></td>
       <td class="user-name input"><div class="cell-inner"><input type="text" data-type="text" id="user_name{{user.user_id}}" value="{{user.user_name}}" data-maxlength="64" class="validation-input" /></div></td>
+      {% if user.sso_id > 0 %}
+      <td class="login-id input"><div class="cell-inner"><input type="text" data-type="loginID" id="login_id{{user.user_id}}" value="{{user.login_id}}" data-maxlength="32" class="validation-input" disabled="true" /></div></td>
+      {% else %}
       <td class="login-id input"><div class="cell-inner"><input type="text" data-type="loginID" id="login_id{{user.user_id}}" value="{{user.login_id}}" data-maxlength="32" class="validation-input" /></div></td>
+      {% endif %}
       <td class="mail-address input"><div class="cell-inner"><input type="text" data-type="mail" id="mail{{user.user_id}}" value="{{user.mail}}" data-maxlength="256" class="validation-input" /></div></td>
       <td class="group edit">
         <div class="cell-inner" id="cell_inner{{user.user_id}}">

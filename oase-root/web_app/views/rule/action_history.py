@@ -116,18 +116,17 @@ def action_history(request):
 
     data = {
         'message'             : msg,
-        'mainmenu_list'       : request.user_config.get_menu_list(),
         'action_type_list'    : action_type_list,
         'action_history_data' : action_history_list,
         'action_status_dict'  : action_status_dict,
         'action_info_dict'    : '',
         'request_info_dict'   : '',
         'action_log_list'     : '',
-        'user_name'           : request.user.user_name,
         'can_update'          : rule_ids_admin,
         'driver_type_list'    : driver_type_list,
-        'lang_mode'           : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'none', request=request)
     return render(request, 'rule/action_history.html', data)
@@ -203,14 +202,13 @@ def dataobject(request, response_id, execution_order ):
 
         data = {
             'message'             : msg,
-            'mainmenu_list'       : request.user_config.get_menu_list(),
             'action_info_dict'    : act_shape_dic,
             'request_info_dict'   : req_shape_dic,
             'action_log_list'     : log_message,
-            'user_name'           : request.user.user_name,
-            'lang_mode'           : request.user.get_lang_mode(),
         }
-        
+
+        data.update(request.user_config.get_templates_data(request))
+
         logger.logic_log('LOSI00002', 'success', request=request)
         return render(request, 'rule/action_history_data.html', data)
 
@@ -222,13 +220,12 @@ def dataobject(request, response_id, execution_order ):
 
         data = {
             'message'             : msg,
-            'mainmenu_list'       : request.user_config.get_menu_list(),
             'action_info_dict'    : '',
             'request_info_dict'   : '',
             'action_log_list'     : '',
-            'user_name'           : request.user.user_name,
-            'lang_mode'           : request.user.get_lang_mode(),
         }
+
+        data.update(request.user_config.get_templates_data(request))
 
         response_json = json.dumps(data)
         return HttpResponse(response_json, content_type="application/json")
