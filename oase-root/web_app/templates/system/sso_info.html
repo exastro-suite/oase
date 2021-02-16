@@ -1,0 +1,608 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+    <script type="text/javascript" src="{% static 'web_app/js/oase-sso-info.js' %}?ver=202102150953" charset="UTF-8"></script>
+{% endblock %}
+{% block maincontent %}
+
+<div class="oase-main">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            {# ===== SSO設定 ===== #}
+            <h1>{% get_message 'MOSJA28000' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              {% if hasUpdateAuthority %}
+              <li>
+                <button class="oase-button" onClick="modalTabOpen('#provider-new');showNewTable();">
+                  {# ===== 新規追加 ===== #}
+                  <em class="owf owf-doc-add"></em><span>{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+              {% endif %}
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+        {% if sso_info_list|length %}
+          {# ===== Data ===== #}
+          {% include 'system/sso_info_data.html' %}
+        {% else %}
+          {# ===== 登録0件の場合はメッセージを表示 ===== #}
+          <div class="oase-none">
+            <p>{% autoescape off%}{% get_message 'MOSJA28001' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+          </div>
+        {% endif %}
+
+        {% if hasUpdateAuthority %}
+        <form id="formSsoData" action="javascript:submitAction()" method="POST">
+          {% csrf_token %}
+          <input type="hidden" id="add_record"  value="" name="add_record" />
+          <input type="hidden" id="hidSsoId" value="" />
+        </form>
+        {% endif %}
+
+      </div><!-- /. oase-main-body-inner -->
+    </div><!-- /. oase-main-body -->
+
+    <!-- プロバイダー新規追加 -->
+    <div id="provider-new" class="oase-modal oase-modal-tab">
+      <div class="oase-modal-main">
+        <div class="oase-modal-inner">
+          <div class="oase-modal-content">
+            <div class="oase-modal-header">
+              <div class="oase-modal-title">
+                <h2>
+                  <em class="owf owf-doc-add"></em>
+                  <span id="modal-title-new">{% get_message 'MOSJA28029' request.user.get_lang_mode showMsgId=False %}</span>
+                  <span class="help tooltip" title="{% get_message 'MOSJA28030' request.user.get_lang_mode showMsgId=False %}">
+                    <em class="owf owf-question"></em>
+                  </span>
+                </h2>
+              </div>
+              <!-- Closeボタン --> 
+              <button class="tooltip oase-modal-close" title="{% get_message 'MOSJA28031' request.user.get_lang_mode showMsgId=False %}" onclick="modalClose('#provider-new');">
+                <em class="owf owf-cross"></em>
+              </button>  
+            </div>
+            <div class="oase-modal-tab-main">
+              <div class="oase-modal-tab-menu">
+                <ul>
+                  <li><button class="tooltip" title="{% get_message 'MOSJA28005' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#provider-new', 0 );">{% get_message 'MOSJA28006' request.user.get_lang_mode showMsgId=False %}</button></li>
+                  <li><button class="tooltip" title="{% get_message 'MOSJA28007' request.user.get_lang_mode showMsgId=False %}" onClick="modalTabMove( '#provider-new', 1 );">{% get_message 'MOSJA28008' request.user.get_lang_mode showMsgId=False %}</button></li>
+                </ul>
+              </div>
+              <!-- Tab1 SSO基本情報 -->
+              <div class="oase-modal-tab-block">
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA28006' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div class="oase-modal-table">
+                      <table>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28003' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="provider_name" type="text" placeholder="{% get_message 'MOSJA28003' request.user.get_lang_mode showMsgId=False %}" required data-maxlength="128" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28033' request.user.get_lang_mode showMsgId=False %}">
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28010' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <div class="select">
+                                <select id="auth_type">
+                                  {# ===== 現状一択 ===== #}
+                                  <option value="0">{% get_message 'MOSJA28011' request.user.get_lang_mode showMsgId=False %}</option>
+                                </select>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28012' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="logo" type="file" accept=".gif,.jpg,.jpeg,.png">
+                              <div class="note">{% get_message 'MOSJA28013' request.user.get_lang_mode showMsgId=False %}</div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28014' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <div class="select">
+                                <select id="visible_flag">
+                                  <option value="0">{% get_message 'MOSJA28015' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="1">{% get_message 'MOSJA28016' request.user.get_lang_mode showMsgId=False %}</option>
+                                </select>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onClick="modalTabMove( '#provider-new', 1 );"><em class="owf owf-arw-right"></em><span>{% get_message 'MOSJA28017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+              </div>
+              <!-- / Tab1 SSO基本情報 -->
+
+              <!-- Tab2 SSO属性情報 -->
+              <div class="oase-modal-tab-block table">
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA28008' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div class="oase-modal-table">
+                      <table>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28018' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="clientid" required type="text" placeholder="{% get_message 'MOSJA28018' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28019' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="clientsecret" required type="text" placeholder="{% get_message 'MOSJA28019' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="authorizationuri" required type="text" placeholder="{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28021' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="accesstokenuri" required type="text" placeholder="{% get_message 'MOSJA28021' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28022' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="resourceowneruri" required type="text" placeholder="{% get_message 'MOSJA28022' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28023' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="scope" type="text" placeholder="{% get_message 'MOSJA28023' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28024' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="id" required type="text" placeholder="{% get_message 'MOSJA28024' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28025' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="name" required type="text" placeholder="{% get_message 'MOSJA28025' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28026' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="email" type="text" placeholder="{% get_message 'MOSJA28026' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28027' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="imageurl" type="text" placeholder="{% get_message 'MOSJA28027' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="proxy" type="text" placeholder="{% get_message 'MOSJA28028' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}"
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li>
+                      <button class="oase-button close" onclick="modalClose('#provider-new');">
+                        <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span>
+                      </button>
+                    </li>
+                    <li>
+                      <button id="btnAdd" class="oase-button save" onclick="submitTableData();">
+                        <em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span>
+                      </button>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+              <!-- / Tab2 SSO属性情報 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- / プロバイダー新規登録 -->
+
+    <!-- プロバイダー詳細画面 -->
+    <div id="provider-info" class="oase-modal oase-modal-tab oase-modal-tab-one-menu">
+      <div class="oase-modal-main">
+        <div class="oase-modal-inner">
+          <div class="oase-modal-content">
+            <div class="oase-modal-header">
+              <div class="oase-modal-title">
+                <h2><em class="owf owf-doc-add"></em><span>{% get_message 'MOSJA28032' request.user.get_lang_mode showMsgId=False %}</span></h2>
+              </div>
+              <button class="oase-modal-close" onclick="modalClose('#provider-info');"><em class="owf owf-cross"></em></button>
+            </div>
+
+            <form id="formSsoData2" action="javascript:submitAction2()" method="POST">
+              {% csrf_token %}
+              <input type="hidden" id="operate" value="" />
+              <input type="hidden" id="hid-provider-name" value="" />
+              <input type="hidden" id="add-record2" value="" name="add_record" />
+              <input type="hidden" id="hidSsoId2" value="" />
+            </form>
+
+            <div class="oase-modal-tab-main">
+              <div class="oase-modal-tab-menu">
+                <ul>
+                  <li><button onClick="modalTabMove( '#provider-info', 0 );">{% get_message 'MOSJA28006' request.user.get_lang_mode showMsgId=False %}</button></li>
+                  <li><button onClick="modalTabMove( '#provider-info', 1 );">{% get_message 'MOSJA28008' request.user.get_lang_mode showMsgId=False %}</button></li>
+                </ul>
+              </div>
+              <!-- Tab1 SSO基本情報 -->
+              <div class="oase-modal-tab-block">
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA28006' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div class="oase-modal-table">
+                      <table id="sso-basic-info">
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28010' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28012' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28014' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- / Tab1 SSO基本情報 -->
+
+              <!-- Tab2 SSO属性情報 -->
+              <div class="oase-modal-tab-block table">
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA28008' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div class="oase-modal-table">
+                      <table id="sso-attri-info">
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28018' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28019' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28021' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28022' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28023' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28024' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28025' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28026' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28027' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner"></div></td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- / Tab2 SSO属性情報 -->
+            </div>
+            <div class="oase-modal-footer">
+              <ul class="oase-button-group">
+                <li><button id="btnDelSso" class="oase-button delete" onClick="deleteTable()"><em class="owf owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                <li><button class="oase-button edit" onClick="modalChange('#provider-info','#provider-edit');showEditTable();"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- / プロバイダー詳細画面 -->
+
+    <!-- プロバイダー編集画面 -->
+    <div id="provider-edit" class="oase-modal oase-modal-tab">
+      <div class="oase-modal-main">
+        <div class="oase-modal-inner">
+          <div class="oase-modal-content">
+            <div class="oase-modal-header">
+              <div class="oase-modal-title">
+                <h2><em class="owf owf-doc-add"></em><span>{% get_message 'MOSJA28009' request.user.get_lang_mode showMsgId=False %}</span></h2>
+              </div>
+              <button class="oase-modal-close" onclick="modalClose('#provider-edit');closeEdit();"><em class="owf owf-cross"></em></button>
+            </div>
+            <div class="oase-modal-tab-main">
+              <div class="oase-modal-tab-menu">
+                <ul>
+                  <li><button onClick="modalTabMove( '#provider-edit', 0 );">{% get_message 'MOSJA28006' request.user.get_lang_mode showMsgId=False %}</button></li>
+                  <li><button onClick="modalTabMove( '#provider-edit', 1 );">{% get_message 'MOSJA28008' request.user.get_lang_mode showMsgId=False %}</button></li>
+                </ul>
+              </div>
+              <!-- Tab1 SSO基本情報 -->
+              <div class="oase-modal-tab-block">
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA28006' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div class="oase-modal-table">
+                      <table>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28003' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-provider-name" type="text" placeholder="{% get_message 'MOSJA28003' request.user.get_lang_mode showMsgId=False %}" data-maxlength="128" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28033' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28010' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <div class="select">
+                                <select id="edit-auth-type">
+                                  <option value="0">{% get_message 'MOSJA28011' request.user.get_lang_mode showMsgId=False %}</option>
+                                </select>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28012' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-logo" type="file" accept=".gif,.jpg,.jpeg,.png">
+                              <div class="note">{% get_message 'MOSJA28013' request.user.get_lang_mode showMsgId=False %}</div>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28014' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <div class="select">
+                                <select id="edit-visible-flag">
+                                  <option value="0">{% get_message 'MOSJA28015' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="1">{% get_message 'MOSJA28016' request.user.get_lang_mode showMsgId=False %}</option>
+                                </select>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onClick="modalTabMove( '#provider-edit', 1 );"><em class="owf owf-arw-right"></em><span>{% get_message 'MOSJA28017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+              </div>
+              <!-- / Tab1 SSO基本情報 -->
+
+              <!-- Tab2 SSO属性情報 -->
+              <div class="oase-modal-tab-block table">
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA28008' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div class="oase-modal-table">
+                      <table>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28018' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-clientid" type="text" placeholder="{% get_message 'MOSJA28018' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28019' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-clientsecret" type="text" placeholder="{% get_message 'MOSJA28019' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-authorizationur" type="text" placeholder="{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28021' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-accesstokenuri" type="text" placeholder="{% get_message 'MOSJA28021' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28022' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-resourceowneruri" type="text" placeholder="{% get_message 'MOSJA28022' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28023' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-scope" type="text" placeholder="{% get_message 'MOSJA28023' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}">
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28024' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-id" type="text" placeholder="{% get_message 'MOSJA28024' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28025' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-name" type="text" placeholder="{% get_message 'MOSJA28025' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28026' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-email" type="text" placeholder="{% get_message 'MOSJA28026' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}">
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28027' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-imageurl" type="text" placeholder="{% get_message 'MOSJA28027' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}">
+                            </div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA28028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td>
+                            <div class="cell-inner">
+                              <input id="edit-proxy" type="text" placeholder="{% get_message 'MOSJA28028' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}">
+                            </div>
+                          </td>
+                        </tr>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button cancel" onclick="modalClose('#provider-edit');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    <li><button id="btnUpd" class="oase-button save" onclick="submitTableData2();"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+              </div>
+              <!-- / Tab2 SSO属性情報 -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- / プロバイダー編集画面 -->
+  </main>
+</div><!-- /.oase-main -->
+{% endblock%}

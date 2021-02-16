@@ -22,7 +22,7 @@
 
 
 from django.urls import path, re_path
-from . import system_conf, mail_template, monitoring, action, group, user, ITA_paramsheet
+from . import system_conf, mail_template, monitoring, action, group, user, ITA_paramsheet, sso_info
 
 app_name = 'system'
 urlpatterns = [
@@ -31,6 +31,12 @@ urlpatterns = [
     re_path(r'^system_conf/edit$', system_conf.edit, name='system_conf_edit'),
     re_path(r'^system_modify$',     system_conf.modify,       name='system_modify'),
     re_path(r'^run_ad$',            system_conf.run_ad,       name='run_ad'),
+
+    # SSO設定
+    re_path(r'^sso_info$', sso_info.index, name='sso_info'),
+    path('sso_info/modify', sso_info.modify,   name='sso_modify'),
+    path('sso_info/delete_sso/<int:sso_id>/', sso_info.delete_sso, name='delete_sso'),
+    path('sso_info/modify/<int:sso_id>/', sso_info.modify_detail, name='sso_modify_detail'),
 
     # グループ
     re_path(r'^group$',         group.group,    name='group'),
@@ -61,7 +67,7 @@ urlpatterns = [
     path('mail/update', mail_template.update, name='mail_update'),
     path('mail/delete', mail_template.delete, name='mail_delete'),
 
-    # パラメーターシート連携(仮)
+    # メッセージ抽出定義
     path('paramsheet/<int:version>/', ITA_paramsheet.index, name='paramsheet'),
     path('paramsheet/edit/<int:version>/', ITA_paramsheet.edit, name='paramsheet_edit'),
     path('paramsheet/modify/<int:version>/', ITA_paramsheet.modify, name='paramsheet_modify'),
