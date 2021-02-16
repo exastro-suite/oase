@@ -233,8 +233,10 @@ function ModifyMailAddress()
           <div class="oase-config-menu">
             <ul>
               <li><a href="#oase-config-user-account">{% get_message 'MOSJA31019' request.user.get_lang_mode showMsgId=False %}</a></li>
-              {% if not ad_flag %}
+              {% if mail_flag %}
               <li><a href="#oase-config-user-email">{% get_message 'MOSJA31020' request.user.get_lang_mode showMsgId=False %}</a></li>
+              {% endif %}
+              {% if passwd_flag %}
               <li><a href="#oase-config-user-password">{% get_message 'MOSJA31021' request.user.get_lang_mode showMsgId=False %}</a></li>
               {% endif %}
               {% comment %}
@@ -272,7 +274,7 @@ function ModifyMailAddress()
               </div>
             </section>
 
-            {% if not ad_flag %}
+            {% if mail_flag %}
             <section id="oase-config-user-email">
               <div class="oase-config-header">
                 <h3>{% get_message 'MOSJA31020' request.user.get_lang_mode showMsgId=False %}</h3>
@@ -306,7 +308,9 @@ function ModifyMailAddress()
                 </ul>
               </div>
             </section>
+            {% endif %}
 
+            {% if passwd_flag %}
             <section id="oase-config-user-password">
               <div class="oase-config-header">
                 <h3>{% get_message 'MOSJA31021' request.user.get_lang_mode showMsgId=False %}</h3>

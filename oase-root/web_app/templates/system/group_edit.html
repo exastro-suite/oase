@@ -151,7 +151,7 @@ function submitGroupData(tbodyID)
         errorMsg[strID]['summary'] = '';
 
         // 管理者グループ名のバリデーションチェック
-        if(parseInt(strGroupID) == 1 && strGroupName !=getMessage("MOSJA23034", false)){
+        if((parseInt(strGroupID) == 1 || parseInt(strGroupID) == 2) && strGroupName !=getMessage("MOSJA23034", false)){
             errorMsg[strID]['group_name'] += getMessage("MOSJA23025", false) + "\n";
             break;
         }
@@ -385,7 +385,7 @@ function submitAction()
                       {% if forloop.first %}
                       <option value="{{o.v}}" selected>{{o.k}}</option>
                       {% else %}
-                        {% if group.group_id == 1 %}
+                        {% if group.group_id == 1 or group.group_id == 2 %}
                           {% if o.v == 2 %}
                             <option value="{{o.v}}">{{o.k}}</option>
                           {% endif %}
@@ -397,10 +397,10 @@ function submitAction()
                     </select>
 
                   </div></div></td>
-          
+
                   <td id="tdName{{ group.group_id }}" class="group-name input">
                     <div class="cell-inner">
-                    {% if group.group_id == 1 %}
+                    {% if group.group_id == 1 or group.group_id == 2 %}
                       <input type="text" data-type="text" value="{{ group.group_name }}" class="validation-input" disabled = true;>
                     {% else %}
                       <input type="text" data-type="text" value="{{ group.group_name }}" data-maxlength="64" class="validation-input">

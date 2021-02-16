@@ -308,16 +308,15 @@ def rule(request):
         'now': now,
         'apply_rule_manage_id_dic': apply_rule_manage_id_dic,
         'pseudo_rule_manage_id_dic': pseudo_rule_manage_id_dic,
-        'mainmenu_list': request.user_config.get_menu_list(),
         'stagingPseudoTargetList': staging_pseudo_target,
         'stagingPseudoTargetRuleTypeList': staging_pseudo_target_rule_type,
         'permission_type_stg': perm_type_stg,
         'permission_type_prd': perm_type_prd,
         'rule_ids_stg': rule_ids_stg_admin,
         'rule_ids_prd': rule_ids_prd_admin,
-        'user_name': request.user.user_name,
-        'lang_mode': request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     log_data = {
         'staging_list_cnt': len(staging_list),
