@@ -86,12 +86,11 @@ def locked_user(request):
 
     data = {
         'user_list'         : user_list,
-        'mainmenu_list'     : request.user_config.get_menu_list(),
-        'user_name'         : request.user.user_name,
         'account_lock_time' : request.user.account_lock_time,
-        'lang_mode'         : request.user.get_lang_mode(),
     }
-    
+
+    data.update(request.user_config.get_templates_data(request))
+
     logger.logic_log('LOSI00002', 'user_list count: %s' % (len(user_list)), request=request)
     return render(request, 'user/locked_user.html', data)
 

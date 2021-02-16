@@ -60,7 +60,7 @@ def group(request):
 
     menu_id_list = [2141001006, 2141002001, 2141002002, 2141002003, 2141002004, 2141002007]
     acs_perm_list = AccessPermission.objects.filter(
-        group_id__gte=1,
+        group_id__gte=defs.GROUP_DEFINE.GROUP_ID_ADMIN,
         menu_id__in=menu_id_list,
     ).order_by('group_id', 'permission_id')
 
@@ -100,12 +100,11 @@ def group(request):
         'filter_list': filter_list,
         'menu_id_list': menu_id_list,
         'editable_user': editable_user,
-        'mainmenu_list': request.user_config.get_menu_list(),
         'filters': json.dumps(filters),
         'actdirflg': System.objects.get(config_id='ADCOLLABORATION').value,
-        'user_name': request.user.user_name,
-        'lang_mode': request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'editable_user: %s, group_list count: %s' %
                      (editable_user, group_count), request=request)
@@ -141,12 +140,11 @@ def edit(request):
         'msg': msg,
         'group_list': group_list,
         'filter_list': filter_list,
-        'mainmenu_list': request.user_config.get_menu_list(),
         'opelist_mod': defs.DABASE_OPECODE.OPELIST_MOD,
         'filters': json.dumps(filters),
-        'user_name': request.user.user_name,
-        'lang_mode': request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'group_list count: %s' % (len(group_list)), request=request)
 
@@ -258,15 +256,15 @@ def modify(request):
                     logger.logic_log('LOSI04000', rq['group_name'], request=request)
                     continue
 
-                # システム管理者はグループ名の更新不可
-                if int(rq['group_id']) != 1:
+                # システム管理系はグループ名の更新不可
+                if int(rq['group_id']) not in defs.GROUP_DEFINE.PROTECTED_GROUP_IDS:
                     group_id_list_mod[0].group_name = rq['group_name']
                 group_id_list_mod[0].summary = rq['summary']
                 group_id_list_mod[0].last_update_user = request.user.user_name
                 group_id_list_mod[0].last_update_timestamp = now
                 group_id_list_mod[0].save(force_update=True)
 
-            group_id_list_del = [rq['group_id'] for rq in del_data if int(rq['group_id']) != 1]
+            group_id_list_del = [rq['group_id'] for rq in del_data if int(rq['group_id']) not in defs.GROUP_DEFINE.PROTECTED_GROUP_IDS]
 
             for rq in ins_data:
                 group_info = Group(
@@ -351,13 +349,12 @@ def data(request):
         'msg': msg,
         'editable_user': editable_user,
         'group_list': group_list,
-        'mainmenu_list': request.user_config.get_menu_list(),
         'opelist_add': defs.DABASE_OPECODE.OPELIST_ADD,
         'opelist_mod': defs.DABASE_OPECODE.OPELIST_MOD,
         'actdirflg': System.objects.get(config_id='ADCOLLABORATION').value,
-        'user_name': request.user.user_name,
-        'lang_mode': request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'editable_user: %s, group_list count: %s' %
                      (editable_user, len(group_list)), request=request)

@@ -388,15 +388,14 @@ def index(request):
         'conditional_expression' : ce,
         'object_list'            : get_data_object(dt_rule_ids_disp),
         'edit_mode'              : edit_mode,
-        'mainmenu_list'          : request.user_config.get_menu_list(),
         'hasUpdateAuthority'     : hasUpdateAuthority,
         'rule_ids_disp'          : dt_rule_ids_disp,
         'rule_ids_edit'          : dt_rule_ids_edit,
         'object_flg'             : object_flg,
-        'user_name'              : request.user.user_name,
         'group_list'             : group_list_default,
-        'lang_mode'              : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'edit_mode: %s, dt_count: %s' % (edit_mode, len(decision_table_list)), request=request)
 
@@ -528,7 +527,7 @@ def modify(request):
 
                 # システム管理者グループ追加
                 admin_perm = [{'menu_id': m, 'permission_type_id': '1'} for m in defs.MENU_BY_RULE]
-                admin_group_dict = {'group_id': '1', 'permission': admin_perm}
+                admin_group_dict = {'group_id': str(defs.GROUP_DEFINE.GROUP_ID_ADMIN), 'permission': admin_perm}
                 group_list.append(admin_group_dict)
 
                 # システム管理者グループ以外のグループに権限追加
@@ -666,7 +665,7 @@ def modify_detail(request, rule_type_id):
             )
 
             # アクセス権限データ更新
-            grlock = Group.objects.select_for_update().filter(group_id__gt=1)
+            grlock = Group.objects.select_for_update().filter(group_id__gt=defs.GROUP_DEFINE.GROUP_ID_ADMIN)
             group_ids = list(grlock.values_list('group_id', flat=True))
             perm_rset = list(AccessPermission.objects.filter(group_id__in=group_ids, menu_id__in=defs.MENU_BY_RULE, rule_type_id=rule_type_id).values('group_id', 'menu_id', 'rule_type_id', 'permission_type_id'))
             bulk_list = []
@@ -915,13 +914,12 @@ def data(request):
     data = {
         'msg'                 : msg,
         'edit_mode'           : edit,
-        'mainmenu_list'       : request.user_config.get_menu_list(),
         'decision_table_list' : decision_table_list,
-        'user_name'           : request.user.user_name,
         'rule_ids_disp'       : dt_rule_ids_disp,
         'rule_ids_edit'       : dt_rule_ids_edit,
-        'lang_mode'           : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'edit_mode: %s, dt_count: %s' % (edit, len(decision_table_list)), request=request)
 
@@ -1079,7 +1077,7 @@ def get_group_list(rule_ids):
         group_list.append(rule_info)
 
     group_ids = []
-    rset = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name').order_by('group_id')
+    rset = Group.objects.filter(group_id__gt=defs.GROUP_DEFINE.GROUP_ID_ADMIN).values('group_id', 'group_name').order_by('group_id')
     for rs in rset:
         group_info = {}
         group_info['id']   = rs['group_id']

@@ -75,7 +75,25 @@ function resetPW() {
                 <span><em class="owf owf-login"></em> Login</span>
             </button>
         </div>
-        
+
+        {% if sso_list|length %}
+          {% comment %} MOSJA10043 : 他のアカウントでログイン {% endcomment %}
+        {% get_message 'MOSJA10043' showMsgId=False %}
+        <div class="oase-login-btn">
+          {% for sso in sso_list %}
+          <a href="{% url 'web_app:top:sso_auth' sso.id %}">
+            <button type="button" value="{{sso.name}}" class="btn-login">
+              {% if sso.logo %}
+              <span><em class="owf"><img src="{% static 'images/sso/' %}{{sso.logo}}" style="width:16px; height:16px;"></img></em> {{sso.name}}</span>
+              {% else %}
+              <span> {{sso.name}}</span>
+              {% endif %}
+            </button>
+          </a>
+          {% endfor %}
+        </div>
+        {% endif %}
+
         <div class="oase-login-footer">
             <ul>
                 {% if ad_collabo == 0 %}

@@ -14,7 +14,7 @@
 #
 
 from django.urls import path, re_path
-from . import index, login, pass_ch, onetime_pass, inquiry
+from . import index, login, sso, pass_ch, onetime_pass, inquiry
 
 app_name = 'top'
 urlpatterns = [
@@ -24,6 +24,9 @@ urlpatterns = [
     re_path(r'^login$',      login.login,  name='login'),
     re_path(r'^login/auth$', login.auth,   name='login_auth'),
     re_path(r'^logout$',     login.logout, name='logout'),
+
+    re_path(r'^sso/(?P<sso_id>\d+)/$', sso.auth, name='sso_auth'),
+    path('sso/callback/', sso.callback, name='sso_callback'),
 
     path('pass_ch',         login.pass_ch,          name='pass_ch'),
     path('pass_ch_logout',  login.pass_ch_logout,   name='pass_ch_logout'),
