@@ -38,6 +38,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'confs.frameworkconfs.settings'
 django.setup()
 
 from django.db import transaction
+from django.db.models import Q
 from django.conf import settings
 
 from libs.backyardlibs.ad_collaboration.ad_data_transporter import AdDataTransporter
@@ -65,6 +66,25 @@ class AdCollabExecutor():
 
         self.__logger = OaseLogger.get_instance()
 
+        self.excl_groupid_list = defs.GROUP_DEFINE.PROTECTED_GROUP_IDS
+        self.excl_userid_list  = [1, ]
+
+
+    def _set_protect_data(self):
+        """
+        [概要]
+           削除対象外のデータを予め設定する
+        """
+
+        user_ids = list(User.objects.filter(Q(user_id__lt=0)|Q(sso_id__gt=0)).values_list('user_id', flat=True))
+
+        if len(user_ids) > 0:
+            self.excl_userid_list.extend(user_ids)
+
+            group_ids = list(UserGroup.objects.filter(user_id__in=self.excl_userid_list).values_list('group_id', flat=True).distinct())
+            self.excl_groupid_list.extend(group_ids)
+
+
     def _data_clean(self, ad_on_flag):
         """
         [概要]
@@ -80,11 +100,11 @@ class AdCollabExecutor():
         target_flag = '0' if ad_on_flag else '1'
 
         # ADフラグに応じてユーザ,グループ関連のレコードを削除
-        del_groupid_list = list(Group.objects.filter(ad_data_flag=target_flag).exclude(pk__lte=1).values_list('group_id', flat=True))
+        del_groupid_list = list(Group.objects.filter(ad_data_flag=target_flag).exclude(pk__in=self.excl_groupid_list).values_list('group_id', flat=True))
         Group.objects.filter(pk__in=del_groupid_list).delete()
         AccessPermission.objects.filter(group_id__in=del_groupid_list).delete()
-        User.objects.filter(ad_data_flag=target_flag).exclude(pk__lte=1).delete()
-        UserGroup.objects.filter(ad_data_flag=target_flag).exclude(pk__lte=1).delete()
+        User.objects.filter(ad_data_flag=target_flag).exclude(pk__in=self.excl_userid_list).delete()
+        UserGroup.objects.filter(ad_data_flag=target_flag).exclude(user_id__in=self.excl_userid_list).delete()
 
         self.__logger.logic_log('LOSI00002', '')
 
@@ -258,14 +278,14 @@ class AdCollabExecutor():
 
         self.__logger.logic_log('LOSI11000', 'del_user_grp_id_list: %s' % ','.join(map(str, del_user_grp_id_list)))
         if len(del_user_grp_id_list) > 0:
-            UserGroup.objects.filter(ad_data_flag='1',pk__in=del_user_grp_id_list).delete()
+            UserGroup.objects.filter(ad_data_flag='1',pk__in=del_user_grp_id_list).exclude(user_id__in=self.excl_userid_list).delete()
 
         ### ユーザ ###
         del_target_user_login_id = oase_ad_user_login_id_set - cur_ad_user_login_id_set
         del_user_id_list = [oase_ad_user_dict[d].user_id for d in del_target_user_login_id]
 
         if len(del_user_id_list) > 0:
-            User.objects.filter(ad_data_flag='1',pk__in=del_user_id_list).delete()
+            User.objects.filter(ad_data_flag='1',pk__in=del_user_id_list).exclude(user_id__in=self.excl_userid_list).delete()
 
         ### グループ ###
         del_target_grp_name = oase_ad_grp_name_set - cur_ad_grp_name_set
@@ -275,8 +295,8 @@ class AdCollabExecutor():
         if len(del_grp_id_list) > 0:
             # delGrpQuerySet = Group.objects.filter(ad_data_flag='1',pk__in=del_grp_id_list)
             # delGrpQuerySet._raw_delete(delGrpQuerySet.db)
-            AccessPermission.objects.filter(pk__in=del_grp_id_list).delete()
-            Group.objects.filter(ad_data_flag='1', pk__in=del_grp_id_list).delete()
+            AccessPermission.objects.filter(pk__in=del_grp_id_list).exclude(group_id__in=self.excl_groupid_list).delete()
+            Group.objects.filter(ad_data_flag='1', pk__in=del_grp_id_list).exclude(group_id__in=self.excl_groupid_list).delete()
 
         # --------------------------------
         # 更新系(ユーザ)
@@ -346,9 +366,10 @@ class AdCollabExecutor():
                     ad_data = transporter.get_groups_and_users()
 
                     # groupとuserをロック
-                    Group.objects.select_for_update().filter(pk__gt=1)
+                    Group.objects.select_for_update().filter(pk__gt=defs.GROUP_DEFINE.GROUP_ID_MAX)
                     User.objects.select_for_update().filter(pk__gt=1)
 
+                    self._set_protect_data()
                     self._data_clean(ad_on_flag=True)
 
                     self._collaborate_data(ad_data)
@@ -359,9 +380,10 @@ class AdCollabExecutor():
                     #--------------------------
 
                     # groupとuserをロック
-                    Group.objects.select_for_update().filter(pk__gt=1)
+                    Group.objects.select_for_update().filter(pk__gt=defs.GROUP_DEFINE.GROUP_ID_MAX)
                     User.objects.select_for_update().filter(pk__gt=1)
 
+                    self._set_protect_data()
                     self._data_clean(ad_on_flag=False)
 
                 self.__logger.system_log('LOSI00011')

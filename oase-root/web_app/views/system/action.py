@@ -108,12 +108,11 @@ def action(request):
         'msg'          : msg,
         'driver_list'  : driver_list,
         'editable_user': editable_user,
-        'mainmenu_list': request.user_config.get_menu_list(),
         'opelist_add'  : defs.DABASE_OPECODE.OPELIST_ADD,
         'opelist_mod'  : defs.DABASE_OPECODE.OPELIST_MOD,
-        'user_name'    : request.user.user_name,
-        'lang_mode'    : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'data=%s' % data, request=request)
 
