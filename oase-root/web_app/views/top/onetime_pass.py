@@ -45,7 +45,7 @@ from web_app.templatetags.common import get_message
 
 logger = OaseLogger.get_instance() # ロガー初期化
 
-#@check_allowed_ad(settings.LOGIN_REDIRECT_URL)
+
 def onetime_pass_exec(request):
     """
     [メソッド概要]
@@ -179,7 +179,7 @@ def _validate(request, login_id, mail_address):
 
     # loginIdでuser情報取得(Userの対象レコードをロック)
     if error_flag == False:
-        user = User.objects.select_for_update().get(login_id=login_id)
+        user = User.objects.select_for_update().get(login_id=login_id, login_id__contains=login_id, sso_id=0)
 
         # mailAddrが違う場合
         if user.mail_address != mail_address:

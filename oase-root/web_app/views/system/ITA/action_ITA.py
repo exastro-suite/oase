@@ -114,7 +114,7 @@ class ITADriverInfo():
         グループ一覧を取得する(システム管理グループを除く)
         """
 
-        grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name').order_by('group_id')
+        grp_list = Group.objects.filter(group_id__gt=defs.GROUP_DEFINE.GROUP_ID_ADMIN).values('group_id', 'group_name').order_by('group_id')
         return grp_list
 
     @classmethod
@@ -126,7 +126,7 @@ class ITADriverInfo():
 
         drv_ids = []
 
-        if 1 in user_groups:  # 1=システム管理グループ:すべてのドライバーに対して更新権限を持つ
+        if defs.GROUP_DEFINE.GROUP_ID_ADMIN in user_groups:  # 1=システム管理グループ:すべてのドライバーに対して更新権限を持つ
             drv_ids = [drv.ita_driver_id for drv in ita_drv_list]
 
         else:
@@ -497,7 +497,7 @@ class ITADriverInfo():
 
     def _chk_permission(self, group_id_list, ita_driver_id, response):
 
-        if 1 in group_id_list:
+        if defs.GROUP_DEFINE.GROUP_ID_ADMIN in group_id_list:
             return response
 
         pti = ItaPermission.objects.filter(group_id__in=group_id_list, ita_driver_id=ita_driver_id, permission_type_id=1)

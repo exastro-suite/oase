@@ -109,7 +109,11 @@ if ENABLE_LOAD_TEST:
 
 
 #ホスト名　コンフィグファイルに移動すべきか？
-MAX_WORKER = 5 
+MAX_WORKER = 5
+
+
+AGENT_USER_ID = -2140000002
+
 
 class ActUtil:
     """
@@ -506,7 +510,7 @@ class Agent:
             now = datetime.datetime.now(pytz.timezone('UTC'))
 
         self.dmctl = dmctl
-        self.user = User.objects.get(login_id='oase_agent')
+        self.user = User.objects.get(user_id=AGENT_USER_ID)
         self.oase_userid = self.user.user_id
         self.now = now
 

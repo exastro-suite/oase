@@ -103,3 +103,36 @@ def check_allowed_ad(url):
     return _check_ad
 
 
+def check_allowed_backend(url, deny_list):
+
+    """
+    [メソッド概要]
+      認証方式別のview関数へのアクセス可否チェック
+    [引数]
+      url       : アクセス禁止時のリダイレクト先URL
+      deny_list : アクセスを禁止する認証方式(バックエンドクラス名)
+    [戻り値]
+      アクセス可能
+        view関数の結果
+      アクセス禁止
+        リダイレクト先のHTTPレスポンス情報
+    """
+
+    def _check_be(func):
+        def wrapper(request, *args, **kwargs):
+
+            for deny_backend in deny_list:
+                if request.session['_auth_user_backend'].endswith(deny_backend):
+                    logger.system_log('LOSI13025', request.path, deny_backend, request=request)
+                    if 'HTTP_X_REQUESTED_WITH' in request.META and request.META['HTTP_X_REQUESTED_WITH'] == 'XMLHttpRequest':
+                        return HttpResponse(status=400)
+                    else:
+                        return HttpResponseRedirect(url)
+
+            return func(request, *args, **kwargs)
+
+        return wrapper
+
+    return _check_be
+
+
