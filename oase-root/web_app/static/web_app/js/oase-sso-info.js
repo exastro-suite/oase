@@ -71,25 +71,6 @@ function submitTableData(){
     // ボタン制御 連打防止
     $("#btnAdd").prop("disabled", true);
     if(confirm(getMessage('MOSJA00002',false)) == true){
-        ssoInfo["provider_name"]    = $("#provider_name").val();
-        ssoInfo["auth_type"]        = $("#auth_type").val();
-        ssoInfo["logo"]             = $("#logo").val();
-        ssoInfo["visible_flag"]     = $("#visible_flag").val();
-        ssoInfo["clientid"]         = $("#clientid").val();
-        ssoInfo["clientsecret"]     = $("#clientsecret").val();
-        ssoInfo["authorizationuri"] = $("#authorizationuri").val();
-        ssoInfo["accesstokenuri"]   = $("#accesstokenuri").val();
-        ssoInfo["resourceowneruri"] = $("#resourceowneruri").val();
-        ssoInfo["scope"]            = $("#scope").val();
-        ssoInfo["id"]               = $("#id").val();
-        ssoInfo["name"]             = $("#name").val();
-        ssoInfo["email"]            = $("#email").val();
-        ssoInfo["imageurl"]         = $("#imageurl").val();
-        ssoInfo["proxy"]            = $("#proxy").val();
-
-        // 登録情報をjson形式に変換し、任意のvalueにセットする。
-        var jstr = JSON.stringify({"sso_info": ssoInfo});
-        $("#add_record").val(jstr);
 
         // formにセットした登録情報をサーバーに送る
         document.getElementById("formSsoData").submit();
@@ -104,11 +85,33 @@ function submitAction(){
     $('.error').removeClass('error');
     $('.error-list').remove();
 
+    let $logofile = $('input[name="logo"]');
+
+    let data = new FormData();
+    data.append("csrfmiddlewaretoken", document.getElementsByName("csrfmiddlewaretoken")[0].value);
+    data.append("provider_name",    $("#provider_name").val());
+    data.append("auth_type",        $("#auth_type").val());
+    data.append("logo",             $logofile.prop("files")[0]);
+    data.append("visible_flag",     $("#visible_flag").val());
+    data.append("clientid",         $("#clientid").val());
+    data.append("clientsecret",     $("#clientsecret").val());
+    data.append("authorizationuri", $("#authorizationuri").val());
+    data.append("accesstokenuri",   $("#accesstokenuri").val());
+    data.append("resourceowneruri", $("#resourceowneruri").val());
+    data.append("scope",            $("#scope").val());
+    data.append("id",               $("#id").val());
+    data.append("name",             $("#name").val());
+    data.append("email",            $("#email").val());
+    data.append("imageurl",         $("#imageurl").val());
+    data.append("proxy",            $("#proxy").val());
+
     $.ajax({
         type : "POST",
         url  : "sso_info/modify",
-        data : $("#formSsoData").serialize(),
-        dataType: "json",
+        data : data,
+        processData : false,
+        contentType : false,
+        dataType    : "json"
     })
     .done(function(response_json) {
         if(response_json.status == 'success') {
@@ -175,7 +178,7 @@ function showDetail(
     ssoBasicInfoData.push(provider_name);
     $("#hid-provider-name").val(provider_name);
 
-    if( auth_type == 0 ) {
+    if( auth_type == 1 ) {
         ssoBasicInfoData.push(getMessage("MOSJA28011", false));
     } else {
         ssoBasicInfoData.push("");
@@ -183,7 +186,7 @@ function showDetail(
 
     ssoBasicInfoData.push(logo);
 
-    if( visible_flag == 0 ) {
+    if( visible_flag > 0 ) {
         ssoBasicInfoData.push(getMessage("MOSJA28015", false));
     } else {
         ssoBasicInfoData.push(getMessage("MOSJA28016", false));
@@ -242,15 +245,13 @@ function showEditTable() {
     $("#edit-provider-name").val(ssoBasicInfoData[0]);
 
     if(ssoBasicInfoData[1] == getMessage("MOSJA28011", false)){
-        $("#edit-auth-type").val("0");
+        $("#edit-auth-type").val("1");
     }
 
-    $("#edit-logo").text(ssoBasicInfoData[2]);
-
     if(ssoBasicInfoData[3] == getMessage("MOSJA28015", false)){
-        $("#edit-visible-flag").val("0");
-    } else {
         $("#edit-visible-flag").val("1");
+    } else {
+        $("#edit-visible-flag").val("0");
     }
 
     var ssoAttriInfoData = [];
@@ -260,7 +261,7 @@ function showEditTable() {
 
     $("#edit-clientid").val(ssoAttriInfoData[0]);
     $("#edit-clientsecret").val(ssoAttriInfoData[1]);
-    $("#edit-authorizationur").val(ssoAttriInfoData[2]);
+    $("#edit-authorizationuri").val(ssoAttriInfoData[2]);
     $("#edit-accesstokenuri").val(ssoAttriInfoData[3]);
     $("#edit-resourceowneruri").val(ssoAttriInfoData[4]);
     $("#edit-scope").val(ssoAttriInfoData[5]);
@@ -287,25 +288,7 @@ function submitTableData2(){
 
     $("#btnUpd").prop("disabled", true);
     if(confirm(getMessage('MOSJA28035', false)) == true){
-        ssoInfo["provider_name"] = $("#edit-provider-name").val();
-        ssoInfo["auth_type"] = $("#edit-auth-type").val();
-        ssoInfo["logo"] = $("#edit-logo").val();
-        ssoInfo["visible_flag"] = $("#edit-visible-flag").val();
-        ssoInfo["clientid"] = $("#edit-clientid").val();
-        ssoInfo["clientsecret"] = $("#edit-clientsecret").val();
-        ssoInfo["authorizationuri"] = $("#edit-authorizationur").val();
-        ssoInfo["accesstokenuri"] = $("#edit-accesstokenuri").val();
-        ssoInfo["resourceowneruri"] = $("#edit-resourceowneruri").val();
-        ssoInfo["scope"] = $("#edit-scope").val();
-        ssoInfo["id"] = $("#edit-id").val();
-        ssoInfo["name"] = $("#edit-name").val();
-        ssoInfo["email"] = $("#edit-email").val();
-        ssoInfo["imageurl"] = $("#edit-imageurl").val();
-        ssoInfo["proxy"] = $("#edit-proxy").val();
 
-        // 登録情報をjson形式に変換し、任意のvalueにセットする。
-        var jstr = JSON.stringify({"sso_info": ssoInfo});
-        $("#add-record2").val(jstr);
         $("#operate").val("save");
 
         // formにセットした登録情報をサーバーに送る
@@ -326,10 +309,33 @@ function submitAction2(){
         //保存時のアクション
         var ssoId = $("#hidSsoId2").val();
 
+        let $logofile = $('input[name="edit-logo"]');
+
+        let data = new FormData();
+        data.append("csrfmiddlewaretoken", document.getElementsByName("csrfmiddlewaretoken")[0].value);
+        data.append("provider_name",    $("#edit-provider-name").val());
+        data.append("auth_type",        $("#edit-auth-type").val());
+        data.append("logo",             $logofile.prop("files")[0]);
+        data.append("visible_flag",     $("#edit-visible-flag").val());
+        data.append("clientid",         $("#edit-clientid").val());
+        data.append("clientsecret",     $("#edit-clientsecret").val());
+        data.append("authorizationuri", $("#edit-authorizationuri").val());
+        data.append("accesstokenuri",   $("#edit-accesstokenuri").val());
+        data.append("resourceowneruri", $("#edit-resourceowneruri").val());
+        data.append("scope",            $("#edit-scope").val());
+        data.append("id",               $("#edit-id").val());
+        data.append("name",             $("#edit-name").val());
+        data.append("email",            $("#edit-email").val());
+        data.append("imageurl",         $("#edit-imageurl").val());
+        data.append("proxy",            $("#edit-proxy").val());
+
+
         $.ajax({
             type : "POST",
             url  : "sso_info/modify/" + ssoId + "/",
-            data : $("#formSsoData2").serialize(),
+            data : data,
+            processData : false,
+            contentType : false,
             dataType: "json",
         })
         .done(function(response_json) {

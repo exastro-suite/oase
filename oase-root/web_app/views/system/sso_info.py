@@ -19,6 +19,7 @@
 
 """
 
+import os
 import sys
 import copy
 import pytz
@@ -29,12 +30,14 @@ import traceback
 import re
 import socket
 import urllib.parse
+import base64
 
 from django.http import HttpResponse, Http404
 from django.shortcuts import render,redirect
 from django.db.models import Q, Max
 from django.db import transaction
 from django.views.decorators.http import require_POST
+from django.conf import settings
 from rest_framework import serializers
 from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
@@ -103,13 +106,11 @@ def modify(request):
     response_data = {}
     now = datetime.datetime.now(pytz.timezone('UTC'))
 
-    # アクセスチェック
-    add_record = request.POST.get('add_record',"{}")
-    add_record = json.loads(add_record)
-
-    request_record_check(add_record, request)
-
     try:
+        # アクセスチェック
+        add_record = _querydict_to_dict(request)
+        request_record_check(add_record, request)
+
         with transaction.atomic():
             # SSO情報のバリデーションチェック
             info = add_record['sso_info']
@@ -142,6 +143,10 @@ def modify(request):
             if len(f.errors.items()):
                 raise Exception("validate error")
 
+            # ロゴ画像保存
+            _save_logo_image(request)
+
+            # DB保存
             sso_info = SsoInfo(
                 provider_name         = info['provider_name'],
                 auth_type             = info['auth_type'],
@@ -237,8 +242,7 @@ def modify_detail(request, sso_id):
             sso_info = SsoInfo.objects.select_for_update().get(sso_id=sso_id)
 
             # アクセスチェック
-            add_record = request.POST.get('add_record', "{}")
-            add_record = json.loads(add_record)
+            add_record = _querydict_to_dict(request)
 
             log_msg = 'posted add_record: %s' % (add_record)
             logger.logic_log('LOSI29000', log_msg, request=request)
@@ -302,6 +306,10 @@ def modify_detail(request, sso_id):
                     error_msg_top['logo'] = get_message('MOSJA28068', request.user.get_lang_mode())
                     raise Exception(get_message('MOSJA28053', request.user.get_lang_mode(), showMsgId=False))
 
+            # ロゴ画像保存
+            _save_logo_image(request)
+
+
             # データ更新
             SsoInfo.objects.filter(sso_id=sso_id).update(
                 provider_name         = info['provider_name'],
@@ -345,6 +353,65 @@ def modify_detail(request, sso_id):
 
     response_json = json.dumps(response_data)
     return HttpResponse(response_json, content_type="application/json")
+
+
+def _save_logo_image(request):
+    """
+    [メソッド概要]
+      ロゴ画像の保存
+    [引数]
+      request    : ロゴ画像リクエスト情報
+    """
+
+    if not request.FILES or 'logo' not in request.FILES:
+        return
+
+    logodata = ''
+    for chunk in request.FILES['logo'].chunks():
+        logodata = '%s%s' % (logodata, base64.b64encode(chunk).decode('utf-8'))
+
+    ary_bom = bytearray([0xEF, 0xBB, 0xBF])
+    if re.search(r'^\xEF\xBB\xBF', logodata):
+        logodata = logodata[len(ary_bom):]
+
+    image_path = os.path.join(*[settings.BASE_DIR, 'web_app', 'static', 'images', 'sso'])
+    os.makedirs(image_path, exist_ok=True)
+
+    image_filepath = '%s/%s' % (image_path, request.FILES['logo'].name)
+    with open(image_filepath, 'wb') as fp:
+        fp.write(base64.b64decode(logodata.encode('utf-8')))
+
+
+def _querydict_to_dict(request):
+    """
+    [メソッド概要]
+      リクエスト情報の DjangoQueryDict -> PythonDict へ変換
+    [引数]
+      request    : リクエスト情報
+    [戻り値]
+      add_record : dict : リクエスト情報
+    """
+
+    add_record = {'sso_info' : {}}
+
+    req_keys = [
+        'provider_name', 'auth_type', 'visible_flag',
+        'clientid', 'clientsecret',
+        'authorizationuri', 'accesstokenuri', 'resourceowneruri',
+        'scope',
+        'id', 'name', 'email', 'imageurl',
+        'proxy',
+    ]
+
+    for k in req_keys:
+        add_record['sso_info'][k] = request.POST.get(k, '')
+
+    add_record['sso_info']['logo'] = ''
+    if request.FILES and 'logo' in request.FILES:
+        add_record['sso_info']['logo'] = request.FILES['logo'].name
+
+
+    return add_record
 
 
 def request_record_check(add_record, request):
