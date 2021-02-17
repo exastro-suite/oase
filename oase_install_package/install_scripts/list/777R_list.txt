@@ -1,0 +1,2 @@
+/oase-root/logs
+/oase-root/temp
