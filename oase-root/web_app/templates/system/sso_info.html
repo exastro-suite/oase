@@ -122,7 +122,7 @@ Copyright 2019 NEC Corporation
                               <div class="select">
                                 <select id="auth_type">
                                   {# ===== 現状一択 ===== #}
-                                  <option value="0">{% get_message 'MOSJA28011' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="1">{% get_message 'MOSJA28011' request.user.get_lang_mode showMsgId=False %}</option>
                                 </select>
                               </div>
                             </div>
@@ -132,7 +132,7 @@ Copyright 2019 NEC Corporation
                           <th><div class="cell-inner">{% get_message 'MOSJA28012' request.user.get_lang_mode showMsgId=False %}</div></th>
                           <td>
                             <div class="cell-inner">
-                              <input id="logo" type="file" accept=".gif,.jpg,.jpeg,.png">
+                              <input id="logo" type="file" accept=".gif,.jpg,.jpeg,.png" name="logo">
                               <div class="note">{% get_message 'MOSJA28013' request.user.get_lang_mode showMsgId=False %}</div>
                             </div>
                           </td>
@@ -143,8 +143,8 @@ Copyright 2019 NEC Corporation
                             <div class="cell-inner">
                               <div class="select">
                                 <select id="visible_flag">
-                                  <option value="0">{% get_message 'MOSJA28015' request.user.get_lang_mode showMsgId=False %}</option>
-                                  <option value="1">{% get_message 'MOSJA28016' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="1">{% get_message 'MOSJA28015' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="0">{% get_message 'MOSJA28016' request.user.get_lang_mode showMsgId=False %}</option>
                                 </select>
                               </div>
                             </div>
@@ -450,7 +450,7 @@ Copyright 2019 NEC Corporation
                             <div class="cell-inner">
                               <div class="select">
                                 <select id="edit-auth-type">
-                                  <option value="0">{% get_message 'MOSJA28011' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="1">{% get_message 'MOSJA28011' request.user.get_lang_mode showMsgId=False %}</option>
                                 </select>
                               </div>
                             </div>
@@ -460,7 +460,7 @@ Copyright 2019 NEC Corporation
                           <th><div class="cell-inner">{% get_message 'MOSJA28012' request.user.get_lang_mode showMsgId=False %}</div></th>
                           <td>
                             <div class="cell-inner">
-                              <input id="edit-logo" type="file" accept=".gif,.jpg,.jpeg,.png">
+                              <input id="edit-logo" type="file" accept=".gif,.jpg,.jpeg,.png" name="edit-logo">
                               <div class="note">{% get_message 'MOSJA28013' request.user.get_lang_mode showMsgId=False %}</div>
                             </div>
                           </td>
@@ -471,8 +471,8 @@ Copyright 2019 NEC Corporation
                             <div class="cell-inner">
                               <div class="select">
                                 <select id="edit-visible-flag">
-                                  <option value="0">{% get_message 'MOSJA28015' request.user.get_lang_mode showMsgId=False %}</option>
-                                  <option value="1">{% get_message 'MOSJA28016' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="1">{% get_message 'MOSJA28015' request.user.get_lang_mode showMsgId=False %}</option>
+                                  <option value="0">{% get_message 'MOSJA28016' request.user.get_lang_mode showMsgId=False %}</option>
                                 </select>
                               </div>
                             </div>
@@ -517,7 +517,7 @@ Copyright 2019 NEC Corporation
                           <th><div class="cell-inner">{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
                           <td>
                             <div class="cell-inner">
-                              <input id="edit-authorizationur" type="text" placeholder="{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
+                              <input id="edit-authorizationuri" type="text" placeholder="{% get_message 'MOSJA28020' request.user.get_lang_mode showMsgId=False %}" data-maxlength="256" data-type="text" class="tooltip-input validation-input" title="{% get_message 'MOSJA28034' request.user.get_lang_mode showMsgId=False %}" required>
                             </div>
                           </td>
                         </tr>
