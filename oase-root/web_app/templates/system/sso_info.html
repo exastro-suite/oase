@@ -400,10 +400,12 @@ Copyright 2019 NEC Corporation
               <!-- / Tab2 SSO属性情報 -->
             </div>
             <div class="oase-modal-footer">
+              {% if hasUpdateAuthority %}
               <ul class="oase-button-group">
                 <li><button id="btnDelSso" class="oase-button delete" onClick="deleteTable()"><em class="owf owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                 <li><button class="oase-button edit" onClick="modalChange('#provider-info','#provider-edit');showEditTable();"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
               </ul>
+              {% endif %}
             </div>
           </div>
         </div>
@@ -592,7 +594,9 @@ Copyright 2019 NEC Corporation
                 <div class="oase-modal-footer">
                   <ul class="oase-button-group">
                     <li><button class="oase-button cancel" onclick="modalClose('#provider-edit');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    {% if hasUpdateAuthority %}
                     <li><button id="btnUpd" class="oase-button save" onclick="submitTableData2();"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    {% endif %}
                   </ul>
                 </div>
               </div>
