@@ -58,7 +58,7 @@ def group(request):
     permission_type = request.user_config.get_menu_auth_type(MENU_ID)
     editable_user = True if permission_type == defs.ALLOWED_MENTENANCE else False
 
-    menu_id_list = [2141001006, 2141002001, 2141002002, 2141002003, 2141002004, 2141002007]
+    menu_id_list = [2141001006, 2141002002, 2141002008, 2141002003, 2141002004, 2141002007]
     acs_perm_list = AccessPermission.objects.filter(
         group_id__gte=defs.GROUP_DEFINE.GROUP_ID_ADMIN,
         menu_id__in=menu_id_list,
@@ -76,13 +76,13 @@ def group(request):
         group_count = len(group_list_tmp)
 
         # グループごとにアクセス権限を分けたリストを作成する
-        acs_count = len(acs_perm_list)
-        menu_count = len(menu_id_list)
-        for acs_perm in acs_perm_list:
-            if acs_perm.group_id not in acs_list:
-                acs_list[acs_perm.group_id] = []
+        for mid in menu_id_list:
+            for acs_perm in acs_perm_list:
+                if acs_perm.group_id not in acs_list:
+                    acs_list[acs_perm.group_id] = []
 
-            acs_list[acs_perm.group_id].append(acs_perm)
+                if mid == acs_perm.menu_id:
+                    acs_list[acs_perm.group_id].append(acs_perm)
 
     except:
         logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
@@ -177,7 +177,7 @@ def complete_permission(request, group_id):
 
             # 選択されたグループIDのメニューのアクセス権限を取得
             # oase_webのメニューIDは2141001001以上
-            menu_id_list = [2141001006, 2141002001, 2141002002, 2141002003, 2141002004, 2141002007]
+            menu_id_list = [2141001006, 2141002002, 2141002008, 2141002003, 2141002004, 2141002007]
             acs_list_upd = AccessPermission.objects.filter(group_id=group_id, menu_id__in=menu_id_list)
 
             for acs in acs_list_upd:
