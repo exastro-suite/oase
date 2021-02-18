@@ -77,12 +77,11 @@ def index(request):
     data = {
         'msg'               : msg,
         'sso_info_list'     : sso_info_list,
-        'mainmenu_list'     : request.user_config.get_menu_list(),
         'edit_mode'         : False,
         'hasUpdateAuthority': hasUpdateAuthority,
-        'user_name'         : request.user.user_name,
-        'lang_mode'         : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'None', request=request)
 
