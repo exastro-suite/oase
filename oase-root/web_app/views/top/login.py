@@ -349,21 +349,12 @@ def auth(request):
     if redirect_url:
         return redirect(redirect_url)
 
-    ad_collabo = int(System.objects.get(config_id='ADCOLLABORATION').value)
 
-    pass_init_url = reverse('web_app:top:pass_initialize') + '?' + reverse('web_app:top:login')
+    request.session['msg'] = msg
 
-    data = {
-        'msg'       : msg,
-        'logout'    : False,
-        'ad_collabo': ad_collabo,
-        'pass_init_url' : pass_init_url,
-        'lang_mode'     : 'JA',
-    }
+    logger.logic_log('LOSI00002', 'msg=%s' % (msg), request=request)
 
-    logger.logic_log('LOSI00002', 'None', request=request)
-
-    return render(request, 'top/login.html', data)
+    return redirect(reverse('web_app:top:login'))
 
 
 ################################################
