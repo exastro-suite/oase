@@ -129,7 +129,7 @@ OASEのインストール手順を下記に示します。
    :header: No., 項目名, 初期値, 説明
    :widths: 5, 20, 20, 60
 
-   1, install_mode, Install_Online, インストールモードの設定（オンラインインストール：Install_Online/オフラインインストール：Install_Offline/ライブラリ収集：Gather_Library/バージョンアップオール：Versionup_All/バージョンアップOASE：Versionup_OASE/アンインストール：Uninstall）
+   1, install_mode, Install_Online, インストールモードの設定（オンラインインストール：Install_Online/オフラインインストール：Install_Offline/ライブラリ収集：Gather_Library/バージョンアップALL：Versionup_All/バージョンアップOASE：Versionup_OASE/アンインストール：Uninstall）
    2, RabbitMQ_username, admin, RabbitMQのユーザ名
    3, RabbitMQ_password, password, RabbitMQのパスワード
    4, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
