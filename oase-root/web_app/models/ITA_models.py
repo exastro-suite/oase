@@ -62,6 +62,7 @@ class ItaDriver(models.Model):
     """
     ita_driver_id = models.AutoField("項番", primary_key=True)
     ita_disp_name = models.CharField("ITA表示名", max_length=64, unique=True)
+    version = models.CharField("バージョン", max_length=64, unique=True)
     hostname = models.CharField("ホスト名", max_length=128, unique=True)
     username = models.CharField("接続ユーザ", max_length=64)
     password = models.CharField("接続パスワード", max_length=192)
