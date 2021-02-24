@@ -16,7 +16,7 @@
 
 """
 [概要]
-  エージェントドライバ 実行処理
+  
 
 
 """
@@ -81,6 +81,7 @@ def set_exastro_ITA_collaboration_data():
     ita_driver = ItaDriver(
         ita_driver_id=99,
         ita_disp_name='Action43',
+        version='1.5.0',
         protocol='https',
         hostname='pytest-host-name',
         port='443',
@@ -131,7 +132,7 @@ class TestITAParameterSheetMenuManager(object):
         print('method_name: {}'.format(method.__name__))
 
         # 動的インポート
-        module = import_module('backyards.exastro_collaboration.exastro_ITA_collaboration')
+        module = import_module('libs.backyardlibs.exastro_collaboration.ITA.param_sheet')
         ITAParameterSheetMenuManager = getattr(module, 'ITAParameterSheetMenuManager')
 
         now, user_id = set_exastro_ITA_collaboration_data()
