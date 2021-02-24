@@ -23,8 +23,8 @@ import os
 import sys
 import traceback
 import django
-import datetime
 
+from importlib import import_module
 
 # OASE モジュール importパス追加
 my_path       = os.path.dirname(os.path.abspath(__file__))
@@ -65,45 +65,52 @@ except Exception as e:
 from libs.commonlibs.oase_logger import OaseLogger
 logger = OaseLogger.get_instance()
 
-from libs.backyardlibs.exastro_collaboration.ITA.factory import ITAParameterSheetFactory
-from web_app.models.models import User
-from web_app.models.ITA_models import ItaDriver
+
+################################################################
+class ITAParameterSheetFactory():
+    """
+    [クラス概要]
+        ITAパラメーターシートメニュー管理クラス
+    """
+
+    ############################################
+    # 定数定義
+    ############################################
+    # バージョン別の接尾辞
+    CLASS_SUFFIX_DICT = {
+        '1.6.0' : '2',
+        '1.6.1' : '2',
+    }
+
+    # パラメーターシート用の基本名
+    BASE_NAME_MODULE = 'libs.backyardlibs.exastro_collaboration.ITA.param_sheet'
+    BASE_NAME_CLASS  = 'ITAParameterSheetMenuManager'
 
 
-#-------------------
-# STATUS
-#-------------------
-DB_OASE_USER = -2140000006
+    @classmethod
+    def create(cls, version):
+        """
+        [概要]
+        コンストラクタ
+        [引数]
+        drv_info : dict : ITAアクション設定
+        """
+
+        logger.logic_log('LOSI00001', 'Create class for Parameter Sheet Menu Manager. ver=%s' % (version))
+
+        try:
+            suffix = '' if version not in cls.CLASS_SUFFIX_DICT else cls.CLASS_SUFFIX_DICT[version]
+            module_name = '%s%s' % (cls.BASE_NAME_MODULE, suffix)
+            class_name  = '%s%s' % (cls.BASE_NAME_CLASS,  suffix)
+
+            param_sheet_module = import_module(module_name)
+            param_sheet_class  = getattr(param_sheet_module, class_name)
+
+        except Exception as e:
+            logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
+            return None
 
 
-#-------------------
-# MAIN
-#-------------------
-if __name__ == '__main__':
+        return param_sheet_class
 
-    try:
-        logger.logic_log('LOSI00001', 'Start ITA collaboration.')
 
-        now = datetime.datetime.now()
-        user_name = User.objects.get(user_id=DB_OASE_USER).user_name
-
-        # ドライバー設定情報取得
-        rset = ItaDriver.objects.all().values('ita_driver_id', 'version', 'hostname', 'username', 'password', 'protocol', 'port')
-        logger.logic_log('LOSI28001', [rs['ita_driver_id'] for rs in rset])
-
-        # アクション先ごとに情報を取得
-        for rs in rset:
-            # パラメーターシート用メニュー情報を取得
-            cls = ITAParameterSheetFactory.create(rs['version'])
-            if cls:
-                cls = cls(rs, user_name, now)
-                cls.execute()
-
-        logger.logic_log('LOSI00002', 'End ITA collaboration.')
-
-    except Exception as e:
-        logger.system_log('LOSM28001', 'main')
-        logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
-        sys.exit(2)
-
-    sys.exit(0)
