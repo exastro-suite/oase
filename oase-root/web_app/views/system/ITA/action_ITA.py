@@ -404,7 +404,7 @@ class ITADriverInfo():
         if len(rq['protocol']) > 8:
             error_flag = True
             error_msg['protocol'] += get_message('MOSJA27116', request.user.get_lang_mode()) + '\n'
-            logger.user_log('LOSM07002', 'protocol', 64, rq['protocol'], request=request)
+            logger.user_log('LOSM07002', 'protocol', 8, rq['protocol'], request=request)
 
         if len(rq['hostname']) == 0:
             error_flag = True
