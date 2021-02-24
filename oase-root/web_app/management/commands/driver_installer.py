@@ -23,6 +23,7 @@ import datetime
 import shutil
 import configparser
 import subprocess
+import glob
 from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.db import connection
@@ -183,6 +184,8 @@ class InstallDriverInfo():
 
     PLUGIN_FILES_DIC = {
         'ITA' : [
+            ['libs/backyardlibs/exastro_collaboration/%s/', 'factory.py'],
+            ['libs/backyardlibs/exastro_collaboration/%s/', 'param_sheet*.py'],
             ['backyards/exastro_collaboration/', 'exastro_%s_collaboration.py'],
             ['backyards/exastro_collaboration/', 'oase-%s-collaboration.service', '/usr/lib/systemd/system/'],
             ['confs/backyardconfs/services/', '%s_collaboration_env', '/etc/sysconfig/'],
@@ -190,6 +193,12 @@ class InstallDriverInfo():
     }
 
     # 関連サービスの設定
+    HTTP_SERVICE_INDEX = 1
+    HTTP_SERVICE_LIST = [
+        "uwsgi.service",
+        "httpd.service",
+    ]
+
     INSTALL_SERVICE_DIC = {
         'ITA' : [
             ["systemctl", "daemon-reload"],
@@ -219,6 +228,8 @@ class InstallDriverInfo():
     TARGET_MODEL_NAMES = []
 
     def __init__(self, id, name, ver, mver, src_path, dst_path, now=None):
+
+        self.noservice = settings.DEBUG and getattr(settings, 'ENABLE_NOSERVICE_BACKYARDS', False)
 
         self.now = now
         if not now:
@@ -265,16 +276,20 @@ class InstallDriverInfo():
         os.makedirs(dst_path, exist_ok=True)
 
         src_filepath = '%s%s/%s' % (self.src_root_path, drv_name, plugin_file)
-        dst_filepath = '%s%s' % (dst_path, plugin_file)
+        src_filepath_list = glob.glob(src_filepath)
+        for src_filepath in src_filepath_list:
 
-        if not os.path.exists(src_filepath):
-            print('コピー元ファイルが存在しません src=%s' % (src_filepath))
-            return
+            plugin_file = os.path.basename(src_filepath)
+            dst_filepath = '%s%s' % (dst_path, plugin_file)
 
-        shutil.copy(src_filepath, dst_filepath)
+            if not os.path.exists(src_filepath):
+                print('コピー元ファイルが存在しません src=%s' % (src_filepath))
+                return
 
-        if fix_dst_path:
-            shutil.copy(src_filepath, fix_dst_path)
+            shutil.copy(src_filepath, dst_filepath)
+
+            if fix_dst_path:
+                shutil.copy(src_filepath, fix_dst_path)
 
     def copy_files(self):
         """
@@ -300,16 +315,18 @@ class InstallDriverInfo():
 
         dst_path = '%s%s' % (self.dst_root_path, plugin_dir)
         dst_filepath = '%s%s' % (dst_path, plugin_file)
+        dst_filepath_list = glob.glob(dst_filepath)
+        for dst_filepath in dst_filepath_list:
 
-        if os.path.exists(plugin_dir):
-            os.remove(dst_filepath)
-            if self.driver_name in plugin_dir:
-                shutil.rmtree(plugin_dir)
-
-        if fix_dst_path:
-            dst_filepath = '%s%s' % (fix_dst_path, plugin_file)
-            if dst_filepath != '/':
+            if os.path.exists(plugin_dir):
                 os.remove(dst_filepath)
+                if self.driver_name in plugin_dir:
+                    shutil.rmtree(plugin_dir)
+
+            if fix_dst_path:
+                dst_filepath = '%s%s' % (fix_dst_path, plugin_file)
+                if dst_filepath != '/':
+                    os.remove(dst_filepath)
 
     def install(self):
         """
@@ -318,13 +335,15 @@ class InstallDriverInfo():
         self.copy_files()
 
         # インストール資材の読込
-        subprocess.call(["systemctl", "reload", "uwsgi.service"])
+        subprocess.call(["systemctl", "reload", self.HTTP_SERVICE_LIST[self.HTTP_SERVICE_INDEX]])
 
-        drv_ver_name = self.get_driver_version_name()
-        if drv_ver_name in self.INSTALL_SERVICE_DIC:
-            for srv in self.INSTALL_SERVICE_DIC[drv_ver_name]:
-                comm_list = [s if s.find('%s') < 0 else s % (drv_ver_name) for s in srv]
-                subprocess.call(comm_list)
+        # 関連サービス起動
+        if not self.noservice:
+            drv_ver_name = self.get_driver_version_name()
+            if drv_ver_name in self.INSTALL_SERVICE_DIC:
+                for srv in self.INSTALL_SERVICE_DIC[drv_ver_name]:
+                    comm_list = [s if s.find('%s') < 0 else s % (drv_ver_name) for s in srv]
+                    subprocess.call(comm_list)
 
         # テーブル作成
         if self.config:
@@ -370,19 +389,21 @@ class InstallDriverInfo():
             self.remove_files(plugins[0], plugins[1], self.driver_name)
 
         # インストール資材の読込
-        subprocess.call(["systemctl", "reload", "uwsgi.service"])
+        subprocess.call(["systemctl", "reload", self.HTTP_SERVICE_LIST[self.HTTP_SERVICE_INDEX]])
 
         # 固有サービス停止
-        drv_ver_name = self.get_driver_version_name()
-        if drv_ver_name in self.UNINSTALL_SERVICE_DIC:
-            for srv in self.UNINSTALL_SERVICE_DIC[drv_ver_name]:
-                comm_list = [s if s.find('%s') < 0 else s % (drv_ver_name) for s in srv]
-                subprocess.call(comm_list)
+        if not self.noservice:
+            drv_ver_name = self.get_driver_version_name()
+            if drv_ver_name in self.UNINSTALL_SERVICE_DIC:
+                for srv in self.UNINSTALL_SERVICE_DIC[drv_ver_name]:
+                    comm_list = [s if s.find('%s') < 0 else s % (drv_ver_name) for s in srv]
+                    subprocess.call(comm_list)
 
         # 固有サービス資材の削除
-        if drv_ver_name in self.PLUGIN_FILES_DIC:
-            for plugins in self.PLUGIN_FILES_DIC[drv_ver_name]:
-                self.remove_files(plugins[0], plugins[1], drv_ver_name, '' if len(plugins) < 3 else plugins[2])
+        if not self.noservice:
+            if drv_ver_name in self.PLUGIN_FILES_DIC:
+                for plugins in self.PLUGIN_FILES_DIC[drv_ver_name]:
+                    self.remove_files(plugins[0], plugins[1], drv_ver_name, '' if len(plugins) < 3 else plugins[2])
 
 
 def get_driver_master(ids=[]):
