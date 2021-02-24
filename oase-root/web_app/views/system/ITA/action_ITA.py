@@ -231,6 +231,7 @@ class ITADriverInfo():
         error_flag = False
         error_msg  = {
             'ita_disp_name' : '',
+            'version' : '',
             'protocol' : '',
             'hostname' : '',
             'port' : '',
@@ -253,7 +254,7 @@ class ITADriverInfo():
             if ope != defs.DABASE_OPECODE.OPE_DELETE:
                 error_flag = self._validate(rq, error_msg, request)
             if error_flag:
-                raise UserWarning('validation error.')
+                raise Exception('validation error.')
 
             # パスワードを暗号化
             cipher = AESCipher(settings.AES_KEY)
@@ -263,6 +264,7 @@ class ITADriverInfo():
 
                 driver = ItaDriver.objects.get(ita_driver_id=rq['ita_driver_id'])
                 driver.ita_disp_name = rq['ita_disp_name']
+                driver.version = rq['version']
                 driver.protocol = rq['protocol']
                 driver.hostname = rq['hostname']
                 driver.port = rq['port']
@@ -311,6 +313,7 @@ class ITADriverInfo():
 
                 driver = ItaDriver(
                     ita_disp_name = rq['ita_disp_name'],
+                    version = rq['version'],
                     protocol = rq['protocol'],
                     hostname = rq['hostname'],
                     port = rq['port'],
@@ -383,12 +386,22 @@ class ITADriverInfo():
             emo_flag_ita_disp_name   = True
             error_msg['ita_disp_name'] += get_message('MOSJA27120', request.user.get_lang_mode(), showMsgId=False) + '\n'
 
+        if len(rq['version']) == 0:
+            error_flag = True
+            error_msg['version'] += get_message('MOSJA27126', request.user.get_lang_mode()) + '\n'
+            logger.user_log('LOSM07001', 'version', request=request)
+
+        if len(rq['version']) > 64:
+            error_flag = True
+            error_msg['version'] += get_message('MOSJA27127', request.user.get_lang_mode()) + '\n'
+            logger.user_log('LOSM07002', 'version', 64, rq['version'], request=request)
+
         if len(rq['protocol']) == 0:
             error_flag = True
             error_msg['protocol'] += get_message('MOSJA27115', request.user.get_lang_mode()) + '\n'
             logger.user_log('LOSM07001', 'protocol', request=request)
 
-        if len(rq['protocol']) > 64:
+        if len(rq['protocol']) > 8:
             error_flag = True
             error_msg['protocol'] += get_message('MOSJA27116', request.user.get_lang_mode()) + '\n'
             logger.user_log('LOSM07002', 'protocol', 64, rq['protocol'], request=request)

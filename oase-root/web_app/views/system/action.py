@@ -128,7 +128,7 @@ def modify(request):
     logger.logic_log('LOSI07001', use_drivers, request=request)
 
     # 成功時レスポンスデータ
-    redirect_url = '/oase_web/system/action'
+    redirect_url = ''
     response = {
             "status": "success",
             "redirect_url": redirect_url,
@@ -183,6 +183,9 @@ def modify(request):
         response['status'] = 'failure'
         response['msg'] = msg              # alertで出すメッセージ
         #response['error_msg'] = error_msg  # エラー詳細(エラーアイコンで出す)
+
+    if response['status'] == 'success':
+        redirect_url = '/oase_web/system/action'
 
     response_json = json.dumps(response)
     logger.logic_log('LOSI00002', 'status=%s' % response['status'], request=request)
