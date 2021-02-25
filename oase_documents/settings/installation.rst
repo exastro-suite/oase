@@ -139,9 +139,9 @@ OASEのインストール手順を下記に示します。
    8, db_username, OASE_USER, MariaDBで使用するユーザ名
    9, db_password, OASE_PASSWD, MariaDBのパスワード
    10, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
-   11, wildfly_root_directory, /exastro/WildFly, WildFlyのインストールディレクトリ
-   12, drools_adminname, admin0000, Droolsの管理者名
-   13, drools_password, password@1, Droolsの管理者パスワード
+   11, jboss_root_directory, /exastro/JBossEAP, JBossEAPのインストールディレクトリ
+   12, rhdm_adminname, admin0000, RHDMの管理者名
+   13, rhdm_password, password@1, RHDMの管理者パスワード
    14, dm_ipaddrport, localhost:8080, ディシジョンマネージャを設定したサーバのIPアドレス
    15, rulefile_rootpath, /exastro/rule, ルールファイルを格納するディレクトリ
    16, apply_ipaddrport, 127.0.0.1:50001, アプライサービスを設定したサーバのIPアドレス
@@ -212,21 +212,21 @@ OASEのインストール手順を下記に示します。
 
 
  ##############################
- # WildFly
+ # JBoss EAP
  ##############################
- # Enter WildFly install directory.
- # e.g) wildfly_root_directory:/exastro/WildFly
- wildfly_root_directory:/exastro/WildFly
+ # Enter JBoss install directory.
+ # e.g) jboss_root_directory:/exastro/JBossEAP
+ jboss_root_directory:/exastro/JBossEAP
 
 
  ##############################
- # Drools
+ # RHDM
  ##############################
  # Decide the Administrator name, password.
- # e.g) drools_adminname:admin0000
- drools_adminname:admin0000
- # e.g) drools_password:password@1
- drools_password:password@1
+ # e.g) rhdm_adminname:admin0000
+ rhdm_adminname:admin0000
+ # e.g) rhdm_password:password@1
+ rhdm_password:password@1
 
  # Enter IP address & port for Decision Manager.
  # e.g) dm_ipaddrport:localhost:8080
