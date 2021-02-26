@@ -1,5 +1,5 @@
 # Select install mode. 
-# ("Install_Online","Install_Offline","Gather_Library","Uninstall")
+# ("Install_Online","Install_Offline","Gather_Library","Versionup_All", "Versionup_OASE", "Uninstall")
 # e.g) install_mode:Install_Online
 install_mode:Install_Online
 
