@@ -92,6 +92,17 @@ function oase_uninstall() {
     log "INFO : Finished to uninstall"
 }
 
+function oase_versionup() {
+    log "INFO : Start to versionup"
+
+    bash ${OASE_INSTALL_BIN_DIR}/oase_version_up.sh
+    if [ $? -ne 0 ]; then
+        log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_version_up.sh"
+        return 1
+    fi
+    log "INFO : Finished to versionup"
+}
+
 ################################################################################
 # main
 
@@ -126,6 +137,7 @@ _some_var=`cat << EOF
         ${OASE_INSTALL_BIN_DIR}/oase_middleware_setup_core.sh
         ${OASE_INSTALL_BIN_DIR}/oase_service_setup_core.sh
     ${OASE_INSTALL_BIN_DIR}/oase_uninstall_core.sh
+    ${OASE_INSTALL_BIN_DIR}/oase_version_up.sh
     ${OASE_INSTALL_BIN_DIR}/oase_builder_core.sh
 EOF`
 for _some_sh in ${_some_var};do
@@ -230,6 +242,19 @@ elif [ ${install_mode} = "Uninstall" ]; then
     fi
     log "#####################################"
     log "INFO : Uninstall Finished"
+    log "#####################################"
+    exit 0
+elif [ ${install_mode} = "Versionup_All" -o ${install_mode} = "Versionup_OASE"  ]; then
+    log "INFO : Mode=Versionup Selected"
+    oase_versionup
+    if [ $? -ne 0 ]; then
+        log "#####################################"
+        log "ERROR : Versionup Failed"
+        log "#####################################"
+        exit 1
+    fi
+    log "#####################################"
+    log "INFO : Versionup Finished"
     log "#####################################"
     exit 0
 else
