@@ -80,6 +80,7 @@ class ITAParameterSheetFactory():
     CLASS_SUFFIX_DICT = {
         '1.6.0' : '2',
         '1.6.1' : '2',
+        '1.6.2' : '2',
     }
 
     # パラメーターシート用の基本名
