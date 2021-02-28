@@ -47,6 +47,11 @@ Alias /static ${oase_directory}/OASE/oase-root/web_app/static
   ServerName $OASE_DOMAIN
   ServerAlias *
   DocumentRoot ${oase_directory}/OASE/oase-root
+  RedirectMatch ^/$ /oase_web/top/login
+
+  ErrorLog   logs/oase-ssl-error_log
+  CustomLog  logs/oase-ssl-access_log combined env=!no_log
+
   SSLEngine  on
   SSLCertificateFile /etc/pki/tls/certs/$CERTIFICATE_FILE
   SSLCertificateKeyFile /etc/pki/tls/certs/$PRIVATE_KEY_FILE
@@ -55,7 +60,10 @@ Alias /static ${oase_directory}/OASE/oase-root/web_app/static
 <VirtualHost *:80 >
   ServerName any
   DocumentRoot ${oase_directory}/OASE/oase-root
-  DirectoryIndex oase_web/top/login
+  RedirectMatch ^/$ /oase_web/top/login
+
+  ErrorLog   logs/oase-error_log
+  CustomLog  logs/oase-access_log combined env=!no_log
 
   <Location / >
     Require all granted
