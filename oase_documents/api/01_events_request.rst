@@ -19,7 +19,7 @@
 
 ::
 
- curl -X POST -k "https://<HostName>/oase_web/event/event/eventsrequest" -H "accept: application/json" -d "{\"ruletable\":\"ruletable001\",\"requesttype\":\"1\",\"eventdatetime\":\"2018/12/13 15:16:29\",\"eventinfo\":[\"2\",\"あああ\"]}"
+ curl -X POST -k "https://<HostName>/oase_web/event/event/eventsrequest" -H "accept: application/json" -d "{\"decisiontable\":\"decisiontable001\",\"requesttype\":\"1\",\"eventdatetime\":\"2018/12/13 15:16:29\",\"eventinfo\":[\"2\",\"あああ\"]}"
 
 
 
@@ -33,8 +33,6 @@
 
    1, Host, ホスト名,
    2, Content-Type, 形式名,値は「application/json」で固定
-   3, Authorization, 認証情報, Base64形式 
-   
 
 1.1.3 パラメータ
 --------------------------------------
@@ -43,23 +41,23 @@
    :header: No,  物理名,論理名, 属性,長さ,空白
    :widths: 5, 20, 20,15,15,10
 
-   1, ruletable, ルールテーブル名,文字列, 64, 不可
+   1, decisiontable, ディシジョンテーブル名,文字列, 64, 不可
    2, requesttype, リクエスト種別,文字列,  11,不可
    3, eventdatetime, イベント発生日時,文字列,19, 不可
    4, eventinfo, イベント情報,リスト,4000 ,不可
 
 
 
-ruletable
-~~~~~~~~~~~~
+decisiontable
+~~~~~~~~~~~~~
 
-ディシジョンテーブル画面で作成したRuleTableを記述することができます。
+ディシジョンテーブル画面で作成したディシジョンテーブル名を記述することができます。
 
 **記述例**
 
 :: 
 
- ruletable01
+ decisiontable001
 
 requesttype
 ~~~~~~~~~~~~

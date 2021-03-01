@@ -114,7 +114,7 @@ class ITADriverInfo():
         グループ一覧を取得する(システム管理グループを除く)
         """
 
-        grp_list = Group.objects.filter(group_id__gt=1).values('group_id', 'group_name').order_by('group_id')
+        grp_list = Group.objects.filter(group_id__gt=defs.GROUP_DEFINE.GROUP_ID_ADMIN).values('group_id', 'group_name').order_by('group_id')
         return grp_list
 
     @classmethod
@@ -126,7 +126,7 @@ class ITADriverInfo():
 
         drv_ids = []
 
-        if 1 in user_groups:  # 1=システム管理グループ:すべてのドライバーに対して更新権限を持つ
+        if defs.GROUP_DEFINE.GROUP_ID_ADMIN in user_groups:  # 1=システム管理グループ:すべてのドライバーに対して更新権限を持つ
             drv_ids = [drv.ita_driver_id for drv in ita_drv_list]
 
         else:
@@ -231,6 +231,7 @@ class ITADriverInfo():
         error_flag = False
         error_msg  = {
             'ita_disp_name' : '',
+            'version' : '',
             'protocol' : '',
             'hostname' : '',
             'port' : '',
@@ -253,7 +254,7 @@ class ITADriverInfo():
             if ope != defs.DABASE_OPECODE.OPE_DELETE:
                 error_flag = self._validate(rq, error_msg, request)
             if error_flag:
-                raise UserWarning('validation error.')
+                raise Exception('validation error.')
 
             # パスワードを暗号化
             cipher = AESCipher(settings.AES_KEY)
@@ -263,6 +264,7 @@ class ITADriverInfo():
 
                 driver = ItaDriver.objects.get(ita_driver_id=rq['ita_driver_id'])
                 driver.ita_disp_name = rq['ita_disp_name']
+                driver.version = rq['version']
                 driver.protocol = rq['protocol']
                 driver.hostname = rq['hostname']
                 driver.port = rq['port']
@@ -311,6 +313,7 @@ class ITADriverInfo():
 
                 driver = ItaDriver(
                     ita_disp_name = rq['ita_disp_name'],
+                    version = rq['version'],
                     protocol = rq['protocol'],
                     hostname = rq['hostname'],
                     port = rq['port'],
@@ -383,15 +386,25 @@ class ITADriverInfo():
             emo_flag_ita_disp_name   = True
             error_msg['ita_disp_name'] += get_message('MOSJA27120', request.user.get_lang_mode(), showMsgId=False) + '\n'
 
+        if len(rq['version']) == 0:
+            error_flag = True
+            error_msg['version'] += get_message('MOSJA27126', request.user.get_lang_mode()) + '\n'
+            logger.user_log('LOSM07001', 'version', request=request)
+
+        if len(rq['version']) > 64:
+            error_flag = True
+            error_msg['version'] += get_message('MOSJA27127', request.user.get_lang_mode()) + '\n'
+            logger.user_log('LOSM07002', 'version', 64, rq['version'], request=request)
+
         if len(rq['protocol']) == 0:
             error_flag = True
             error_msg['protocol'] += get_message('MOSJA27115', request.user.get_lang_mode()) + '\n'
             logger.user_log('LOSM07001', 'protocol', request=request)
 
-        if len(rq['protocol']) > 64:
+        if len(rq['protocol']) > 8:
             error_flag = True
             error_msg['protocol'] += get_message('MOSJA27116', request.user.get_lang_mode()) + '\n'
-            logger.user_log('LOSM07002', 'protocol', 64, rq['protocol'], request=request)
+            logger.user_log('LOSM07002', 'protocol', 8, rq['protocol'], request=request)
 
         if len(rq['hostname']) == 0:
             error_flag = True
@@ -497,7 +510,7 @@ class ITADriverInfo():
 
     def _chk_permission(self, group_id_list, ita_driver_id, response):
 
-        if 1 in group_id_list:
+        if defs.GROUP_DEFINE.GROUP_ID_ADMIN in group_id_list:
             return response
 
         pti = ItaPermission.objects.filter(group_id__in=group_id_list, ita_driver_id=ita_driver_id, permission_type_id=1)

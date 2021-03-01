@@ -29,6 +29,8 @@ import socket
 import pytz
 import datetime
 import re
+
+from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from web_app.models.models import User,System,AccessPermission,UserGroup
 
@@ -199,7 +201,7 @@ class Common:
         if ad_flg == False:
             if ndt == '1':
                 # ユーザ更新権限のあるグループ (group_id=1は除外)
-                group_list = list(AccessPermission.objects.exclude(group_id=1).filter(permission_type_id=1,menu_id=2141002004).values_list('group_id', flat=True))
+                group_list = list(AccessPermission.objects.exclude(group_id=defs.GROUP_DEFINE.GROUP_ID_ADMIN).filter(permission_type_id=1,menu_id=2141002004).values_list('group_id', flat=True))
                 user_list = list(UserGroup.objects.filter(group_id__in=group_list).values_list('user_id', flat=True)
                 )
                 mail_list.extend(list(User.objects.filter(user_id__in=user_list).values_list('mail_address', flat=True)))

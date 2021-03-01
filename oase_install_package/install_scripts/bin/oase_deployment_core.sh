@@ -57,6 +57,24 @@ cd "$OASE_DIRECTORY"
 tar -zxf "$OASE_DIRECTORY"/OASE.tar.gz
 rm -f "$OASE_DIRECTORY"/OASE.tar.gz
 
+
+if ! test -e "$OASE_INSTALL_SCRIPTS_DIR/list/777R_list.txt" ; then
+    log "INFO : 777_list.txt does not be found."
+
+else
+    while read LINE; do
+        chmod -R 777 "$OASE_DIRECTORY"/OASE"$LINE"
+        LINE_1="${LINE%\/*}"
+        LINE_2="${LINE##*/}"
+        RES=`ls -l "$OASE_DIRECTORY"/OASE"$LINE_1" 2> /dev/null | grep -- "$LINE_2" | grep rwxrwxrwx`
+        if [ "${#RES}" -eq 0 ]; then
+            log "WARNING : Failed to place $LINE."
+        fi
+    done < "$OASE_INSTALL_SCRIPTS_DIR/list/777R_list.txt"
+
+fi
+
+
 ################################################################################
 log "INFO : Material deployment is completed."
 ################################################################################

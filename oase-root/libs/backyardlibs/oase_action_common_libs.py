@@ -98,6 +98,7 @@ class ConstantModules:
     TBL_COL_MAX                       =  COL_LAST_UPDATE_USER + 1
 
     ## C_PARAMETER_SHEET
+    COL_PARAMETER_NO                  =  2
     COL_HOSTNAME                      =  3
     COL_OPERATION_ID                  =  4
     COL_OPERATION_NAME_PARAM          =  5
@@ -123,17 +124,23 @@ class ConstantModules:
 
     ## E_ANSIBLE_xxx_PATTERN
     EAP_PATTERN_ID                    = 2
+    EAP_PATTERN_NAME                  = 3
     EAP_LEGACY_VAR_COUNT              = 10
     EAP_PIONEER_VAR_COUNT             = 8
     EAP_LEGACYROLE_VAR_COUNT          = 10
 
     ## F_CREATE_MENU_INFO
+    FCMI_MENU_ID                      = 2
     FCMI_MENU_NAME                    = 3
     FCMI_TARGET                       = 4
     FCMI_USE                          = 6
     FCMI_MENUGROUP_FOR_HOSTGROUP      = 8
     FCMI_MENUGROUP_FOR_HOST           = 9
     FCMI_MENUGROUP_FOR_VERTICAL       = 11
+
+    ## A_MENU_GROUP_LIST
+    AMGL_MENU_GROUP_ID                = 2
+    AMGL_MENU_GROUP_NAME              = 3
 
     ## A_MENU_LIST
     AML_MENU_ID                       = 2

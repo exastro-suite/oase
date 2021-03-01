@@ -61,10 +61,10 @@ EOS
 ################################################################################
 log "INFO : Start DB existence check."
 ################################################################################
-result=$(echo "show databases" | mysql -u root -p${db_root_password} 2>&1)
+result=$(echo "show databases" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
 
-db_exists=$(echo "$result" | grep -E ^${db_name}$ 2>&1)
+db_exists=$(echo "$result" | grep -E ^${db_name}$ 2>> "$OASE_INSTALL_LOG_FILE")
 
 _db_exists_flag=false
 
@@ -82,7 +82,7 @@ else
     log "INFO : Start CREATE DATABASE."
     ################################################################################
 
-    result=$(echo "CREATE DATABASE ${db_name} CHARACTER SET utf8;" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "CREATE DATABASE ${db_name} CHARACTER SET utf8;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
     check_result $? "$result"
 
     ################################################################################
@@ -90,9 +90,9 @@ else
     ################################################################################
 fi
 
-result=$(echo "SELECT User FROM mysql.user;" | mysql -u root -p${db_root_password} 2>&1)
+result=$(echo "SELECT User FROM mysql.user;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
-user_exits=$(echo "$result" | grep -E ^${db_username}$ 2>&1)
+user_exits=$(echo "$result" | grep -E ^${db_username}$ 2>> "$OASE_INSTALL_LOG_FILE")
 
 if [ -z "$user_exits" ]; then
 
@@ -100,13 +100,13 @@ if [ -z "$user_exits" ]; then
     log "INFO : Start CREATE USER."
     ################################################################################
 
-    result=$(echo "SET GLOBAL validate_password.length=4;" | mysql -u root -p${db_root_password} 2>&1)
-    result=$(echo "SET GLOBAL validate_password.mixed_case_count=0;" | mysql -u root -p${db_root_password} 2>&1)
-    result=$(echo "SET GLOBAL validate_password.number_count=0;" | mysql -u root -p${db_root_password} 2>&1)
-    result=$(echo "SET GLOBAL validate_password.special_char_count=0;" | mysql -u root -p${db_root_password} 2>&1)
-    result=$(echo "SET GLOBAL validate_password.policy=LOW;" | mysql -u root -p${db_root_password} 2>&1)
+    #result=$(echo "SET GLOBAL validate_password.length=4;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+    #result=$(echo "SET GLOBAL validate_password.mixed_case_count=0;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+    #result=$(echo "SET GLOBAL validate_password.number_count=0;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+    #result=$(echo "SET GLOBAL validate_password.special_char_count=0;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+    #result=$(echo "SET GLOBAL validate_password.policy=LOW;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
 
-    result=$(echo "CREATE USER '"${db_username}"' IDENTIFIED BY '"${db_password}"';" | mysql -u root -p${db_root_password} 2>&1)
+    result=$(echo "CREATE USER '"${db_username}"' IDENTIFIED BY '"${db_password}"';" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
     check_result $? "$result"
 
     ################################################################################
@@ -114,7 +114,10 @@ if [ -z "$user_exits" ]; then
     ################################################################################
 fi
 
-result=$(echo "GRANT ALL ON "${db_name}".* TO '"${db_username}"';" | mysql -u root -p${db_root_password} 2>&1)
+result=$(echo "GRANT ALL ON "${db_name}".* TO '"${db_username}"';" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+check_result $? "$result"
+
+result=$(echo "grant all privileges on *.* to '"${db_username}"'@'localhost' identified by '"${db_password}"' with grant option;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
 
 ################################################################################
@@ -151,15 +154,15 @@ encrypter=$oase_directory/OASE/tool/encrypter.py
 date=`date +"%Y-%m-%dT%H:%M:%S"`
 create_initcustom 2  "ルールファイル設置ルートパス"  "RULE"          "RULEFILE_ROOTPATH" ${rulefile_rootpath}  $date
 create_initcustom 26 "DMリクエスト送信先"            "DMSETTINGS"    "DM_IPADDRPORT"     ${dm_ipaddrport}      $date
-create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${drools_adminname}   $date
-encrypted_password=$(python3 $encrypter ${drools_password} 2>&1)
+create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${rhdm_adminname}   $date
+encrypted_password=$(python3 $encrypter ${rhdm_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? $encrypted_password
 create_initcustom 28 "DMパスワード"                  "DMSETTINGS"    "DM_PASSWD"         $encrypted_password   $date
 create_initcustom 29 "適用君待ち受け情報"            "APPLYSETTINGS" "APPLY_IPADDRPORT"  ${apply_ipaddrport}   $date
 create_initcustom 31 "OASEメールSMTP"                "OASE_MAIL"     "OASE_MAIL_SMTP"    ${oasemail_smtp}      $date
 create_initcustom 32 "Maven repositoryパス"          "RULE"          "MAVENREP_PATH"     ${mavenrep_path}      $date
 create_initcustom 50 "RabbitMQユーザID"              "RABBITMQ"      "MQ_USER_ID"        ${RabbitMQ_username}  $date
-encrypted_password=$(python3 $encrypter ${RabbitMQ_password} 2>&1)
+encrypted_password=$(python3 $encrypter ${RabbitMQ_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? $encrypted_password
 create_initcustom 51 "RabbitMQパスワード"            "RABBITMQ"      "MQ_PASSWORD"       $encrypted_password   $date
 create_initcustom 52 "RabbitMQIPアドレス"            "RABBITMQ"      "MQ_IPADDRESS"      ${RabbitMQ_ipaddr}    $date
@@ -189,17 +192,23 @@ if [ ! -e $OASE_MIGRATIONS_DIR/__init__.py ]; then
 fi
 
 cd $(dirname $OASE_WEBAPP_DIR)
-migrate_log=$(python manage.py makemigrations web_app 2>&1)
+migrate_log=$(python manage.py makemigrations web_app 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$migrate_log"
 
 log "INFO : $migrate_log"
 
-migrate_log=$(python manage.py migrate 2>&1)
+migrate_log=$(python manage.py migrate 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$migrate_log"
 
 log "INFO : $migrate_log."
 
-migrate_log=$(python manage.py loaddata init init_custom 2>&1)
+OASE_UNIQUE_DELETE_FILE=$OASE_INSTALL_PACKAGE_DIR/SQL/OASE1.2.0.sql
+migrate_log=$(echo "source $OASE_UNIQUE_DELETE_FILE" | mysql -u ${db_username} -p${db_password} ${db_name}  2>> "$OASE_INSTALL_LOG_FILE")
+check_result $? "$migrate_log"
+
+log "INFO : $migrate_log."
+
+migrate_log=$(python manage.py loaddata init init_custom 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$migrate_log"
 
 log "INFO : $migrate_log."

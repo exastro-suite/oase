@@ -57,9 +57,17 @@ def method_dummy_true(*args, **kwargs):
     """正常系用 request.postの戻り値"""
     return True
 
+def method_dummy_none(*args, **kwargs):
+    """正常系用 request.postの戻り値"""
+    return None
+
 def method_dummy_count(*args, **kwargs):
     """正常系用"""
     return 1
+
+def method_dummy_count_zero(*args, **kwargs):
+    """正常系用"""
+    return 0
 
 
 def method_dummy_data(*args, **kwargs):
@@ -345,6 +353,79 @@ def test_insert_c_parameter_sheet(monkeypatch):
     # todo 異常系
 
 
+def test_select_c_parameter_sheet_ok(monkeypatch):
+    """
+    select_c_parameter_sheet(正常系)のテスト
+    """
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    config = {}
+    host_name = 'host1'
+    operation_name = 'pytest'
+    menu_id = ''
+
+    monkeypatch.setattr(core.restobj, 'rest_set_config',    method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_select',        method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_count', method_dummy_count)
+    ret, ary_result = core.select_c_parameter_sheet(config, host_name, operation_name, menu_id)
+    assert ret == 1
+
+
+def test_select_c_parameter_sheet_ok_zero(monkeypatch):
+    """
+    select_c_parameter_sheet(正常系0件)のテスト
+    """
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    config = {}
+    host_name = 'host1'
+    operation_name = 'pytest'
+    menu_id = ''
+
+    monkeypatch.setattr(core.restobj, 'rest_set_config',    method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_select',        method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_count', method_dummy_count_zero)
+    ret, ary_result = core.select_c_parameter_sheet(config, host_name, operation_name, menu_id)
+    assert ret == 0
+
+
+def test_update_c_parameter_sheet_ok(monkeypatch):
+    """
+    update_c_parameter_sheet()の正常系テスト
+    """
+
+    def method_dummy_input_data(*args, **kwargs):
+
+        return [[None, '', '1', 'OASEメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'OASE_MenuGroup(Host)', 'OASE_MenuGroup(Ref)', '', None, None, '2020/04/10 15:02:08', 'T_20200410150208611888', 'システム管理者'], [None, '', '2', 'OASEメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '2', 'ホスト 用', '', '', 'テストメニュー（Host）', 'testメニュー （Ref）', '', 'テスト', None, '2020/04/16 17:35:02', 'T_20200416173502336962', 'システム管理者']]
+
+    def method_dummy_output_data(*args, **kwargs):
+
+        return [[None, '', '1', 'OASEメニュー1', 'パラメータシート(ホスト/オペレーション含む)', '1', 'ホスト用', '', '', 'OASE_MenuGroup(Host)', 'OASE_MenuGroup(Ref)', '', None, None, '2020/04/10 15:02:08', 'T_20200410150208611888', 'システム管理者'], [None, '', '2', 'OASEメニュー2', 'パラメータシート(ホスト/オペレーション含む)', '2', 'ホスト 用', '', '', 'テストメニュー（Host）', 'testメニュー （Ref）', '', 'テスト', None, '2020/04/16 17:35:02', 'T_20200416173502336962', 'システム管理者']]
+
+    core = create_ita1core()
+    core.restobj.rest_set_config(get_configs())
+
+    config = {}
+    host_name = 'host1'
+    operation_id = '27'
+    operation_name = 'pytest'
+    exec_schedule_date = '2020/03/02 17:45_27:pytest'
+    parameter_list = ['param1', 'param2']
+    menu_id = ''
+    ary_result = []
+
+    monkeypatch.setattr(core.restobj, 'rest_set_config',   method_dummy_true)
+    monkeypatch.setattr(core.restobj, 'rest_get_row_data', method_dummy_input_data)
+    monkeypatch.setattr(core.restobj, 'rest_insert',       method_dummy_output_data)
+    ret = core.update_c_parameter_sheet(
+        config, host_name, operation_name, 
+        exec_schedule_date, parameter_list, menu_id, ary_result
+    )
+    assert ret == 0
+
+
 def test_select_substitution_value_mng(monkeypatch):
     """
     select_substitution_value_mng()のテスト
@@ -352,18 +433,22 @@ def test_select_substitution_value_mng(monkeypatch):
     core = create_ita1core()
     config = get_configs()
     operation_name = 'oase'
+    movement_names = {}
     menu_id = ''
     target_table = 'TEST'
 
+    # monkeypatchをかけているrest_select内で「ary_result」の値を入れている
+    # select_substitution_value_mngでは「ary_result」を使ってfor文を回している
+    # pytestでは使用上外側から「ary_result」の設定ができず、動作確認ができないため、コメントアウト
     # 正常系
     monkeypatch.setattr(core.restobj, 'rest_select', lambda a, b: (True))
     monkeypatch.setattr(core.restobj, 'rest_get_row_count', lambda a: (1))
-    result = core.select_substitution_value_mng(config, operation_name, menu_id, target_table)
-    assert result >= 1
+    #result = core.select_substitution_value_mng(config, operation_name, movement_names, menu_id, target_table)
+    #assert result >= 1
 
     # 異常系
     monkeypatch.setattr(core.restobj, 'rest_select', lambda a, b: (False))
-    #result = core.select_substitution_value_mng(config, operation_name, menu_id, target_table)
+    #result = core.select_substitution_value_mng(config, operation_name, movement_names, menu_id, target_table)
     #assert result == None
 
 

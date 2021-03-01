@@ -1244,12 +1244,20 @@ def delete(request):
                     PROTOCOL, IPADDRPORT, product_ContID)
                 response2 = requests.delete(HTTP2, headers=headers, auth=(dmuser, dmpass))
                 logger.system_log('LOSI12000', 'response2: %s, product_ContID: %s' % (response2, product_ContID))
+                if response2.status_code != 204 and response2.status_code != 404:
+                    msg = 'MOSJA03607'
+                    logger.system_log('LOSM12071', 'response2: %s, product_ContID: %s' % (response2, product_ContID))
+                    raise Exception()
 
             if staging_ContID is not None:
                 HTTP2 = '%s://%s/decision-central/rest/controller/management/servers/default-kieserver/containers/%s' % (
                     PROTOCOL, IPADDRPORT, staging_ContID)
                 response2 = requests.delete(HTTP2, headers=headers, auth=(dmuser, dmpass))
                 logger.system_log('LOSI12000', 'response2: %s, staging_ContID: %s' % (response2, staging_ContID))
+                if response2.status_code != 204 and response2.status_code != 404:
+                    msg = 'MOSJA03607'
+                    logger.system_log('LOSM12071', 'response2: %s, staging_ContID: %s' % (response2, staging_ContID))
+                    raise Exception()
 
             #########################################
             # MRディレクトリ削除
@@ -1333,6 +1341,10 @@ def delete(request):
         }
 
     except Exception as e:
+        if not msg:
+            logger.system_log('LOSM00001', traceback.format_exc())
+            msg = 'MOSJA03217'
+
         ret_info = {
             'result': 'NG',
             'msg': msg,

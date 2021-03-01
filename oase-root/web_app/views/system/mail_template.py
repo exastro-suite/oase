@@ -72,13 +72,12 @@ def index(request):
         msg = 'データの取得に失敗しました'
 
     data = {
-        'mainmenu_list': request.user_config.get_menu_list(),
         'msg': msg,
         'editable_user': editable_user,
         'mail_list': mail_list,
-        'user_name': request.user.user_name,
-        'lang_mode': request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'user_id: %s, mail_list count: %s' % (request.user.user_id, len(mail_list)))
 

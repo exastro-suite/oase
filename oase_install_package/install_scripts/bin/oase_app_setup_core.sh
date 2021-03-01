@@ -40,22 +40,14 @@ log "INFO : Start Create Setting.py."
 ################################################################################
 # input contents from anser_file for settings.py
 
-if [ ${oase_session_engine} = "db" ]; then
-    sed -i -e "/^SESSION_ENGINE/s/.*/SESSION_ENGINE = 'django.contrib.sessions.backends.db'/g" $OASE_SETTING_FILE
-    sed -i -e 's/^SESSION_FILE_PATH/#SESSION_FILE_PATH/g' $OASE_SETTING_FILE
 
-elif [ ${oase_session_engine} = "file" ]; then
-    if [ ! -e "${oase_directory}/OASE/oase-root/temp/sessions" ]; then
-        log "INFO : create sessions directory."
-        mkdir -p $oase_directory/OASE/oase-root/temp/sessions
-    fi
-    sed -i -e "/^SESSION_ENGINE/s/.*/SESSION_ENGINE = 'django.contrib.sessions.backends.file'/g" $OASE_SETTING_FILE
-    sed -i -e 's/^#SESSION_FILE_PATH/SESSION_FILE_PATH/g' $OASE_SETTING_FILE
-
-else
-    sed -i -e "/^SESSION_ENGINE/s/.*/SESSION_ENGINE = 'django.contrib.sessions.backends.cache'/g" $OASE_SETTING_FILE
-    sed -i -e 's/^SESSION_FILE_PATH/#SESSION_FILE_PATH/g' $OASE_SETTING_FILE
+if [ ! -e "${oase_directory}/OASE/oase-root/temp/sessions" ]; then
+    log "INFO : create sessions directory."
+    mkdir -p $oase_directory/OASE/oase-root/temp/sessions
 fi
+sed -i -e "/^SESSION_ENGINE/s/.*/SESSION_ENGINE = 'django.contrib.sessions.backends.file'/g" $OASE_SETTING_FILE
+sed -i -e 's/^#SESSION_FILE_PATH/SESSION_FILE_PATH/g' $OASE_SETTING_FILE
+
 
 sed -i -e 's/^#EVTIMER_SERVER/EVTIMER_SERVER/g' $OASE_SETTING_FILE
 sed -i -e 's/^#    "type"/    "type"/g' $OASE_SETTING_FILE

@@ -27,6 +27,7 @@ OASEをより深く知りたい場合は、ここにあるドキュメントを�
    rule/index
    action_history/index
    system_config/index
+   sso_info/index
    group/index
    user/index
    monitoring_adapter/index
