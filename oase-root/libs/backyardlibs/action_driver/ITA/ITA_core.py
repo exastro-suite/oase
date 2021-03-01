@@ -167,7 +167,6 @@ class ITA1Rest:
             return False
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
-        ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01028')
         return True
 
     def rest_conductor_execute(
@@ -261,10 +260,9 @@ class ITA1Rest:
             return False
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
-        ActionDriverCommonModules.SaveActionLog(resp_id, exe_order, self.trace_id, 'MOSJA01076')
         return True
 
-    def rest_insert(self, insert_row_data, ary_result):
+    def rest_insert(self, insert_row_data, ary_result, kind='register'):
         """
         [概要]
         ITA RestAPI insertメゾット
@@ -318,7 +316,7 @@ class ITA1Rest:
                     return False
 
                 if ary_result['response']['resultdata']['LIST']['RAW'][0][0] != '000' or \
-                   ary_result['response']['resultdata']['LIST']['NORMAL']['register']['ct'] == 0 or \
+                   ary_result['response']['resultdata']['LIST']['NORMAL'][kind]['ct'] == 0 or \
                    ary_result['response']['resultdata']['LIST']['NORMAL']['error']['ct'] != 0:
 
                     ary_result['response'] = ary_result['response']['resultdata']['LIST']['RAW'][0][2]
@@ -1174,6 +1172,74 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
 
+    def update_c_parameter_sheet(self, config, host_name, operation_name, exec_schedule_date, parameter_list, menu_id, ary_result):
+        """
+        [概要]
+        パラメーターシート更新メソッド
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s' % self.trace_id)
+
+        config['menuID'] = menu_id
+        self.restobj.rest_set_config(config)
+
+        select_data = self.restobj.rest_get_row_data(ary_result)
+        update_data = {
+            Cstobj.COL_FUNCTION_NAME: '更新',
+            Cstobj.COL_PARAMETER_NO: select_data[0][Cstobj.COL_PARAMETER_NO],
+            Cstobj.COL_HOSTNAME: host_name,
+            Cstobj.COL_OPERATION_NAME_PARAM: operation_name,
+            Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME: exec_schedule_date
+        }
+        for i, p in enumerate(parameter_list):
+            update_data[Cstobj.COL_PARAMETER + i] = p
+
+        # パラメータ項目の次は備考欄、最終更新日時、更新用の最終更新日時を設定(備考欄は空白)
+        update_data[Cstobj.COL_PARAMETER + i + 2] = select_data[0][Cstobj.COL_PARAMETER + i + 2]
+        update_data[Cstobj.COL_PARAMETER + i + 3] = select_data[0][Cstobj.COL_PARAMETER + i + 3]
+
+        result = {}
+        ret = self.restobj.rest_insert(update_data, result, 'update')
+        if not ret:
+            target_table = 'C_PARAMETER_SHEET'
+            logger.system_log('LOSE01028', self.trace_id, target_table, self.response_id, self.execution_order)
+            logger.system_log('LOSE01000', self.trace_id, target_table, 'Update', result['status'])
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id, self.execution_order, self.trace_id, 'MOSJA01084')
+            return Cstobj.RET_REST_ERROR
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0
+
+    def select_c_parameter_sheet(self, config, host_name, operation_name, menu_id):
+        """
+        [概要]
+        パラメーターシート検索メソッド
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s, host_name: %s, operation_name: %s, menu_id: %s' %
+        (self.trace_id, host_name, operation_name, menu_id))
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            Cstobj.COL_HOSTNAME:{'NORMAL': host_name},
+            Cstobj.COL_OPERATION_NAME_PARAM:{'NORMAL': operation_name}
+        }
+
+        config['menuID'] = menu_id
+        self.restobj.rest_set_config(config)
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+
+        if ret:
+            row_count  = self.restobj.rest_get_row_count(ary_result)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+            if row_count > 0:
+                return row_count, ary_result
+            else:
+                return 0, ary_result
+        else:
+            logger.system_log('LOSE01025', self.trace_id, self.restobj.menu_id, 'Filter', ary_result['status'])
+            ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01083')
+            return None, ary_result
+
     def _insert_b_ansible_pho_link(self, target_table, insert_row_data):
         """
         [概要]
@@ -1227,23 +1293,29 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: 0' % (self.trace_id))
         return 0
 
-    def select_substitution_value_mng(self, config, operation_name, menu_id, target_table):
+    def select_substitution_value_mng(self, config, operation_name, movement_names, menu_id, target_table):
         """
         [概要]
           代入値管理検索メゾット
         """
         logger.logic_log('LOSI00001', 'trace_id: %s, operation_name: %s, menu_id: %s, target_table: %s' % (self.trace_id, operation_name, menu_id, target_table))
-        aryfilter = {Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
-                        3:{'NORMAL':operation_name}
+
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            3:{'NORMAL':operation_name},
         }
 
         config['menuID'] = menu_id
         self.restobj.rest_set_config(config)
+        row_count = 0
 
         ary_result = {}
         ret = self.restobj.rest_select(aryfilter,ary_result)
         if ret:
-            row_count  = self.restobj.rest_get_row_count(ary_result)
+            for row in ary_result['response']['resultdata']['CONTENTS']['BODY']:
+                for movement_name in movement_names:
+                    if row[5].startswith(movement_name):
+                        row_count = row_count + 1
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
             return row_count
         else:
@@ -1251,7 +1323,7 @@ class ITA1Core(DriverCore):
             ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01065')
             return None
 
-    def select_e_movent_list(self, config, movement_ids, orch_id, menu_id, target_table, target_col, var_count):
+    def select_e_movent_list(self, config, movement_ids, orch_id, menu_id, target_table, target_col, var_count, move_info):
         """
         [概要]
           ムーブメント一覧ビュー検索メゾット
@@ -1276,6 +1348,9 @@ class ITA1Core(DriverCore):
                 row_data = self.restobj.rest_get_row_data(ary_result)
                 for r in row_data:
                     num += int(r[target_col])
+                    move_id_name = '%s:%s' % (str(r[2]), str(r[3]))
+                    if move_id_name not in move_info[orch_id]:
+                        move_info[orch_id].append(move_id_name)
             var_count[orch_id] += num
         else:
             logger.system_log('LOSE01000', self.trace_id, target_table, 'Filter', ary_result['status'])
@@ -1358,6 +1433,60 @@ class ITA1Core(DriverCore):
         # フィルタ条件設定(メニューグループ名)
         if len(group_names) > 0:
             aryfilter[Cstobj.AML_MENU_GROUP_NAME] = {'LIST':group_names}
+
+        # メニュー管理情報を取得
+        self.restobj.rest_set_config(config)
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+        if not ret:
+            logger.system_log('LOSE01025', self.trace_id, self.restobj.menu_id, 'Filter', ary_result['status'])
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
+            return False, []
+
+        row_data = self.restobj.rest_get_row_data(ary_result)
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+
+        return True, row_data
+
+
+    def select_menugroup_list(self, config, range_start=None, range_end=None, group_names=[]):
+        """
+        [概要]
+          メニュー管理検索メソッド
+        """
+
+        logger.logic_log(
+            'LOSI00001',
+            'trace_id:%s, range_s:%s, range_e:%s, groups:%s' % (
+                self.trace_id, range_start, range_end, group_names
+            )
+        )
+
+        row_data = []
+
+        # フィルタ条件設定(廃止を除外)
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL':'0'},
+        }
+
+        # フィルタ条件設定(MENU_ID範囲from)
+        if range_start is not None:
+            aryfilter[Cstobj.AMGL_MENU_GROUP_ID] = {}
+            aryfilter[Cstobj.AMGL_MENU_GROUP_ID]['RANGE'] = {'START':range_start}
+
+        # フィルタ条件設定(MENU_ID範囲to)
+        if range_end is not None:
+            if Cstobj.AMGL_MENU_GROUP_ID not in aryfilter:
+                aryfilter[Cstobj.AMGL_MENU_GROUP_ID] = {}
+                aryfilter[Cstobj.AMGL_MENU_GROUP_ID]['RANGE'] = {'END':0}
+
+            aryfilter[Cstobj.AMGL_MENU_GROUP_ID]['RANGE']['END'] = range_end
+
+        # フィルタ条件設定(メニューグループ名)
+        if len(group_names) > 0:
+            aryfilter[Cstobj.AMGL_MENU_GROUP_NAME] = {'LIST':group_names}
 
         # メニュー管理情報を取得
         self.restobj.rest_set_config(config)

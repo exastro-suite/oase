@@ -392,6 +392,21 @@ class DABASE_OPECODE():
     OPELIST_ADD     = [{'k':'', 'v':OPE_NOTHING}, {'k':'追加', 'v':OPE_INSERT}, ]
     OPELIST_MOD     = [{'k':'', 'v':OPE_NOTHING}, {'k':'更新', 'v':OPE_UPDATE}, {'k':'削除', 'v':OPE_DELETE}, ]
 
+
+#-------------------
+# 特殊なグループ
+#-------------------
+class GROUP_DEFINE():
+
+    # 特殊なグループID
+    GROUP_ID_ADMIN = 1
+    GROUP_ID_SSO   = 2
+    GROUP_ID_MAX   = 2
+
+    # 削除禁止グループID
+    PROTECTED_GROUP_IDS = [GROUP_ID_ADMIN, GROUP_ID_SSO]
+
+
 #-------------------
 # メニューカテゴリー／アイテム
 #-------------------
@@ -406,6 +421,7 @@ MENU = [
     2141001008 , # 'リクエスト履歴',
     2141002001 , # 'サービス状況',
     2141002002 , # 'システム設定',
+    2141002008 , # 'SSO設定',
     2141002003 , # 'グループ',
     2141002004 , # 'ユーザ',
     #2141002005 , # 'メールテンプレート',
@@ -468,7 +484,7 @@ class MENU_CATEGORY():
             'selected'  : 'system',
             'link'      : '#',
             #'item_list' : [2141002001, 2141002002, 2141002003, 2141002004, 2141002006, 2141002007],
-            'item_list' : [2141002002, 2141002003, 2141002004, 2141002006, 2141002007],
+            'item_list' : [2141002002, 2141002008, 2141002003, 2141002004, 2141002006, 2141002007],
             'default'   : False,
         },
         {
@@ -506,6 +522,7 @@ class MENU_CATEGORY():
 
         #2141002001 : {'name':'MOSJA00237', 'url':'web_app:system:service'},        # サービス状況
         2141002002 : {'name':'MOSJA23031', 'url':'web_app:system:system_conf'},    # システム設定
+        2141002008 : {'name':'MOSJA28000', 'url':'web_app:system:sso_info'},       # SSO設定
         2141002003 : {'name':'MOSJA00037', 'url':'web_app:system:group'},          # グループ
         2141002004 : {'name':'MOSJA23032', 'url':'web_app:system:user'},           # ユーザ
         2141002006 : {'name':'MOSJA00238', 'url':'web_app:system:monitoring'},     # 監視アダプタ

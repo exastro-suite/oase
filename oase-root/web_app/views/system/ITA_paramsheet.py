@@ -123,7 +123,7 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
 
     # ユーザー所属グループ別のアクセス可能ドライバーを取得
     enable_drv_ids = []
-    if 1 not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
+    if defs.GROUP_DEFINE.GROUP_ID_ADMIN not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
         rset = perm_module.objects.all()
         rset = rset.filter(group_id__in=user_groups)
         rset = rset.filter(permission_type_id__in=perm_types)
@@ -134,7 +134,7 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
     drv_info = {}
 
     rset = drv_module.objects.all()
-    if 1 not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
+    if defs.GROUP_DEFINE.GROUP_ID_ADMIN not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
         rset = drv_module.objects.filter(ita_driver_id__in=enable_drv_ids)
 
     drv_list = rset.values('ita_driver_id', 'ita_disp_name')
@@ -261,7 +261,7 @@ def _check_update_auth(request, version):
         logger.user_log('LOSI27001', module_name, request=request)
         raise Http404
 
-    if 1 not in request.user_config.group_id_list:
+    if defs.GROUP_DEFINE.GROUP_ID_ADMIN not in request.user_config.group_id_list:
         ItaPerm_list = ItaPermission.objects.filter(group_id__in=request.user_config.group_id_list).values_list('permission_type_id', flat=True)
         if defs.ALLOWED_MENTENANCE not in ItaPerm_list:
             hasUpdateAuthority = False
@@ -363,11 +363,10 @@ def index(request, version):
     data = {
         'param_list' : data_list,
         'version' : version,
-        'mainmenu_list' : request.user_config.get_menu_list(),
-        'user_name' : request.user.user_name,
-        'lang_mode' : request.user.get_lang_mode(),
         'hasUpdateAuthority' : hasUpdateAuthority,
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     return render(request, 'system/action_analysis_disp.html', data)
 
@@ -413,10 +412,9 @@ def edit(request, version):
         'item_info' : item_info,
         'opelist_add' : defs.DABASE_OPECODE.OPELIST_ADD,
         'opelist_mod' : defs.DABASE_OPECODE.OPELIST_MOD,
-        'mainmenu_list' : request.user_config.get_menu_list(),
-        'user_name' : request.user.user_name,
-        'lang_mode' : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     return render(request, 'system/action_analysis_edit.html', data)
 
@@ -837,7 +835,7 @@ def chk_permission(json_str, request):
     更新権限チェック
     """
 
-    if 1 in request.user_config.group_id_list:  # 1=システム管理グループ：すべてのドライバーに対して更新権限を持つ
+    if defs.GROUP_DEFINE.GROUP_ID_ADMIN in request.user_config.group_id_list:  # 1=システム管理グループ：すべてのドライバーに対して更新権限を持つ
         return True
 
     ItaPermission = getattr(import_module('web_app.models.ITA_models'), 'ItaPermission')

@@ -39,16 +39,6 @@ from django.conf import settings
 from django.db import transaction
 from django.db.models import Q
 
-from web_app.models.models import User
-from web_app.models.models import RhdmResponse
-from web_app.models.models import RhdmResponseAction
-from web_app.models.models import ActionHistory
-from libs.commonlibs.common import Common
-from libs.commonlibs.define import *
-from libs.commonlibs.oase_logger import OaseLogger
-from libs.backyardlibs.oase_action_common_libs import ActionDriverCommonModules as ActCommon
-from libs.backyardlibs.oase_action_common_libs import ConstantModules as Cstobj
-
 #################################################
 # デバック用
 if settings.DEBUG and getattr(settings, 'ENABLE_NOSERVICE_BACKYARDS', False):
@@ -73,7 +63,18 @@ except Exception as ex:
 
 
 # ロガー初期化
+from libs.commonlibs.oase_logger import OaseLogger
 logger = OaseLogger.get_instance()
+
+
+from web_app.models.models import User
+from web_app.models.models import RhdmResponse
+from web_app.models.models import RhdmResponseAction
+from web_app.models.models import ActionHistory
+from libs.commonlibs.common import Common
+from libs.commonlibs.define import *
+from libs.backyardlibs.oase_action_common_libs import ActionDriverCommonModules as ActCommon
+from libs.backyardlibs.oase_action_common_libs import ConstantModules as Cstobj
 
 
 class ActionDriverMainModules:

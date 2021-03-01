@@ -108,12 +108,11 @@ def action(request):
         'msg'          : msg,
         'driver_list'  : driver_list,
         'editable_user': editable_user,
-        'mainmenu_list': request.user_config.get_menu_list(),
         'opelist_add'  : defs.DABASE_OPECODE.OPELIST_ADD,
         'opelist_mod'  : defs.DABASE_OPECODE.OPELIST_MOD,
-        'user_name'    : request.user.user_name,
-        'lang_mode'    : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'data=%s' % data, request=request)
 
@@ -129,7 +128,7 @@ def modify(request):
     logger.logic_log('LOSI07001', use_drivers, request=request)
 
     # 成功時レスポンスデータ
-    redirect_url = '/oase_web/system/action'
+    redirect_url = ''
     response = {
             "status": "success",
             "redirect_url": redirect_url,
@@ -184,6 +183,9 @@ def modify(request):
         response['status'] = 'failure'
         response['msg'] = msg              # alertで出すメッセージ
         #response['error_msg'] = error_msg  # エラー詳細(エラーアイコンで出す)
+
+    if response['status'] == 'success':
+        redirect_url = '/oase_web/system/action'
 
     response_json = json.dumps(response)
     logger.logic_log('LOSI00002', 'status=%s' % response['status'], request=request)

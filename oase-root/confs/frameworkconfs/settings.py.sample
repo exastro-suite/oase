@@ -90,6 +90,7 @@ AUTH_USER_MODEL = 'web_app.User'
 AUTHENTICATION_BACKENDS = [
     #'django.contrib.auth.backends.ModelBackend',
     'libs.middleware.oase_auth.OASEAuthBackend',
+    'libs.middleware.oase_auth.SSOClientAuthBackend',
     'libs.middleware.oase_auth.ActiveDirectoryAuthBackend',
 ]
 
