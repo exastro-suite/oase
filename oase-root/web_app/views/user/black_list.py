@@ -76,11 +76,10 @@ def black_list(request):
     data = {
         'edit_mode': False,
         'black_list': black_list,
-        'mainmenu_list': request.user_config.get_menu_list(),
-        'user_name': request.user.user_name,
-        'lang_mode': request.user.get_lang_mode(),
         'disabled_flag': disabled_flag,
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'black_list count: %s, disabled_flag: %s' % (
         len(black_list), disabled_flag), request=request)
@@ -118,11 +117,10 @@ def edit(request):
         'opelist_non': defs.DABASE_OPECODE.OPELIST_MOD[0],
         'opelist_up': defs.DABASE_OPECODE.OPELIST_MOD[1],
         'opelist_del': {'k': '無効', 'v': defs.DABASE_OPECODE.OPE_DELETE},
-        'mainmenu_list': request.user_config.get_menu_list(),
         'edit_mode': True,
-        'user_name': request.user.user_name,
-        'lang_mode': request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'black_list: %s' %
                      black_list, request=request)

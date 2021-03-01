@@ -79,6 +79,7 @@ def set_test_data():
     ita_driver = ItaDriver(
         ita_driver_id=1,
         ita_disp_name='Action43',
+        version='1.5.0',
         protocol='https',
         hostname='pytest-host-name',
         port='443',
@@ -92,6 +93,7 @@ def set_test_data():
     ita_driver = ItaDriver(
         ita_driver_id=2,
         ita_disp_name='Action44',
+        version='1.5.0',
         protocol='https',
         hostname='pytest-host-name2',
         port='443',

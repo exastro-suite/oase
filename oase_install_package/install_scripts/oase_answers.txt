@@ -1,6 +1,7 @@
-#Select install mode. ("Install")
-# e.g) install_mode:Install
-install_mode:Install
+# Select install mode. 
+# ("Install_Online","Install_Offline","Gather_Library","Versionup_All", "Versionup_OASE", "Uninstall")
+# e.g) install_mode:Install_Online
+install_mode:Install_Online
 
 
 ##############################
@@ -8,7 +9,7 @@ install_mode:Install
 ##############################
 # Decide the RabbitMQ_username.
 # e.g) RabbitMQ_username:sample_rabbitmq_username
-RabbitMQ_username:administrator
+RabbitMQ_username:admin
 
 # Decide the RabbitMQ_password.
 # e.g) RabbitMQ_password:sample_rabbitmq_password
@@ -20,13 +21,13 @@ RabbitMQ_password:password
 RabbitMQ_queuename:oase
 
 # Enter IP address for RabbitMQ.
-# e.g) RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
+# e.g) RabbitMQ_ipaddr:127.0.0.1
 RabbitMQ_ipaddr:
 
 ##############################
-# MySQL
+# MariaDB
 ##############################
-# Enter the MySQL root user's password
+# Enter the MariaDB root user's password
 # e.g) db_root_password:sample_root_password
 db_root_password:password
 
@@ -45,21 +46,21 @@ db_erase:
 
 
 ##############################
-# WildFly
+# JBoss EAP
 ##############################
-# Enter WildFly install directory.
-# e.g) wildfly_root_directory:/exastro/WildFly
-wildfly_root_directory:/exastro/WildFly
+# Enter JBoss install directory.
+# e.g) jboss_root_directory:/exastro/JBossEAP
+jboss_root_directory:/exastro/JBossEAP
 
 
 ##############################
-# Drools
+# RHDM
 ##############################
 # Decide the Administrator name, password.
-# e.g) drools_adminname:admin0000
-drools_adminname:admin0000
-# e.g) drools_password:password@1
-drools_password:password@1
+# e.g) rhdm_adminname:admin0000
+rhdm_adminname:admin0000
+# e.g) rhdm_password:password@1
+rhdm_password:password@1
 
 # Enter IP address & port for Decision Manager.
 # e.g) dm_ipaddrport:localhost:8080
@@ -109,10 +110,6 @@ oase_directory:/exastro
 ##############################
 # settings.py
 ##############################
-# Select Session management.("db" or "file" or "cache")
-# e.g) oase_session_engine:cache
-oase_session_engine:
-
 # Decide the EVTIMER SERVER location
 # e.g) ev_location:127.0.0.1
 ev_location:
@@ -121,6 +118,27 @@ ev_location:
 # e.g) oase_language:ja
 oase_language:ja
 
-# Select Operation System. ("CentOS7" or "RHEL7")
+# Select Operation System. ("CentOS7" or "RHEL7" or "RHEL8")
 # e.g) oase_os:RHEL7
 oase_os:
+
+
+##############################
+# SSLサーバ証明書
+##############################
+# Enter the oase domain name.
+# e.g) oase_domain:exastro-oase.local
+oase_domain:exastro-oase.local
+
+# Enter when using user-specified certificates and private keys.
+# If no file path is entered for both "certificate_path" and "private_key_path",
+# the OASE installer creates and installs a self-certificate and private key
+# using the values entered in "oase_domain".
+
+# Enter the file path where the certificate to be install.
+# e.g) certificate_path:/temp/etc_pki_tls_certs/exastro-oase.crt
+certificate_path:
+
+# Enter the file path where the private key to be install.
+# e.g) private_key_path:/temp/etc_pki_tls_certs/exastro-oase.key
+private_key_path:

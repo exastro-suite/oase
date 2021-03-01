@@ -90,13 +90,12 @@ def user(request):
         'filter_list'       : filter_list,
         'group_list'        : group_list,
         'search_info'       : search_info,
-        'mainmenu_list'     : request.user_config.get_menu_list(),
         'edit_mode'         : False,
         'hasUpdateAuthority': hasUpdateAuthority,
         'actdirflg'         : System.objects.get(config_id='ADCOLLABORATION').value,
-        'user_name'         : request.user.user_name,
-        'lang_mode'         : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'None', request=request)
 
@@ -145,13 +144,12 @@ def edit(request):
         'filter_list'       : filter_list,
         'group_list'        : group_list,
         'search_info'       : search_info,
-        'mainmenu_list'     : request.user_config.get_menu_list(),
         'edit_mode'         : True,
         'hasUpdateAuthority': hasUpdateAuthority,
         'actdirflg'         : System.objects.get(config_id='ADCOLLABORATION').value,
-        'user_name'         : request.user.user_name,
-        'lang_mode'         : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'permission_type: %s, hasUpdateAuthority: %s' % (permission_type, hasUpdateAuthority), request=request)
     return render(request, 'system/user_edit.html', data)
@@ -378,9 +376,9 @@ def modify(request):
             del_usergroup_list = {}
             add_usergroup_list = {}
             user_info = {}
-            
+
             logger.user_log('LOSI05000', update_info, request=request)
-            
+
             for rq in update_info:
                 user_info[int(rq['user_id'])] = {
                     'user_name': rq['user_name'],
@@ -393,7 +391,7 @@ def modify(request):
             users = User.objects.filter(pk__in=update_userid_list, disuse_flag='0')
             for u in users:
                 u.user_name    = user_info[u.pk]['user_name']
-                u.login_id     = user_info[u.pk]['login_id']
+                u.login_id     = user_info[u.pk]['login_id'] if u.sso_id == 0 else u.login_id
                 u.mail_address = user_info[u.pk]['mail']
                 u.last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC'))
                 u.last_update_user = request.user.user_name
@@ -419,7 +417,7 @@ def modify(request):
 
             #=================削除===============================#
             logger.user_log('LOSI05002', del_info, request=request)
-            
+
             User.objects.filter(pk__in=del_userid_list).delete()
             UserGroup.objects.filter(user_id__in=del_userid_list).delete()
             PasswordHistory.objects.filter(user_id__in=del_userid_list).delete()
@@ -672,7 +670,7 @@ def _validate(json_str, group_ids_diff=[], request=None):
                 error_msg_mail[rq['row_id']] += get_message('MOSJA24022', request.user.get_lang_mode(), strConName='メールアドレス') + '\n'
 
             else:
-                duplication = User.objects.filter(login_id=rq['login_id'])
+                duplication = User.objects.filter(login_id=rq['login_id'], login_id__contains=rq['login_id'], sso_id=0)
                 if len(duplication) == 1 and int(rq['user_id']) != duplication[0].user_id:
                     error_msg_login_id[rq['row_id']] += get_message('MOSJA24017', request.user.get_lang_mode()) + '\n'
 
@@ -680,7 +678,7 @@ def _validate(json_str, group_ids_diff=[], request=None):
                 error_msg_mail[rq['row_id']] += get_message('MOSJA24018', request.user.get_lang_mode()) + '\n'
 
             else:
-                duplication = User.objects.filter(mail_address=rq['mail'])
+                duplication = User.objects.filter(mail_address=rq['mail'], sso_id=0)
                 if len(duplication) == 1 and int(rq['user_id']) != duplication[0].user_id:
                     error_msg_mail[rq['row_id']] += get_message('MOSJA24018', request.user.get_lang_mode()) + '\n'
 
@@ -829,6 +827,7 @@ def _getUserData(filters, edit=False, request=None):
             'user_name': u.user_name,
             'login_id' : u.login_id,
             'mail'     : u.mail_address,
+            'sso_id'   : u.sso_id,
             'group_id' : group_id_list,
             'upd_user': u.last_update_user,
             'updated'  : u.last_update_timestamp,

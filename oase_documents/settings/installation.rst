@@ -7,49 +7,7 @@ OASEのインストール手順を下記に示します。
 1. 事前準備
 -----------
 
-1.1 ファイアーウォール停止
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-・ステータス確認
-
-.. code-block:: rst
-
- # systemctl status firewalld
-
-★Active: activeの場合
-
-.. code-block:: rst
-
- # systemctl stop firewalld
- # systemctl disable firewalld
-
-
-1.2. SELinux無効化
-~~~~~~~~~~~~~~~~~~
-
-・ステータス確認
-
-.. code-block:: rst
-
- # getenforce
-
-★Enforcingの場合
-
-.. code-block:: rst
-
- # vi /etc/sysconfig/selinux
-
-.. code-block:: bash
-
- SELINUX=disabled
-
- ※ Enforcing から disabled へ変更
-
-.. code-block:: rst
- 
- # reboot
-
-1.3. タイムゾーンを設定する
+1.1. タイムゾーンを設定する
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: rst
@@ -66,7 +24,7 @@ OASEのインストール手順を下記に示します。
 
  # timedatectl set-timezone Asia/Tokyo
 
-1.4. 自分自身のホスト名について名前解決できること
+1.2. 自分自身のホスト名について名前解決できること
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: rst
@@ -171,29 +129,32 @@ OASEのインストール手順を下記に示します。
    :header: No., 項目名, 初期値, 説明
    :widths: 5, 20, 20, 60
 
-   1, install_mode, Install, インストールモードの設定（インストール：Install）
-   2, RabbitMQ_username, administrator, RabbitMQのユーザ名
-   2, RabbitMQ_password, password, RabbitMQのパスワード
-   3, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
-   4, RabbitMQ_ipaddr, , RabbitMQを設定したサーバのIPアドレス
-   5, db_root_password, password, MySQLのルートユーザのパスワード
-   6, db_name, OASE_DB, MySQLで使用するDB名
-   7, db_username, OASE_USER, MySQLで使用するユーザ名
-   8, db_password, OASE_PASSWD, MySQLのパスワード
-   9, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
-   10, wildfly_root_directory, /exastro/WildFly, WildFlyのインストールディレクトリ
-   11, drools_adminname, admin0000, Droolsの管理者名
-   12, drools_password, password@1, Droolsの管理者パスワード
-   13, dm_ipaddrport, localhost:8080, ディシジョンマネージャを設定したサーバのIPアドレス
-   14, rulefile_rootpath, /exastro/rule, ルールファイルを格納するディレクトリ
-   15, apply_ipaddrport, 127.0.0.1:50001, アプライサービスを設定したサーバのIPアドレス
-   16, mavenrep_path, /root/.m2/repository/com/oase/, Mavenリポジトリのディレクトリ
-   17, oasemail_smtp, "{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}", OASEで使用するメールのSMTP設定
-   18, oase_directory, /exastro, OASEのインストールディレクトリ
-   19, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
-   20, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
-   21, oase_language, ja, OASEの言語設定（日本語：ja）
-   22, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7）
+   1, install_mode, Install_Online, インストールモードの設定（オンラインインストール：Install_Online/オフラインインストール：Install_Offline/ライブラリ収集：Gather_Library/バージョンアップALL：Versionup_All/バージョンアップOASE：Versionup_OASE/アンインストール：Uninstall）
+   2, RabbitMQ_username, admin, RabbitMQのユーザ名
+   3, RabbitMQ_password, password, RabbitMQのパスワード
+   4, RabbitMQ_queuename, oase, RabbitMQで使用するキュー名
+   5, RabbitMQ_ipaddr, , RabbitMQを設定したサーバのIPアドレス
+   6, db_root_password, password, MariaDBのルートユーザのパスワード
+   7, db_name, OASE_DB, MariaDBで使用するDB名
+   8, db_username, OASE_USER, MariaDBで使用するユーザ名
+   9, db_password, OASE_PASSWD, MariaDBのパスワード
+   10, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
+   11, jboss_root_directory, /exastro/JBossEAP, JBossEAPのインストールディレクトリ
+   12, rhdm_adminname, admin0000, RHDMの管理者名
+   13, rhdm_password, password@1, RHDMの管理者パスワード
+   14, dm_ipaddrport, localhost:8080, ディシジョンマネージャを設定したサーバのIPアドレス
+   15, rulefile_rootpath, /exastro/rule, ルールファイルを格納するディレクトリ
+   16, apply_ipaddrport, 127.0.0.1:50001, アプライサービスを設定したサーバのIPアドレス
+   17, mavenrep_path, /root/.m2/repository/com/oase/, Mavenリポジトリのディレクトリ
+   18, oasemail_smtp, "{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}", OASEで使用するメールのSMTP設定
+   19, oase_directory, /exastro, OASEのインストールディレクトリ
+   20, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
+   21, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
+   22, oase_language, ja, OASEの言語設定（日本語：ja）
+   23, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
+   24, oase_domain, exastro-oase.local, OASEのドメイン名
+   25, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
+   26, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
 
 
 3.1.5. アンサーファイルのサンプル
@@ -203,9 +164,10 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- #Select install mode. ("Install")
- # e.g) install_mode:Install
- install_mode:Install
+ # Select install mode. 
+ # ("Install_Online","Install_Offline","Gather_Library","Versionup_All", "Versionup_OASE", "Uninstall")
+ # e.g) install_mode:Install_Online
+ install_mode:Install_Online
 
 
  ##############################
@@ -213,7 +175,7 @@ OASEのインストール手順を下記に示します。
  ##############################
  # Decide the RabbitMQ_username.
  # e.g) RabbitMQ_username:sample_rabbitmq_username
- RabbitMQ_username:administrator
+ RabbitMQ_username:admin
 
  # Decide the RabbitMQ_password.
  # e.g) RabbitMQ_password:sample_rabbitmq_password
@@ -229,9 +191,9 @@ OASEのインストール手順を下記に示します。
  RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
 
  ##############################
- # MySQL
+ # MariaDB
  ##############################
- # Enter the MySQL root user's password
+ # Enter the MariaDB root user's password
  # e.g) db_root_password:sample_root_password
  db_root_password:password
 
@@ -250,21 +212,21 @@ OASEのインストール手順を下記に示します。
 
 
  ##############################
- # WildFly
+ # JBoss EAP
  ##############################
- # Enter WildFly install directory.
- # e.g) wildfly_root_directory:/exastro/WildFly
- wildfly_root_directory:/exastro/WildFly
+ # Enter JBoss install directory.
+ # e.g) jboss_root_directory:/exastro/JBossEAP
+ jboss_root_directory:/exastro/JBossEAP
 
 
  ##############################
- # Drools
+ # RHDM
  ##############################
  # Decide the Administrator name, password.
- # e.g) drools_adminname:admin0000
- drools_adminname:admin0000
- # e.g) drools_password:password@1
- drools_password:password@1
+ # e.g) rhdm_adminname:admin0000
+ rhdm_adminname:admin0000
+ # e.g) rhdm_password:password@1
+ rhdm_password:password@1
 
  # Enter IP address & port for Decision Manager.
  # e.g) dm_ipaddrport:localhost:8080
@@ -314,10 +276,6 @@ OASEのインストール手順を下記に示します。
  ##############################
  # settings.py
  ##############################
- # Select Session management.("db" or "file" or "cache")
- # e.g) oase_session_engine:cache
- oase_session_engine:file
-
  # Decide the EVTIMER SERVER location
  # e.g) ev_location:127.0.0.1
  ev_location:127.0.0.1
@@ -326,9 +284,30 @@ OASEのインストール手順を下記に示します。
  # e.g) oase_language:ja
  oase_language:ja
 
- # Select Operation System. ("CentOS7" or "RHEL7")
+ # Select Operation System. ("CentOS7" or "RHEL7" or "RHEL8")
  # e.g) oase_os:RHEL7
  oase_os:RHEL7
+
+
+ ##############################
+ # SSLサーバ証明書
+ ##############################
+ # Enter the oase domain name.
+ # e.g) oase_domain:exastro-oase.local
+ oase_domain:exastro-oase.local
+
+ # Enter when using user-specified certificates and private keys.
+ # If no file path is entered for both "certificate_path" and "private_key_path",
+ # the OASE installer creates and installs a self-certificate and private key
+ # using the values entered in "oase_domain".
+
+ # Enter the file path where the certificate to be install.
+ # e.g) certificate_path:/temp/etc_pki_tls_certs/exastro-oase.crt
+ certificate_path:
+
+ # Enter the file path where the private key to be install.
+ # e.g) private_key_path:/temp/etc_pki_tls_certs/exastro-oase.key
+ private_key_path:
 
 
 3.1.6. 環境構築ツール（オンライン版）実行
@@ -338,7 +317,7 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- # sh oase_online_installer.sh
+ # sh oase_installer.sh
 
 
 | 2. 処理の確認
@@ -409,14 +388,14 @@ OASEのインストール手順を下記に示します。
   [2020-11-12 08:59:43] #####################################
   [2020-11-12 08:59:43] SKIP LIST(Please check the Settings) 
   [2020-11-12 08:59:43] ・rabbitmq-server
-  [2020-11-12 08:59:43] ・mysql80-community-release
+  [2020-11-12 08:59:43] ・mariadb-server
   [2020-11-12 08:59:43] #####################################
   [2020-11-12 08:59:43] INFO : Install Finished
   [2020-11-12 08:59:43] #####################################
 
 
 | 7. スキップ処理の確認
-| RabbitMQやMySQLをスキップした場合は、OASE用に設定が必要になります。
+| RabbitMQやMariaDBをスキップした場合は、OASE用に設定が必要になります。
 
 | 7.1 RabbitMQ
 | OASE用のユーザ作成を実施するため、以下のコマンドを実行してください。
@@ -441,7 +420,7 @@ OASEのインストール手順を下記に示します。
 
 .. note:: 3.1.4 アンサーファイルの編集にて記述頂きました、ユーザ名/パスワードでユーザ作成してください。
 
-| 7.2 MySQL
+| 7.2 MariaDB
 | OASE用のデータベース、ユーザ作成を実施するため、以下のコマンドを実行してください。
 
 | 1 OASE用のデータベースとユーザ作成
@@ -452,10 +431,10 @@ OASEのインストール手順を下記に示します。
 
 .. code-block:: rst
 
- mysql> CREATE DATABASE {db_name} CHARACTER SET utf8;
- mysql> CREATE USER '{db_username}' IDENTIFIED BY '{db_password}';
- mysql> GRANT ALL ON {db_name}.* TO '{db_username}';
- mysql> quit
+ MariaDB [(none)]> CREATE DATABASE {db_name} CHARACTER SET utf8;
+ MariaDB [(none)]> CREATE USER '{db_username}' IDENTIFIED BY '{db_password}';
+ MariaDB [(none)]> GRANT ALL ON {db_name}.* TO '{db_username}';
+ MariaDB [(none)]> quit
 
 .. note:: 3.1.4 アンサーファイルの編集にて記述頂きました、rootパスワード、データベース名、ユーザ名、パスワードで作成してください。
 

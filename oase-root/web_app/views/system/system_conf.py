@@ -124,8 +124,6 @@ def index(request):
         logger.system_log('LOSM09001', request=request)
 
     data = {
-        'mainmenu_list'        : request.user_config.get_menu_list(),
-        'user_name'            : request.user.user_name,
         'edit'                 : edit,
         'system_log_list'      : system_log_list,
         'system_session_list'  : system_session_list,
@@ -135,8 +133,9 @@ def index(request):
         'output_flag'          : output_flag,
         'pass_flag'            : pass_flag,
         'disabled_flag'        : settings.DISABLE_WHITE_BLACK_LIST,
-        'lang_mode'            : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'edit:%s, pass:%s' % (edit, pass_flag), request=request)
 
@@ -216,8 +215,6 @@ def edit(request):
         logger.system_log('LOSM09001', request=request)
 
     data = {
-        'mainmenu_list'        : request.user_config.get_menu_list(),
-        'user_name'            : request.user.user_name,
         'msg'                  : msg,
         'edit'                 : edit,
         'system_log_list'      : system_log_list,
@@ -228,8 +225,9 @@ def edit(request):
         'output_flag'          : output_flag,
         'pass_flag'            : pass_flag,
         'disabled_flag'        : settings.DISABLE_WHITE_BLACK_LIST,
-        'lang_mode'            : request.user.get_lang_mode(),
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'msg:%s, edit:%s, output:%s, pass:%s' % (msg, edit, output_flag, pass_flag), request=request)
 

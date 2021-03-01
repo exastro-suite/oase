@@ -67,7 +67,9 @@ class OASEAuthBackend(ModelBackend):
             with transaction.atomic():
                 password_hash = Common.oase_hash(password)
                 now  = datetime.datetime.now(pytz.timezone('UTC'))
-                user = User.objects.select_for_update().get(login_id=username, login_id__contains=username, disuse_flag='0')
+                user = User.objects.select_for_update().get(
+                    login_id=username, login_id__contains=username, disuse_flag='0', sso_id=0
+                )
                 uid  = user.user_id
                 msg  = None
 
@@ -187,6 +189,34 @@ class OASEAuthBackend(ModelBackend):
 
 
 ################################################################
+# SSOユーザー認証
+################################################################
+class SSOClientAuthBackend(ModelBackend):
+
+    full_name = 'libs.middleware.oase_auth.SSOClientAuthBackend'
+
+    ############################################################
+    def authenticate(self, request, username=None, password=None, **kwargs):
+
+        pass
+
+
+    ############################################################
+    def get_user(self, user_id):
+
+        user = None
+
+        try:
+            user = User.objects.get(user_id=user_id)
+
+        except Exception as e:
+            logger.system_log('LOSM00001', traceback.format_exc())
+            return None
+
+        return user
+
+
+################################################################
 # ActiveDirectoryユーザー認証
 ################################################################
 class ActiveDirectoryAuthBackend(ModelBackend):
@@ -247,7 +277,7 @@ class ActiveDirectoryAuthBackend(ModelBackend):
             raise OASELoginError('MOSJA10014')
 
         # AD認証成功後は、OASE認証を実施
-        user = User.objects.get(login_id=username, login_id__contains=username, disuse_flag='0')
+        user = User.objects.get(login_id=username, login_id__contains=username, disuse_flag='0', sso_id=0)
 
         return user
 

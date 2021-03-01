@@ -71,7 +71,7 @@ def pass_ch_exec(request):
         return HttpResponseServerError(msg)
 
     uid = request.user.user_id
-    
+
     if not 'loginId' in data['user_info'] and uid == '':
         msg = get_message('MOSJA32009', request.user.get_lang_mode())
         logger.user_log('LOSM17000')
@@ -79,7 +79,7 @@ def pass_ch_exec(request):
 
     error_flag = False
     error_msg  = {}
-    
+
 
     try:
         with transaction.atomic():
@@ -95,7 +95,7 @@ def pass_ch_exec(request):
             # Userの対象レコードをロック
             user = User.objects.select_for_update().get(user_id=uid)
             error_msg = _validate(request, data, user)
-            
+
             ##################################################
             # パスワード判定
             ##################################################

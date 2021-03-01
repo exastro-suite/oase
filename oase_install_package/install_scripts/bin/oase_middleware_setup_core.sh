@@ -24,156 +24,54 @@
 # configuration functions
 
 ############################################################
-create_nginx_conf() {
 
-cat << EOS > "$NGINX_CONF_FILE"
-
-user  root;
-#user  nginx;
-worker_processes  auto;
-#worker_processes  1;
-
-worker_rlimit_nofile 65000;
-
-error_log  /var/log/nginx/error.log warn;
-pid        /var/run/nginx.pid;
-
-
-events {
-    worker_connections  16000;
-}
-
-
-http {
-    include       /etc/nginx/mime.types;
-    default_type  application/octet-stream;
-
-    log_format  main  '\$remote_addr - \$remote_user [\$time_local] "\$request" '
-                      '\$status \$body_bytes_sent "\$http_referer" '
-                      '"\$http_user_agent" "\$http_x_forwarded_for"';
-
-    access_log  /var/log/nginx/access.log  main;
-
-    sendfile        on;
-    #tcp_nopush     on;
-
-    keepalive_timeout  65;
-
-    #gzip  on;
-
-    include /etc/nginx/conf.d/*.conf;
-}
-EOS
-
-}
-
-############################################################
 create_oase_conf() {
 
-    if [ $# -ne 1 ]; then
-        log "ERROR : missing required positional argument"
-        log "INFO : Abort installation." 
-        exit 1
-    fi
-
 cat << EOS > "$OASE_CONF_FILE"
-server {
-    listen 80;
-    server_name exastro-oase;
-    return 301 https://\$host\$request_uri;
-}
+LoadModule wsgi_module modules/mod_wsgi-py36.cpython-36m-x86_64-linux-gnu.so
 
-server {
-   listen  443  ssl;
+WSGIPythonPath ${oase_directory}/OASE/oase-root
+WSGIScriptAlias / ${oase_directory}/OASE/oase-root/confs/frameworkconfs/wsgi.py
+<Directory "${oase_directory}/OASE/oase-root/confs/frameworkconfs">
+  <Files wsgi.py>
+    Require all granted
+  </Files>
+</Directory>
 
-   ssl_certificate  $1/exastro-oase.crt;
-   ssl_certificate_key  $1/cakey-nopass.pem;
+Alias /static ${oase_directory}/OASE/oase-root/web_app/static
+<Directory "${oase_directory}/OASE/oase-root/web_app/static">
+  Require all granted
+</Directory>
 
-   ssl_prefer_server_ciphers  on;
-   ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
-   ssl_ciphers  'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-GCM-SHA384:DHE-RSA-AES128-GCM-SHA256:DHE-DSS-AES128-GCM-SHA256:kEDH+AESGCM:ECDHE-RSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:ECDHE-ECDSA-AES128-SHA:ECDHE-RSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-ECDSA-AES256-SHA:DHE-RSA-AES128-SHA256:DHE-RSA-AES128-SHA:DHE-DSS-AES128-SHA256:DHE-RSA-AES256-SHA256:DHE-DSS-AES256-SHA:DHE-RSA-AES256-SHA:AES128-GCM-SHA256:AES256-GCM-SHA384:AES128:AES256:AES:DES-CBC3-SHA:HIGH:!aNULL:!eNULL:!EXPORT:!DES:!RC4:!MD5:!PSK';
+<VirtualHost *:443 >
+  ServerName $OASE_DOMAIN
+  ServerAlias *
+  DocumentRoot ${oase_directory}/OASE/oase-root
+  RedirectMatch ^/$ /oase_web/top/login
 
-   ssl_session_cache    shared:SSL:1m;
-   ssl_session_tickets  on;
+  ErrorLog   logs/oase-ssl-error_log
+  CustomLog  logs/oase-ssl-access_log combined env=!no_log
 
-   location / {
-       include uwsgi_params;
-       uwsgi_pass unix:///home/uWSGI/uwsgi.sock;
-   }
+  SSLEngine  on
+  SSLCertificateFile /etc/pki/tls/certs/$CERTIFICATE_FILE
+  SSLCertificateKeyFile /etc/pki/tls/certs/$PRIVATE_KEY_FILE
+</VirtualHost>
 
-   location = / {
-       include uwsgi_params;
-       uwsgi_pass unix:///home/uWSGI/uwsgi.sock;
-       return 301 /oase_web/top/login;
-   }
+<VirtualHost *:80 >
+  ServerName any
+  DocumentRoot ${oase_directory}/OASE/oase-root
+  RedirectMatch ^/$ /oase_web/top/login
 
-   location /static {
-       alias ${OASE_ROOT_DIR}/web_app/static;
-   }
+  ErrorLog   logs/oase-error_log
+  CustomLog  logs/oase-access_log combined env=!no_log
 
-   error_page   500 502 503 504  /50x.html;
-   location = /50x.html {
-       root   /usr/share/nginx/html;
-   }
-}
+  <Location / >
+    Require all granted
+  </Location>
+</VirtualHost>
+
 EOS
 
-}
-
-############################################################
-create_uwsgi_ini() {
-
-    if [ $# -ne 2 ]; then
-        log "ERROR : missing required positional argument"
-        log "INFO : Abort installation." 
-        exit 1
-    fi
-    
-    CPU_CORE_COUNT=$(grep physical.id /proc/cpuinfo | sort -u | wc -l)
-    PROCESSES=$(expr $CPU_CORE_COUNT \* 2)
-
-cat << EOS > "$UWSGI_INI_FILE"
-[uwsgi]
-chdir=$1
-module=web_app
-master=true
-socket=$2/uwsgi.sock
-chmod-socket=666
-wsgi-file=$1/confs/frameworkconfs/wsgi.py
-log-format = [pid: %(pid)|app: -|req: -/-] %(addr) (%(user)) {%(vars) vars in %(pktsize) bytes} [ %(ctime) ] %(method) %(uri) => generated %(rsize) bytes in %(msecs) msecs (%(proto) %(status)) %(headers) headers in %(hsize) bytes (%(switches) switches on core %(core))
-logto=/var/log/uwsgi/uwsgi.log
-processes=$PROCESSES
-threads=2
-listen=16384
-EOS
-}
-
-############################################################
-create_uwsgi_service() {
-
-    if [ $# -ne 1 ]; then
-        log "ERROR : missing required positional argument"
-        log "INFO : Abort installation." 
-        exit 1
-    fi
-
-cat << EOS > "$UWSGI_SERVICE_FILE"
-[Unit]
-Description=uWSGI
-After=syslog.target network.target mysqld.service
-
-[Service]
-ExecStart=$1 --ini $UWSGI_INI_FILE
-ExecReload=/bin/kill -HUP \$MAINPID
-ExecStop=/bin/kill -INT \$MAINPID
-Restart=always
-Type=notify
-StandardError=syslog
-NotifyAccess=all
-
-[Install]
-WantedBy=multi-user.target
-EOS
 }
 
 
@@ -386,9 +284,7 @@ OASE_INSTALL_SCRIPTS_DIR=$(cd $(dirname $OASE_BIN_DIR);pwd)
 OASE_ANSWER_FILE=$OASE_INSTALL_SCRIPTS_DIR/oase_answers.txt
 
 KERNEL_PARAM_FILE=/etc/sysctl.conf
-NGINX_CONF_FILE=/etc/nginx/nginx.conf
-OASE_CONF_FILE=/etc/nginx/conf.d/oase.conf
-UWSGI_SOCK_DIR=/home/uWSGI
+OASE_CONF_FILE=/etc/httpd/conf.d/oase.conf
 JBOSS_CONF_FILE=/etc/default/jboss-eap.conf
 
 ################################################################################
@@ -396,14 +292,9 @@ log "INFO : Start changing the settings."
 ################################################################################
 
 OASE_DIR="${oase_directory}"
-JBOSS_ROOT_DIR="${wildfly_root_directory}"
+JBOSS_ROOT_DIR="${jboss_root_directory}"
 OASE_ROOT_DIR="$OASE_DIR"/OASE/oase-root
-UWSGI_LOG_DIR=/var/log/uwsgi
-UWSGI_INI_FILE="$OASE_ROOT_DIR"/uwsgi.ini
-OASE_NGINX_SERVICE_FILE="$OASE_DIR"/OASE/tool/service/nginx.service
 SERVICE_FILE_DIR=/etc/systemd/system
-NGINX_SERVICE_FILE="$SERVICE_FILE_DIR"/nginx.service
-UWSGI_SERVICE_FILE="$SERVICE_FILE_DIR"/uwsgi.service
 OASE_JBOSS_EAP_RHEL_SH="$JBOSS_ROOT_DIR"/bin/init.d/jboss-eap-rhel.sh
 INITD_DIR=/etc/init.d
 JBOSS_EAP_RHEL_SH=$INITD_DIR/jboss-eap-rhel.sh
@@ -411,16 +302,14 @@ MAVEN_CONF_SETTINGS_FILE="${M2_HOME}"/conf/settings.xml
 M2_SETTINGS_DIR=/root/.m2
 M2_SETTINGS_FILE="${M2_SETTINGS_DIR}"/settings.xml
 STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
-RHDM_ADMINNAME=${drools_adminname}
-RHDM_PASSWORD=${drools_password}
+RHDM_ADMINNAME=${rhdm_adminname}
+RHDM_PASSWORD=${rhdm_password}
 OASE_ENV_DIR=${OASE_ROOT_DIR}/confs/backyardconfs/services
 OASE_ENV_FILE=${OASE_ENV_DIR}/oase_env
 DROOLS_SERVICE_FILE=/lib/systemd/system/drools.service
-
-
-if [ ! -e "$UWSGI_SOCK_DIR" ]; then
-    mkdir -m 755 "$UWSGI_SOCK_DIR"
-fi
+CERTIFICATE_PATH=${certificate_path}
+PRIVATE_KEY_PATH=${private_key_path}
+OASE_DOMAIN=${oase_domain}
 
 # sysctl.conf
 if [ ! -e "$KERNEL_PARAM_FILE" ]; then
@@ -441,17 +330,97 @@ fi
 sysctl -p >/dev/null 2>&1
 
 
-# nginx.conf
-if [ ! -e "$NGINX_CONF_FILE" ]; then
-    log ""$NGINX_CONF_FILE" not exists."
-    log "INFO : Abort installation." 
-    exit 1
+# 秘密鍵と証明書のファイル名を取得(OASE自己証明書を作成する場合は証明書署名要求ファイル名も設定)
+if [ "$CERTIFICATE_PATH" != "" -a "$PRIVATE_KEY_PATH" != "" ]; then
+    CERTIFICATE_FILE=$(echo $(basename ${CERTIFICATE_PATH})) >/dev/null 2>&1
+    PRIVATE_KEY_FILE=$(echo $(basename ${PRIVATE_KEY_PATH})) >/dev/null 2>&1
+else
+    CERTIFICATE_FILE="$OASE_DOMAIN.crt"
+    PRIVATE_KEY_FILE="$OASE_DOMAIN.key"
+    CSR_FILE="$OASE_DOMAIN.csr"
+    echo "subjectAltName=DNS:$OASE_DOMAIN" > /tmp/san.txt
 fi
 
-# Check if backup file exists
-make_backup_file $NGINX_CONF_FILE $NOW
+if [ "${CERTIFICATE_PATH}" != "" -a "${PRIVATE_KEY_PATH}" != "" ]; then
+    # CERTIFICATE_PATH と PRIVATE_KEY_PATH がoase_answers.txtに両方入力されている場合は、ユーザー指定の証明書・秘密鍵を設置
+    # ユーザー指定証明書・秘密鍵設置
+    if test -e "${CERTIFICATE_PATH}" ; then
+        if test -e "${PRIVATE_KEY_PATH}" ; then
+            # 両方の指定のパスにファイルが存在する場合のみ/etc/pki/tls/certs/にファイルをコピー
+            cp -p "${CERTIFICATE_PATH}" /etc/pki/tls/certs/ >/dev/null 2>&1
+            cp -p "${PRIVATE_KEY_PATH}" /etc/pki/tls/certs/ >/dev/null 2>&1
+        else
+            # 指定のパスにファイルがない場合は異常終了
+            log "ERORR : ${PRIVATE_KEY_PATH} does not be found."
+            log "INFO : Abort installation."
+            rm -f /tmp/san.txt >/dev/null 2>&1
+            exit 1
+        fi
+    else
+        # 指定のパスにファイルがない場合は異常終了
+        log "ERORR : ${CERTIFICATE_PATH} does not be found."
+        log "INFO : Abort installation."
+        rm -f /tmp/san.txt >/dev/null 2>&1
+        exit 1
+    fi
+elif [ "${CERTIFICATE_PATH}" = "" -a "${PRIVATE_KEY_PATH}" = "" ]; then
+    # CERTIFICATE_PATH と PRIVATE_KEY_PATH がどちらも入力されていない場合は、OASEで作成する自己証明書・秘密鍵を設置
+    # 秘密鍵を生成
+    openssl genrsa 2048 > /tmp/"$PRIVATE_KEY_FILE" 2>> "$OASE_INSTALL_LOG_FILE"
+    # 証明書署名要求を生成
+    expect -c "
+    set timeout -1
+    spawn openssl req -new -key /tmp/${PRIVATE_KEY_FILE} -out /tmp/${CSR_FILE}
+    expect \"Country Name\"
+    send \"JP\\r\"
+    expect \"State or Province Name\"
+    send \"\\r\"
+    expect \"Locality Name\"
+    send \"\\r\"
+    expect \"Organization Name\"
+    send \"\\r\"
+    expect \"Organizational Unit Name\"
+    send \"\\r\"
+    expect \"Common Name\"
+    send \"${OASE_DOMAIN}\\r\"
+    expect \"Email Address\"
+    send \"\\r\"
+    expect \"A challenge password\"
+    send \"\\r\"
+    expect \"An optional company name\"
+    send \"\\r\"
+    interact
+    " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    # サーバ証明書を生成
+    openssl x509 -days 3650 -req -signkey /tmp/"$PRIVATE_KEY_FILE" -extfile /tmp/san.txt < /tmp/"$CSR_FILE" > /tmp/"$CERTIFICATE_FILE" 2>> "$OASE_INSTALL_LOG_FILE"
+    # 作成した証明書署名要求を削除
+    rm -f /tmp/"$CSR_FILE" >/dev/null 2>&1
+    rm -f /tmp/san.txt >/dev/null 2>&1
+    mv /tmp/"$PRIVATE_KEY_FILE" /etc/pki/tls/certs/ >/dev/null 2>&1
+    mv /tmp/"$CERTIFICATE_FILE" /etc/pki/tls/certs/ >/dev/null 2>&1
+else
+    # CERTIFICATE_PATH と PRIVATE_KEY_PATH どちらか一方だけ入力されている場合は異常終了
+    if [ "${CERTIFICATE_PATH}" = "" ]; then
+        log "ERORR : Should be Enter [certificate_path]."
+        log 'INFO : Abort installation.'
+        rm -f /tmp/san.txt >/dev/null 2>&1
+        exit 1
+    elif [ "${PRIVATE_KEY_PATH}" = "" ]; then
+        log "ERORR : Should be Enter [private_key_path]."
+        log 'INFO : Abort installation.'
+        rm -f /tmp/san.txt >/dev/null 2>&1
+        exit 1
+    fi
+fi
 
-create_nginx_conf
+# /etc/pki/tls/certs/ に秘密鍵とサーバ証明書が設置できたかをチェック
+if ! test -e /etc/pki/tls/certs/"$PRIVATE_KEY_FILE" ; then
+    log "WARNING : Failed to place /etc/pki/tls/certs/$PRIVATE_KEY_FILE."
+fi
+if ! test -e /etc/pki/tls/certs/"$CERTIFICATE_FILE" ; then
+    log "WARNING : Failed to place /etc/pki/tls/certs/$CERTIFICATE_FILE."
+fi
+
 
 # oase.conf
 if [ -e "$OASE_CONF_FILE" ]; then
@@ -461,49 +430,7 @@ if [ -e "$OASE_CONF_FILE" ]; then
 
 fi
 
-create_oase_conf "$OASE_ROOT_DIR"
-
-# uwsgi.ini
-if [ ! -e "$UWSGI_LOG_DIR" ]; then
-    mkdir -p "$UWSGI_LOG_DIR"
-fi
-
-if [ -e "$UWSGI_INI_FILE" ]; then
-
-    # Check if backup file exists
-    make_backup_file $UWSGI_INI_FILE $NOW
-
-fi
-
-create_uwsgi_ini "$OASE_ROOT_DIR" "$UWSGI_SOCK_DIR"
-
-# nginx.service
-if [ ! -e "$OASE_NGINX_SERVICE_FILE" ]; then
-    log ""$OASE_NGINX_SERVICE_FILE" not exists."
-    log "INFO : Abort installation." 
-    exit 1
-fi
-
-if [ -e "$NGINX_SERVICE_FILE" ]; then
-
-    # Check if backup file exists
-    make_backup_file $NGINX_SERVICE_FILE $NOW
-
-fi
-
-cp -fp "$OASE_NGINX_SERVICE_FILE" "$NGINX_SERVICE_FILE"
-
-
-# uwsgi.service
-if [ -e "$UWSGI_SERVICE_FILE" ]; then
-
-    # Check if backup file exists
-    make_backup_file $UWSGI_SERVICE_FILE $NOW
-
-fi
-
-uwsgi_command=`which uwsgi`
-create_uwsgi_service "$uwsgi_command"
+create_oase_conf
 
 # maven conf settings
 if [ -e "$MAVEN_CONF_SETTINGS_FILE" ]; then
@@ -549,6 +476,12 @@ if [ -e "$JBOSS_CONF_FILE" ]; then
 
 fi
 
+if [ -e "$DROOLS_SERVICE_FILE" ]; then
+
+    # Check if backup file exists
+    make_backup_file $DROOLS_SERVICE_FILE $NOW
+fi
+
 create_drools_service "$JBOSS_ROOT_DIR"
 
 # drools.service
@@ -556,12 +489,6 @@ if [ ! -e "$DROOLS_SERVICE_FILE" ]; then
     log ""$DROOLS_SERVICE_FILE" not exists."
     log "INFO : Abort installation." 
     exit 1
-fi
-
-if [ -e "$DROOLS_SERVICE_FILE" ]; then
-
-    # Check if backup file exists
-    make_backup_file $DROOLS_SERVICE_FILE $NOW
 fi
 
 # oase_env settings

@@ -51,8 +51,8 @@ def get_lock_auth_user():
     user_list = []
     for login_id in login_id_list:
         # 存在しないlogin_idが登録されていたとき回避
-        if User.objects.filter(login_id=login_id):
-            user = User.objects.get(login_id=login_id)
+        if User.objects.filter(login_id=login_id, login_id__contains=login_id):
+            user = User.objects.get(login_id=login_id, login_id__contains=login_id)
             user_list.append(user.user_id)
     return set(user_list)
 

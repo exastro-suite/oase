@@ -66,11 +66,11 @@ def personal_config(request):
         'disp_mode_id' : request.user.disp_mode_id,
         'langlist'     : defs.LANG_MODE.LIST_ALL,
         'displist'     : defs.DISP_MODE.LIST_ALL,
-        'mainmenu_list': request.user_config.get_menu_list(),
-        'ad_flag': True if request.session['_auth_user_backend'].endswith('ActiveDirectoryAuthBackend') else False,
-        'user_name'    : request.user.user_name,
-        'lang_mode'    : request.user.get_lang_mode(),
+        'mail_flag'    : True if request.session['_auth_user_backend'].endswith('OASEAuthBackend') else False,
+        'passwd_flag'  : True if request.session['_auth_user_backend'].endswith('OASEAuthBackend') else False,
     }
+
+    data.update(request.user_config.get_templates_data(request))
 
     return render(request, 'user/personal_config.html', data)
 
