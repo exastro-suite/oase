@@ -268,7 +268,7 @@ class OASEMailInitialPasswd(OASEMailBase):
     """
 
     # メール情報
-    MAILACC  = "noreply@omcs.jp.nec.com"
+    MAILACC  = "noreply@example.com"
     SUBJECT  = "パスワード通知"
     MAILTEXT = (
         "%s 様\n"
@@ -340,7 +340,7 @@ class OASEMailInitialLoginID(OASEMailBase):
     """
 
     # メール情報
-    MAILACC  = "noreply@omcs.jp.nec.com"
+    MAILACC  = "noreply@example.com"
     SUBJECT  = "ログインID通知"
     MAILTEXT = (
         "%s 様\n"
@@ -411,7 +411,7 @@ class OASEMailOnetimePasswd(OASEMailBase):
       ワンタイムパスワード通知メール
     """
     # メール情報
-    MAILACC  = "noreply@omcs.jp.nec.com"
+    MAILACC  = "noreply@example.com"
     SUBJECT  = "パスワードリセット通知"
     MAILTEXT = (
         "%s 様\n"
@@ -474,7 +474,7 @@ class OASEMailUserLocked(OASEMailBase):
       ワンタイムパスワード通知メール
     """
     # メール情報
-    MAILACC  = "noreply@omcs.jp.nec.com"
+    MAILACC  = "noreply@example.com"
     SUBJECT  = "ユーザロック通知"
     MAILTEXT = (
         "ユーザID「%s」が連続ロック上限回数に達しました。\n"
@@ -521,7 +521,7 @@ class OASEMailAddBlackList(OASEMailBase):
     """
 
     # メール情報
-    MAILACC  = "noreply@omcs.jp.nec.com"
+    MAILACC  = "noreply@example.com"
     SUBJECT  = "ブラックリスト登録"
     MAILTEXT = (
         "　IP「%s」からのログインが、連続ログイン試行回数の上限に達したため、ブラックリストに登録しました。\n"
@@ -565,7 +565,7 @@ class OASEMailModifyMailAddressNotify(OASEMailBase):
     """
 
     # メール情報
-    MAILACC   = "noreply@omcs.jp.nec.com"
+    MAILACC   = "noreply@example.com"
     SUBJECT   = "メールアドレスのご変更"
     CONFIG_ID = "MODIFY_MAILADDR_NOTIFY"
 
