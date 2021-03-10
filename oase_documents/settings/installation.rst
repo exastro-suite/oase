@@ -1000,7 +1000,7 @@ java（openJDK）インストール
  1
 
  インストールパスの選択: [/root/EAP-7.2.0]
- {jbossルートパス}  例) /home/mas/JBoss/EAP-7.2.0
+ {jbossルートパス}  例) /exastro/JBoss/EAP-7.2.0
  継続するには 1 を、終了するには 2 を、再表示するには 3 を押してください。
  1
 
@@ -1591,8 +1591,8 @@ password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管�
         <id>http_proxy</id>
         <active>true</active>
         <protocol>http</protocol>
-        <host>proxygate2.nic.nec.co.jp</host>
-        <nonProxyHosts>localhost|10.197.19.*|proxygate2.nic.nec.co.jp</nonProxyHosts>
+        <host>proxy.example.com</host>
+        <nonProxyHosts>localhost|10.197.19.*|proxy.example.com</nonProxyHosts>
         <port>8080</port>
       </proxy>
       *- ここまで -*
@@ -1680,16 +1680,16 @@ password@1の箇所は"3.7. JBoss EAPインストール"で設定した{RHDM管�
             <id>http_proxy</id>
             <active>true</active>
             <protocol>http</protocol>
-            <host>proxygate2.nic.nec.co.jp</host>
-            <nonProxyHosts>localhost|10.197.19.*|proxygate2.nic.nec.co.jp</nonProxyHosts>
+            <host>proxy.example.com</host>
+            <nonProxyHosts>localhost|10.197.19.*|proxy.example.com</nonProxyHosts>
             <port>8080</port>
           </proxy>
           <proxy>
             <id>https_proxy</id>
             <active>true</active>
             <protocol>https</protocol>
-            <host>proxygate2.nic.nec.co.jp</host>
-            <nonProxyHosts>localhost|10.197.19.*|proxygate2.nic.nec.co.jp</nonProxyHosts>
+            <host>proxy.example.com</host>
+            <nonProxyHosts>localhost|10.197.19.*|proxy.example.com</nonProxyHosts>
             <port>8080</port>
           </proxy>
         </proxies>
