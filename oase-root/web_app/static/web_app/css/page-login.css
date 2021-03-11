@@ -74,7 +74,7 @@
   0% { opacity: 0; transform: translateY( -16px ); }
 100% { opacity: 1; transform: translateY(   0px ); }
 }
-.ond .oase-login h1 .nec {
+.ond .oase-login h1 .exclusion {
     font-size: 180%;
     letter-spacing: 0.25em;
 }
@@ -297,26 +297,14 @@ padding-right: 0;
   color: #00B5B8;
 }
 .login-footer .exastro {
-font-weight: bold;
-<<<<<<< HEAD
+  font-weight: bold;
 }
 .login-footer em {
-vertical-align: -4px;
-font-size: 150%;
+  vertical-align: -4px;
+  font-size: 150%;
 }
 
 /*
-=======
-}
-.login-footer em {
-vertical-align: -4px;
-font-size: 150%;
-}
-
-
-
-
->>>>>>> 67c83f063d7c898453914ac2c4191dcc7ec5250c
 .ond .oase-login-container {
     background-image: none;
 }
@@ -337,8 +325,4 @@ width: 100%; height: 100%;
 0% { filter: hue-rotate( 0deg); }
 100% { filter: hue-rotate( 360deg); }
 }
-<<<<<<< HEAD
 */
-=======
-
->>>>>>> 67c83f063d7c898453914ac2c4191dcc7ec5250c
