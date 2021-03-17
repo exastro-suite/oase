@@ -176,18 +176,3 @@ class AdAuthenticator:
         return self._conn
 
 
-########################################
-# DEBUG Code
-########################################
-if __name__=='__main__':
-
-    authenticator = AdAuthenticator(
-                            search_path='OU=OASEtestOU,DC=mas,DC=local',
-                            hosts=['10.132.34.133',],
-                            use_ssl=False,
-                            port=389,
-                            connect_timeout=3,
-                            read_timeout=3
-                        )
-
-    authenticator.authenticate(username='OASEAdAdmin', password='P@$$w0rd')
