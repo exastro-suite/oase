@@ -258,7 +258,7 @@ function post(postdata, btnId, render_func, req_mode) {
             <h3>{% get_message 'MOSJA27017' request.user.get_lang_mode showMsgId=False %}</h3>
             <ul class="driver-select">
               {% for some_driver in driver_list %}
-              <li><button onclick="modalChange('#modal-add-driver', '#modal-{{some_driver.name|slugify}}-add');setbeforeunloadThroughFlag(false);"><em class="owf {{some_driver.icon_name}}"></em><span>{{some_driver.name}}</span></button></li>
+              <li><button onclick="modalChange('#modal-add-driver', '#modal-{{some_driver.name|slugify}}-add');setbeforeunloadThroughFlag(false);"><em class="oda {{some_driver.icon_name}}"></em><span>{{some_driver.name}}</span></button></li>
               {% endfor %}
             </ul>
           </div>

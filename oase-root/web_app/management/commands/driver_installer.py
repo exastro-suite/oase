@@ -189,6 +189,11 @@ class InstallDriverInfo():
             ['backyards/exastro_collaboration/', 'exastro_%s_collaboration.py'],
             ['backyards/exastro_collaboration/', 'oase-%s-collaboration.service', '/usr/lib/systemd/system/'],
             ['confs/backyardconfs/services/', '%s_collaboration_env', '/etc/sysconfig/'],
+        ],
+        'ServiceNow' : [
+            ['backyards/servicenow_notification/', '%s_notification.py'],
+            ['backyards/servicenow_notification/', 'oase-%s-notification.service', '/usr/lib/systemd/system/'],
+            ['confs/backyardconfs/services/', 'oase-%s_notification_env', '/etc/sysconfig/'],
         ]
     }
 
@@ -204,6 +209,11 @@ class InstallDriverInfo():
             ["systemctl", "daemon-reload"],
             ["systemctl", "start", "oase-%s-collaboration.service"],
             ["systemctl", "enable", "oase-%s-collaboration.service"],
+        ],
+        'ServiceNow' : [
+            ["systemctl", "daemon-reload"],
+            ["systemctl", "start", "oase-%s-notification.service"],
+            ["systemctl", "enable", "oase-%s-notification.service"],
         ]
     }
 
@@ -211,6 +221,10 @@ class InstallDriverInfo():
         'ITA' : [
             ["systemctl", "disable", "oase-%s-collaboration.service"],
             ["systemctl", "stop", "oase-%s-collaboration.service"],
+        ],
+        'ServiceNow' : [
+            ["systemctl", "disable", "oase-%s-notification.service"],
+            ["systemctl", "stop", "oase-%s-notification.service"],
         ]
     }
 
