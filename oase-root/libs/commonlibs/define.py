@@ -56,7 +56,10 @@ WAITING             = 10  # 待機
 # リクエスト管理のステータス
 RULE_UNMATCH        = 1000  # 処理済み(ルール未検出)
 RULE_ERROR          = 1001  # 処理済み(ルール実行エラー)
-RULE_MATCH          = 1002
+RULE_MATCH          = 1002  # 処理済み(ルール検出)
+RULE_IN_COOPERATION = 1003  # 処理済み(ServiceNow連携中)
+RULE_ALREADY_LINKED = 1004  # 処理済み(ServiceNow連携済み)
+
 # ルールマッチング結果管理
 BREAK_ACTION        = 2001  # アクション中断
 ACTION_DATA_ERROR   = 2002    # アクション実行前エラー　ルールマッチング結果詳細情報エラーなど
@@ -566,6 +569,7 @@ class SYSTEM_SETTINGS():
         'oase_accept'      : 'REQUEST_ACCEPT_LOG',
         'oase_monitoring'  : 'MONITORING_LOG',
         'exastro_collaboration'  : 'EXASTRO_LOG',
+        'servicenow_notification' : 'SERVICENOW_LOG',
 }
 
 #-------------------
@@ -608,10 +612,11 @@ class REQUEST_HISTORY_STATUS():
     STOP       = STOP
 
     # リクエスト履歴固有ステータス
-    RULE_MATCH = PROCESSED      # ルールマッチ
-    RULE_UNMATCH = RULE_UNMATCH  # ルール未検出
-    RULE_ERROR = RULE_ERROR      # ルール実行エラー
-
+    RULE_MATCH          = PROCESSED           # ルールマッチ
+    RULE_UNMATCH        = RULE_UNMATCH        # ルール未検出
+    RULE_ERROR          = RULE_ERROR          # ルール実行エラー
+    RULE_IN_COOPERATION = RULE_IN_COOPERATION # 処理済み(ServiceNow連携中)
+    RULE_ALREADY_LINKED = RULE_ALREADY_LINKED # 処理済み(ServiceNow連携済み)
 
     STATUS_DESCRIPTION = {
         RULE_UNMATCH     : '処理済み(ルール未検出)',
@@ -640,6 +645,16 @@ class REQUEST_HISTORY_STATUS():
                   'name':'owf-question',
                   'description':'ルール未検出'
         },
+        RULE_IN_COOPERATION:{
+                  'status':'running',
+                  'name':'owf-gear',
+                  'description':'ServiceNow連携中'
+        },
+        RULE_ALREADY_LINKED:{
+                  'status':'complete',
+                  'name':'owf-check',
+                  'description':'ServiceNow連携済み'
+        },
         RULE_ERROR:{
                   'status':'attention',
                   'name':'owf-attention',
@@ -651,5 +666,4 @@ class REQUEST_HISTORY_STATUS():
                   'description':'強制終了'
         },
     }
-
 
