@@ -331,6 +331,10 @@ class OaseLogger:
             if 'exastro' in filename:
                 filename = 'exastro_collaboration'
 
+            # ServiceNow通知系は1つのlogにまとめる
+            if 'notification' in filename:
+                filename = 'servicenow_notification'
+
             log_file_path = root_dir_path + '/logs/backyardlogs/' + filename + '/' + filename + '.log'
             system_config_id = defs.SYSTEM_SETTINGS.LOG_PERIOD[filename]
 

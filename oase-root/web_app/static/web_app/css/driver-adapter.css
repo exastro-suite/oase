@@ -41,10 +41,21 @@
 
 .oda-driver-ita:before {
   content: "\e900";
+  color: #002B62;
 }
 .oda-driver-mail:before {
   content: "\e901";
+  color: #333;
 }
 .oda-adapter-zabbix:before {
   content: "\e902";
+  color: #D40000;
+}
+.oda-adapter-prometheus:before {
+  content: "\e903";
+  color: #E6522C;
+}
+.oda-driver-servicenow:before {
+  content: "\e904";
+  color: #81B5A1;
 }
