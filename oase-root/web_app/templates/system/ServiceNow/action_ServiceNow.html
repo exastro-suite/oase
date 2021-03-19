@@ -120,7 +120,7 @@ Copyright 2019 NEC Corporation
                   </tr>
                   <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA27019' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></th>
-                    <td><div class="cell-inner"><div class="select"><select id="addServiceNowProtocol"><option>http</option><option>https</option></select></div></div></td>
+                    <td><div class="cell-inner"><div class="select"><select id="addServiceNowProtocol"><option>https</option><option>http</option></select></div></div></td>
                   </tr>
                   <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA26131' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00108' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
@@ -128,7 +128,7 @@ Copyright 2019 NEC Corporation
                   </tr>
                   <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA27021' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00109' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th><td>
-                      <div class="cell-inner"><input id="addServiceNowPort" type="number" class="validation-input" value="" min="0" max="65535" required></div></td>
+                      <div class="cell-inner"><input id="addServiceNowPort" type="number" class="validation-input" value="443" min="0" max="65535" required></div></td>
                   </tr>
                   <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA27022' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
