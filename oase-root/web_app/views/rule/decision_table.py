@@ -44,12 +44,14 @@ from libs.webcommonlibs.decorator import *
 from libs.webcommonlibs.common import RequestToApply
 from libs.webcommonlibs.oase_exception import OASEError
 from web_app.models.models import RuleType, DataObject, ConditionalExpression, System, Group, AccessPermission
+from web_app.models.models import ActionType
 from web_app.serializers.rule_type import RuleTypeSerializer
 from web_app.serializers.data_obj import DataObjectSerializer
 from web_app.templatetags.common import get_message
 
 from web_app.views.forms.rule_type_form import RuleTypeForm
 from web_app.views.forms.common_form import DivErrorList
+from importlib import import_module
 
 logger = OaseLogger.get_instance() # ロガー初期化
 
@@ -327,6 +329,8 @@ def index(request):
     object_flg = 0
     dt_rule_ids_disp = []
     dt_rule_ids_edit = []
+    servicenow_flg = 0
+    servicenow_list = []
 
     dt_rule_ids_disp.extend(dtabr.get_modify_rules([defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE]))
     dt_rule_ids_edit.extend(dtabr.get_modify_rules(defs.ALLOWED_MENTENANCE))
@@ -368,6 +372,12 @@ def index(request):
         group_list, group_list_default = get_group_list(dt_rule_ids_disp)
         add_group_information(decision_table_list, group_list)
 
+        rcnt = ActionType.objects.filter(driver_type_id=3, disuse_flag=str(defs.ENABLE)).count()
+        if rcnt > 0:
+            # ServiceNowアクションマスタを取得
+            servicenow_list = _select_servicenow()
+            servicenow_flg = 1
+
         # 条件名の言語別変換処理
         ce = ConditionalExpression.objects.all()
         for c in ce:
@@ -393,6 +403,8 @@ def index(request):
         'rule_ids_edit'          : dt_rule_ids_edit,
         'object_flg'             : object_flg,
         'group_list'             : group_list_default,
+        'servicenow_list'        : servicenow_list,
+        'servicenow_flg'         : servicenow_flg,
     }
 
     data.update(request.user_config.get_templates_data(request))
@@ -460,6 +472,7 @@ def modify(request):
             'container_id_prefix_product' : dtcomp.contid_prd,
             'unknown_event_notification'  : notification['unknown_event_notification'],
             'mail_address'                : notification['mail_address'],
+            'servicenow_driver_id'        : notification['servicenow_driver_id'],
             'last_update_user'            : request.user.user_name,
         }
 
@@ -660,6 +673,7 @@ def modify_detail(request, rule_type_id):
                 summary        = info['summary'],
                 unknown_event_notification = notification['unknown_event_notification'],
                 mail_address = notification['mail_address'],
+                servicenow_driver_id = notification['servicenow_driver_id'],
                 last_update_timestamp = now,
                 last_update_user   = request.user.user_name
             )
@@ -1026,15 +1040,46 @@ def _select(filters):
         if d.summary == None:
             d.summary = ''
 
+        if d.servicenow_driver_id == None:
+            d.servicenow_driver_id = 0
+
         table_info = {
             'pk'                    : d.pk,
             'rule_type_name'        : d.rule_type_name,
             'summary'               : d.summary,
             'unknown_event_notification' : d.unknown_event_notification,
             'mail_address'          : d.mail_address,
+            'servicenow_driver_id'  : d.servicenow_driver_id,
             'rule_table_name'       : d.rule_table_name,
             'last_update_timestamp' : d.last_update_timestamp,
             'last_update_user'      : d.last_update_user,
+        }
+        table_list.append(table_info)
+
+    return table_list
+
+def _select_servicenow(filters={}, request=None):
+    """
+    [メソッド概要]
+      データ更新処理
+    """
+
+    logger.logic_log('LOSI00001', 'filters: %s' % (filters), request=request)
+
+    table_list = []
+
+    # リスト表示用
+    where_info = {}
+
+    module = import_module('web_app.models.ServiceNow_models')
+    ServiceNowDriver = getattr(module, 'ServiceNowDriver')
+    servicenow_table = ServiceNowDriver.objects.filter(**where_info)
+
+    for d in servicenow_table:
+
+        table_info = {
+            'servicenow_driver_id' : d.servicenow_driver_id,
+            'servicenow_disp_name' : d.servicenow_disp_name,
         }
         table_list.append(table_info)
 
@@ -1054,7 +1099,6 @@ def get_data_object(rule_ids):
         object_list.append(object_info)
 
     return object_list
-
 
 def get_group_list(rule_ids):
     """
@@ -1325,5 +1369,3 @@ def conditional_name_type_check(i, d, serializer, conditionalList, error_msg, ro
         conditionalList[d['conditional_name']] = expressionType
 
     return conditionalList, error_msg
-
-
