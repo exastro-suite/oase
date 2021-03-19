@@ -83,8 +83,16 @@ function submitTableData(){
 
         if (notificationInfo["unknown_event_notification"] == "1") {
             notificationInfo["mail_address"] = $("#mail_address").val();
+            notificationInfo["servicenow_driver_id"] = null;
+        } else if (notificationInfo["unknown_event_notification"] == "2") {
+            notificationInfo["mail_address"] = "";
+            notificationInfo["servicenow_driver_id"] = $("#servicenow_driver_id").val();
+        } else if (notificationInfo["unknown_event_notification"] == "3") {
+            notificationInfo["mail_address"] = $("#mail_address").val();
+            notificationInfo["servicenow_driver_id"] = $("#servicenow_driver_id").val();
         } else {
             notificationInfo["mail_address"] = "";
+            notificationInfo["servicenow_driver_id"] = null;
         }
 
         //--------------------------------------------
@@ -211,7 +219,7 @@ function submitAction(){
             // 基本情報エラー処理
             errorMsg = response_json.error_top;
             Object.keys(errorMsg).forEach(function(id) {
-                if(id != "rule_type_name" && id != "summary" && id != "mail_address" && id != "unknown_event_notification") {
+                if(id != "rule_type_name" && id != "summary" && id != "mail_address" && id != "servicenow_driver_id" && id != "unknown_event_notification") {
                     return true;
                 }
                 errorStr = errorMsg[id];
@@ -296,9 +304,17 @@ function submitTableData2(){
         notificationInfo["unknown_event_notification"] = $("#edit-unknown_event_notification").val();
 
         if (notificationInfo["unknown_event_notification"] == "1") {
-            notificationInfo["mail_address"] = $("#edit-mail-address").val();
+            notificationInfo["mail_address"] = $("#edit-mail_address").val();
+            notificationInfo["servicenow_driver_id"] = null;
+        } else if (notificationInfo["unknown_event_notification"] == "2") {
+            notificationInfo["mail_address"] = "";
+            notificationInfo["servicenow_driver_id"] = $("#edit-servicenow_driver_name").val();
+        } else if (notificationInfo["unknown_event_notification"] == "3") {
+            notificationInfo["mail_address"] = $("#edit-mail_address").val();
+            notificationInfo["servicenow_driver_id"] = $("#edit-servicenow_driver_name").val();
         } else {
             notificationInfo["mail_address"] = "";
+            notificationInfo["servicenow_driver_id"] = null;
         }
 
         //--------------------------------------------
@@ -393,7 +409,7 @@ function submitAction2(){
                 // 基本情報エラー処理
                 errorMsg = response_json.error_top;
                 Object.keys(errorMsg).forEach(function(id) {
-                    if(id != "rule_type_name" && id != "summary" && id != "mail_address" && id != "unknown_event_notification") {
+                    if(id != "rule_type_name" && id != "summary" && id != "mail_address" && id != "servicenow_driver_id" && id != "unknown_event_notification") {
                         return true;
                     }
                     errorStr = errorMsg[id];
@@ -478,9 +494,10 @@ function showNewTable(){
     // 未知事象通知
     $("#unknown_event_notification").val("0");
     $("#mail_address").val("");
+    $("#servicenow_driver_id").val("");
 
     // 非表示
-    $('.notification-mail, .notification-system').hide();
+    $('.notification-mail, .notification-servicenow, .notification-system').hide();
 
     // バリデーションエラー初期化
     $(".error-list").remove();
@@ -547,15 +564,38 @@ function showDetail(pk, copy_flg, del_flg, edit_flg, dl_flg){
               case "1":
                   $("#divNotifyType").text("{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}");
                   $("#dispNotifyMailAddr").show();
+                  $("#dispNotifyServiceNow").hide();
+                  break;
+
+              //  2:ServiceNow通知
+              case "2":
+                  $("#divNotifyType").text("{% get_message 'MOSJA11062' request.user.get_lang_mode showMsgId=False %}");
+                  $("#dispNotifyMailAddr").hide();
+                  $("#dispNotifyServiceNow").show();
+                  break;
+
+              //  3:メールとServiceNow通知
+              case "3":
+                  $("#divNotifyType").text("{% get_message 'MOSJA11063' request.user.get_lang_mode showMsgId=False %}");
+                  $("#dispNotifyMailAddr").show();
+                  $("#dispNotifyServiceNow").show();
                   break;
 
               //  通知しない or 不明な種別
               default:
                   $("#divNotifyType").text("{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}");
                   $("#dispNotifyMailAddr").hide();
+                  $("#dispNotifyServiceNow").hide();
                   break;
             }
             $("#divNotifyMailAddr").text("{{d.mail_address|escapejs}}");
+
+            {% for n in servicenow_list %}
+                if ( {{n.servicenow_driver_id}} == {{d.servicenow_driver_id}}){
+                    $("#divNotifyServiceNowName").text("{{n.servicenow_disp_name|escapejs}}");
+                    $("#divNotifyServiceNowName").val("{{n.servicenow_driver_id|escapejs}}");
+                }
+            {% endfor %}
         }
     {% endfor %}
 
@@ -874,17 +914,32 @@ function showEditTable() {
     {% endfor %}
 
     var edit_infotype = $("#divNotifyType").val();
-    var edit_mailaddr = document.getElementById('divNotifyMailAddr').textContent
+    var edit_mailaddr = document.getElementById('divNotifyMailAddr').textContent;
+    var edit_servicenowtype = document.getElementById('divNotifyServiceNowName').value;
 
     // 未知事象を埋め込み
     var detailNotifyType = "";
     detailNotifyType = document.getElementById('divNotifyType').textContent;
     if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
-      $("#edit-unknown_event_notification").val("1");
-      $("#edit-mail-address").val(edit_mailaddr);
-      $('.notification-mail, .notification-system').show();
+        $("#edit-unknown_event_notification").val("1");
+        $("#edit-mail-address").val(edit_mailaddr);
+        $('.notification-mail').show();
+        $('.notification-servicenow').hide();
+    } else if(detailNotifyType == "{% get_message 'MOSJA11062' request.user.get_lang_mode showMsgId=False %}"){
+        $("#edit-unknown_event_notification").val("2");
+        $("#edit-servicenow_driver_name").val(edit_servicenowtype);
+        $('.notification-mail').hide();
+        $('.notification-servicenow').show();
+    } else if(detailNotifyType == "{% get_message 'MOSJA11063' request.user.get_lang_mode showMsgId=False %}"){
+        $("#edit-unknown_event_notification").val("3");
+        $("#edit-mail-address").val(edit_mailaddr);
+        $("#edit-servicenow_driver_name").val(edit_servicenowtype);
+        $('.notification-mail, .notification-servicenow').show();
+    } else {
+        $("#edit-unknown_event_notification").val("0");
+        $('.notification-mail').hide();
+        $('.notification-servicenow').hide();
     }
-
 }
 
 // 編集画面閉じたとき
@@ -914,9 +969,10 @@ function showCopy() {
     // 未知事象通知
     $("#unknown_event_notification").val("0");
     $("#mail_address").val("");
+    $("#servicenow_driver_id").val("");
 
     // 非表示
-    $('.notification-mail, .notification-system').hide();
+    $('.notification-mail, .notification-servicenow, .notification-system').hide();
 
     // バリデーションエラー初期化
     $(".error-list").remove();
@@ -982,8 +1038,17 @@ function showCopy() {
     if(detailNotifyType == "{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}"){
       $("#unknown_event_notification").val("1");
       $("#mail_address").val(document.getElementById('divNotifyMailAddr').textContent);
-      $('.notification-mail, .notification-system').show();
-    }
+      $('.notification-mail').show();
+    } else if(detailNotifyType == "{% get_message 'MOSJA11062' request.user.get_lang_mode showMsgId=False %}"){
+      $("#unknown_event_notification").val("2");
+      $("#servicenow_driver_id").val(document.getElementById('divNotifyServiceNowName').value);
+      $('.notification-servicenow').show();
+    } else if(detailNotifyType == "{% get_message 'MOSJA11063' request.user.get_lang_mode showMsgId=False %}"){
+      $("#unknown_event_notification").val("3");
+      $("#mail_address").val(document.getElementById('divNotifyMailAddr').textContent);
+      $("#servicenow_driver_id").val(document.getElementById('divNotifyServiceNowName').value);
+      $('.notification-mail, .notification-servicenow').show();
+    } 
 }
 
 ////////////////////////////////////////////////
@@ -1278,6 +1343,10 @@ var ruleRow = heredocHTML( function(){/*
                     <select class="notification-select" id="unknown_event_notification">
                       <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                       <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
+                      {% if servicenow_flg == 1 %}
+                      <option value="2">{% get_message 'MOSJA11062' request.user.get_lang_mode showMsgId=False %}</option>
+                      <option value="3">{% get_message 'MOSJA11063' request.user.get_lang_mode showMsgId=False %}</option>
+                      {% endif %}
                       <!-- <option value="2">システムに通知する</option>
                       <option value="3">メールとシステムに通知する</option> -->
                     </select>
@@ -1291,20 +1360,20 @@ var ruleRow = heredocHTML( function(){/*
                     $(function(){
                     
                       // 非表示
-                      $('.notification-mail, .notification-system').hide();
+                      $('.notification-mail, .notification-servicenow, .notification-system').hide();
                     
                       // セレクトチェンジ
                       $('.notification-select').on('change', function(){
                     
                         const value = $( this ).val();
-                        $('.notification-mail, .notification-system').hide();
+                        $('.notification-mail, .notification-servicenow, .notification-system').hide();
                     
                         if( value == '1' ){
                           $('.notification-mail').show();
                         } else if( value == '2' ){
-                          $('.notification-system').show();
+                          $('.notification-servicenow').show();
                         } else if( value == '3' ){
-                          $('.notification-mail, .notification-system').show();
+                          $('.notification-mail, .notification-servicenow').show();
                         }
                     
                       });
@@ -1326,6 +1395,30 @@ var ruleRow = heredocHTML( function(){/*
                   <td><div class="cell-inner">
                   <input type="text" data-type="multiaddress" value="" data-maxlength="512" class="validation-input" id="mail_address">
                   </div></td>
+                  </tr>
+                  </tbody>
+                  </table>
+                  </div>
+                  </div>
+
+                  <!-- ServiceNowで通知する -->
+                  <div class="notification-servicenow">
+                    <h4><span>{% get_message 'MOSJA11060' request.user.get_lang_mode showMsgId=False %}</span></h4>
+                  <div class="oase-modal-table">
+                  <table>
+                  <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA11061' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+                    <div class="select">
+                      <select class="validation-select" id="servicenow_driver_id">
+                        <option value="0" hidden disabled selected></option>
+                        {% for n in servicenow_list %}
+                        <option value="{{n.servicenow_driver_id}}">{{n.servicenow_disp_name}}</option>
+                        {% endfor %}
+                      </select>
+                    </div>
+                    </div></td>
                   </tr>
                   </tbody>
                   </table>
@@ -1505,6 +1598,21 @@ var ruleRow = heredocHTML( function(){/*
                     </table>
                   </div>
                 </div>
+                <div class="oase-modal-table" id="dispNotifyServiceNow">
+                  {% comment %} MOSJA11060 : ServiceNow通知先 {% endcomment %}
+                  <h3><span>{% get_message 'MOSJA11060' request.user.get_lang_mode showMsgId=False %}</span></h3>
+                  <div class="oase-modal-table">
+                    <table>
+                      <tbody>
+                      <tr>
+                        {% comment %} MOSJA11061 : ServiceNowDriver名 {% endcomment %}
+                        <th><div class="cell-inner">{% get_message 'MOSJA11061' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner" id="divNotifyServiceNowName"></div></td>
+                      </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -1613,8 +1721,10 @@ var ruleRow = heredocHTML( function(){/*
                       <select class="notification-select" id="edit-unknown_event_notification">
                         <option value="0">{% get_message 'MOSJA11050' request.user.get_lang_mode showMsgId=False %}</option>
                         <option value="1">{% get_message 'MOSJA11051' request.user.get_lang_mode showMsgId=False %}</option>
-                        <!-- <option value="2">システムに通知する</option>
-                        <option value="3">メールとシステムに通知する</option> -->
+                        {% if servicenow_flg == 1 %}
+                        <option value="2">{% get_message 'MOSJA11062' request.user.get_lang_mode showMsgId=False %}</option>
+                        <option value="3">{% get_message 'MOSJA11063' request.user.get_lang_mode showMsgId=False %}</option>
+                        {% endif %}
                       </select>
                     </div>
                 </div></td>
@@ -1626,26 +1736,39 @@ var ruleRow = heredocHTML( function(){/*
                     <!-- <textarea id="edit-summary" placeholder="{% get_message 'MOSJA11053' request.user.get_lang_mode showMsgId=False %}" data-maxlength="4000" data-type="text" class="overview tooltip-input validation-input" title="{% get_message 'MOSJA00105' request.user.get_lang_mode showMsgId=False %}"></textarea> -->
                   </div></td>
                 </tr>
+                <tr class="notification-servicenow">
+                  <th><div class="cell-inner">{% get_message 'MOSJA11061' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  <td><div class="cell-inner">
+                  <div class="select">
+                    <select class="validation-select" id="edit-servicenow_driver_name">
+                    {% for n in servicenow_list %}
+                      <option value="{{n.servicenow_driver_id}}">{{n.servicenow_disp_name}}</option>
+                    {% endfor %}
+                    </select>
+                  </div>
+                  </div></td>
+                </tr>
                 <script>
                   // 未知事象セレクトを単純に切り替える物
                   $(function(){
                   
                     // 非表示
-                    $('.notification-mail, .notification-system').hide();
+                    $('.notification-mail, .notification-servicenow, .notification-system').hide();
                   
                     // セレクトチェンジ
                     $('.notification-select').on('change', function(){
                   
                       const value = $( this ).val();
-                      $('.notification-mail, .notification-system').hide();
+                      $('.notification-mail, .notification-servicenow, .notification-system').hide();
                   
                       if( value == '1' ){
                         $('.notification-mail').show();
                       } else if( value == '2' ){
-                        $('.notification-system').show();
+                        $('.notification-servicenow').show();
                       } else if( value == '3' ){
-                        $('.notification-mail, .notification-system').show();
+                        $('.notification-mail, .notification-servicenow').show();
                       }
+                  
                     });
                   });
                   </script>
