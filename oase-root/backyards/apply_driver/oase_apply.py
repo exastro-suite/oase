@@ -124,6 +124,7 @@ def create(request):
 
     unknown_event_notification = notificationInfo['unknown_event_notification']
     mail_address = notificationInfo['mail_address']
+    servicenow_driver_id = notificationInfo['servicenow_driver_id']
 
     rule_type_id = 0
 
@@ -150,6 +151,7 @@ def create(request):
                 label_count=label_cnt,
                 unknown_event_notification=unknown_event_notification,
                 mail_address=mail_address,
+                servicenow_driver_id=servicenow_driver_id,
                 last_update_timestamp=now,
                 last_update_user=user.user_name
             )
