@@ -23,26 +23,18 @@ action_ServiceNow tests
 
 
 import pytest
-import unittest
 import datetime
 import pytz
-import json
 
 from importlib import import_module
-from mock import Mock
 
 from django.conf import settings
-from django.db import transaction
 
-from django.urls import reverse
-from django.http import Http404
-
-from web_app.models.models import User, Group, UserGroup
+from web_app.models.models import User
 from web_app.views.system.ServiceNow.action_ServiceNow import ServiceNowDriverInfo
 
 from libs.commonlibs.aes_cipher import AESCipher
 from libs.commonlibs.define import *
-from importlib import import_module
 
 
 module = import_module('web_app.models.ServiceNow_models')
@@ -57,25 +49,6 @@ class DummyRequest():
 def set_test_data():
 
     now = datetime.datetime.now(pytz.timezone('UTC'))
-    group = Group(
-        group_id=1,
-        group_name='単体テストチーム',
-        summary='単体テスト用権限',
-        ad_data_flag='0',
-        last_update_timestamp=now,
-        last_update_user='pytest',
-    )
-    group.save()
-
-    group = Group(
-        group_id=2,
-        group_name='結合テストチーム',
-        summary='結合テスト用権限',
-        ad_data_flag='0',
-        last_update_timestamp=now,
-        last_update_user='pytest',
-    )
-    group.save()
 
     cipher = AESCipher(settings.AES_KEY)
     encrypted_password = cipher.encrypt('pytest')
@@ -109,31 +82,10 @@ def set_test_data():
     )
     servicenow_driver.save(force_insert=True)
 
-    user_group = UserGroup(
-        user_group_id=1,
-        user_id=1,
-        group_id=1,
-        ad_data_flag='0',
-        last_update_timestamp=datetime.datetime.now(pytz.timezone('UTC')),
-        last_update_user='test_user',
-    )
-    user_group.save(force_insert=True)
-
-    user_group = UserGroup(
-        user_group_id=2,
-        user_id=1,
-        group_id=998,
-        ad_data_flag='0',
-        last_update_timestamp=datetime.datetime.now(pytz.timezone('UTC')),
-        last_update_user='test_user',
-    )
-    user_group.save(force_insert=True)
-
 
 def del_test_data():
-    Group.objects.all().delete()
+
     ServiceNowDriver.objects.all().delete()
-    UserGroup.objects.all().delete()
 
 
 @pytest.mark.django_db
@@ -212,6 +164,37 @@ class TestServiceNowDriverInfo(object):
         result = self.target.modify(req_data, req)
 
         assert result['status'] == 'success'
+
+        del_test_data()
+
+    ############################################
+    # 異常系
+    def test_modify_ng_ope_insert(self):
+
+        # テストデータ初期化
+        del_test_data()
+        set_test_data()
+
+        # テストデータ作成
+        req = DummyRequest()
+        req.user = User.objects.get(user_id=1)
+
+        req_data = {}
+        req_data['json_str'] = {
+            'ope'                  : DABASE_OPECODE.OPE_INSERT,
+            'password'             : '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567',
+            'servicenow_disp_name' : '12345678901234567890123456789012345678901234567890123456789012345',
+            'protocol'             : '123456789',
+            'hostname'             : '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+            'port'                 : 65536,
+            'username'             : '12345678901234567890123456789012345678901234567890123456789012345',
+            'proxy'                : '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567',
+        }
+
+        # テスト
+        result = self.target.modify(req_data, req)
+
+        assert result['status'] == 'failure'
 
         del_test_data()
 
