@@ -56,8 +56,8 @@ def set_test_data():
         servicenow_driver_id=1,
         servicenow_disp_name='ServiceNow0001',
         hostname='pytest-host-name1',
-        protocol='https',
-        port='443',
+        protocol='http',
+        port='80',
         username='pytest',
         password=encrypted_password,
         count=0,
@@ -119,6 +119,10 @@ class TestServiceNowDriverInfo(object):
     # TESTここから
     ########################
 
+    ############################################
+    # 一覧取得テスト
+    ############################################
+    # 正常系
     def test_get_info_list(self):
         """
         get_info_list test
@@ -128,7 +132,11 @@ class TestServiceNowDriverInfo(object):
 
         result = self.target.get_info_list([1, 2])
 
-        assert len(result) > 0
+        assert len(result) >= 2
+        assert (result[0]['servicenow_driver_id'] == 1 and result[0]['protocol'] == 'http') \
+            or (result[0]['servicenow_driver_id'] == 2 and result[0]['protocol'] == 'https')
+        assert (result[1]['servicenow_driver_id'] == 1 and result[1]['protocol'] == 'http') \
+            or (result[1]['servicenow_driver_id'] == 2 and result[1]['protocol'] == 'https')
 
         del_test_data()
 
