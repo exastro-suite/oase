@@ -206,3 +206,54 @@ class TestServiceNowDriverInfo(object):
 
         del_test_data()
 
+
+    ############################################
+    # 削除テスト
+    ############################################
+    # 正常系
+    def test_modify_ok_ope_delete(self, monkeypatch):
+
+        # テストデータ初期化
+        del_test_data()
+        set_test_data()
+
+        # テストデータ作成
+        req = DummyRequest()
+        req.user = User.objects.get(user_id=1)
+
+        req_data = {}
+        req_data['json_str'] = {
+            'ope'                  : DABASE_OPECODE.OPE_DELETE,
+            'servicenow_driver_id' : 1,
+        }
+        # テスト
+        monkeypatch.setattr(self.target, '_validate', lambda a, b, c:False)
+        result = self.target.modify(req_data, req)
+
+        assert result['status'] == 'success'
+
+        del_test_data()
+
+    # ############################################
+    # # 異常系
+    def test_modify_ng_ope_delete(self, monkeypatch):
+
+        # テストデータ初期化
+        del_test_data()
+        set_test_data()
+
+        # テストデータ作成
+        req = DummyRequest()
+        req.user = User.objects.get(user_id=1)
+
+        req_data = {}
+        req_data['json_str'] = {
+            'ope'                  : DABASE_OPECODE.OPE_DELETE,
+        }
+        # テスト
+        monkeypatch.setattr(self.target, '_validate', lambda a, b, c:False)
+        result = self.target.modify(req_data, req)
+
+        assert result['status'] == 'failure'
+
+        del_test_data()
