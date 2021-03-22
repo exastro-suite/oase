@@ -43,7 +43,6 @@ from web_app.views.system.ITA.action_ITA import ITADriverInfo
 
 from libs.commonlibs.aes_cipher import AESCipher
 from libs.commonlibs.define import *
-from importlib import import_module
 
 
 module = import_module('web_app.models.ITA_models')
