@@ -595,6 +595,7 @@ class RuleType(models.Model):
     label_count = models.IntegerField("Label件数")
     unknown_event_notification = models.CharField("未知事象通知設定", max_length=1, default='0')
     mail_address = models.CharField("通知先メールアドレス", max_length=512, null=True, blank=True)
+    servicenow_driver_id = models.IntegerField("ServiceNow接続先ID", null=True)
     disuse_flag = models.CharField("廃止フラグ", max_length=1, default='0')
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
