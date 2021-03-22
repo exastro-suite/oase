@@ -345,6 +345,22 @@ mailドライバ
 
  MAIL_NAME=oasetest,MAIL_TO={{ VAR_条件名 }},MAIL_CC=ccc@ccc.com,MAIL_BCC=ddd@ddd.com,MAIL_TEMPLATE=test_template
 
+
+ServiceNowドライバ
+^^^^^^^^^^^^^^^^^^
+
+| **アクションパラメータ情報（必須）※ダブルクオーテーションは使用不可**
+
+* SERVICENOW_NAMEは必須です。OASE画面のシステム-アクション設定-ServiceNow_driverの名前と紐づけます。
+
+
+**記述例**
+
+::
+
+ SERVICENOW_NAME=ServiceNowTest
+
+
 (5)アクション条件部
 ---------------------
 
