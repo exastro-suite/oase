@@ -36,9 +36,8 @@ from django.db import transaction
 
 from django.urls import reverse
 from django.http import Http404
-from django.test import Client, RequestFactory
 
-from web_app.models.models import Group, UserGroup
+from web_app.models.models import User, Group, UserGroup
 from web_app.views.system.ServiceNow.action_ServiceNow import ServiceNowDriverInfo
 
 from libs.commonlibs.aes_cipher import AESCipher
@@ -48,6 +47,11 @@ from importlib import import_module
 
 module = import_module('web_app.models.ServiceNow_models')
 ServiceNowDriver = getattr(module, 'ServiceNowDriver')
+
+
+class DummyRequest():
+
+    user = None
 
 
 def set_test_data():
@@ -176,4 +180,38 @@ class TestServiceNowDriverInfo(object):
 
         del_test_data()
 
+
+    ############################################
+    # 新規追加テスト
+    ############################################
+    # 正常系
+    def test_modify_ok_ope_insert(self, monkeypatch):
+
+        # テストデータ初期化
+        del_test_data()
+        set_test_data()
+
+        # テストデータ作成
+        req = DummyRequest()
+        req.user = User.objects.get(user_id=1)
+
+        req_data = {}
+        req_data['json_str'] = {
+            'ope'                  : DABASE_OPECODE.OPE_INSERT,
+            'password'             : 'test_passwd',
+            'servicenow_disp_name' : 'test_disp_name',
+            'protocol'             : 'https',
+            'hostname'             : 'test_host_name',
+            'port'                 : 443,
+            'username'             : 'test_user_name',
+            'proxy'                : 'test_proxy',
+        }
+
+        # テスト
+        monkeypatch.setattr(self.target, '_validate', lambda a, b, c:False)
+        result = self.target.modify(req_data, req)
+
+        assert result['status'] == 'success'
+
+        del_test_data()
 
