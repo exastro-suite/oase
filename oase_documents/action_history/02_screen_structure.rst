@@ -305,6 +305,22 @@
     メールテンプレートで記入したメールアドレスか、わかるように表示しています。
 
 
+* 履歴詳細画面における、ServiceNow の項目は次の通りです。
+
+.. figure:: ../images/action_history/action_history_15.png
+   :scale: 100%
+   :align: center
+
+   図 2.2-2-5 固有項目(ServiceNow)
+
+.. csv-table:: 表 2.2-2-5 固有項目(ServiceNow)の説明
+   :header: No., 構成要素, 説明
+   :widths: 5, 20, 60
+
+   1, ServiceNow表示名, ディシジョンテーブルファイルに記載した、SERVICENOW_NAMEが表示されます。
+   2, Short Description, ServiceNowへ連携した、Short Descriptionが表示されます。
+
+
 ドライバのアンインストールについて
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 * アクション実行されていたドライバをアンインストールすると、ドライバ固有の項目が表示されなくなります。
