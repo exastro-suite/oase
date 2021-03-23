@@ -304,13 +304,13 @@ function submitTableData2(){
         notificationInfo["unknown_event_notification"] = $("#edit-unknown_event_notification").val();
 
         if (notificationInfo["unknown_event_notification"] == "1") {
-            notificationInfo["mail_address"] = $("#edit-mail_address").val();
+            notificationInfo["mail_address"] = $("#edit-mail-address").val();
             notificationInfo["servicenow_driver_id"] = null;
         } else if (notificationInfo["unknown_event_notification"] == "2") {
             notificationInfo["mail_address"] = "";
             notificationInfo["servicenow_driver_id"] = $("#edit-servicenow_driver_name").val();
         } else if (notificationInfo["unknown_event_notification"] == "3") {
-            notificationInfo["mail_address"] = $("#edit-mail_address").val();
+            notificationInfo["mail_address"] = $("#edit-mail-address").val();
             notificationInfo["servicenow_driver_id"] = $("#edit-servicenow_driver_name").val();
         } else {
             notificationInfo["mail_address"] = "";
