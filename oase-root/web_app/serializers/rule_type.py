@@ -55,6 +55,7 @@ class RuleTypeSerializer(serializers.ModelSerializer):
             'current_container_id_product',
             'unknown_event_notification',
             'mail_address',
+            'servicenow_driver_id',
             'last_update_timestamp',
             'last_update_user',
         )
