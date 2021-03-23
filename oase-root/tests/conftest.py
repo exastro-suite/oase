@@ -129,9 +129,9 @@ def zabbix_table(django_db_blocker):
 def ita_table(django_db_blocker):
     """
     セットアップ：
-        ITA.confを使ってitaアダプター関連のテーブルを追加する
+        ITA.confを使ってitaドライバ関連のテーブルを追加する
     ティアダウン：
-        itaアダプター関連のレコードを全削除
+        itaドライバ関連のレコードを全削除
     """
     oase_path = os.path.dirname(os.path.abspath(__file__)).split('oase-root')
     conf_filepath = oase_path[0] + 'tool/conf/ITA.conf'
@@ -146,6 +146,26 @@ def ita_table(django_db_blocker):
     getattr(module, 'ItaParameterMatchInfo').objects.all().delete()
     getattr(module, 'ItaParametaCommitInfo').objects.all().delete()
     getattr(module, 'ItaParameterItemInfo').objects.all().delete()
+
+
+@pytest.fixture()
+def servicenow_table(django_db_blocker):
+    """
+    セットアップ：
+        ServiceNow.confを使ってServiceNowドライバ関連のテーブルを追加する
+    ティアダウン：
+        ServiceNowドライバ関連のレコードを全削除
+    """
+    oase_path = os.path.dirname(os.path.abspath(__file__)).split('oase-root')
+    conf_filepath = oase_path[0] + 'tool/conf/ServiceNow.conf'
+
+    create_tables(conf_filepath)
+
+    yield
+
+    module = import_module('web_app.models.ServiceNow_models')
+    getattr(module, 'ServiceNowActionHistory').objects.all().delete()
+    getattr(module, 'ServiceNowDriver').objects.all().delete()
 
 
 @pytest.fixture()
