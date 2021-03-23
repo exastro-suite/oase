@@ -326,3 +326,36 @@ class TestServiceNowDriverInfo(object):
             assert result['status'] == 'failure'
 
         del_test_data()
+
+    ############################################
+    # 異常系
+    def test_modity_ng_driverid_update(self,monkeypatch):
+
+        # テストデータ初期化
+        del_test_data()
+        set_test_data()
+
+        # テストデータ作成
+        req = DummyRequest()
+        req.user = User.objects.get(user_id=1)
+
+        req_data = {}
+        req_data['json_str'] = {
+            'ope'                  : DABASE_OPECODE.OPE_UPDATE,
+            'password'             : 'test_passwd',
+            'servicenow_disp_name' : 'test_disp_name',
+            'protocol'             : 'https',
+            'hostname'             : 'test_host_name',
+            'port'                 : 443,
+            'username'             : 'test_user_name',
+            'proxy'                : 'test_proxy',
+            'servicenow_driver_id' : 0,
+        }
+
+        # テスト
+        monkeypatch.setattr(self.target, '_validate', lambda a, b, c:False)
+        self.target.modify(req_data, req)
+        result = ServiceNowDriver.objects.all().values_list('servicenow_disp_name',flat=True)
+        assert 'test_disp_name' not in result
+
+        del_test_data()
