@@ -208,8 +208,7 @@ class ServiceNowDriverInfo():
                 ).save(force_insert=True)
 
         except ServiceNowDriver.DoesNotExist:
-            logger.logic_log('LOSM07006', "servicenow_driver_id", servicenow_driver_id, request=request)
-
+            logger.logic_log('LOSM07006', "servicenow_driver_id", rq['servicenow_driver_id'], request=request)
         except Exception as e:
             logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
             response = {
