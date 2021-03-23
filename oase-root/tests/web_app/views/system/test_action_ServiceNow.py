@@ -29,6 +29,7 @@ import pytz
 from importlib import import_module
 
 from django.conf import settings
+from django.db import transaction
 
 from web_app.models.models import User
 from web_app.views.system.ServiceNow.action_ServiceNow import ServiceNowDriverInfo
@@ -255,5 +256,73 @@ class TestServiceNowDriverInfo(object):
         result = self.target.modify(req_data, req)
 
         assert result['status'] == 'failure'
+
+        del_test_data()
+
+    ############################################
+    # 変更テスト
+    ############################################
+    # 正常系
+    def test_modity_ok_update(self,monkeypatch):
+
+        # テストデータ初期化
+        del_test_data()
+        set_test_data()
+
+        # テストデータ作成
+        req = DummyRequest()
+        req.user = User.objects.get(user_id=1)
+
+        req_data = {}
+        req_data['json_str'] = {
+            'ope'                  : DABASE_OPECODE.OPE_UPDATE,
+            'password'             : 'test_passwd',
+            'servicenow_disp_name' : 'test_disp_name',
+            'protocol'             : 'https',
+            'hostname'             : 'test_host_name',
+            'port'                 : 443,
+            'username'             : 'test_user_name',
+            'proxy'                : 'test_proxy',
+            'servicenow_driver_id' : 1,
+        }
+
+        # テスト
+        monkeypatch.setattr(self.target, '_validate', lambda a, b, c:False)
+        result = self.target.modify(req_data, req)
+
+        assert result['status'] == 'success'
+
+        del_test_data()
+
+    ############################################
+    # 異常系
+    def test_modify_ng_update(self,monkeypatch):
+
+        # テストデータ初期化
+        del_test_data()
+        set_test_data()
+        
+        # テストデータ作成
+        req = DummyRequest()
+        req.user = User.objects.get(user_id=1)
+
+        req_data = {}
+        req_data['json_str'] = {
+            'ope'                  : DABASE_OPECODE.OPE_UPDATE,
+            'password'             : '12345678901234567890123456789012345678901234567890123456789012345',
+            'servicenow_disp_name' : '12345678901234567890123456789012345678901234567890123456789012345',
+            'protocol'             : '123456789',
+            'hostname'             : '123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789',
+            'port'                 : 65536,
+            'username'             : '12345678901234567890123456789012345678901234567890123456789012345',
+            'proxy'                : '12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567',
+            'servicenow_driver_id' : 1,
+        }
+
+        # テスト
+        monkeypatch.setattr(self.target, '_validate', lambda a, b, c:False)
+        with transaction.atomic():
+            result = self.target.modify(req_data, req)
+            assert result['status'] == 'failure'
 
         del_test_data()
