@@ -26,7 +26,7 @@ from django.urls import reverse
 from libs.commonlibs.common import Common
 from libs.commonlibs.dt_component import DecisionTableComponent
 from web_app.models.models import Group, PasswordHistory, RuleType, User
-from web_app.views.rule.decision_table import DecisionTableAuthByRule, _select
+from web_app.views.rule.decision_table import DecisionTableAuthByRule, _select, _select_servicenow
 from libs.webcommonlibs.common import RequestToApply
 
 @pytest.mark.django_db
@@ -186,7 +186,18 @@ class TestModifyDetail:
         monkeypatch.setattr(DecisionTableAuthByRule, 'allow_update', lambda a, auth_val=None, rule_type_id=0:True)
 
         # 変更データ
-        json_str = {"table_info":{"rule_type_name":"pytest","summary":""},"group_list":[],"notificationInfo":{"unknown_event_notification":"1","mail_address":"pytest@example.com"}}
+        json_str = {
+            "table_info":{
+                "rule_type_name":"pytest",
+                "summary":""
+            },
+            "group_list":[],
+            "notificationInfo":{
+                "unknown_event_notification":"1",
+                "mail_address":"pytest@example.com",
+                "servicenow_driver_id":0,
+            }
+        }
         json_data = json.dumps(json_str)
 
         response = admin.post('/oase_web/rule/decision_table/modify/9999/', {'add_record':json_data})
@@ -270,3 +281,78 @@ class TestModifyDetail:
         assert resp_content['status'] == 'failure'
 
         self.del_test_data()
+
+
+@pytest.mark.django_db
+class TestSelectServiceNow:
+    """
+    _select_servicenow テストクラス
+    """
+
+    def set_test_data(self):
+        """
+        テストデータの作成
+        """
+
+        now = datetime.datetime.now(pytz.timezone('UTC'))
+
+        module = import_module('web_app.models.ServiceNow_models')
+        ServiceNowDriver = getattr(module, 'ServiceNowDriver')
+
+        ServiceNowDriver(
+            servicenow_driver_id=1,
+            servicenow_disp_name='ServiceNow0001',
+            hostname='pytest-host-name1',
+            protocol='http',
+            port='80',
+            username='pytest_user',
+            password='pytest_passwd',
+            count=0,
+            proxy='',
+            last_update_user='pytest',
+            last_update_timestamp=now,
+        ).save(force_insert=True)
+
+        ServiceNowDriver(
+            servicenow_driver_id=2,
+            servicenow_disp_name='ServiceNow0002',
+            hostname='pytest-host-name2',
+            protocol='http',
+            port='80',
+            username='pytest_user',
+            password='pytest_passwd',
+            count=0,
+            proxy='',
+            last_update_user='pytest',
+            last_update_timestamp=now,
+        ).save(force_insert=True)
+
+
+    def del_test_data(self):
+        """
+        テストデータの削除
+        """
+
+        module = import_module('web_app.models.ServiceNow_models')
+        ServiceNowDriver = getattr(module, 'ServiceNowDriver')
+
+        ServiceNowDriver.objects.all().delete()
+
+
+    @pytest.mark.django_db
+    def test_ok(self):
+        """
+        通知先レコード取得処理
+        ※ 正常系(無条件)
+        """
+
+        self.del_test_data()
+        self.set_test_data()
+
+        result = _select_servicenow()
+
+        assert len(result) == 2
+
+        self.del_test_data()
+
+
