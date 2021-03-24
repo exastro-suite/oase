@@ -20,6 +20,7 @@ import datetime
 import pytz
 
 from django.db import transaction
+from django.conf import settings
 
 from libs.commonlibs.define import *
 from unittest.mock import MagicMock, patch
@@ -198,7 +199,7 @@ def test_create_incident_ok(monkeypatch):
         port = 443
         proxy = '2222'
         username = 'test_name'
-        password = 'YjsVmukLT8/CRgzwKBBOhXdDhnloy81t4XBH6iU093qPnrbVJDRxVTj0PMjQESc3cRjwsfBKSGUHg6V3ybXl5SiMBgnXhGPgcNCm06808iU='
+        password = AESCipher(settings.AES_KEY).encrypt('pytest')
 
     drv = DummyData()
     core = create_servicenow1core()
@@ -220,7 +221,7 @@ def test_create_incident_ng(monkeypatch):
         port = 443
         proxy = '2222'
         username = 'test_name'
-        password = 'YjsVmukLT8/CRgzwKBBOhXdDhnloy81t4XBH6iU093qPnrbVJDRxVTj0PMjQESc3cRjwsfBKSGUHg6V3ybXl5SiMBgnXhGPgcNCm06808ig='
+        password = AESCipher(settings.AES_KEY).encrypt('pytest')
 
     drv = DummyData()
     core = create_servicenow1core()
