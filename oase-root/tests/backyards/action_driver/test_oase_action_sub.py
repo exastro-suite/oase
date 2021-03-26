@@ -221,7 +221,7 @@ def test_regist_exastro(ita_table, setup_data_action, monkeypatch):
     act_sub.action_history = act_his
 
     ITAManager = getattr(import_module('libs.backyardlibs.action_driver.ITA.ITA_driver'), 'ITAManager')
-    monkeypatch.setattr(ITAManager, 'act_with_menuid', lambda x, y, z : (ACTION_HISTORY_STATUS.EXASTRO_REQUEST, ACTION_HISTORY_STATUS.DETAIL_STS.NONE))
+    monkeypatch.setattr(ITAManager, 'act_with_menuid', lambda a, b, c, d : (ACTION_HISTORY_STATUS.EXASTRO_REQUEST, ACTION_HISTORY_STATUS.DETAIL_STS.NONE))
     # 正常系
     result = act_sub.regist_exastro(trace_id, act_his.pk)
     assert result
