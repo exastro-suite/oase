@@ -270,6 +270,12 @@ class RhdmResponseAction(models.Model):
     action_retry_count = models.IntegerField("アクションリトライ回数", validators=[MinValueValidator(1)])
     action_stop_interval = models.IntegerField("アクション抑止間隔", null=True, blank=True)
     action_stop_count = models.IntegerField("アクション抑止回数", null=True, blank=True)
+    action_condition_interval = models.IntegerField("アクション条件期間", null=True, blank=True)
+    action_condition_count = models.IntegerField("アクション条件回数", null=True, blank=True)
+    large_group = models.CharField("大グループ", max_length=64)
+    large_group_priority = models.IntegerField("大グループ優先順位", null=True, blank=True)
+    small_group = models.CharField("小グループ", max_length=64)
+    small_group_priority = models.IntegerField("小グループ優先順位", null=True, blank=True)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
 
