@@ -131,6 +131,86 @@ def action_history(request):
     logger.logic_log('LOSI00002', 'none', request=request)
     return render(request, 'rule/action_history.html', data)
 
+
+################################################
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
+def search_history(request):
+    """
+    [メソッド概要]
+    アクション履歴画面の検索による一覧表示
+    """
+
+    logger.logic_log('LOSI00001', 'none', request=request)
+    msg = ''
+
+    try:
+        search_record = request.POST.get('search_record',"{}")
+        search_record = json.loads(search_record)
+        search = search_record['search_info']
+
+        # アクション画面のルール別アクセス権限を取得
+        permission_info = request.user_config.get_rule_auth_type(MENU_ID)
+
+        # アクセス可能なルール種別IDを取得
+        rule_ids_view = permission_info[defs.VIEW_ONLY]
+        rule_ids_admin = permission_info[defs.ALLOWED_MENTENANCE]
+        rule_ids_all = rule_ids_view + rule_ids_admin
+
+        # アクション種別管理
+        action_type_list    = ActionType.objects.all()
+
+        # アクションステータス管理
+        action_status_dict  = defs.ACTION_STATUS
+
+        # ドライバ種別を取得
+        driver_type_list = DriverType.objects.all()
+
+        # アクション履歴を取得
+        # 項目ごとに部分検索できるように修正
+        action_history_list = ActionHistory.objects.filter(
+            trace_id__contains=search['trace_id']).order_by('-pk') if len(rule_ids_all) > 0 else []
+
+        # 表示用データ整備
+        for act in action_history_list:
+            # ルール種別の削除フラグを確認
+            act.disuse_flag = RuleType.objects.get(rule_type_id=act.rule_type_id).disuse_flag
+
+            # アイコン表示用文字列セット
+            status = act.status
+            if act.retry_status is not None:
+                status = act.retry_status
+
+            if status in defs.ACTION_HISTORY_STATUS.ICON_INFO:
+                #承認中のものが削除された場合は処理済みとして取り扱う
+                if act.disuse_flag != '0' and status == 6:
+                    act.class_info = defs.ACTION_HISTORY_STATUS.ICON_INFO[8]
+                else:
+                    act.class_info = defs.ACTION_HISTORY_STATUS.ICON_INFO[status]
+            else:
+                act.class_info = {'status':'attention','name':'owf-attention','description':'MOSJA13063'}
+
+    except Exception as e:
+        msg = get_message('MOSJA13000', request.user.get_lang_mode())
+        logger.logic_log('LOSM05000', 'traceback: %s' % traceback.format_exc(), request=request)
+
+    data = {
+        'message'             : msg,
+        'action_type_list'    : action_type_list,
+        'action_history_data' : action_history_list,
+        'action_status_dict'  : action_status_dict,
+        'action_info_dict'    : '',
+        'request_info_dict'   : '',
+        'action_log_list'     : '',
+        'can_update'          : rule_ids_admin,
+        'driver_type_list'    : driver_type_list,
+    }
+
+    data.update(request.user_config.get_templates_data(request))
+
+    logger.logic_log('LOSI00002', 'none', request=request)
+    return render(request, 'rule/action_history.html', data)
+
+
 ################################################
 # 詳細画面
 ################################################
