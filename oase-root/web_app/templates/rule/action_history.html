@@ -179,6 +179,28 @@ function detailOpen(pk){
 function cancel(){
     modalClose('#detail');
 }
+////////////////////////////////////////////////
+//  詳細検索
+////////////////////////////////////////////////
+function action_search(){
+
+    var searchInfo = {};
+
+    $("#actSearch").prop("disabled", true);
+
+    // メッセージID追加
+    if(confirm(getMessage('MOSJA00002',false)) == true){
+        searchInfo["trace_id"] = $("#search_traceid").val();
+
+        var jstr = JSON.stringify({"search_info": searchInfo});
+        $("#search_record").val(jstr);
+
+        document.getElementById("formSearchData").submit();
+        beforeunloadThroughFlag = true;
+    } else {
+        $("#actSearch").prop("disabled", false);
+    }
+}
 
 -->
 </script>
@@ -195,6 +217,19 @@ function cancel(){
             <h1>{% get_message 'MOSJA13031' request.user.get_lang_mode showMsgId=False %}</h1>
           </div><!-- /.oase-main-title-inner -->
         </div><!-- /.oase-main-title -->
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li class="oase-filter-button-item">
+                <button class="oase-button oase-filter-button" onclick="modalOpen('#modal-filter');">
+                  <em class="owf owf-filter-on"></em>
+                  <span>詳細フィルター</span>
+                </button>
+                <span class="oase-filter-number"></span>
+              </li>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
       </div><!-- /.oase-main-header-inner -->
     </div><!-- /.oase-main-header -->
 
@@ -212,7 +247,7 @@ function cancel(){
             <em class="owf owf-update"></em>
           </div>
         </div>
-    
+
         <div class="oase-table-inner">
           <table class="oase-filter oase-sort">
             <thead><!-- カラムタイトル ここから -->
@@ -316,7 +351,7 @@ function cancel(){
                 <td class="rule-name">
                   <div class="cell-inner">{{ history.rule_name }}</div>
                 </td>
-      
+
                 <!-- アクション種別 -->
                 <!-- アクション種別IDからドライバ名を取得して表示-->
                 {% for type in action_type_list %}
@@ -330,17 +365,17 @@ function cancel(){
                   {% endfor %}
                   {% endif %}
                 {% endfor %}
-      
+
                 <!-- 最終実行日時 -->
                 <td class="execution-date">
                   <div class="cell-inner" {% if history.status == 6 %}hidden{% endif %}><time datetime="{{ history.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ history.action_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div>
                 </td>
-            
+
                 <!-- 最終実行者 -->
                 <td class="last-execution-user">
                   <div class="cell-inner"{% if history.status == 6 %}hidden{% endif %}>{{ history.last_act_user }}</div>
                 </td>
-     
+
                 <!-- 詳細、ダウンロード、再実行 -->
                 <input type="hidden" id="response_id{{ history.pk }}" value="{{ history.response_id }}" />
                 <input type="hidden" id="execution_order{{ history.pk }}" value="{{ history.execution_order }}" />
@@ -349,13 +384,13 @@ function cancel(){
                 {% else %}
                 <input type="hidden" id="status{{ history.pk }}" value="{{ history.retry_status }}" />
                 {% endif %}
-    
+
             </tr>
             {% endfor %}
             </tbody>
           </table>
         </div><!-- ./oase-table-inner -->
-    
+
         <div class="oase-table-footer">
           <ul class="button-group">
             <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
@@ -383,9 +418,9 @@ function cancel(){
             </li>
           </ul>
         </div>
- 
+
       </div><!-- /.oase-table -->
-    
+
       {% else %}
       <div class="oase-none">
         <p>{% get_message 'MOSJA13040' request.user.get_lang_mode showMsgId=False %}</p>
@@ -393,6 +428,46 @@ function cancel(){
       {% endif %}
 
       </section>
+
+      <div id="modal-filter" class="oase-modal">
+        <div class="oase-modal-main">
+          <div class="oase-modal-inner">
+            <div class="oase-modal-content">
+              <div class="oase-modal-header">
+                <div class="oase-modal-title"><h2><em class="owf owf-filter-on"></em><span>詳細フィルター</span></h2></div>
+                <button class="oase-modal-close" onclick="modalClose('#modal-filter');"><em class="owf owf-cross"></em></button>
+              </div>
+              <div class="oase-modal-body">
+                <div class="oase-modal-block">
+                  <div class="oase-modal-table">
+                    <table>
+                      <tbody>
+                        <tr>
+                          <th><div class="cell-inner">トレースID</div></th>
+                          <td><div class="cell-inner">
+                            <input id="search_traceid" type="text" data-maxlength="55" value="" class="validation-input">
+                          </div></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+              <div class="oase-modal-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button cancel" onclick="modalClose('#modal-filter');"><em class="owf owf-cross"></em><span>キャンセル</span></button></li>
+                  <li><button class="oase-button" id="actSearch" onclick="action_search();"><em class="owf owf-filter-on"></em><span>フィルター</span>
+                  </button></li>
+                </ul>
+                <form id="formSearchData" method="post" action="{% url 'web_app:rule:search_history' %}">
+                  {% csrf_token %}
+                  <input type="hidden" id="search_record"  value="" name="search_record" />
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div id="detail" class="oase-modal">
         <div class="oase-modal-main">
@@ -434,8 +509,8 @@ function cancel(){
                  <li><button id="btnStop" class="tooltip oase-button" title="{% get_message 'MOSJA13051' request.user.get_lang_mode showMsgId=False %}" onClick="stop();"><em class="owf owf-stop"></em><span>{% get_message 'MOSJA13037' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                </ul>
              </div>
-             
-             
+
+
              </div>
            </div>
          </div>
@@ -443,9 +518,9 @@ function cancel(){
            {% csrf_token %}
            <input type="hidden" id="ActHisId" value="" name="act_his_id" />
          </form>
-       
+
        </div>
-       
+
        <div class="oase-confirm-overlay"></div>
 
 
