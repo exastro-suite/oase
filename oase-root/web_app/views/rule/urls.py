@@ -53,5 +53,6 @@ urlpatterns = [
     path('action_history/retry', action_history.retry, name='retry'),
     path('action_history/resume', action_history.resume, name='action_history_resume'),
     path('action_history/stop', action_history.stop, name='action_history_stop'),
+    path('action_history/search', action_history.search_history, name='search_history'),
 ]
 
