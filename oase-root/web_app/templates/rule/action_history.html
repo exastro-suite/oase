@@ -188,18 +188,18 @@ function action_search(){
 
     $("#actSearch").prop("disabled", true);
 
-    // メッセージID追加
-    if(confirm(getMessage('MOSJA00002',false)) == true){
-        searchInfo["trace_id"] = $("#search_traceid").val();
+    searchInfo["trace_id"] = $("#search_traceid").val();
 
-        var jstr = JSON.stringify({"search_info": searchInfo});
-        $("#search_record").val(jstr);
+    var jstr = JSON.stringify({"search_info": searchInfo});
+    $("#search_record").val(jstr);
 
-        document.getElementById("formSearchData").submit();
-        beforeunloadThroughFlag = true;
-    } else {
-        $("#actSearch").prop("disabled", false);
-    }
+    document.getElementById("formSearchData").submit();
+    beforeunloadThroughFlag = true;
+    $("#actSearch").prop("disabled", false);
+}
+
+function search_clear(){
+    document.getElementById('search_traceid').value = "";
 }
 
 -->
@@ -221,9 +221,9 @@ function action_search(){
           <div class="oase-main-menu-inner">
             <ul class="oase-button-group">
               <li class="oase-filter-button-item">
-                <button class="oase-button oase-filter-button" onclick="modalOpen('#modal-filter');">
+                <button class="oase-button oase-filter-button" onclick="search_clear();modalOpen('#modal-filter');">
                   <em class="owf owf-filter-on"></em>
-                  <span>詳細フィルター</span>
+                  <span>{% get_message 'MOSJA13090' request.user.get_lang_mode showMsgId=False %}</span>
                 </button>
                 <span class="oase-filter-number"></span>
               </li>
@@ -434,7 +434,7 @@ function action_search(){
           <div class="oase-modal-inner">
             <div class="oase-modal-content">
               <div class="oase-modal-header">
-                <div class="oase-modal-title"><h2><em class="owf owf-filter-on"></em><span>詳細フィルター</span></h2></div>
+                <div class="oase-modal-title"><h2><em class="owf owf-filter-on"></em><span>{% get_message 'MOSJA13090' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
                 <button class="oase-modal-close" onclick="modalClose('#modal-filter');"><em class="owf owf-cross"></em></button>
               </div>
               <div class="oase-modal-body">
@@ -443,7 +443,7 @@ function action_search(){
                     <table>
                       <tbody>
                         <tr>
-                          <th><div class="cell-inner">トレースID</div></th>
+                          <th><div class="cell-inner">{% get_message 'MOSJA13092' request.user.get_lang_mode showMsgId=False %}</div></th>
                           <td><div class="cell-inner">
                             <input id="search_traceid" type="text" data-maxlength="55" value="" class="validation-input">
                           </div></td>
@@ -455,8 +455,8 @@ function action_search(){
               </div>
               <div class="oase-modal-footer">
                 <ul class="oase-button-group">
-                  <li><button class="oase-button cancel" onclick="modalClose('#modal-filter');"><em class="owf owf-cross"></em><span>キャンセル</span></button></li>
-                  <li><button class="oase-button" id="actSearch" onclick="action_search();"><em class="owf owf-filter-on"></em><span>フィルター</span>
+                  <li><button class="oase-button cancel" onclick="modalClose('#modal-filter');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button" id="actSearch" onclick="action_search();"><em class="owf owf-filter-on"></em><span>{% get_message 'MOSJA13091' request.user.get_lang_mode showMsgId=False %}</span>
                   </button></li>
                 </ul>
                 <form id="formSearchData" method="post" action="{% url 'web_app:rule:search_history' %}">
