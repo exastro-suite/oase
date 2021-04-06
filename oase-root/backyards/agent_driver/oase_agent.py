@@ -80,10 +80,12 @@ logger = OaseLogger.get_instance() # ロガー初期化
 # --------------------------------
 # oase lib追加
 # --------------------------------
-from web_app.models.models import User, EventsRequest, RhdmResponse, RhdmResponseAction, System, RuleType, ActionType, DataObject, DriverType
+from web_app.models.models import User, EventsRequest, RhdmResponse, RhdmResponseAction, System, RuleType
+from web_app.models.models import ActionType, DataObject, DriverType, RhdmResponseCorrelation
 from libs.commonlibs.define import *
 from libs.commonlibs.dt_component import DecisionTableComponent
 from libs.commonlibs.aes_cipher import AESCipher
+from web_app.templatetags.common import get_message
 from libs.webcommonlibs.oase_mail import OASEMailSMTP, OASEMailUnknownEventNotify
 
 urllib3.disable_warnings(InsecureRequestWarning)
@@ -131,6 +133,13 @@ class ActUtil:
     retry_count = 'retryCount'
     stop_interval = 'stopInterval'
     stop_count = 'stopCount'
+    cond_count = 'condCount'
+    cond_term = 'condTerm'
+    cond_large_group = 'condGroup1'
+    cond_large_priority = 'condPriority1'
+    cond_small_group = 'condGroup2'
+    cond_small_priority = 'condPriority2'
+
 
 class Driver:
     """
@@ -564,15 +573,28 @@ class Agent:
                     name = dri['name'] + '(ver' + str(dri['driver_major_version']) + ')'
                     act_type_dic[name] = act['action_type_id']
 
+        noact_type_list = []
+        for lang_key in LANG_MODE.KEY_LIST_ALL:
+            str_noact_type = get_message('MOSJA03149', lang_key, showMsgId=False)
+            noact_type_list.append(str_noact_type)
+
         #マッチングしたルールの個数をidで調べる
         length = len(acts['id'])
 
-        server       = {}
         paraminfo    = {}
         preinfo      = {}
         res_act_list = []
+
         try:
             for i in range(length):
+                # グルーピングあり
+                if acts[ActUtil.cond_large_group][i] not in ['x', 'X']:
+                    continue
+
+                # アクション種別なし
+                if acts[ActUtil.type_id][i] in noact_type_list:
+                    continue
+
                 # アクション種別名からアクションIDに変換
                 if acts[ActUtil.type_id][i] not in act_type_dic:
                     logger.system_log('LOSE02006', self.dmctl.driver.trace_id)
@@ -609,7 +631,7 @@ class Agent:
                         last_update_user   = self.user.user_name                   # 最終更新者
                     )
                 )
-                
+
         except Exception as e:
             logger.system_log('LOSE02007', self.dmctl.driver.trace_id, traceback.format_exc())
 
@@ -617,6 +639,224 @@ class Agent:
         logger.logic_log('LOSI00002', 'trace_id:%s, act_len:%s' % (self.dmctl.driver.trace_id, len(res_act_list)))
 
         return res_act_list
+
+
+    def make_rhdm_response_correlation(self, acts, responseid):
+        """
+        [概要]
+          ルールマッチング結果コリレーション管理に登録するためのデータを作る
+        [引数]
+          マッチング結果
+        """
+
+        logger.logic_log('LOSI00001', 'trace_id:%s, resp_id:%s, act_len:%s' % (self.dmctl.driver.trace_id, responseid, len(acts['id'])))
+
+        paraminfo    = {}
+        preinfo      = {}
+
+        # アクション種別を取得
+        act_type_dic = {}
+        rs_act = ActionType.objects.filter(disuse_flag='0').values('action_type_id', 'driver_type_id')
+        rs_dri = DriverType.objects.values('driver_type_id', 'name', 'driver_major_version')
+        for act in rs_act:
+            for dri in rs_dri:
+                if act['driver_type_id'] == dri['driver_type_id']:
+                    name = dri['name'] + '(ver' + str(dri['driver_major_version']) + ')'
+                    act_type_dic[name] = act['action_type_id']
+
+        # アクション種別なしの文字列を取得
+        noact_type_list = []
+        for lang_key in LANG_MODE.KEY_LIST_ALL:
+            str_noact_type = get_message('MOSJA03149', lang_key, showMsgId=False)
+            noact_type_list.append(str_noact_type)
+
+
+        # コリレーションチェック
+        length = len(acts['id'])
+
+        for i in range(length):
+            save_data = self.check_group_cond(
+                responseid,
+                acts[ActUtil.rule_name][i],
+                int(acts[ActUtil.cond_count][i]),
+                int(acts[ActUtil.cond_term][i]),
+                acts[ActUtil.cond_large_group][i],
+                int(acts[ActUtil.cond_large_priority][i]),
+                acts[ActUtil.cond_small_group][i],
+                int(acts[ActUtil.cond_small_priority][i])
+            )
+
+            logger.logic_log('LOSI02006', self.dmctl.driver.trace_id, save_data)
+
+            # DB保存
+            if save_data:
+                res_act = None
+
+                # 条件達成、かつ、アクションがともなう場合は、先にルールマッチング結果アクション管理を保存
+                if  save_data['status'] == 0 \
+                and save_data['my_count'] >= int(acts[ActUtil.cond_count][i]) \
+                and acts[ActUtil.type_id][i] not in noact_type_list:
+
+                    # アクション種別名からアクションIDに変換
+                    if acts[ActUtil.type_id][i] not in act_type_dic:
+                        logger.system_log('LOSE02006', self.dmctl.driver.trace_id)
+                        raise Exception('Cannot get action type id.')
+
+                    act_type  = act_type_dic[acts[ActUtil.type_id][i]]
+
+                    # アクションパラメータ情報取得
+                    paraminfo['ACTION_PARAMETER_INFO'] = acts[ActUtil.parameter_info][i].split(',')
+                    act_param = json.dumps(paraminfo, ensure_ascii=False) #アクションパラメータ情報
+
+                    # 事前アクション情報取得
+                    pre_param = ''
+                    tmp = acts[ActUtil.pre_info][i].split(',')
+                    if not tmp or tmp==["X"] or tmp==["x"]:
+                        pre_param = ''
+
+                    else:
+                        preinfo['ACTION_PARAMETER_INFO'] = acts[ActUtil.pre_info][i].split(',')
+                        pre_param = json.dumps(preinfo, ensure_ascii=False) #事前アクション情報
+
+                    # アクション情報をDB保存
+                    res_act = RhdmResponseAction(
+                        response_id           = responseid,                        # レスポンスID
+                        rule_name             = acts[ActUtil.rule_name][i],        # ルール名
+                        execution_order       = i+1,                               # アクション実行順
+                        action_type_id        = act_type,                          # アクション種別
+                        action_parameter_info = act_param,                         # アクションパラメータ情報
+                        action_pre_info       = pre_param,                         # 事前アクション情報取得
+                        action_retry_interval = acts[ActUtil.retry_interval][i],   # アクションリトライ間隔
+                        action_retry_count    = acts[ActUtil.retry_count][i],      # アクションリトライ回数
+                        action_stop_interval  = acts[ActUtil.stop_interval][i],    # アクション中断間隔
+                        action_stop_count     = acts[ActUtil.stop_count][i],       # アクション中断回数
+                        last_update_timestamp = self.now,                          # 最終更新日時
+                        last_update_user      = self.user.user_name                # 最終更新者
+                    )
+                    res_act.save(force_insert=True)
+
+                # ルールの達成状態を保存
+                self._save_rhdm_response_correlation(
+                    save_data['rule_name'],
+                    save_data['cond_cnt'],
+                    save_data['cond_term'],
+                    save_data['group1_name'],
+                    save_data['priority1'],
+                    save_data['group2_name'],
+                    save_data['priority2'],
+                    save_data['my_count'],
+                    save_data['status'],
+                    res_act.response_detail_id if res_act else None
+                )
+
+
+    def check_group_cond(self, resp_id, rule_name, cond_cnt, cond_term, group1_name, priority1, group2_name, priority2):
+        """
+        [概要]
+          グループ情報を持つルールのアクション条件をチェックする
+        [引数]
+          コリレーション情報
+        """
+
+        def _get_priority(group2_flg, prio1, prio2):
+
+            return prio2 if group2_flg else prio1
+
+
+        logger.logic_log(
+            'LOSI00001',
+            'trace_id:%s, rule_name:%s, gr1:%s, gr2:%s, prio1:%s, prio2:%s' % (
+                self.dmctl.driver.trace_id, rule_name, group1_name, group2_name, priority1, priority2
+            )
+        )
+
+        save_flg = False
+        correlation_info = {}
+
+
+        # グループ情報なしの場合はチェック処理を行わない
+        if group1_name in ['x', 'X']:
+            return correlation_info
+
+        # ルールマッチング結果管理の状態を「コリレーション」に遷移
+        RhdmResponse.objects.filter(response_id=resp_id).update(status=CORRELATION)
+
+        # 小グループの有無をチェック
+        group2_flg = True
+        if group2_name in ['x', 'X']:
+            group2_flg = False
+            priority2  = 0
+
+        # ヒットルールが始点ルールかチェック
+        start_point_flg = False
+        priority_ev = _get_priority(group2_flg, priority1, priority2)
+        if priority_ev == 1:
+            start_point_flg = True
+
+
+        # 同一グループのレコード取得
+        rset = RhdmResponseCorrelation.objects.filter(
+            rule_type_id     = self.dmctl.driver.ruletype.rule_type_id,
+            request_type_id  = self.dmctl.driver.request_type_id,
+            cond_large_group = group1_name
+        ).values(
+            'rule_name', 'cond_count', 'cond_term',
+            'cond_large_group', 'cond_large_group_priority', 'cond_small_group', 'cond_small_group_priority',
+            'current_count', 'start_time', 'status'
+        ).order_by('cond_large_group_priority')
+
+        # 同一グループの状態確認
+        start_flg = False
+        pre_count = 0
+        my_count  = 0
+        my_status = 0
+
+        for rs in rset:
+            priority_db = _get_priority(group2_flg, rs['cond_large_group_priority'], rs['cond_small_group_priority'])
+            expire_time = rs['start_time'] + datetime.timedelta(seconds=rs['cond_term'])
+
+            # 始点ルールが存在し、かつ、期限内であれば前提あり
+            if priority_db == 1 and self.now < expire_time:
+                start_flg = True
+
+            # 自身の前提ルールの達成回数を保持
+            if start_flg and priority_db == priority_ev - 1:
+                pre_count = rs['current_count']
+
+            # 自身の達成回数と状態を保持
+            if start_flg and (rs['rule_name'] == rule_name) and (self.now < expire_time):
+                my_count  = rs['current_count']
+                my_status = rs['status']
+
+
+        # 有効な始点ルールが存在せず、かつ、自身が始点ルールの場合は 1 からカウント
+        if not start_flg and start_point_flg:
+            my_count = 1
+            save_flg = True
+
+        # 有効な始点ルールが存在し、かつ、自身が始点ルールの場合は達成回数をカウントアップ
+        elif start_flg and start_point_flg:
+            save_flg = True
+            my_count = my_count + 1
+
+        # 前提ルールの条件達成回数未満であれば自身の達成回数をカウントアップ
+        elif start_flg and my_count < pre_count:
+            save_flg = True
+            my_count = my_count + 1
+
+        # DB保存するコリレーション情報を返す
+        if save_flg:
+            correlation_info['rule_name']   = rule_name
+            correlation_info['cond_cnt']    = cond_cnt
+            correlation_info['cond_term']   = cond_term
+            correlation_info['group1_name'] = group1_name
+            correlation_info['priority1']   = priority1
+            correlation_info['group2_name'] = group2_name
+            correlation_info['priority2']   = priority2
+            correlation_info['my_count']    = my_count
+            correlation_info['status']      = my_status
+
+        return correlation_info
 
 
     def replace_reserv_var(self, events_request, data_obj_list, act_lists):
@@ -749,7 +989,11 @@ class Agent:
                         response.response_id
                     )
 
+                    # マッチング結果コリレーション管理の情報かチェックして登録
+                    self.make_rhdm_response_correlation(act_lists, response.response_id)
+
                     self._create_rhdm_res_act_data(rhdm_res_act_data)
+
                     EventsRequest.objects.filter(request_id=event_req.request_id).update(
                         status=status, last_update_timestamp=self.now, last_update_user=self.user.user_name)
 
@@ -855,13 +1099,75 @@ class Agent:
         無ければExceptionをあげる。
         あればデータを作成する。
         """
+        """
         if rhdm_res_act_data is None:
             raise Exception('Cannot get action type id.')
+        """
 
         if len(rhdm_res_act_data) <= 0:
-            raise Exception('Cannot make dm response action data.')
+            return
+            #raise Exception('Cannot make dm response action data.')
 
         RhdmResponseAction.objects.bulk_create(rhdm_res_act_data)
+
+
+    def _save_rhdm_response_correlation(
+        self,
+        rule_name, cond_cnt, cond_term,
+        group1_name, priority1, group2_name, priority2,
+        cur_cnt, sts, resp_id
+    ):
+        """
+        [概要]
+          ルールマッチング結果コリレーション管理テーブルへレコードを保存する
+        [引数]
+          保存する情報
+        """
+
+        rcnt = RhdmResponseCorrelation.objects.filter(
+            rule_type_id    = self.dmctl.driver.ruletype.rule_type_id,
+            request_type_id = self.dmctl.driver.request_type_id,
+            rule_name       = rule_name
+        ).count()
+
+        if rcnt > 0:
+            RhdmResponseCorrelation.objects.filter(
+                rule_type_id    = self.dmctl.driver.ruletype.rule_type_id,
+                request_type_id = self.dmctl.driver.request_type_id,
+                rule_name       = rule_name
+            ).update(
+                cond_large_group          = group1_name,
+                cond_large_group_priority = priority1,
+                cond_small_group          = group2_name,
+                cond_small_group_priority = priority2,
+                cond_count                = cond_cnt,
+                cond_term                 = cond_term,
+                current_count             = cur_cnt,
+                start_time                = self.now,
+                response_detail_id        = resp_id,
+                status                    = sts,
+                last_update_timestamp     = self.now,
+                last_update_user          = self.user.user_name
+            )
+
+        else:
+            RhdmResponseCorrelation(
+                rule_type_id              = self.dmctl.driver.ruletype.rule_type_id,
+                rule_name                 = rule_name,
+                request_type_id           = self.dmctl.driver.request_type_id,
+                cond_large_group          = group1_name,
+                cond_large_group_priority = priority1,
+                cond_small_group          = group2_name,
+                cond_small_group_priority = priority2,
+                cond_count                = cond_cnt,
+                cond_term                 = cond_term,
+                current_count             = cur_cnt,
+                start_time                = self.now,
+                response_detail_id        = resp_id,
+                status                    = sts,
+                last_update_timestamp     = self.now,
+                last_update_user          = self.user.user_name
+            ).save(force_insert=True)
 
 
     def _notify_unknown_event(self, req_type, notify_param):
@@ -943,7 +1249,189 @@ class Agent:
         logger.logic_log('LOSI00002', 'Send mail. TraceID:%s' % (trace_id))
 
 
-def multi(event_req_list, mode):
+def check_rhdm_response_correlation(now):
+    """
+    [概要]
+      マッチング結果コリレーション管理の状態をチェックする
+    [戻り値]
+    """
+
+    def init_pre_info(sts):
+
+        pre_info = {
+            'rule_type_id'     : 0,
+            'request_type_id'  : 0,
+            'cond_large_group' : '',
+            'cond_small_group' : '',
+            'status'           : sts,
+        }
+
+        return pre_info
+
+
+    logger.logic_log('LOSI00001', 'Check correlation info.')
+
+    STS_REGISTED     = 0
+    STS_REGISTABLE   = 1
+    STS_NOTACHIEVE   = 2
+    STS_ACHIEVED     = 3
+    STS_UNACHIEVABLE = 4
+
+    group_info = {}
+    pre_info   = init_pre_info(STS_ACHIEVED)
+
+    # 未アクションのコリレーション情報を取得
+    rset = RhdmResponseCorrelation.objects.filter(status=STS_REGISTED)
+    rset = rset.values_list(
+        'correlation_id', 'rule_type_id', 'request_type_id',
+        'rule_name',
+        'cond_large_group', 'cond_small_group', 'cond_small_group_priority', 'cond_large_group_priority',
+        'cond_count', 'cond_term',
+        'current_count', 'start_time',
+        'response_detail_id'
+    )
+    rset = rset.order_by(
+        'rule_type_id', 'request_type_id',
+        'cond_large_group', 'cond_small_group', 'cond_small_group_priority', 'cond_large_group_priority'
+    )
+
+    # 各グループの状態チェック
+    for cid, rule_id, req_id, rname, gr1, gr2, prio1, prio2, cond_cnt, cond_term, cur_cnt, stime, resp_id in rset:
+
+        # 前レコードと異なるグループの場合、
+        if rule_id != pre_info['rule_type_id'] \
+        or req_id  != pre_info['request_type_id'] \
+        or gr1     != pre_info['cond_large_group']:
+            pre_info = init_pre_info(STS_ACHIEVED)
+
+        # 前レコードと小グループが異なる場合、前ルールの状態をリセット
+        elif gr2 != pre_info['cond_small_group']:
+            pre_info['status'] = STS_ACHIEVED
+
+        ####################################
+        # 条件達成チェック
+        ####################################
+        status = STS_NOTACHIEVE
+
+        # 期限切れの場合「達成不可」へ遷移
+        if now >= stime + datetime.timedelta(seconds=cond_term):
+            status = STS_UNACHIEVABLE
+
+        # 条件回数に到達、かつ、前提ルールが「達成」の場合「達成」へ遷移
+        elif cond_cnt <= cur_cnt and pre_info['status'] == STS_ACHIEVED:
+            status = STS_ACHIEVED
+
+
+        # 現在レコードの情報を保持
+        pre_info['rule_type_id']     = rule_id
+        pre_info['request_type_id']  = req_id
+        pre_info['cond_large_group'] = gr1
+        pre_info['cond_small_group'] = gr2
+        pre_info['status']           = status
+
+        if rule_id not in group_info:
+            group_info[rule_id] = {}
+
+        if req_id not in group_info[rule_id]:
+            group_info[rule_id][req_id] = {}
+
+        if gr1 not in group_info[rule_id][req_id]:
+            group_info[rule_id][req_id][gr1] = {}
+
+        if gr2 not in group_info[rule_id][req_id][gr1]:
+            group_info[rule_id][req_id][gr1][gr2] = {
+                'priority' : prio1,
+                'rules'    : [],
+            }
+
+        if prio1 < group_info[rule_id][req_id][gr1][gr2]['priority']:
+            group_info[rule_id][req_id][gr1][gr2]['priority'] = prio1
+
+        group_info[rule_id][req_id][gr1][gr2]['rules'].append(
+            {
+                'name' : rname,
+                'prio' : prio2,
+                'sts'  : status,
+                'resp' : resp_id,
+            }
+        )
+
+
+    # 大グループ内での優先順位チェック
+    resp_ids = []
+    for rule_id, v1 in group_info.items():
+        for req_id, v2 in v1.items():
+            for gr1, v3 in v2.items():
+
+                del_ids = []
+                mod_ids = []
+                pnd_ids = []
+                status  = STS_REGISTED
+                pre_status = STS_UNACHIEVABLE
+
+                for gr2, rule_info in sorted(v3.items(), key=lambda x: x[1]['priority']):
+
+                    # 同じ小グループ内の状態チェック、および、アクションIDチェック
+                    for ri in rule_info['rules']:
+
+                        # アクションが登録されている場合
+                        if  ri['resp']:
+                            status = ri['sts']
+                            del_ids.append(ri['resp'])
+
+                            # 状態が「達成」、かつ、前提グループが「達成不可」の場合、アクション実行可能
+                            if ri['sts'] ==  STS_ACHIEVED and pre_status == STS_UNACHIEVABLE:
+                                status = STS_REGISTABLE
+                                mod_ids.append(ri['resp'])
+
+                    else:
+                        if pre_status != STS_REGISTABLE:
+                            pre_status = status
+
+                # アクション実行可能なグループが存在しない場合は、削除対象グループをクリア
+                if len(mod_ids) <= 0:
+                    del_ids.clear()
+
+                # 削除対象グループに更新対象と同一のアクションIDがあれば削除対象から除外
+                for mod_id in mod_ids:
+                    while mod_id in del_ids:
+                        del_ids.remove(mod_id)
+
+                logger.logic_log('LOSI02007', rule_id, req_id, gr1, mod_ids, del_ids)
+
+                # アクション実行登録可能な場合
+                if len(mod_ids) > 0:
+
+                    # 対象となる大グループの状態を変更
+                    RhdmResponseCorrelation.objects.filter(
+                        rule_type_id     = rule_id,
+                        request_type_id  = req_id,
+                        cond_large_group = gr1
+                    ).update(
+                        status           = STS_REGISTABLE
+                    )
+
+                # アクションしないレコードは削除
+                if len(del_ids) > 0:
+                    RhdmResponseAction.objects.filter(response_detail_id__in=del_ids).delete()
+
+                # アクション実施レコードは実行順序を更新
+                for i, md in enumerate(mod_ids, 1):
+                    RhdmResponseAction.objects.filter(response_detail_id=md).update(execution_order=i)
+
+                # アクション可能なIDを保持
+                if len(mod_ids) > 0:
+                    rset = RhdmResponseAction.objects.filter(response_detail_id__in=mod_ids).values_list('response_id', flat=True)
+                    resp_ids.extend(rset)
+
+
+    # アクション可能なマッチング結果を状態遷移させる
+    logger.logic_log('LOSI02008', resp_ids)
+    if len(resp_ids) > 0:
+        RhdmResponse.objects.filter(response_id__in=resp_ids).update(status=PROCESSED)
+
+
+def multi(event_req_list, mode, now):
     """
     [概要]
     マルチプロセスまたは、マルチスレッド処理用
@@ -954,7 +1442,7 @@ def multi(event_req_list, mode):
         for er in event_req_list:
             driver = Driver(er.request_type_id, er.rule_type_id, er.trace_id)
             dmctl = DMController(driver)
-            agent = Agent(dmctl)
+            agent = Agent(dmctl, now=now)
 
             future = executor.submit(agent.decide, er, mode)
 
@@ -967,18 +1455,25 @@ if __name__=='__main__':
         except Exception as e:
             logger.logic_log('LOSI00005', traceback.format_exc())
 
+        now = datetime.datetime.now(pytz.timezone('UTC'))
+
         #--------------------------
         #前回'処理中'で終わったレコードがあるものは再処理を行う
         #--------------------------
         logger.logic_log('LOSI02000')
         er_list = list(EventsRequest.objects.filter(status=PROCESSING, retry_cnt__lt=retry_max).order_by('request_id'))
-        multi(er_list, RECOVER)
+        multi(er_list, RECOVER, now)
         #--------------------------
         #未処理のレコードを取得して処理する
         #--------------------------
         logger.logic_log('LOSI02001')
         er_list = list(EventsRequest.objects.filter(status=UNPROCESS).order_by('request_id'))
-        multi(er_list, NORMAL)
+        multi(er_list, NORMAL, now)
+
+        #--------------------------
+        #コリレーション情報をチェック
+        #--------------------------
+        check_rhdm_response_correlation(now)
 
     except Exception as e:
         logger.logic_log('LOSE02009', traceback.format_exc())

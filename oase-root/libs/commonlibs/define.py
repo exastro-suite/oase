@@ -64,6 +64,7 @@ RULE_ALREADY_LINKED = 1004  # 処理済み(ServiceNow連携済み)
 BREAK_ACTION        = 2001  # アクション中断
 ACTION_DATA_ERROR   = 2002    # アクション実行前エラー　ルールマッチング結果詳細情報エラーなど
 ACTION_EXEC_ERROR   = 2003    # アクション実行エラー
+CORRELATION         = 2004    # コリレーション中
 
 
 #-------------------
@@ -343,6 +344,11 @@ class LANG_MODE():
             {'k': '日本語',  'v': JP},
             {'k': 'English', 'v': EN},
         ]
+
+    KEY_LIST_ALL = [
+        'JP', 'EN',
+    ]
+
 
 #-------------------
 # DISP_MODE_ID
