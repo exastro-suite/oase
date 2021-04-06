@@ -29,7 +29,7 @@ from importlib import import_module
 
 from libs.commonlibs.common import Common
 from libs.webcommonlibs.user_config import UserConfig
-from web_app.models.models import User, PasswordHistory, RuleType, DataObject
+from web_app.models.models import User, PasswordHistory, RuleType, DataObject, RhdmResponseCorrelation
 from web_app.views.rule import rule as rule_view
 
 
@@ -117,6 +117,23 @@ class TestRulePseudoRequest:
             conditional_name = 'pytest_cond2',
             label = 'label1',
             conditional_expression_id = 3,
+            last_update_timestamp = datetime.datetime(2020, 6, 4, 12, 0, 0, tzinfo=datetime.timezone.utc),
+            last_update_user = 'pytest'
+        ).save(force_insert=True)
+
+        RhdmResponseCorrelation(
+            correlation_id = 1,
+            rule_type_id = 9999,
+            rule_name = 'ルール100',
+            request_type_id = 2,
+            cond_large_group = '大グループ',
+            cond_large_group_priority = 1,
+            cond_small_group = '小グループ',
+            cond_small_group_priority = 1,
+            cond_count = 3,
+            cond_term = 300,
+            current_count = 1,
+            start_time = datetime.datetime(2020, 6, 4, 12, 0, 0, tzinfo=datetime.timezone.utc),
             last_update_timestamp = datetime.datetime(2020, 6, 4, 12, 0, 0, tzinfo=datetime.timezone.utc),
             last_update_user = 'pytest'
         ).save(force_insert=True)

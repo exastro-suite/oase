@@ -26,6 +26,7 @@ import datetime
 import xml.etree.ElementTree as ET
 from importlib import import_module
 from django.conf import settings
+from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.webcommonlibs.oase_exception import OASEError
 from web_app.models.models import System, DataObject, RuleType, ActionType, DriverType
@@ -57,7 +58,7 @@ class DecisionTableComponent(object):
     COL_INDEX_RULE_START = 2
 
     # アクション部のカラム
-    ACTION_COLUMN_COUNT               = 8  # アクション部のカラム数(必須項目)
+    ACTION_COLUMN_COUNT               = 14  # アクション部のカラム数(必須項目)
     ACTION_COLUMN_COUNT_FULL          = ACTION_COLUMN_COUNT + 2  # アクション部のカラム数(有効日無効日含む)
     REVISION_COL_INDEX_ACTION_TYPE    = 1   # アクション種別のカラム補正値
     REVISION_COL_INDEX_ACTION_PARAMS  = 2   # アクションパラメーターのカラム補正値
@@ -66,6 +67,12 @@ class DecisionTableComponent(object):
     REVISION_COL_INDEX_RETRY_MAX      = 5   # リトライ回数のカラム補正値
     REVISION_COL_INDEX_BREAK_INTERVAL = 6   # 抑止間隔のカラム補正値
     REVISION_COL_INDEX_BREAK_MAX      = 7   # 抑止回数のカラム補正値
+    REVISION_COL_INDEX_COND_COUNT     = 8   # アクション条件回数のカラム補正値
+    REVISION_COL_INDEX_COND_TERM      = 9   # アクション条件期間のカラム補正値
+    REVISION_COL_INDEX_COND_GROUP1    = 10  # アクション条件グループのカラム補正値
+    REVISION_COL_INDEX_COND_PRIORITY1 = 11  # アクション条件グループ優先順位のカラム補正値
+    REVISION_COL_INDEX_COND_GROUP2    = 12  # アクション条件グループのカラム補正値
+    REVISION_COL_INDEX_COND_PRIORITY2 = 13  # アクション条件グループ優先順位のカラム補正値
 
     # Excelのセル種別
     CELL_TYPE_EMPTY  = 0
@@ -768,6 +775,8 @@ class DecisionTableComponent(object):
             self.check_rule_name(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_action_type_and_param(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_pre_action(wsheet, row_index, col_index_act, row_max, message_list, lang)
+            self.check_action_condition(wsheet, row_index, col_index_act, row_max, message_list, lang)
+            self.check_group_priority(wsheet, row_index, col_index_act, row_max, message_list, lang)
 
             # 有効日無効日チェック
             self.check_date_effective(wsheet, row_index, date_effective_col_index, row_max, message_list, lang)
@@ -1053,6 +1062,7 @@ class DecisionTableComponent(object):
         to_info = {}
         rset = []
 
+        # 有効なアクション種別を取得
         dti = list(ActionType.objects.filter(disuse_flag='0').values_list('driver_type_id', flat=True))
         rs = DriverType.objects.filter(driver_type_id__in=dti).values('name', 'driver_major_version')
 
@@ -1062,12 +1072,23 @@ class DecisionTableComponent(object):
 
         act_type_info = {r[1]: {'driver_name': r[0], 'driver_method': None} for r in rset}
 
+        # アクションなし種別を追加
+        noact_type_list = []
+        for lang_key in defs.LANG_MODE.KEY_LIST_ALL:
+            str_noact_type = get_message('MOSJA03149', lang_key, showMsgId=False)
+            noact_type_list.append(str_noact_type)
+
         for row in range(row_index, row_max):
             # アクション種別をチェック
             col = col_index + self.REVISION_COL_INDEX_ACTION_TYPE
             act_type = str(wsheet.cell(row, col).value)
-            if act_type not in act_type_info.keys():
 
+            # アクション種別なしの場合はチェックしない
+            if act_type in noact_type_list:
+                continue
+
+            # 有効なアクション種別に該当しない場合
+            if act_type not in act_type_info.keys():
                 cellname = self.convert_rowcol_to_cellno(row, col)
                 acttypes = list(act_type_info.keys())
                 if len(act_type_info):
@@ -1146,6 +1167,181 @@ class DecisionTableComponent(object):
                     message_list.append(get_message(mosja['id'], lang, cellname=cellname))
                 else:
                     message_list.append(get_message(mosja['id'], lang, keyname=mosja['param'], cellname=cellname))
+
+
+    def check_action_condition(self, wsheet, row_index, col_index_act, row_max, message_list, lang):
+        """
+        [メソッド概要]
+          アクション条件回数 or アクション条件期間用
+            入力値が X ではないとき、1以上の数値が入力されているかチェック
+        """
+
+        def _check_val(cell_type, cell_val):
+
+            if cell_val in ['x', 'X']:
+                return True
+
+            retval = self.is_valid_number(cell_type, cell_val, accept0=False)
+            return retval
+
+
+        for row in range(row_index, row_max):
+
+            # アクション条件回数チェック
+            col = col_index_act + self.REVISION_COL_INDEX_COND_COUNT
+            cell_type = wsheet.cell_type(row, col)
+            count_val = str(wsheet.cell(row, col).value)
+            if not _check_val(cell_type, count_val):
+                col_name = get_message('MOSJA03150', lang, showMsgId=False)
+                cellname = self.convert_rowcol_to_cellno(row, col)
+                message_list.append(get_message('MOSJA03110', lang, colname=col_name, cellname=cellname))
+
+            # アクション条件期間チェック
+            col = col_index_act + self.REVISION_COL_INDEX_COND_TERM
+            cell_type = wsheet.cell_type(row, col)
+            term_val = str(wsheet.cell(row, col).value)
+            if not _check_val(cell_type, term_val):
+                col_name = get_message('MOSJA03151', lang, showMsgId=False)
+                cellname = self.convert_rowcol_to_cellno(row, col)
+                message_list.append(get_message('MOSJA03110', lang, colname=col_name, cellname=cellname))
+
+            # 回数と期間のいずれか片方だけが'X'の場合はエラー
+            if (count_val in ['x', 'X'] and term_val not in ['x', 'X']) \
+            or (count_val not in ['x', 'X'] and term_val in ['x', 'X']):
+                cellname = self.convert_rowcol_to_cellno(row, col)
+                message_list.append(get_message('MOSJA03156', lang, cellname=cellname))
+
+
+    def check_group_priority(self, wsheet, row_index, col_index_act, row_max, message_list, lang):
+        """
+        [メソッド概要]
+          グループと優先順位のチェック
+        """
+
+        group_info = {}
+        group_cell_info = {}
+        group_prio_list = {}
+
+        for row in range(row_index, row_max):
+
+            ####################################
+            # 大グループチェック
+            ####################################
+            # 大グループ情報取得
+            col = col_index_act + self.REVISION_COL_INDEX_COND_GROUP1
+            cellname = self.convert_rowcol_to_cellno(row, col_index_act)
+            group1_name = str(wsheet.cell(row, col).value)
+            valid_flg1 = False
+
+            # 大グループ指定なしであればチェックしない
+            if group1_name in ['x', 'X']:
+                pass
+
+            # 大グループの文字列長チェック
+            elif len(group1_name) > 64:
+                col_name = get_message('MOSJA03152', lang, showMsgId=False)
+                message_list.append(get_message('MOSJA03157', lang, colname=col_name, cellname=cellname))
+
+            # 大グループが有効な場合、優先順位(大小)を保持する辞書を作成
+            else:
+                valid_flg1 = True
+
+                if group1_name not in group_info:
+                    group_info[group1_name] = {}
+
+                if group1_name not in group_cell_info:
+                    group_cell_info[group1_name] = cellname
+
+                if group1_name not in group_prio_list:
+                    group_prio_list[group1_name] = []
+
+            # 大グループ優先順位チェック
+            col = col_index_act + self.REVISION_COL_INDEX_COND_PRIORITY1
+            priority1 = str(wsheet.cell(row, col).value)
+
+            if valid_flg1:
+                cell_type = wsheet.cell_type(row, col)
+                retval = self.is_valid_number(cell_type, priority1, accept0=False)
+
+                if retval:
+                    group_prio_list[group1_name].append(priority1)
+
+                else:
+                    col_name = get_message('MOSJA03153', lang, showMsgId=False)
+                    message_list.append(get_message('MOSJA03158', lang, colname=col_name, cellname=cellname))
+
+
+            ####################################
+            # 小グループチェック
+            ####################################
+            # 小グループ情報取得
+            col = col_index_act + self.REVISION_COL_INDEX_COND_GROUP2
+            cellname = self.convert_rowcol_to_cellno(row, col_index_act)
+            group2_name = str(wsheet.cell(row, col).value)
+            valid_flg2 = False
+
+            # 小グループ指定なしであればチェックしない
+            if group2_name in ['x', 'X']:
+                pass
+
+            # 小グループの文字列長チェック
+            elif len(group2_name) > 64:
+                col_name = get_message('MOSJA03154', lang, showMsgId=False)
+                message_list.append(get_message('MOSJA03157', lang, colname=col_name, cellname=cellname))
+
+            # 小グループが有効な場合、優先順位を保持するリストを作成
+            else:
+                valid_flg2 = True
+
+                if valid_flg1 and group2_name not in group_info[group1_name]:
+                    group_info[group1_name][group2_name] = []
+
+            # 小グループ優先順位チェック
+            col = col_index_act + self.REVISION_COL_INDEX_COND_PRIORITY2
+            priority2 = str(wsheet.cell(row, col).value)
+
+            if valid_flg2:
+                cell_type = wsheet.cell_type(row, col)
+                retval = self.is_valid_number(cell_type, priority2, accept0=False)
+
+                if retval:
+                    group_info[group1_name][group2_name].append(priority2)
+
+                else:
+                    col_name = get_message('MOSJA03153', lang, showMsgId=False)
+                    message_list.append(get_message('MOSJA03159', lang, group1_name=group1_name, cellname=cellname))
+
+
+            ####################################
+            # グループごとの優先順位チェック
+            ####################################
+            # 大グループ優先順位の並びが 1 からの通し番号になっているかチェック
+            for gn, prios in group_prio_list.items():
+                prio_list = sorted(prios)
+                for i, prio in enumerate(prio_list, 1):
+                    if i != int(prio):
+                        cellname = group_cell_info[gn]
+                        message_list.append(get_message('MOSJA03159', lang, group1_name=gn, cellname=cellname))
+                        break
+
+            # 小グループ優先順位の並びが 1 からの通し番号になっているかチェック
+            for gn1, prio_dict in group_info.items():
+                for gn2, prios in prio_dict.items():
+                    prio_list = sorted(prios)
+                    for i, prio in enumerate(prio_list, 1):
+                        if i != int(prio):
+                            cellname = group_cell_info[gn]
+                            message_list.append(
+                                get_message(
+                                    'MOSJA03160',
+                                    lang,
+                                    group1_name=gn1,
+                                    group2_name=gn2,
+                                    cellname=cellname
+                                )
+                            )
+                            break
+
 
     def check_date_format(self, wsheet, row_index, col_index, row_max, message_list, msgid, lang):
         """
