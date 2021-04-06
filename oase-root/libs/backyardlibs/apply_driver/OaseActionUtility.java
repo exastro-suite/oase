@@ -34,6 +34,12 @@ public class OaseActionUtility implements java.io.Serializable {
     private java.util.List<java.lang.String> stopInterval = new ArrayList<>();
     private java.util.List<java.lang.String> ruleName = new ArrayList<>();
     private java.util.List<java.lang.String> preInfo = new ArrayList<>();
+    private java.util.List<java.lang.String> condCount = new ArrayList<>();
+    private java.util.List<java.lang.String> condTerm = new ArrayList<>();
+    private java.util.List<java.lang.String> condGroup1 = new ArrayList<>();
+    private java.util.List<java.lang.String> condPriority1 = new ArrayList<>();
+    private java.util.List<java.lang.String> condGroup2 = new ArrayList<>();
+    private java.util.List<java.lang.String> condPriority2 = new ArrayList<>();
 
 
     public OaseActionUtility() {
@@ -103,6 +109,54 @@ public class OaseActionUtility implements java.io.Serializable {
         this.preInfo = preInfo;
     }
 
+    public java.util.List<java.lang.String> getCondCount() {
+        return this.condCount;
+    }
+
+    public void setCondCount(java.util.List<java.lang.String> condCount) {
+        this.condCount = condCount;
+    }
+
+    public java.util.List<java.lang.String> getCondTerm() {
+        return this.condTerm;
+    }
+
+    public void setCondTerm(java.util.List<java.lang.String> condTerm) {
+        this.condTerm = condTerm;
+    }
+
+    public java.util.List<java.lang.String> getCondGroup1() {
+        return this.condGroup1;
+    }
+
+    public void setCondGroup1(java.util.List<java.lang.String> condGroup1) {
+        this.condGroup1 = condGroup1;
+    }
+
+    public java.util.List<java.lang.String> getCondPriority1() {
+        return this.condPriority1;
+    }
+
+    public void setCondPriority1(java.util.List<java.lang.String> condPriority1) {
+        this.condPriority1 = condPriority1;
+    }
+
+    public java.util.List<java.lang.String> getCondGroup2() {
+        return this.condGroup2;
+    }
+
+    public void setCondGroup2(java.util.List<java.lang.String> condGroup2) {
+        this.condGroup2 = condGroup2;
+    }
+
+    public java.util.List<java.lang.String> getCondPriority2() {
+        return this.condPriority2;
+    }
+
+    public void setCondPriority2(java.util.List<java.lang.String> condPriority2) {
+        this.condPriority2 = condPriority2;
+    }
+
     public void addRuleName(String ruleName) {
         this.ruleName.add(ruleName);
     }
@@ -135,6 +189,30 @@ public class OaseActionUtility implements java.io.Serializable {
         this.preInfo.add(preInfo);
     }
 
+    public void addCondCount(String condCount) {
+        this.condCount.add(condCount);
+    }
+
+    public void addCondTerm(String condTerm) {
+        this.condTerm.add(condTerm);
+    }
+
+    public void addCondGroup1(String condGroup1) {
+        this.condGroup1.add(condGroup1);
+    }
+
+    public void addCondPriority1(String condPriority1) {
+        this.condPriority1.add(condPriority1);
+    }
+
+    public void addCondGroup2(String condGroup2) {
+        this.condGroup2.add(condGroup2);
+    }
+
+    public void addCondPriority2(String condPriority2) {
+        this.condPriority2.add(condPriority2);
+    }
+
     public OaseActionUtility(java.util.List<java.lang.String> id,
             java.util.List<java.lang.String> parameterInfo,
             java.util.List<java.lang.String> retryCount,
@@ -142,7 +220,13 @@ public class OaseActionUtility implements java.io.Serializable {
             java.util.List<java.lang.String> stopCount,
             java.util.List<java.lang.String> stopInterval,
             java.util.List<java.lang.String> ruleName,
-            java.util.List<java.lang.String> preInfo) {
+            java.util.List<java.lang.String> preInfo,
+            java.util.List<java.lang.String> condCount,
+            java.util.List<java.lang.String> condTerm,
+            java.util.List<java.lang.String> condGroup1,
+            java.util.List<java.lang.String> condPriority1,
+            java.util.List<java.lang.String> condGroup2,
+            java.util.List<java.lang.String> condPriority2) {
         this.id = id;
         this.parameterInfo = parameterInfo;
         this.retryCount = retryCount;
@@ -151,6 +235,12 @@ public class OaseActionUtility implements java.io.Serializable {
         this.stopInterval = stopInterval;
         this.ruleName = ruleName;
         this.preInfo = preInfo;
+        this.condCount = condCount;
+        this.condTerm = condTerm;
+        this.condGroup1 = condGroup1;
+        this.condPriority1 = condPriority1;
+        this.condGroup2 = condGroup2;
+        this.condPriority2 = condPriority2;
     }
 
 }
