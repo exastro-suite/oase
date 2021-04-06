@@ -1428,7 +1428,7 @@ def check_rhdm_response_correlation(now):
     # アクション可能なマッチング結果を状態遷移させる
     logger.logic_log('LOSI02008', resp_ids)
     if len(resp_ids) > 0:
-        RhdmResponse.objects.filter(response_id__in=resp_ids).update(status=PROCESSED)
+        RhdmResponse.objects.filter(response_id__in=resp_ids).update(status=UNPROCESS)
 
 
 def multi(event_req_list, mode, now):
