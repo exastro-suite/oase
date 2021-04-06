@@ -26,6 +26,7 @@ DOSL03001:セッション管理
 DOSL04001:リクエスト管理
 DOSL05001:ルールマッチング結果管理
 DOSL05002:ルールマッチング結果アクション管理
+DOSL05003:ルールマッチング結果コリレーション管理
 DOSL06001:アクション履歴管理
 DOSL06004:アクション履歴ログ管理
 DOSL06005:事前アクション履歴管理
@@ -279,6 +280,35 @@ class RhdmResponseAction(models.Model):
 
     def __str__(self):
         return "%s(%s)" % (self.rule_name, str(self.response_detail_id))
+
+
+class RhdmResponseCorrelation(models.Model):
+    """
+    DOSL05003:ルールマッチング結果コリレーション管理
+    """
+    correlation_id = models.AutoField("コリレーションID", primary_key=True)
+    rule_type_id = models.IntegerField("ルール種別ID")
+    rule_name = models.CharField("ルール名", max_length=64)
+    request_type_id = models.IntegerField("リクエスト種別")
+    cond_large_group = models.CharField("大グループ名", max_length=64)
+    cond_large_group_priority = models.IntegerField("大グループ優先順位")
+    cond_small_group = models.CharField("小グループ名", max_length=64)
+    cond_small_group_priority = models.IntegerField("小グループ優先順位")
+    cond_count = models.IntegerField("回数条件")
+    cond_term = models.IntegerField("期限条件(秒)")
+    current_count = models.IntegerField("メッセージ受付カウント", default=1)
+    start_time = models.DateTimeField("開始日時", default=timezone.now)
+    response_detail_id = models.IntegerField("レスポンス詳細ID", null=True, blank=True)
+    status = models.IntegerField("ステータス")
+    last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
+    last_update_user = models.CharField("最終更新者", max_length=64)
+
+    class Meta:
+        db_table = 'OASE_T_RHDM_RESPONSE_CORRELATION'
+        unique_together = (('rule_type_id', 'rule_name', 'request_type_id'), )
+
+    def __str__(self):
+        return str(self.correlation_id)
 
 
 class ActionHistory(models.Model):
