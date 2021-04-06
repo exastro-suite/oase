@@ -76,7 +76,7 @@ class DecisionTableFactory:
         self.class_name = class_name
         self.fact_name = fact_name
         self.save_path = save_path
-        self.len_act = 10 # アクション部の数
+        self.len_act = 16 # アクション部の数
         self.len_condition = len(self.data_object_list) + len(self.from_to) # 条件部の数
         self.lang = lang
 
@@ -266,7 +266,11 @@ class DecisionTableFactory:
         if len(strs) >= 2 and (get_message('MOSJA03132', self.lang, showMsgId=False) in strs[0]
                                 or get_message('MOSJA03133', self.lang, showMsgId=False) in strs[0]
                                 or get_message('MOSJA03134', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03135', self.lang, showMsgId=False) in strs[0]):
+                                or get_message('MOSJA03135', self.lang, showMsgId=False) in strs[0]
+                                or get_message('MOSJA03150', self.lang, showMsgId=False) in strs[0]
+                                or get_message('MOSJA03151', self.lang, showMsgId=False) in strs[0]
+                                or get_message('MOSJA03153', self.lang, showMsgId=False) in strs[0]
+                                or get_message('MOSJA03155', self.lang, showMsgId=False) in strs[0]):
             return True
         else:
             return False
@@ -334,7 +338,7 @@ class DecisionTableCustomizer:
     def __init__(self, input_filepath):
         self.wb = openpyxl.load_workbook(input_filepath)
 
-    def custom_action_type(self):
+    def custom_action_type(self, lang='JA'):
         """
         [メソッド概要]
         アクション部のバリデーション
@@ -365,7 +369,7 @@ class DecisionTableCustomizer:
 
         dti = ActionType.objects.filter(disuse_flag='0').values_list('driver_type_id', flat=True)
         rs  = DriverType.objects.filter(driver_type_id__in=dti).values('name', 'driver_major_version')
-        ati = []
+        ati = [get_message('MOSJA03149', lang, showMsgId=False)]
         for r in rs:
             name_version = r['name'] + '(ver' + str(r['driver_major_version']) + ')'
             ati.append(name_version)
