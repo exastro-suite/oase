@@ -262,3 +262,164 @@ def test_is_all_blank_condition():
     result = dtcomp.is_all_blank_condition(wsheet, row, col_index, col_max)
     assert result == False
 
+
+@pytest.mark.django_db
+def test_check_action_condition_ok_digit():
+    """
+    アクション条件回数／期間チェック処理
+    正常系(数値)
+    ※回数と期間の有効無効は手動テストにて確認
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = '1'
+
+    # テスト
+    dtcomp.check_action_condition(
+        wsheet, row_index, col_index, row_index + 1, message_list, 'JA'
+    )
+
+    assert len(message_list) == 0
+
+
+@pytest.mark.django_db
+def test_check_action_condition_ok_x():
+    """
+    アクション条件回数／期間チェック処理
+    正常系(無効化)
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'X'
+
+    # テスト
+    dtcomp.check_action_condition(
+        wsheet, row_index, col_index, row_index + 1, message_list, 'JA'
+    )
+
+    assert len(message_list) == 0
+
+
+@pytest.mark.django_db
+def test_check_action_condition_ng_invalid():
+    """
+    アクション条件回数／期間チェック処理
+    異常系(無効な値)
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'XXX'
+
+    # テスト
+    dtcomp.check_action_condition(
+        wsheet, row_index, col_index, row_index + 1, message_list, 'JA'
+    )
+
+    assert len(message_list) == 2
+
+
+@pytest.mark.django_db
+def test_check_group_priority_ok_digit():
+    """
+    グループと優先順位のチェック処理
+    正常系(数値)
+    ※グループと優先順位は手動テストにて確認
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = '1'
+
+    # テスト
+    dtcomp.check_group_priority(
+        wsheet, row_index, col_index, row_index + 1, message_list, 'JA'
+    )
+
+    assert len(message_list) == 0
+
+
+@pytest.mark.django_db
+def test_check_group_priority_ok():
+    """
+    グループと優先順位のチェック処理
+    正常系(無効化)
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'X'
+
+    # テスト
+    dtcomp.check_group_priority(
+        wsheet, row_index, col_index, row_index + 1, message_list, 'JA'
+    )
+
+    assert len(message_list) == 0
+
+
+@pytest.mark.django_db
+def test_check_group_priority_ng_invalid():
+    """
+    グループと優先順位のチェック処理
+    異常系(無効な値)
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    lang = 'JA'
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    gn = "group"
+    gn1 = "group01"
+    gn2 = "group02"
+    cellname = dtcomp.convert_rowcol_to_cellno(row_index, col_index)
+    expected_msg1 = get_message(
+        'MOSJA03159', lang, group1_name=gn, cellname=cellname)
+    expected_msg2 = get_message(
+        'MOSJA03160', lang, group1_name=gn1, group2_name=gn2, cellname=cellname)
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'XXX'
+
+    # テスト
+    dtcomp.check_group_priority(
+        wsheet, row_index, col_index, row_index + 1, message_list, lang
+    )
+
+    assert len(message_list) == 2
+

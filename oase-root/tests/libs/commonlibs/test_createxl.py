@@ -116,6 +116,8 @@ def set_DecisionTableFactory():
 def test__get_action_count_info_true():
     """
     アクション実行／リトライの回数／間隔判定
+    条件回数／条件期間(秒)
+    大グループ優先順位／小グループ優先順位
     Trueになる場合
     """
     del_data_object()
@@ -138,12 +140,29 @@ def test__get_action_count_info_true():
     result = dt_create._get_action_count_info(strs)
     assert result == True
 
+    strs = ["アクション条件回数（必須）", "※「1」以上を定義して下さい。"]
+    result = dt_create._get_action_count_info(strs)
+    assert result == True
+
+    strs = ["アクション条件期間(秒)（必須）", "※「1」以上を定義して下さい。"]
+    result = dt_create._get_action_count_info(strs)
+    assert result == True
+
+    strs = ["大グループ優先順位（必須）", "※「1」からの通番を定義して下さい。"]
+    result = dt_create._get_action_count_info(strs)
+    assert result == True
+
+    strs = ["小グループ優先順位（必須）", "※「1」からの通番を定義して下さい。"]
+    result = dt_create._get_action_count_info(strs)
+    assert result == True
+
     del_data_object()
 
 @pytest.mark.django_db
 def test__get_action_count_info_false():
     """
     アクション実行／リトライの回数／間隔判定
+    大グループ／小グループ
     Falseになる場合
     """
     del_data_object()
@@ -155,6 +174,15 @@ def test__get_action_count_info_false():
     assert result == False
 
     strs = ["有効日"]
+    result = dt_create._get_action_count_info(strs)
+    assert result == False
+
+    strs = ["大グループ（必須）"]
+    result = dt_create._get_action_count_info(strs)
+    assert result == False
+
+
+    strs = ["小グループ（必須）"]
     result = dt_create._get_action_count_info(strs)
     assert result == False
 

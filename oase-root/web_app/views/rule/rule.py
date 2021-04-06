@@ -72,6 +72,7 @@ from web_app.models.models import DataObject
 from web_app.models.models import System
 from web_app.models.models import DriverType
 from web_app.models.models import ConditionalExpression
+from web_app.models.models import RhdmResponseCorrelation
 from web_app.templatetags.common import get_message
 from web_app.serializers.unicode_check import UnicodeCheck
 
@@ -1140,11 +1141,25 @@ def rule_polling(request, rule_manage_id, trace_id):
                     else:
                         actpreinfo = get_message('MOSJA12155', request.user.get_lang_mode(), showMsgId=False)
 
+                    rhdm_res_cor = RhdmResponseCorrelation.objects.filter(
+                        rule_name=r.rule_name, request_type_id=defs.STAGING).order_by(
+                        'last_update_timestamp').reverse().first()
+
                     target_rule = r.rule_name
                     target_execution = r.execution_order
                     target_drivertype = name
                     target_actparainfo = actparainfo
                     target_actpreinfo = actpreinfo
+                    target_retry_interval = r.action_retry_interval
+                    target_retry_count = r.action_retry_count
+                    target_stop_interval = r.action_stop_interval
+                    target_stop_count = r.action_stop_count
+                    target_cond_count = rhdm_res_cor.cond_count
+                    target_cond_term = rhdm_res_cor.cond_term
+                    target_large_group = rhdm_res_cor.cond_large_group
+                    target_large_group_priority = rhdm_res_cor.cond_large_group_priority
+                    target_small_group = rhdm_res_cor.cond_small_group
+                    target_small_group_priority = rhdm_res_cor.cond_small_group_priority
 
                     if add_msg:
                         add_msg += '\n\n'
@@ -1153,6 +1168,16 @@ def rule_polling(request, rule_manage_id, trace_id):
                         add_msg = add_msg + get_message('MOSJA12124', request.user.get_lang_mode(), showMsgId=False) + target_drivertype + ' \n'
                         add_msg = add_msg + get_message('MOSJA12125', request.user.get_lang_mode(), showMsgId=False) + target_actparainfo + ' \n'
                         add_msg = add_msg + get_message('MOSJA12126', request.user.get_lang_mode(), showMsgId=False) + target_actpreinfo  + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12181', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_interval) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12182', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12183', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_interval) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12184', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12185', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12186', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_term) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12187', request.user.get_lang_mode(), showMsgId=False) + target_large_group + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12188', request.user.get_lang_mode(), showMsgId=False) + str(target_large_group_priority) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12189', request.user.get_lang_mode(), showMsgId=False) + target_small_group + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12190', request.user.get_lang_mode(), showMsgId=False) + str(target_small_group_priority) + ' \n'
                     else:
                         add_msg = get_message('MOSJA12127', request.user.get_lang_mode(), showMsgId=False, match_rulename=match_rulename)  + '\n\n'
                         add_msg = add_msg + get_message('MOSJA12141', request.user.get_lang_mode(), showMsgId=False) + '\n'
@@ -1161,6 +1186,16 @@ def rule_polling(request, rule_manage_id, trace_id):
                         add_msg = add_msg + get_message('MOSJA12124', request.user.get_lang_mode(), showMsgId=False) + target_drivertype + ' \n'
                         add_msg = add_msg + get_message('MOSJA12125', request.user.get_lang_mode(), showMsgId=False) + target_actparainfo + ' \n'
                         add_msg = add_msg + get_message('MOSJA12126', request.user.get_lang_mode(), showMsgId=False) + target_actpreinfo + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12181', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_interval) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12182', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12183', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_interval) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12184', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12185', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12186', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_term) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12187', request.user.get_lang_mode(), showMsgId=False) + target_large_group + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12188', request.user.get_lang_mode(), showMsgId=False) + str(target_large_group_priority) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12189', request.user.get_lang_mode(), showMsgId=False) + target_small_group + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12190', request.user.get_lang_mode(), showMsgId=False) + str(target_small_group_priority) + ' \n'
 
             err_flg = 0
 
@@ -2056,7 +2091,10 @@ def rule_polling_bulk(request, rule_manage_id):
 
             act_types = dict(zip(dti, ati))
 
-            rset = RhdmResponseAction.objects.filter(response_id__in=resp_ids).values('response_id', 'rule_name', 'execution_order', 'action_type_id', 'action_parameter_info', 'action_pre_info')
+            rset = RhdmResponseAction.objects.filter(response_id__in=resp_ids).values(
+                'response_id', 'rule_name', 'execution_order', 'action_type_id', 'action_parameter_info',
+                'action_pre_info', 'action_retry_interval', 'action_retry_count', 'action_stop_interval',
+                'action_stop_count')
             for rs in rset:
                 if rs['response_id'] not in resp_act_info:
                     resp_act_info[rs['response_id']] = []
@@ -2071,12 +2109,26 @@ def rule_polling_bulk(request, rule_manage_id):
                 else:
                     str_actpreinfo = get_message('MOSJA12155', request.user.get_lang_mode(), showMsgId=False)
 
+                rhdm_res_cor = RhdmResponseCorrelation.objects.filter(
+                    rule_name=rs['rule_name'], request_type_id=defs.STAGING).order_by(
+                    'last_update_timestamp').reverse().first()
+
                 resp_act_info_tmp = {}
-                resp_act_info_tmp['rulename']   = rs['rule_name']
-                resp_act_info_tmp['exeorder']   = rs['execution_order']
-                resp_act_info_tmp['acttype']    = act_types[rs['action_type_id']] if rs['action_type_id'] in act_types else get_message('MOSJA12156', request.user.get_lang_mode(), showMsgId=False)
-                resp_act_info_tmp['actparam']   = str_actparams
-                resp_act_info_tmp['actpreinfo'] = str_actpreinfo
+                resp_act_info_tmp['rulename']             = rs['rule_name']
+                resp_act_info_tmp['exeorder']             = rs['execution_order']
+                resp_act_info_tmp['acttype']              = act_types[rs['action_type_id']] if rs['action_type_id'] in act_types else get_message('MOSJA12156', request.user.get_lang_mode(), showMsgId=False)
+                resp_act_info_tmp['actparam']             = str_actparams
+                resp_act_info_tmp['actpreinfo']           = str_actpreinfo
+                resp_act_info_tmp['retry_interval']       = rs['action_retry_interval']
+                resp_act_info_tmp['retry_count']          = rs['action_retry_count']
+                resp_act_info_tmp['stop_interval']        = rs['action_stop_interval']
+                resp_act_info_tmp['stop_count']           = rs['action_stop_count']
+                resp_act_info_tmp['cond_count']           = rhdm_res_cor.cond_count
+                resp_act_info_tmp['cond_term']            = rhdm_res_cor.cond_term
+                resp_act_info_tmp['large_group']          = rhdm_res_cor.cond_large_group
+                resp_act_info_tmp['large_group_priority'] = rhdm_res_cor.cond_large_group_priority
+                resp_act_info_tmp['small_group']          = rhdm_res_cor.cond_small_group
+                resp_act_info_tmp['small_group_priority'] = rhdm_res_cor.cond_small_group_priority
 
                 resp_act_info[rs['response_id']].append(resp_act_info_tmp)
 
@@ -2107,6 +2159,16 @@ def rule_polling_bulk(request, rule_manage_id):
                     msg = msg + get_message('MOSJA12147', request.user.get_lang_mode(), showMsgId=False) + res_act['acttype'] + '\n'
                     msg = msg + get_message('MOSJA12148', request.user.get_lang_mode(), showMsgId=False) + res_act['actparam'] + '\n'
                     msg = msg + get_message('MOSJA12149', request.user.get_lang_mode(), showMsgId=False) + res_act['actpreinfo'] + '\n'
+                    msg = msg + get_message('MOSJA12191', request.user.get_lang_mode(), showMsgId=False) + str(res_act['retry_interval']) + '\n'
+                    msg = msg + get_message('MOSJA12192', request.user.get_lang_mode(), showMsgId=False) + str(res_act['retry_count']) + '\n'
+                    msg = msg + get_message('MOSJA12193', request.user.get_lang_mode(), showMsgId=False) + str(res_act['stop_interval']) + '\n'
+                    msg = msg + get_message('MOSJA12194', request.user.get_lang_mode(), showMsgId=False) + str(res_act['stop_count']) + '\n'
+                    msg = msg + get_message('MOSJA12195', request.user.get_lang_mode(), showMsgId=False) + str(res_act['cond_count']) + '\n'
+                    msg = msg + get_message('MOSJA12196', request.user.get_lang_mode(), showMsgId=False) + str(res_act['cond_term']) + '\n'
+                    msg = msg + get_message('MOSJA12197', request.user.get_lang_mode(), showMsgId=False) + res_act['large_group'] + '\n'
+                    msg = msg + get_message('MOSJA12198', request.user.get_lang_mode(), showMsgId=False) + str(res_act['large_group_priority']) + '\n'
+                    msg = msg + get_message('MOSJA12199', request.user.get_lang_mode(), showMsgId=False) + res_act['small_group'] + '\n'
+                    msg = msg + get_message('MOSJA12200', request.user.get_lang_mode(), showMsgId=False) + str(res_act['small_group_priority']) + '\n'
 
             msg += '\n %s \n\n' % (v['msg'])
 
