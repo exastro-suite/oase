@@ -1366,27 +1366,27 @@ def check_rhdm_response_correlation(now):
                 del_ids = []
                 mod_ids = []
                 pnd_ids = []
-                status  = STS_REGISTED
-                pre_status = STS_UNACHIEVABLE
+                settle_flag = False
 
                 for gr2, rule_info in sorted(v3.items(), key=lambda x: x[1]['priority']):
 
                     # 同じ小グループ内の状態チェック、および、アクションIDチェック
                     for ri in rule_info['rules']:
 
+                        # 未達成状態の場合、状態が確定(アクションor期限切れ)するまで
+                        # 後続グループをアクションさせないようフラグを立てる
+                        if ri['sts'] == STS_NOTACHIEVE:
+                            settle_flag = True
+
                         # アクションが登録されている場合
                         if  ri['resp']:
-                            status = ri['sts']
                             del_ids.append(ri['resp'])
 
                             # 状態が「達成」、かつ、前提グループが「達成不可」の場合、アクション実行可能
-                            if ri['sts'] ==  STS_ACHIEVED and pre_status == STS_UNACHIEVABLE:
-                                status = STS_REGISTABLE
+                            if ri['sts'] ==  STS_ACHIEVED and settle_flag == False:
+                                settle_flag = True
                                 mod_ids.append(ri['resp'])
 
-                    else:
-                        if pre_status != STS_REGISTABLE:
-                            pre_status = status
 
                 # アクション実行可能なグループが存在しない場合は、削除対象グループをクリア
                 if len(mod_ids) <= 0:
