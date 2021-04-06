@@ -184,51 +184,6 @@ def rhdm_dummy(*args, **kwargs):
     try:
         with transaction.atomic():
             # rhdmコリレーション情報
-            #rcnt = RhdmResponseCorrelation.objects.filter(
-            #    rule_type_id    = 1,
-            #    request_type_id = 1,
-            #    rule_name       = 'test_name'
-            #).count()
-            #
-            #if rcnt > 0:
-            #    RhdmResponseCorrelation.objects.filter(
-            #        rule_type_id    = 1,
-            #        request_type_id = 1,
-            #        rule_name       = 'test_name'
-            #    ).update(
-            #        cond_large_group          = 'group02',
-            #        cond_large_group_priority = 1,
-            #        cond_small_group          = 'group20',
-            #        cond_small_group_priority = 1,
-            #        cond_count                = 3,
-            #        cond_term                 = 100,
-            #        current_count             = 1,
-            #        start_time                = now,
-            #        response_detail_id        = 1,
-            #        status                    = STS_REGISTED,
-            #        last_update_timestamp     = now,
-            #        last_update_user          = 'administrator',
-            #    )
-            #
-            #else:
-            #    RhdmResponseCorrelation(
-            #        rule_type_id              = 1,
-            #        rule_name                 = 'test_name',
-            #        request_type_id           = 1,
-            #        cond_large_group          = 'group01',
-            #        cond_large_group_priority = 1,
-            #        cond_small_group          = 'group10',
-            #        cond_small_group_priority = 1,
-            #        cond_count                = 3,
-            #        cond_term                 = 100,
-            #        current_count             = 1,
-            #        start_time                = now,
-            #        response_detail_id        = 1,
-            #        status                    = STS_REGISTED,
-            #        last_update_timestamp     = now,
-            #        last_update_user          = 'administrator',
-            #    ).save(force_insert=True)
-
             RhdmResponseCorrelation(
                 rule_type_id              = 1,
                 rule_name                 = 'test_name',
