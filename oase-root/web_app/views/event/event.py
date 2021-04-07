@@ -107,16 +107,19 @@ def eventsrequest(request):
             raise Exception(msg)
 
         # tokenチェック
-        """
+        if not cls_evtoken.initialize:
+            cls_evtoken.load_data()
+
         stscode, msg = cls_evtoken.check_request_token(
             request,
             json_str[EventsRequestCommon.KEY_RULETYPE],
-            int(json_str[EventsRequestCommon.KEY_REQTYPE] in [1, '1'])
+            int(json_str[EventsRequestCommon.KEY_REQTYPE])
         )
+
+        logger.logic_log('LOSI13027', trace_id, stscode, msg)
 
         if stscode != 200:
             raise Exception(msg)
-        """
 
 
         if json_str[EventsRequestCommon.KEY_REQTYPE] in [1, '1']:  # 1:プロダクション環境
