@@ -675,6 +675,18 @@ class Agent:
         length = len(acts['id'])
 
         for i in range(length):
+            if acts[ActUtil.cond_count][i] in ['x', 'X']:
+                acts[ActUtil.cond_count][i] = 0
+
+            if acts[ActUtil.cond_term][i] in ['x', 'X']:
+                acts[ActUtil.cond_term][i] = 0
+
+            if acts[ActUtil.cond_large_priority][i] in ['x', 'X']:
+                acts[ActUtil.cond_large_priority][i] = 0
+
+            if acts[ActUtil.cond_small_priority][i] in ['x', 'X']:
+                acts[ActUtil.cond_small_priority][i] = 0
+
             save_data = self.check_group_cond(
                 responseid,
                 acts[ActUtil.rule_name][i],
