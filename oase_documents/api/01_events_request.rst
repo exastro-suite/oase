@@ -19,8 +19,7 @@
 
 ::
 
- curl -X POST -k "https://<HostName>/oase_web/event/event/eventsrequest" -H "accept: application/json" -d "{\"decisiontable\":\"decisiontable001\",\"requesttype\":\"1\",\"eventdatetime\":\"2018/12/13 15:16:29\",\"eventinfo\":[\"2\",\"あああ\"]}"
-
+ curl -X POST -k "https://<HostName>/oase_web/event/event/eventsrequest" -H "accept: application/json" -d "{\"decisiontable\":\"decisiontable001\",\"requesttype\":\"1\",\"eventdatetime\":\"2018/12/13 15:16:29\",\"eventinfo\":[\"2\",\"あああ\"]}" -H "Authorization: Bearer ACCESS_TOKEN"
 
 
 
@@ -33,6 +32,7 @@
 
    1, Host, ホスト名,
    2, Content-Type, 形式名,値は「application/json」で固定
+   3, token, トークン,Token払い出し画面にて取得した値を設定
 
 1.1.3 パラメータ
 --------------------------------------
