@@ -571,8 +571,8 @@ class TokenInfo(models.Model):
     """
     token_id = models.AutoField("トークンID", primary_key=True)
     token_data = models.CharField("トークンデータ", max_length=64)
-    use_start_time = models.DateField("利用開始日")
-    use_end_time = models.DateField("利用終了日")
+    use_start_time = models.DateTimeField("利用開始日")
+    use_end_time = models.DateTimeField("利用終了日")
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
 
