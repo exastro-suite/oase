@@ -675,6 +675,18 @@ class Agent:
         length = len(acts['id'])
 
         for i in range(length):
+            if acts[ActUtil.cond_count][i] == 'X' or acts[ActUtil.cond_count][i] == 'x':
+                acts[ActUtil.cond_count][i] = 0
+
+            if acts[ActUtil.cond_term][i] == 'X' or acts[ActUtil.cond_term][i] == 'x':
+                acts[ActUtil.cond_term][i] = 0
+
+            if acts[ActUtil.cond_large_priority][i] == 'X' or acts[ActUtil.cond_large_priority][i] == 'x':
+                acts[ActUtil.cond_large_priority][i] = 0
+
+            if acts[ActUtil.cond_small_priority][i] == 'X' or acts[ActUtil.cond_small_priority][i] == 'x':
+                acts[ActUtil.cond_small_priority][i] = 0
+
             save_data = self.check_group_cond(
                 responseid,
                 acts[ActUtil.rule_name][i],
@@ -1366,27 +1378,27 @@ def check_rhdm_response_correlation(now):
                 del_ids = []
                 mod_ids = []
                 pnd_ids = []
-                settle_flag = False
+                status  = STS_REGISTED
+                pre_status = STS_UNACHIEVABLE
 
                 for gr2, rule_info in sorted(v3.items(), key=lambda x: x[1]['priority']):
 
                     # 同じ小グループ内の状態チェック、および、アクションIDチェック
                     for ri in rule_info['rules']:
 
-                        # 未達成状態の場合、状態が確定(アクションor期限切れ)するまで
-                        # 後続グループをアクションさせないようフラグを立てる
-                        if ri['sts'] == STS_NOTACHIEVE:
-                            settle_flag = True
-
                         # アクションが登録されている場合
                         if  ri['resp']:
+                            status = ri['sts']
                             del_ids.append(ri['resp'])
 
                             # 状態が「達成」、かつ、前提グループが「達成不可」の場合、アクション実行可能
-                            if ri['sts'] ==  STS_ACHIEVED and settle_flag == False:
-                                settle_flag = True
+                            if ri['sts'] ==  STS_ACHIEVED and pre_status == STS_UNACHIEVABLE:
+                                status = STS_REGISTABLE
                                 mod_ids.append(ri['resp'])
 
+                    else:
+                        if pre_status != STS_REGISTABLE:
+                            pre_status = status
 
                 # アクション実行可能なグループが存在しない場合は、削除対象グループをクリア
                 if len(mod_ids) <= 0:
@@ -1428,7 +1440,7 @@ def check_rhdm_response_correlation(now):
     # アクション可能なマッチング結果を状態遷移させる
     logger.logic_log('LOSI02008', resp_ids)
     if len(resp_ids) > 0:
-        RhdmResponse.objects.filter(response_id__in=resp_ids).update(status=UNPROCESS)
+        RhdmResponse.objects.filter(response_id__in=resp_ids).update(status=PROCESSED)
 
 
 def multi(event_req_list, mode, now):
