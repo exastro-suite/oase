@@ -49,9 +49,17 @@ from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.rabbitmq import RabbitMQ
 from libs.webcommonlibs.events_request import EventsRequestCommon
+from libs.webcommonlibs.event_token import OASEEventToken
 from libs.webcommonlibs.common import TimeConversion
 
 logger = OaseLogger.get_instance() # ロガー初期化
+
+
+# token管理クラス初期化
+cls_evtoken = OASEEventToken.get_instance()
+if cls_evtoken:
+    cls_evtoken.initialize()
+
 
 # 設定情報読み込み
 _mq_settings = None
@@ -73,6 +81,7 @@ def eventsrequest(request):
 
     now       = datetime.datetime.now(pytz.timezone('UTC'))
     trace_id  = EventsRequestCommon.generate_trace_id()
+    stscode   = 200
     resp_json = {}
     result    = False
     msg       = ''
@@ -96,6 +105,19 @@ def eventsrequest(request):
             msg = 'Invalid request format. Must be JSON.'
             logger.user_log('LOSM13005', trace_id)
             raise Exception(msg)
+
+        # tokenチェック
+        """
+        stscode, msg = cls_evtoken.check_request_token(
+            request,
+            json_str[EventsRequestCommon.KEY_RULETYPE],
+            int(json_str[EventsRequestCommon.KEY_REQTYPE] in [1, '1'])
+        )
+
+        if stscode != 200:
+            raise Exception(msg)
+        """
+
 
         if json_str[EventsRequestCommon.KEY_REQTYPE] in [1, '1']:  # 1:プロダクション環境
 
@@ -260,7 +282,15 @@ def eventsrequest(request):
     logger.system_log('LOSI13002', trace_id, result, msg)
 
     # 応答
-    return HttpResponse(resp_json)
+    resp = HttpResponse(resp_json, status=stscode)
+
+    if result:
+        resp['WWW-Authenticate'] = 'Bearer realm="%s"' % (trace_id)
+
+    else:
+        resp['WWW-Authenticate'] = 'Bearer realm="%s" error="%s"' % (trace_id, msg)
+
+    return resp
 
 
 ################################################

@@ -1413,6 +1413,10 @@ let Ary              = {};
     Ary['MOSJA36008'] = "イベント発生日時";
     Ary['MOSJA36009'] = "トレースID";
     Ary['MOSJA36010'] = "列表示・非表示";
+    Ary['MOSJA40001'] = "token_required";
+    Ary['MOSJA40002'] = "invalid_token";
+    Ary['MOSJA40003'] = "permission_denied";
+    Ary['MOSJA40004'] = "invalid_request";
 // MOSEN
     Ary['MOSEN00001'] = "Are you sure you want to discard your changes? If there is any information that has not been saved, click [Cancel] and [Save].";
     Ary['MOSEN00002'] = "Are you sure you want to save?";
@@ -2809,6 +2813,10 @@ let Ary              = {};
     Ary['MOSEN36008'] = "Event occurance date/time";
     Ary['MOSEN36009'] = "Trace ID";
     Ary['MOSEN36010'] = "Display / not display column";
+    Ary['MOSEN40001'] = "token_required";
+    Ary['MOSEN40002'] = "invalid_token";
+    Ary['MOSEN40003'] = "permission_denied";
+    Ary['MOSEN40004'] = "invalid_request";
 // MOOJA
     Ary['MOOJA00001'] = "MOOJA message1";
     Ary['MOOJA00002'] = "MOOJA message2";
