@@ -46,6 +46,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 from django.utils.six.moves.urllib.parse import urlsplit
@@ -73,6 +74,8 @@ from web_app.models.models import System
 from web_app.models.models import DriverType
 from web_app.models.models import ConditionalExpression
 from web_app.models.models import RhdmResponseCorrelation
+from web_app.models.models import TokenInfo
+from web_app.models.models import TokenPermission
 from web_app.templatetags.common import get_message
 from web_app.serializers.unicode_check import UnicodeCheck
 
@@ -660,8 +663,8 @@ def rule_pseudo_request(request, rule_type_id):
 
     err_flg = 1
     msg = ''
-    reception_dt = datetime.datetime.now(pytz.timezone('UTC'))
-    reception_dt = TimeConversion.get_time_conversion(reception_dt, 'Asia/Tokyo', request=request)
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    reception_dt = TimeConversion.get_time_conversion(now, 'Asia/Tokyo', request=request)
     trace_id = ''
     event_dt = '----/--/-- --:--:--'
     req_list = []
@@ -699,11 +702,15 @@ def rule_pseudo_request(request, rule_type_id):
                 raise Exception()
 
             # RestApiにリクエストを投げる
+            tkn = _get_token_by_group(request.user_config.group_id_list, now)
             scheme = urlsplit(request.build_absolute_uri(None)).scheme
             url = scheme + '://127.0.0.1:' + request.META['SERVER_PORT'] + reverse('web_app:event:eventsrequest')
             r = requests.post(
                 url,
-                headers={'content-type': 'application/json'},
+                headers={
+                    'content-type'  : 'application/json',
+                    'Authorization' : 'Bearer %s' % (tkn),
+                },
                 data=json_str.encode('utf-8'),
                 verify=False
             )
@@ -2665,4 +2672,58 @@ def _validate_contains(value):
             return False
 
     return True
+
+
+def _get_token_by_group(groups, now=None):
+    """
+    [メソッド概要]
+      ユーザーが所属するグループから、有効なトークンを取得する
+      ※対象ルールに対する権限を有するものとし、ここでは判定しない
+    [引数]
+      groups : list     : ユーザーが所属するグループIDのリスト
+      now    : datetime : 現在日時
+    [戻り値]
+      tkn    : string   : トークン
+    """
+
+    tkn = ''
+
+    # 所属がなければトークンなし
+    if len(groups) <= 0:
+        return ''
+
+    # 所属グループの権限ありトークンIDを取得
+    tkn_ids = list(
+        TokenPermission.objects.filter(
+            group_id__in=groups, permission_type_id=defs.ALLOWED_MENTENANCE
+        ).values_list(
+            'token_id', flat=True
+        )
+    )
+
+    # 所属グループの権限ありトークンIDがなければトークンなし
+    if len(tkn_ids) <= 0:
+        return ''
+
+    # 有効なトークンを取得
+    if not now:
+        now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    tkn_list = list(
+        TokenInfo.objects.filter(
+            token_id__in=tkn_ids
+        ).filter(
+            Q(use_start_time__isnull=True) | Q(use_start_time__lte=now)
+        ).filter(
+            Q(use_end_time__isnull=True)   | Q(use_end_time__gt=now)
+        ).values_list(
+            'token_data', flat=True
+        )
+    )
+
+    if len(tkn_list) > 0:
+        tkn = tkn_list[0]
+
+    return tkn
+
 

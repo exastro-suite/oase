@@ -153,29 +153,39 @@ class OASEEventToken(object):
             rset = AccessPermission.objects.filter(
                 group_id__in       = grp_ids,
                 menu_id__in        = [2141001004, 2141001005],
-                rule_type_id__gt   = 0,
-                permission_type_id = defs.ALLOWED_MENTENANCE
+                rule_type_id__in   = list(rule_info.keys())
+            ).exclude(
+                permission_type_id = defs.NO_AUTHORIZATION
             ).values_list(
-                'group_id', 'menu_id', 'rule_type_id'
+                'group_id', 'menu_id', 'rule_type_id', 'permission_type_id'
             )
 
-            for grp_id, menu_id, rule_id in rset:
+            for grp_id, menu_id, rule_id, perm_type in rset:
                 if grp_id not in self.group_info:
                     self.group_info[grp_id] = {
                         defs.PRODUCTION : [],
                         defs.STAGING    : [],
                     }
 
-                req_type = 0
+                req_type   = 0
+                allow_list = []
                 if menu_id == 2141001004:    # 2141001004 : ステージング
-                    req_type = defs.STAGING
+                    req_type   = defs.STAGING
+                    allow_list = defs.MENU_CATEGORY.ALLOW_EVERY
 
                 elif menu_id == 2141001005:  # 2141001005 : プロダクション
-                    req_type = defs.PRODUCTION
+                    req_type   = defs.PRODUCTION
+                    allow_list = defs.MENU_CATEGORY.ALLOW_ADMIN
 
+                # 不明なリクエスト種別は無効
                 if req_type == 0:
                     continue
 
+                # リクエスト種別に応じた権限がなければ無効
+                if perm_type not in allow_list:
+                    continue
+
+                # 有効なルールでなければ無効
                 rule_name = rule_info[rule_id] if rule_id in rule_info else None
                 if not rule_name:
                     continue
