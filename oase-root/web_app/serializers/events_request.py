@@ -23,7 +23,7 @@ from libs.commonlibs import define as defs
 
 class EventsRequestSerializer(serializers.ModelSerializer):
 
-    TRACE_ID_LENGTH   = 55
+    TRACE_ID_LENGTH   = 35
     REQUEST_TYPE_LIST = [defs.PRODUCTION, defs.STAGING, ]
     EVENT_INFO_KEY    = 'EVENT_INFO'
 
@@ -41,7 +41,7 @@ class EventsRequestSerializer(serializers.ModelSerializer):
 
         trace_len = len(trace_id)
         if trace_len != self.TRACE_ID_LENGTH:
-            raise serializers.ValidationError("トレースID不正 trace_id=%s, req_len=%s, valid_len=%s" % (trace_id, trace_len, self.TRACE_ID_LENGTH))
+            raise serializers.ValidationError("イベントシリアルNo.不正 trace_id=%s, req_len=%s, valid_len=%s" % (trace_id, trace_len, self.TRACE_ID_LENGTH))
 
         return trace_id
 
