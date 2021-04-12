@@ -150,6 +150,7 @@ class OASELogID:
     Ary['LOSM00035'] = "SYMPHONY_CLASS_ID, CONDUCTOR_CLASS_ID are set at the same time. (check_info: {})"
     Ary['LOSM00036'] = "There is no description of SERVICENOW_NAME. (check_info: {})"
     Ary['LOSM00037'] = "No value for SERVICENOW_NAME. (check_info: {})"
+    Ary['LOSM00038'] = "Failed to generate trace ID {}"
     Ary['LOSM00100'] = "RuleType does not exist. (rule_type_id: {}, {})"
     Ary['LOSM00101'] = "ConditionalExpression does not exist. (conditional_expression_id: {})"
     Ary['LOSM00102'] = "Failed to get data from the OASE_T_CONDITIONAL_EXPRESSION table. (conditional_expression_id: {}, {})"
