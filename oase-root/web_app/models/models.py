@@ -54,6 +54,7 @@ DOSL99009:ホワイトリストIPアドレス管理
 DOSL99010:ドライバ種別管理
 DOSL99011:監視種別管理
 DOSL99012:監視アダプタ種別管理
+DOSL99013:カウント管理
 """
 
 from django.db import models
@@ -215,7 +216,7 @@ class EventsRequest(models.Model):
     DOSL04001:リクエスト管理
     """
     request_id = models.AutoField("リクエストID", primary_key=True)
-    trace_id = models.CharField("トレースID", max_length=55, unique=True, validators=[MinLengthValidator(55)])
+    trace_id = models.CharField("トレースID", max_length=35, unique=True, validators=[MinLengthValidator(35)])
     request_type_id = models.IntegerField("リクエスト種別")
     rule_type_id = models.IntegerField("ルール種別ID")
     request_reception_time = models.DateTimeField("リクエスト受信日時")
@@ -241,7 +242,7 @@ class RhdmResponse(models.Model):
     DOSL05001:ルールマッチング結果管理
     """
     response_id = models.AutoField("レスポンスID", primary_key=True)
-    trace_id = models.CharField("トレースID", max_length=55, unique=True, validators=[MinLengthValidator(55)])
+    trace_id = models.CharField("トレースID", max_length=35, unique=True, validators=[MinLengthValidator(35)])
     request_reception_time = models.DateTimeField("レスポンス受信日時")
     request_type_id = models.IntegerField("リクエスト種別")
     resume_order = models.IntegerField("再開アクション実行順", validators=[MinValueValidator(1)])
@@ -319,7 +320,7 @@ class ActionHistory(models.Model):
     """
     action_history_id = models.AutoField("アクション履歴ID", primary_key=True)
     response_id = models.IntegerField("レスポンスID")
-    trace_id = models.CharField("トレースID", max_length=55, validators=[MinLengthValidator(55)])
+    trace_id = models.CharField("トレースID", max_length=35, validators=[MinLengthValidator(35)])
     rule_type_id = models.IntegerField("ルール種別ID")
     rule_type_name = models.CharField("ルール種別名", max_length=64)
     rule_name = models.CharField("ルール名", max_length=64)
@@ -352,7 +353,7 @@ class ActionLog(models.Model):
     action_log_id = models.AutoField("アクション履歴ログID", primary_key=True)
     response_id = models.IntegerField("レスポンスID")
     execution_order = models.IntegerField("アクション実行順")
-    trace_id = models.CharField("トレースID", max_length=55, validators=[MinLengthValidator(55)])
+    trace_id = models.CharField("トレースID", max_length=35, validators=[MinLengthValidator(35)])
     message_id = models.CharField("メッセージID", max_length=16)
     message_params = models.CharField("メッセージパラメーター", max_length=512, null=True, blank=True)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
@@ -370,7 +371,7 @@ class PreActionHistory(models.Model):
     """
     preact_history_id = models.AutoField("事前アクション履歴ID", primary_key=True)
     action_history_id = models.IntegerField("アクション履歴ID")
-    trace_id = models.CharField("トレースID", max_length=55, validators=[MinLengthValidator(55)])
+    trace_id = models.CharField("トレースID", max_length=35, validators=[MinLengthValidator(35)])
     status = models.IntegerField("ステータス")
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
@@ -843,4 +844,17 @@ class AdapterType(models.Model):
     def __str__(self):
         return "%s(%s)_%s" % (self.name, str(self.adapter_type_id), self.version)
 
+
+class Count(models.Model):
+    """
+    DOSL99013:カウント管理
+    """
+    count_id = models.AutoField("カウントID", primary_key=True)
+    count_number = models.IntegerField("カウント数")
+
+    class Meta:
+        db_table = 'OASE_T_COUNT'
+
+    def __str__(self):
+        return str(self.count_id)
 

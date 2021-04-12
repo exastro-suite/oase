@@ -32,9 +32,11 @@
 import uuid
 import pytz
 import datetime
+import traceback
 
+from django.db import transaction
 from libs.commonlibs.oase_logger import OaseLogger
-
+from web_app.models.models import Count
 
 logger = OaseLogger.get_instance() # ロガー初期化
 
@@ -75,21 +77,34 @@ class EventsRequestCommon():
           トレースIDを生成する
         """
 
-        # トレースID接頭辞
-        prefix = 'TOS'
+        trace_id = ''
 
-        # トレースID生成日時
-        if not now:
-            now = datetime.datetime.now(pytz.timezone('UTC'))
+        try:
+            # トレースID接頭辞
+            prefix = 'TOS'
 
-        # UUID(v4)生成
-        u4 = str(uuid.uuid4())
-        u4 = u4.replace('-', '')
+            # トレースID生成日時
+            if not now:
+                now = datetime.datetime.now(pytz.timezone('UTC'))
 
-        # トレースID生成
-        trace_id = '%s%s%s' % ('TOS', now.strftime('%Y%m%d%H%M%S%f'), u4)
+            with transaction.atomic():
+                # カウント
+                count = Count.objects.select_for_update().get(pk=1)
+                cnt = count.count_number + 1
+                cnt = str(cnt).zfill(10)
 
-        return trace_id
+                # トレースID生成
+                trace_id = '%s%s%s%s%s' % ('TOS', '_', now.strftime('%Y%m%d%H%M%S%f'), '_', cnt)
+
+                count.count_number = count.count_number + 1
+                count.save()
+
+                return trace_id
+
+        except Exception as e:
+            logger.system_log('LOSM00038', traceback.format_exc())
+
+            return trace_id
 
 
     @classmethod
