@@ -36,7 +36,7 @@ from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.aes_cipher import AESCipher
 
-from web_app.models.models import ActionType, Group, UserGroup
+from web_app.models.models import ActionType, Group
 from web_app.models.ITA_models import ItaDriver, ItaPermission
 from web_app.templatetags.common import get_message
 
