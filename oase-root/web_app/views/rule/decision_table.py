@@ -369,7 +369,7 @@ def index(request):
                 }
             )
 
-        group_list, group_list_default = get_group_list(dt_rule_ids_disp)
+        group_list, group_list_default = get_group_list(dt_rule_ids_disp, request.user_config.group_id_list)
         add_group_information(decision_table_list, group_list)
 
         rcnt = ActionType.objects.filter(driver_type_id=3, disuse_flag=str(defs.ENABLE)).count()
@@ -538,12 +538,7 @@ def modify(request):
                 ruletypeid = RuleType.objects.get(rule_table_name=rule_table_name).rule_type_id
                 group_list = add_record['group_list']
 
-                # システム管理者グループ追加
-                admin_perm = [{'menu_id': m, 'permission_type_id': '1'} for m in defs.MENU_BY_RULE]
-                admin_group_dict = {'group_id': str(defs.GROUP_DEFINE.GROUP_ID_ADMIN), 'permission': admin_perm}
-                group_list.append(admin_group_dict)
-
-                # システム管理者グループ以外のグループに権限追加
+                # グループに権限追加
                 permission_list = add_permission(request, now, ruletypeid, group_list)
 
                 AccessPermission.objects.bulk_create(permission_list)
@@ -679,12 +674,12 @@ def modify_detail(request, rule_type_id):
             )
 
             # アクセス権限データ更新
-            grlock = Group.objects.select_for_update().filter(group_id__gt=defs.GROUP_DEFINE.GROUP_ID_ADMIN)
+            grlock = Group.objects.select_for_update().filter(group_id__in=request.user_config.group_id_list)
             group_ids = list(grlock.values_list('group_id', flat=True))
             perm_rset = list(AccessPermission.objects.filter(group_id__in=group_ids, menu_id__in=defs.MENU_BY_RULE, rule_type_id=rule_type_id).values('group_id', 'menu_id', 'rule_type_id', 'permission_type_id'))
             bulk_list = []
 
-            # グループ管理に登録されているグループIDのみを更新対象とする
+            # リクストユーザーの所属するグループIDのみを更新対象とする
             for group_id in group_ids:
                 for gr in add_record['group_list']:
                     if group_id != int(gr['group_id']):
@@ -724,19 +719,6 @@ def modify_detail(request, rule_type_id):
 
                     break
 
-                # 要求にないグループIDは追加リストへ保持
-                else:
-                    for menu_id in defs.MENU_BY_RULE:
-                        acperm = AccessPermission(
-                            group_id              = group_id,
-                            menu_id               = menu_id,
-                            rule_type_id          = rule_type_id,
-                            permission_type_id    = defs.NO_AUTHORIZATION,
-                            last_update_timestamp = now,
-                            last_update_user      = request.user.user_name
-                        )
-
-                        bulk_list.append(acperm)
 
             # TODO 後でログIDふり直す
             log_msg = 'update count: %s' % len(bulk_list)
@@ -1100,7 +1082,7 @@ def get_data_object(rule_ids):
 
     return object_list
 
-def get_group_list(rule_ids):
+def get_group_list(rule_ids, ug_list):
     """
     [メソッド概要]
       グループごとのアクセス権限リストを取得
@@ -1121,7 +1103,7 @@ def get_group_list(rule_ids):
         group_list.append(rule_info)
 
     group_ids = []
-    rset = Group.objects.filter(group_id__gt=defs.GROUP_DEFINE.GROUP_ID_ADMIN).values('group_id', 'group_name').order_by('group_id')
+    rset = Group.objects.filter(group_id__in=ug_list).values('group_id', 'group_name').order_by('group_id')
     for rs in rset:
         group_info = {}
         group_info['id']   = rs['group_id']
@@ -1275,6 +1257,9 @@ def add_permission(request, now, ruletypeid, group_list):
     permission_list_reg = {}
 
     for gr in group_list:
+        if int(gr['group_id']) not in request.user_config.group_id_list:
+            continue
+
         for permission in gr['permission']:
             permission_list_reg = AccessPermission(
                     group_id = gr['group_id'],
