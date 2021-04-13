@@ -123,19 +123,17 @@ def _get_param_match_info(version, perm_types, user_groups, request=None):
 
     # ユーザー所属グループ別のアクセス可能ドライバーを取得
     enable_drv_ids = []
-    if defs.GROUP_DEFINE.GROUP_ID_ADMIN not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
-        rset = perm_module.objects.all()
-        rset = rset.filter(group_id__in=user_groups)
-        rset = rset.filter(permission_type_id__in=perm_types)
-        enable_drv_ids = list(rset.values_list('ita_driver_id', flat=True).distinct())
+    rset = perm_module.objects.all()
+    rset = rset.filter(group_id__in=user_groups)
+    rset = rset.filter(permission_type_id__in=perm_types)
+    enable_drv_ids = list(rset.values_list('ita_driver_id', flat=True).distinct())
 
     # アクション設定情報を取得
     drv_ids = []
     drv_info = {}
 
     rset = drv_module.objects.all()
-    if defs.GROUP_DEFINE.GROUP_ID_ADMIN not in user_groups:  # 1=システム管理グループ:全てのドライバーに対して更新権限を持つ
-        rset = drv_module.objects.filter(ita_driver_id__in=enable_drv_ids)
+    rset = drv_module.objects.filter(ita_driver_id__in=enable_drv_ids)
 
     drv_list = rset.values('ita_driver_id', 'ita_disp_name')
     for drv in drv_list:
@@ -261,10 +259,9 @@ def _check_update_auth(request, version):
         logger.user_log('LOSI27001', module_name, request=request)
         raise Http404
 
-    if defs.GROUP_DEFINE.GROUP_ID_ADMIN not in request.user_config.group_id_list:
-        ItaPerm_list = ItaPermission.objects.filter(group_id__in=request.user_config.group_id_list).values_list('permission_type_id', flat=True)
-        if defs.ALLOWED_MENTENANCE not in ItaPerm_list:
-            hasUpdateAuthority = False
+    ItaPerm_list = ItaPermission.objects.filter(group_id__in=request.user_config.group_id_list).values_list('permission_type_id', flat=True)
+    if defs.ALLOWED_MENTENANCE not in ItaPerm_list:
+        hasUpdateAuthority = False
 
     return hasUpdateAuthority
 
@@ -834,9 +831,6 @@ def chk_permission(json_str, request):
     """
     更新権限チェック
     """
-
-    if defs.GROUP_DEFINE.GROUP_ID_ADMIN in request.user_config.group_id_list:  # 1=システム管理グループ：すべてのドライバーに対して更新権限を持つ
-        return True
 
     ItaPermission = getattr(import_module('web_app.models.ITA_models'), 'ItaPermission')
 
