@@ -88,7 +88,7 @@ class ITADriverInfo():
             raise
 
         protocol_dict = cls.get_define()['dict']
-        permission_list = cls.get_permission(ita_driver_obj_list)
+        permission_list = cls.get_permission(ita_driver_obj_list, user_groups)
         editable_ids = cls.get_driver_ids(ita_driver_obj_list, user_groups, [defs.ALLOWED_MENTENANCE,])
         ref_ids = cls.get_driver_ids(ita_driver_obj_list, user_groups, [defs.ALLOWED_MENTENANCE, defs.VIEW_ONLY])
 
@@ -108,13 +108,13 @@ class ITADriverInfo():
         return ita_driver_dto_list
 
     @classmethod
-    def get_group_list(cls):
+    def get_group_list(cls, user_groups):
         """
         [概要]
         グループ一覧を取得する(システム管理グループを除く)
         """
 
-        grp_list = Group.objects.filter(group_id__gt=defs.GROUP_DEFINE.GROUP_ID_ADMIN).values('group_id', 'group_name').order_by('group_id')
+        grp_list = Group.objects.filter(group_id__in=user_groups).values('group_id', 'group_name').order_by('group_id')
         return grp_list
 
     @classmethod
@@ -126,23 +126,19 @@ class ITADriverInfo():
 
         drv_ids = []
 
-        if defs.GROUP_DEFINE.GROUP_ID_ADMIN in user_groups:  # 1=システム管理グループ:すべてのドライバーに対して更新権限を持つ
-            drv_ids = [drv.ita_driver_id for drv in ita_drv_list]
-
-        else:
-            drv_ids = list(
-                ItaPermission.objects.filter(
-                    group_id__in=user_groups,
-                    permission_type_id__in=perms
-                ).values_list(
-                    'ita_driver_id', flat=True
-                ).distinct()
-            )
+        drv_ids = list(
+            ItaPermission.objects.filter(
+                group_id__in=user_groups,
+                permission_type_id__in=perms
+            ).values_list(
+                'ita_driver_id', flat=True
+            ).distinct()
+        )
 
         return drv_ids
 
     @classmethod
-    def get_permission(cls, ita_drv_list):
+    def get_permission(cls, ita_drv_list, user_groups):
         """
         [概要]
         権限情報を作成する
@@ -152,7 +148,7 @@ class ITADriverInfo():
 
         # グループ情報を取得
         grp_info = {}
-        grp_list = cls.get_group_list()
+        grp_list = cls.get_group_list(user_groups)
         for grp in grp_list:
             grp_info[grp['group_id']] = grp['group_name']
 
@@ -245,11 +241,12 @@ class ITADriverInfo():
         try:
             rq = json_str['json_str']
 
-            response = self._chk_permission(request.user_config.group_id_list, rq['ita_driver_id'], response)
-            if response['status'] == 'failure':
-                return response
-
             ope = int(rq['ope'])
+            if ope != defs.DABASE_OPECODE.OPE_INSERT:
+                response = self._chk_permission(request.user_config.group_id_list, rq['ita_driver_id'], response)
+                if response['status'] == 'failure':
+                    return response
+
             #削除以外の場合の入力チェック
             if ope != defs.DABASE_OPECODE.OPE_DELETE:
                 error_flag = self._validate(rq, error_msg, request)
@@ -509,9 +506,6 @@ class ITADriverInfo():
         return error_flag
 
     def _chk_permission(self, group_id_list, ita_driver_id, response):
-
-        if defs.GROUP_DEFINE.GROUP_ID_ADMIN in group_id_list:
-            return response
 
         pti = ItaPermission.objects.filter(group_id__in=group_id_list, ita_driver_id=ita_driver_id, permission_type_id=1)
 
