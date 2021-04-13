@@ -102,7 +102,7 @@ class ServiceNowDriverInfo():
 
 
     @classmethod
-    def get_group_list(cls):
+    def get_group_list(cls, user_groups):
         """
         [概要]
         グループ一覧を取得する
