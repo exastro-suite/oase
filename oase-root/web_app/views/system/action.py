@@ -53,7 +53,7 @@ class ActionDriverSupportTool():
         clazz_info['driver_id'] = clazz.get_driver_id()
         clazz_info['driver_template_file'] = clazz.get_template_file()
         clazz_info['info_list'] = clazz.get_info_list(user_groups)
-        clazz_info['group_list'] = clazz.get_group_list()
+        clazz_info['group_list'] = clazz.get_group_list(user_groups)
         clazz_info['define'] = clazz.get_define()
         clazz_info['icon_name'] = clazz.get_icon_name()
         clazz_info['ver'] = driver_info['ver']
