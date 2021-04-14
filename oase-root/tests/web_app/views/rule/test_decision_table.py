@@ -25,8 +25,8 @@ from django.test import Client, RequestFactory
 from django.urls import reverse
 from libs.commonlibs.common import Common
 from libs.commonlibs.dt_component import DecisionTableComponent
-from web_app.models.models import Group, PasswordHistory, RuleType, User
-from web_app.views.rule.decision_table import DecisionTableAuthByRule, _select, _select_servicenow
+from web_app.models.models import Group, PasswordHistory, RuleType, User, AccessPermission
+from web_app.views.rule.decision_table import DecisionTableAuthByRule, _select, _select_servicenow, get_group_list
 from libs.webcommonlibs.common import RequestToApply
 
 @pytest.mark.django_db
@@ -353,6 +353,82 @@ class TestSelectServiceNow:
 
         assert len(result) == 2
 
+        self.del_test_data()
+
+
+@pytest.mark.django_db
+class TestIndexDetail:
+    """
+    modify_detail テストクラス
+    """
+
+    def set_test_data(self):
+        """
+        テストデータの作成
+        """
+
+        RuleType(
+            rule_type_id = 9999,
+            rule_type_name = 'pytest_name',
+            summary = None,
+            rule_table_name = 'pytest_table',
+            generation_limit = 5,
+            group_id = 'pytest_com',
+            artifact_id = 'pytest_oase',
+            container_id_prefix_staging = 'test',
+            container_id_prefix_product = 'prod',
+            current_container_id_staging = None,
+            current_container_id_product = None,
+            label_count = 1,
+            unknown_event_notification = '1',
+            mail_address = 'pytest@pytest.com',
+            disuse_flag = '0',
+            last_update_timestamp = datetime.datetime(2020, 6, 4, 12, 0, 0, tzinfo=datetime.timezone.utc),
+            last_update_user = 'pytest',
+        ).save(force_insert=True)
+
+        Group(
+            group_id = 1,
+            group_name = 'pytest管理者',
+            summary = '',
+            ad_data_flag = '0',
+            last_update_timestamp = datetime.datetime(2020, 6, 4, 12, 0, 0, tzinfo=datetime.timezone.utc),
+            last_update_user = 'pytest',
+        ).save(force_insert=True)
+
+        AccessPermission(
+            permission_id = 99,
+            group_id = 99,
+            menu_id = 999999999,
+            rule_type_id = 99999,
+            permission_type_id = 99,
+            last_update_timestamp = datetime.datetime(2020, 6, 4, 12, 0, 0, tzinfo=datetime.timezone.utc),
+            last_update_user = 'pytest',
+
+        ).save(force_insert=True)
+
+
+    def del_test_data(self):
+        """
+        テストデータの削除
+        """
+
+        RuleType.objects.all().delete()
+        Group.objects.all().delete()
+        AccessPermission.objects.all().delete()
+
+    def test__get_group_list(self):
+        """
+        _chk_get_group_list test
+        """
+        self.del_test_data()
+        self.set_test_data()
+
+        rule_ids = [10003]
+        ug_list = [1]
+
+        result_group_list, result_default_list = get_group_list(rule_ids,ug_list)
+        assert result_group_list[0][10003][0]['id'] == 1
         self.del_test_data()
 
 
