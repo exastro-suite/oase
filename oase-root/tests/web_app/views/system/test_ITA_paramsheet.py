@@ -232,6 +232,38 @@ def ITAparamsheet_paraminfo_data():
     ItaParameterItemInfo.objects.filter(ita_driver_id=1, item_number=99).delete()
 
 
+@pytest.fixture(scope='function')
+def ITAparamsheet_permission_data():
+    """
+    ITAドライバーのアクセス権限データ作成
+    """
+
+    module = import_module('web_app.models.ITA_models')
+    ItaPermission = getattr(module, 'ItaPermission')
+
+    ItaPermission(
+        ita_permission_id=1,
+        ita_driver_id=999,
+        group_id=999,
+        permission_type_id=1,
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    ItaPermission(
+        ita_permission_id=2,
+        ita_driver_id=999,
+        group_id=1,
+        permission_type_id=1,
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest'
+    ).save(force_insert=True)
+
+    yield
+
+    ItaPermission.objects.filter(last_update_user='pytest').delete()
+
+
 @pytest.mark.django_db
 class TestITAParamSheet(object):
     """
@@ -247,7 +279,8 @@ class TestITAParamSheet(object):
         'ITAparamsheet_actiontype_data',
         'ITAparamsheet_itadriver_data',
         'ITAparamsheet_itaparammatchinfo_data',
-        'ITAparamsheet_itamenuname_data'
+        'ITAparamsheet_itamenuname_data',
+        'ITAparamsheet_permission_data'
     )
     def test_get_param_match_info_ok(self):
         """
@@ -258,7 +291,7 @@ class TestITAParamSheet(object):
         data_list, drv_info, menu_info, item_info = _get_param_match_info(
             1,
             [defs.VIEW_ONLY, defs.ALLOWED_MENTENANCE],
-            [1]
+            [999,]
         )
 
         assert len(data_list) > 0
@@ -918,7 +951,7 @@ class TestITAParamSheet(object):
         response = admin.post(reverse('web_app:system:paramsheet_modify', args=[1,]), {'json_str':json_data})
         assert response.status_code == 200
 
-    @pytest.mark.usefixtures('ita_table', 'ITAparamsheet_itaparammatchinfo_data')
+    @pytest.mark.usefixtures('ita_table', 'ITAparamsheet_itaparammatchinfo_data', 'ITAparamsheet_permission_data')
     def test_modify_insert_ng(self, admin, monkeypatch):
         """
         抽出条件テーブル登録処理
@@ -935,7 +968,7 @@ class TestITAParamSheet(object):
                 {
                     'ope': '1',
                     'match_id': '2',
-                    'ita_driver_id': '1',
+                    'ita_driver_id': '999',
                     'menu_id': '1',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -947,7 +980,7 @@ class TestITAParamSheet(object):
                 {
                     'ope': '1',
                     'match_id': '3',
-                    'ita_driver_id': '1',
+                    'ita_driver_id': '999',
                     'menu_id': '1',
                     'parameter_name': 'プロセス',
                     'order': '1',
@@ -1008,7 +1041,7 @@ class TestITAParamSheet(object):
         assert response.status_code == 200
 
 
-    @pytest.mark.usefixtures('ita_table', 'ITAparamsheet_itaparammatchinfo_data')
+    @pytest.mark.usefixtures('ita_table', 'ITAparamsheet_itaparammatchinfo_data', 'ITAparamsheet_permission_data')
     def test_modify_delete_ng(self, admin):
         """
         抽出条件テーブル削除処理
@@ -1088,7 +1121,7 @@ class TestITAParamSheet(object):
         assert response.status_code == 200
 
 
-    @pytest.mark.usefixtures('ita_table', 'ITAparamsheet_itaparammatchinfo_data_forupdate')
+    @pytest.mark.usefixtures('ita_table', 'ITAparamsheet_itaparammatchinfo_data_forupdate', 'ITAparamsheet_permission_data')
     def test_modify_update_ng(self, admin):
         """
         抽出条件テーブル更新処理
@@ -1102,7 +1135,7 @@ class TestITAParamSheet(object):
                 {
                     'ope': '2',
                     'match_id': '1',
-                    'ita_driver_id': '1',
+                    'ita_driver_id': '999',
                     'menu_id': '999',
                     'parameter_name': 'ホスト名',
                     'order': '0',
@@ -1114,7 +1147,7 @@ class TestITAParamSheet(object):
                 {
                     'ope': '2',
                     'match_id': '2',
-                    'ita_driver_id': '2',
+                    'ita_driver_id': '999',
                     'menu_id': '999',
                     'parameter_name': 'プロセス',
                     'order': '1',
