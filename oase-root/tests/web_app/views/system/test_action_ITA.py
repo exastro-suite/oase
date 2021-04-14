@@ -179,7 +179,7 @@ class TestITADriverInfo(object):
         del_test_data()
         set_test_data()
 
-        result = self.target.get_info_list([1, 2])
+        result = self.target.get_info_list([1, 998])
 
         assert len(result) > 0
 
@@ -193,7 +193,7 @@ class TestITADriverInfo(object):
         del_test_data()
         set_test_data()
 
-        result = self.target.get_group_list()
+        result = self.target.get_group_list([1,])
 
         assert result.count() == 1
 
@@ -207,7 +207,7 @@ class TestITADriverInfo(object):
         set_test_data()
 
         arg1 = ItaDriver.objects.all()
-        arg2 = [1,]
+        arg2 = [998,]
 
         result = self.target.get_driver_ids(arg1, arg2, [ALLOWED_MENTENANCE,])
 
@@ -224,7 +224,7 @@ class TestITADriverInfo(object):
 
         del_test_data()
         set_test_data()
-        permission = self.target.get_permission(arg1)
+        permission = self.target.get_permission(arg1, [998, ])
 
         assert len(permission) > 0
 
@@ -235,11 +235,15 @@ class TestITADriverInfo(object):
         _chk_permission test
         """
 
-        group_id_list = [1, 2]
+        del_test_data()
+        set_test_data()
+
+        group_id_list = [1, 998]
         ita_driver_id = 1
         response = {"status": "success",}
 
         result = self.target._chk_permission(group_id_list, ita_driver_id, response)
 
         assert result['status'] == "success"
+
 
