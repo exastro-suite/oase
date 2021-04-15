@@ -32,6 +32,7 @@ import pytz
 import datetime
 import urllib.parse
 import ast
+import re
 from importlib import import_module
 
 from django.shortcuts             import render, redirect
@@ -69,6 +70,9 @@ def action_history(request):
 
     logger.logic_log('LOSI00001', 'none', request=request)
     msg = ''
+    ita_flg = False
+    mail_flg = False
+    servicenow_flg = False
 
     try:
         # アクション画面のルール別アクセス権限を取得
@@ -84,9 +88,18 @@ def action_history(request):
 
         # アクションステータス管理
         action_status_dict  = defs.ACTION_STATUS
-        
+
         # ドライバ種別を取得
         driver_type_list = DriverType.objects.all()
+
+        # ドライバインストール確認
+        for act_type in action_type_list:
+            if act_type.driver_type_id == 1 and act_type.disuse_flag == '0':
+                ita_flg = True
+            elif act_type.driver_type_id == 2 and act_type.disuse_flag == '0':
+                mail_flg = True
+            elif act_type.driver_type_id == 3 and act_type.disuse_flag == '0':
+                servicenow_flg = True
 
         # アクション履歴を取得
         action_history_list = ActionHistory.objects.filter(rule_type_id__in=rule_ids_all).order_by('-pk') if len(rule_ids_all) > 0 else []
@@ -124,6 +137,9 @@ def action_history(request):
         'action_log_list'     : '',
         'can_update'          : rule_ids_admin,
         'driver_type_list'    : driver_type_list,
+        'ita_flg'             : ita_flg,
+        'mail_flg'            : mail_flg,
+        'servicenow_flg'      : servicenow_flg,
     }
 
     data.update(request.user_config.get_templates_data(request))
@@ -141,13 +157,35 @@ def search_history(request):
     """
 
     logger.logic_log('LOSI00001', 'none', request=request)
-    msg = ''
+
+    # 初期化
+    msg                            = ''
+    act_par_info_list              = []
+    event_to_time_start            = ''
+    event_to_time_end              = ''
+    event_serial_number            = ''
+    event_info                     = ''
+    action_parameter_info          = ''
+    action_start_time_start        = ''
+    action_start_time_end          = ''
+    history_serial_number          = ''
+    rule_type_name                 = ''
+    rule_name                      = ''
+    ita_disp_name                  = ''
+    symphony_instance_no           = ''
+    symphony_class_id              = ''
+    conductor_instance_no          = ''
+    conductor_class_id             = ''
+    operation_id                   = ''
+    symphony_workflow_confirm_url  = ''
+    conductor_workflow_confirm_url = ''
+    restapi_error_info             = ''
+    parameter_item_info            = ''
+    mail_template_name             = ''
+    mail_address                   = ''
+    servicenow_disp_name           = ''
 
     try:
-        search_record = request.POST.get('search_record',"{}")
-        search_record = json.loads(search_record)
-        search = search_record['search_info']
-
         # アクション画面のルール別アクセス権限を取得
         permission_info = request.user_config.get_rule_auth_type(MENU_ID)
 
@@ -165,10 +203,179 @@ def search_history(request):
         # ドライバ種別を取得
         driver_type_list = DriverType.objects.all()
 
-        # アクション履歴を取得
-        # 項目ごとに部分検索できるように修正
-        action_history_list = ActionHistory.objects.filter(
-            trace_id__contains=search['trace_id']).order_by('-pk') if len(rule_ids_all) > 0 else []
+        # ドライバインストール確認
+        for act_type in action_type_list:
+            if act_type.driver_type_id == 1 and act_type.disuse_flag == '0':
+                ita_flg = True
+            elif act_type.driver_type_id == 2 and act_type.disuse_flag == '0':
+                mail_flg = True
+            elif act_type.driver_type_id == 3 and act_type.disuse_flag == '0':
+                servicenow_flg = True
+
+        search_record = request.POST.get('search_record',"{}")
+        search_record = json.loads(search_record)
+        request_info  = search_record['request_info']
+        action_info  = search_record['action_shared_info']
+        action_type  = search_record['action_type']
+
+        if request_info['request_event_start'] != '':
+            event_to_time_start = request_info['request_event_start']
+            event_to_time_start = event_to_time_start.replace('/', '-')
+        else:
+            event_to_time_start = '2000-01-01 00:00'
+
+        if request_info['request_event_end'] != '':
+            event_to_time_end = request_info['request_event_end']
+            event_to_time_end = event_to_time_end.replace('/', '-')
+        else:
+            event_to_time_end = '2999-12-31 23:59'
+
+        event_serial_number = request_info['request_trace_id']
+        event_info          = request_info['request_infomation']
+
+        if action_info['action_start'] != '':
+            action_start_time_start = action_info['action_start']
+            action_start_time_start = action_start_time_start.replace('/', '-')
+        else:
+            action_start_time_start = '2000-01-01 00:00'
+
+        if action_info['action_end'] != '':
+            action_start_time_end = action_info['action_end']
+            action_start_time_end = action_start_time_end.replace('/', '-')
+        else:
+            action_start_time_end = '2999-12-31 23:59'
+
+        history_serial_number = action_info['action_trace_id']
+        rule_type_name = action_info['action_decision_table']
+        rule_name = action_info['action_rule']
+        action_parameter_info = action_info['action_parameter']
+
+        # リクエスト管理
+        evn_req_list = EventsRequest.objects.filter(
+            event_to_time__gte=event_to_time_start,
+            event_to_time__lte=event_to_time_end,
+            trace_id__contains=event_serial_number,
+            event_info__contains=event_info).order_by('-pk').values_list('trace_id', flat=True)
+
+        # アクションパラメータ情報
+        act_par_info_list = RhdmResponseAction.objects.filter(
+            action_parameter_info__contains=action_parameter_info).order_by(
+                '-pk').values_list('response_id', flat=True)
+
+        if action_type['action_type'] == 'it-automation':
+            # ITA
+            action_ita_info = search_record['action_ita_info']
+            ita_disp_name = action_ita_info['action_ita_name']
+            symphony_instance_no = action_ita_info['action_symphony_instance']
+            symphony_class_id = action_ita_info['action_symphony_class_id']
+            conductor_instance_no = action_ita_info['action_conductor_instance']
+            conductor_class_id = action_ita_info['action_conductor_class_id']
+            operation_id = action_ita_info['action_ita_operation_id']
+            symphony_workflow_confirm_url = action_ita_info['action_symphony_work_url']
+            conductor_workflow_confirm_url = action_ita_info['action_conductor_work_url']
+            restapi_error_info = action_ita_info['action_ita_restapi_info']
+            parameter_item_info = action_ita_info['action_ita_cooperation']
+
+            print(ita_disp_name)
+            module = import_module('web_app.models.ITA_models')
+            ItaActionHistory = getattr(module, 'ItaActionHistory')
+            ita_act_his_list = ItaActionHistory.objects.filter(
+                ita_disp_name__contains=ita_disp_name,
+                symphony_workflow_confirm_url__contains=symphony_workflow_confirm_url,
+                conductor_workflow_confirm_url__contains=conductor_workflow_confirm_url,
+                parameter_item_info__contains=parameter_item_info).order_by('-pk').values_list('action_his_id', flat=True)
+
+            if symphony_instance_no != '':
+                ita_act_his_list = ItaActionHistory.objects.filter(
+                    symphony_instance_no=symphony_instance_no).order_by('-pk').values_list('action_his_id', flat=True)
+
+            if symphony_class_id != '':
+                ita_act_his_list = ItaActionHistory.objects.filter(
+                    symphony_class_id=symphony_class_id).order_by('-pk').values_list('action_his_id', flat=True)
+
+            if conductor_instance_no != '':
+                ita_act_his_list = ItaActionHistory.objects.filter(
+                    conductor_instance_no=conductor_instance_no).order_by('-pk').values_list('action_his_id', flat=True)
+
+            if conductor_class_id != '':
+                ita_act_his_list = ItaActionHistory.objects.filter(
+                    conductor_class_id=conductor_class_id).order_by('-pk').values_list('action_his_id', flat=True)
+
+            if operation_id != '':
+                ita_act_his_list = ItaActionHistory.objects.filter(
+                    operation_id=operation_id).order_by('-pk').values_list('action_his_id', flat=True)
+
+            if restapi_error_info != '':
+                ita_act_his_list = ItaActionHistory.objects.filter(
+                    restapi_error_info__contains=restapi_error_info
+                ).order_by('-pk').values_list('action_his_id', flat=True)
+
+            # アクション履歴
+            action_history_list = ActionHistory.objects.filter(
+                action_history_id__in=ita_act_his_list,
+                trace_id__in=evn_req_list,
+                action_start_time__gte=action_start_time_start,
+                action_start_time__lte=action_start_time_end,
+                trace_id__contains=history_serial_number,
+                rule_type_name__contains=rule_type_name,
+                rule_name__contains=rule_name,
+                response_id__in=act_par_info_list).order_by('-pk') if len(rule_ids_all) > 0 else []
+
+        elif action_type['action_type'] == 'mail':
+            # mail
+            action_mail_info = search_record['action_mail_info']
+            mail_template_name = action_mail_info['action_mail_template']
+            mail_address = action_mail_info['action_mail_destination']
+
+            module = import_module('web_app.models.mail_models')
+            MailActionHistory = getattr(module, 'MailActionHistory')
+            mail_act_his_list = MailActionHistory.objects.filter(
+                mail_template_name__contains=mail_template_name,
+                mail_address__contains=mail_address).order_by('-pk').values_list('action_his_id', flat=True)
+
+            # アクション履歴
+            action_history_list = ActionHistory.objects.filter(
+                action_history_id__in=mail_act_his_list,
+                trace_id__in=evn_req_list,
+                action_start_time__gte=action_start_time_start,
+                action_start_time__lte=action_start_time_end,
+                trace_id__contains=history_serial_number,
+                rule_type_name__contains=rule_type_name,
+                rule_name__contains=rule_name,
+                response_id__in=act_par_info_list).order_by('-pk') if len(rule_ids_all) > 0 else []
+
+        elif action_type['action_type'] == 'servicenow':
+            # ServiceNow
+            action_servicenow_info = search_record['action_servicenow_info']
+            servicenow_disp_name = action_servicenow_info['action_servicenow_template']
+
+            module = import_module('web_app.models.ServiceNow_models')
+            ServiceNowActionHistory = getattr(module, 'ServiceNowActionHistory')
+            ser_act_his_list = ServiceNowActionHistory.objects.filter(
+                servicenow_disp_name__contains=servicenow_disp_name
+            ).order_by('-pk').values_list('action_his_id', flat=True)
+
+            # アクション履歴
+            action_history_list = ActionHistory.objects.filter(
+                action_history_id__in=ser_act_his_list,
+                trace_id__in=evn_req_list,
+                action_start_time__gte=action_start_time_start,
+                action_start_time__lte=action_start_time_end,
+                trace_id__contains=history_serial_number,
+                rule_type_name__contains=rule_type_name,
+                rule_name__contains=rule_name,
+                response_id__in=act_par_info_list).order_by('-pk') if len(rule_ids_all) > 0 else []
+
+        else:
+            # アクション履歴
+            action_history_list = ActionHistory.objects.filter(
+                trace_id__in=evn_req_list,
+                action_start_time__gte=action_start_time_start,
+                action_start_time__lte=action_start_time_end,
+                trace_id__contains=history_serial_number,
+                rule_type_name__contains=rule_type_name,
+                rule_name__contains=rule_name,
+                response_id__in=act_par_info_list).order_by('-pk') if len(rule_ids_all) > 0 else []
 
         # 表示用データ整備
         for act in action_history_list:
@@ -203,6 +410,9 @@ def search_history(request):
         'action_log_list'     : '',
         'can_update'          : rule_ids_admin,
         'driver_type_list'    : driver_type_list,
+        'ita_flg'             : ita_flg,
+        'mail_flg'            : mail_flg,
+        'servicenow_flg'      : servicenow_flg,
     }
 
     data.update(request.user_config.get_templates_data(request))
