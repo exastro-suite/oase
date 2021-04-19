@@ -201,7 +201,26 @@ class InstallAdapterInfo():
     SYSCONFIG_PATH = '/etc/sysconfig/'
     SYSTEMD_PATH = '/usr/lib/systemd/system/'
 
+    # 関連サービスの設定
+    HTTP_SERVICE_INDEX = 1
+    HTTP_SERVICE_LIST = [
+        "uwsgi.service",
+        "httpd.service",
+    ]
+
+    INSTALL_SERVICE_DIC = {
+        'Prometheus' : {
+            'conf_path' : 'confs/backyardconfs/services/',
+            'conf_file' : 'Prometheus_monitoring_env',
+            'srv_path'  : 'backyards/monitoring_adapter/',
+            'srv_file'  : 'oase-Prometheus-monitoring.service',
+        },
+    }
+
+
     def __init__(self, id, name, ver, mver, src_path, dst_path, now=None):
+
+        self.noservice = settings.DEBUG and getattr(settings, 'ENABLE_NOSERVICE_BACKYARDS', False)
 
         self.now = now
         if not now:
@@ -249,7 +268,8 @@ class InstallAdapterInfo():
             shutil.copy(src_filepath, dst_filepath)
 
         # インストール資材の読込
-        subprocess.call(["systemctl", "reload", "uwsgi.service"])
+        if not self.noservice:
+            subprocess.call(["systemctl", "reload", self.HTTP_SERVICE_LIST[self.HTTP_SERVICE_INDEX]])
 
         # テーブル作成
         if self.config:
@@ -285,29 +305,57 @@ class InstallAdapterInfo():
             ).save(force_insert=True)
 
         # サービス起動
-        if self.adapter_name == 'ZABBIX':
-            # シンボリックリンクパス作成
-            conf_src = '%s%s%s' % (self.dst_root_path, self.ZABBIX_CONF_PATH, self.ZABBIX_CONF_FILE)
-            conf_dst = '%s%s' % (self.SYSCONFIG_PATH, self.ZABBIX_CONF_FILE)
+        if not self.noservice:
+            if self.adapter_name == 'ZABBIX':
+                # シンボリックリンクパス作成
+                conf_src = '%s%s%s' % (self.dst_root_path, self.ZABBIX_CONF_PATH, self.ZABBIX_CONF_FILE)
+                conf_dst = '%s%s' % (self.SYSCONFIG_PATH, self.ZABBIX_CONF_FILE)
 
-            # シンボリックリンク作成
-            os.symlink(conf_src, conf_dst)
+                # シンボリックリンク作成
+                os.symlink(conf_src, conf_dst)
 
-            # サービスファイルパス作成
-            service_src = '%s%s%s' % (self.dst_root_path, self.ZABBIX_SERVICE_PATH, self.ZABBIX_SERVICE_FILE)
-            service_dst = '%s%s' % (self.SYSTEMD_PATH, self.ZABBIX_SERVICE_FILE)
+                # サービスファイルパス作成
+                service_src = '%s%s%s' % (self.dst_root_path, self.ZABBIX_SERVICE_PATH, self.ZABBIX_SERVICE_FILE)
+                service_dst = '%s%s' % (self.SYSTEMD_PATH, self.ZABBIX_SERVICE_FILE)
 
-            # サービスファイル格納
-            shutil.copy(service_src, service_dst)
+                # サービスファイル格納
+                shutil.copy(service_src, service_dst)
 
-            # daemon-reload実行
-            subprocess.call(["systemctl", "daemon-reload"])
+                # daemon-reload実行
+                subprocess.call(["systemctl", "daemon-reload"])
 
-            # サービス起動
-            subprocess.call(["systemctl", "start", self.ZABBIX_SERVICE_FILE])
+                # サービス起動
+                subprocess.call(["systemctl", "start", self.ZABBIX_SERVICE_FILE])
 
-            # サービス自動起動有効
-            subprocess.call(["systemctl", "enable", self.ZABBIX_SERVICE_FILE])
+                # サービス自動起動有効
+                subprocess.call(["systemctl", "enable", self.ZABBIX_SERVICE_FILE])
+
+            elif self.adapter_name in self.INSTALL_SERVICE_DIC:
+                srv_info = self.INSTALL_SERVICE_DIC[self.adapter_name]
+
+                # シンボリックリンクパス作成
+                conf_src = '%s%s%s' % (self.dst_root_path, srv_info['conf_path'], srv_info['conf_file'])
+                conf_dst = '%s%s' % (self.SYSCONFIG_PATH, srv_info['conf_file'])
+
+                # シンボリックリンク作成
+                os.symlink(conf_src, conf_dst)
+
+                # サービスファイルパス作成
+                service_src = '%s%s%s' % (self.dst_root_path, srv_info['srv_path'], srv_info['srv_file'])
+                service_dst = '%s%s' % (self.SYSTEMD_PATH, srv_info['srv_file'])
+
+                # サービスファイル格納
+                shutil.copy(service_src, service_dst)
+
+                # daemon-reload実行
+                subprocess.call(["systemctl", "daemon-reload"])
+
+                # サービス起動
+                subprocess.call(["systemctl", "start", srv_info['srv_file']])
+
+                # サービス自動起動有効
+                subprocess.call(["systemctl", "enable", srv_info['srv_file']])
+
 
     def uninstall(self):
 
@@ -348,24 +396,43 @@ class InstallAdapterInfo():
                 icnt += 1
 
         # インストール資材の読込
-        subprocess.call(["systemctl", "reload", "uwsgi.service"])
+        if not self.noservice:
+            subprocess.call(["systemctl", "reload",  self.HTTP_SERVICE_LIST[self.HTTP_SERVICE_INDEX]])
 
         # サービス停止
-        if self.adapter_name == 'ZABBIX':
+        if not self.noservice:
+            if self.adapter_name == 'ZABBIX':
 
-            # サービス自動起動無効
-            subprocess.call(["systemctl", "disable", self.ZABBIX_SERVICE_FILE])
+                # サービス自動起動無効
+                subprocess.call(["systemctl", "disable", self.ZABBIX_SERVICE_FILE])
 
-            # サービス停止
-            subprocess.call(["systemctl", "stop", self.ZABBIX_SERVICE_FILE])
+                # サービス停止
+                subprocess.call(["systemctl", "stop", self.ZABBIX_SERVICE_FILE])
 
-            # サービスファイル削除
-            service_dst = '%s%s' % (self.SYSTEMD_PATH, self.ZABBIX_SERVICE_FILE)
-            os.remove(service_dst)
+                # サービスファイル削除
+                service_dst = '%s%s' % (self.SYSTEMD_PATH, self.ZABBIX_SERVICE_FILE)
+                os.remove(service_dst)
 
-            # confファイル削除
-            conf_dst = '%s%s' % (self.SYSCONFIG_PATH, self.ZABBIX_CONF_FILE)
-            os.remove(conf_dst)
+                # confファイル削除
+                conf_dst = '%s%s' % (self.SYSCONFIG_PATH, self.ZABBIX_CONF_FILE)
+                os.remove(conf_dst)
+
+            elif self.adapter_name in self.INSTALL_SERVICE_DIC:
+                srv_info = self.INSTALL_SERVICE_DIC[self.adapter_name]
+
+                # サービス自動起動無効
+                subprocess.call(["systemctl", "disable", srv_info['srv_file']])
+
+                # サービス停止
+                subprocess.call(["systemctl", "stop", srv_info['srv_file']])
+
+                # サービスファイル削除
+                service_dst = '%s%s' % (self.SYSTEMD_PATH, srv_info['srv_file'])
+                os.remove(service_dst)
+
+                # confファイル削除
+                conf_dst = '%s%s' % (self.SYSCONFIG_PATH, srv_info['conf_file'])
+                os.remove(conf_dst)
 
 
 def get_adapter_master(ids=[]):
