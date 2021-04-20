@@ -34,7 +34,7 @@ $(function() {
             clearErrorMsg($this.closest('td'));
 
             // this.value = 選択されたルール種別名に対応するルールID
-            refleshRowsPro(this.value, 'add');
+            refleshRowsPrometheus(this.value, 'add');
 
             $this.prop("disabled", false);
         });
@@ -51,7 +51,7 @@ $(function() {
             clearErrorMsg($this.closest('td'));
 
             // this.value = 選択されたルール種別名に対応するルールID
-            refleshRowsPro(this.value, 'edit');
+            refleshRowsPrometheus(this.value, 'edit');
 
             $this.prop("disabled", false);
         });
@@ -59,13 +59,13 @@ $(function() {
 
 function monitoringPrometheusAddModalClose(selector1, selector2) {
     if(monitoringModalClose(selector1, selector2)) {
-        refleshRowsPro(null, 'add');
+        refleshRowsPrometheus(null, 'add');
     }
 }
 
 function monitoringPrometheusAddModalChange(selector1, selector2, selector3) {
     if(monitoringModalChange(selector1, selector2, selector3)) {
-        refleshRowsPro(null, 'add');
+        refleshRowsPrometheus(null, 'add');
     }
 }
 
@@ -76,7 +76,7 @@ function monitoringPrometheusAddModalChange(selector1, selector2, selector3) {
 // matchinfo: 選択されている値
 //
 ///////////////////////////////////////////////////////////////////
-function setpullDown(mode, matchinfo){
+function setpullDownPrometheus(mode, matchinfo){
 
     var items = $('#prometheus-items').data('prometheusitems');
     var prometheusAry = items.split(',');
@@ -110,7 +110,7 @@ function setpullDown(mode, matchinfo){
 // mode: 'edit' or 'add'
 //
 ///////////////////////////////////////////////////////////////////
-function refleshRowsPro(rule_type_id, mode){
+function refleshRowsPrometheus(rule_type_id, mode){
 
     var noneSelector = '#' + mode + '-rule-none-prometheus';
     var detailSelector = '#' + mode + '-rule-detail-prometheus';
@@ -133,7 +133,7 @@ function refleshRowsPro(rule_type_id, mode){
         // 条件名変換用
         var do_dict = pro_rule_type_data_obj_dict[rule_type_id]['data_obj'];
 
-        var option = setpullDown('add','');
+        var option = setpullDownPrometheus('add','');
 
         // editの場合の保存済みPrometheus項目反映用
         var matchlist = {};
@@ -188,7 +188,7 @@ function setInfoInPrometheusDetailView(idName) {
     $('#viewPrometheusUpdateuser').text(updateuser);
     $('#viewPrometheusTimestamp').text(timestamp);
 
-    setMatchlist('viewPrometheustable', matchlist, ruletypeid);
+    setMatchlistPrometheus('viewPrometheustable', matchlist, ruletypeid);
 
     // ルール種別が削除されていた場合エラーを表示
     if(!ruletypeid || ruletypeid <=0) {
@@ -229,7 +229,7 @@ function setInfoInPrometheusEditView() {
     $('#editPrometheusUpdateuser').text(updateuser);
     $('#editPrometheusTimestamp').text(timestamp);
 
-    setMatchlist('editPrometheustable', matchlist, ruletypeid);
+    setMatchlistPrometheus('editPrometheustable', matchlist, ruletypeid);
 }
 
 
@@ -237,7 +237,7 @@ function setInfoInPrometheusEditView() {
 //  詳細画面の突合情報欄にテーブルを追加
 //  id: 追加対象の詳細画面のテーブルID(view or edit)
 ////////////////////////////////////////////////
-function setMatchlist(id, matchlist, ruletypeid) {
+function setMatchlistPrometheus(id, matchlist, ruletypeid) {
 
     // すべての子要素を削除
     var table = document.getElementById(id);
@@ -252,7 +252,7 @@ function setMatchlist(id, matchlist, ruletypeid) {
             // HTML文作成
             var th = '<th id="data-object-id-' + key + '"><div class="cell-inner">' + dataobj[key] + '</div></th>';
             var td = '<td></td>';
-            var option = setpullDown('edit',value);
+            var option = setpullDownPrometheus('edit',value);
 
             // 編集ならinputを有効化
             if (id == 'editPrometheustable'){
@@ -320,7 +320,7 @@ function createPrometheusAdapterinfo() {
     }
 
     // データ収集
-    var idInfo = getIdInfo('add');
+    var idInfo = getIdInfoPrometheus('add');
     var postdata = setPrometheusInfo(idInfo);
     postdata['prometheus_adapter_id'] = "0";
 
@@ -354,7 +354,7 @@ function updatePrometheusAdapterInfo() {
     }
 
     // データ収集
-    var idInfo = getIdInfo('edit');
+    var idInfo = getIdInfoPrometheus('edit');
     var postdata = setPrometheusInfo(idInfo);
     postdata["prometheus_adapter_id"] = $('#viewPrometheusDetail').attr('data-recordid').replace("prometheusadapter-", "");
 
@@ -453,7 +453,7 @@ function validatePrometheusAdapterData(objTBody, adapterInfo){
     });
 
     if(match_line.length > 0){
-        errorMsg["prometheus_disp_name"] += getMessage("MOSJA26219", false) + "\n";
+        errorMsg["prometheus_disp_name"] += getMessage("MOSJA26217", false) + "\n";
         errorFlag = true;
     }
 
@@ -490,7 +490,7 @@ function validatePrometheusAdapterData(objTBody, adapterInfo){
 // htmlのId情報を連想配列で取得
 // mode: 'edit' or 'add'
 ////////////////////////////////////////////////
-function getIdInfo(mode){
+function getIdInfoPrometheus(mode){
 
     modalwindowid = "#" + $('#prometheus_v1_modal_add_id').val();
     if(mode == 'edit') {
@@ -521,7 +521,7 @@ var renderUpdatePrometheusErrorMsg = function(errorMsg) {
 var renderPrometheusErrorMsg = function(errorMsg, mode) {
     alert(getMessage("MOSJA26012", false));
 
-    idInfo = getIdInfo(mode);
+    idInfo = getIdInfoPrometheus(mode);
 
     clearErrorMsg(idInfo['modalwindow']); // 前回エラーを削除
 

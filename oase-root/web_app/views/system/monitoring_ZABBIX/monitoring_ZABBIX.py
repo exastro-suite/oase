@@ -103,7 +103,7 @@ class ZABBIXAdapterInfo():
 
         return 'system/ZABBIX/monitoring_ZABBIX.html'
 
-    def get_monitoring_items(self):
+    def get_zabbix_items(self):
 
         zabbix_item_list = ','.join(ZABBIX_ITEMS)
 

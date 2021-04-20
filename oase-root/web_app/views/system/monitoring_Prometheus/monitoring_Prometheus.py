@@ -84,7 +84,7 @@ class PrometheusAdapterInfo():
 
         return 'system/Prometheus/monitoring_Prometheus.html'
 
-    def get_monitoring_items(self):
+    def get_prometheus_items(self):
 
         prometheus_item_list = ','.join(Prometheus_ITEMS)
 
