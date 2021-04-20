@@ -1,13 +1,13 @@
-{% load common %}
+{% load tz %}
 {% comment %}
 Copyright 2019 NEC Corporation
 
  Licensed under the Apache License, Version 2.0 (the "License");
  you may not use this file except in compliance with the License.
  You may obtain a copy of the License at
- 
+
      http://www.apache.org/licenses/LICENSE-2.0
- 
+
  Unless required by applicable law or agreed to in writing, software
  distributed under the License is distributed on an "AS IS" BASIS,
  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -16,12 +16,432 @@ Copyright 2019 NEC Corporation
 
 {% endcomment %}
 {% load tz %}
+{% load static %}
+{% load common %}
 {% block myheader %}
-
-<script type="text/javascript">
-<!--
--->
-</script>
+    <script type="text/javascript" src="{% static 'web_app/js/monitoring_Prometheus.js' %}?ver=202104191433" charset="UTF-8"></script>
 {% endblock %}
 
+{% block maincontent %}
+<input type="hidden" id="pro_rule_type_data_obj_dict" value="{{ rule_type_data_obj_dict|jsonify }}"/>
+<input type="hidden" id="prometheus_v1_modal_add_id" value="modal-{{adapter_name|slugify}}-add"/>
 
+<!-- 監視先の詳細表示 -->
+<div id="modal-prometheus-detail" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-details"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="modalClose('#modal-prometheus-detail');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody id="viewPrometheusDetail" data-recordid=''>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26201' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewPrometheusName" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26202' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewPrometheusUri" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewPrometheusUsername" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26204' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewPrometheusRuletype" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26205' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <table class="table-in-table">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26206' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26207' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="viewPrometheustable"></tbody>
+                      </table>
+
+                    </div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewPrometheusUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewPrometheusTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="modalClose('#modal-prometheus-detail');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button id="btnToEditModalPrometheus" class="oase-button" onclick="setInfoInPrometheusEditView(); modalChange('#modal-prometheus-detail', '#modal-prometheus-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
+            </button></li>
+            <li><button id="btnDelPrometheus" class="oase-button" onclick="deletePrometheusAdapterInfo();"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の詳細表示 -->
+
+
+<!-- 監視先の追加画面 -->
+<div id="modal-{{adapter_name|slugify}}-add" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-plus"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="monitoringPrometheusAddModalClose('#modal-{{adapter_name|slugify}}-add','btnAddPrometheus');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26201' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addPrometheusName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26202' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA26013' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addPrometheusUri" data-maxlength="512" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addPrometheusUsername"  data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26208' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="addPrometheusPass" data-maxlength="64" type="password" data-type="text" class="validation-input" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26209' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="select" >
+                          <select id="add-prometheus-rule-select" data-initial-value="">
+                            <option></option>
+                            {% for rule_item in rule_type_list %}
+                              {% if rule_item.editable == True and rule_item.active == True %}
+                            <option value="{{ rule_item.rule_type_id }}" >{{ rule_item.rule_type_name }}</option>
+                              {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr id="add-prometheus-rule-condition">
+                    <th><div class="cell-inner">{% get_message 'MOSJA26205' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <!-- ルール種別選択前 -->
+                      <div id="add-rule-none-prometheus" class="unselected">
+                        {% get_message 'MOSJA26210' request.user.get_lang_mode showMsgId=False %}
+                        <input type="hidden" value="" required>
+                      </div>
+
+                      <!-- ルール種別選択後 -->
+                      <table id="add-rule-detail-prometheus" class="table-in-table table-prometheus" hidden>
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26206' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26207' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="addPrometheustable">
+                        </tbody>
+                      </table>
+                    </div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="monitoringPrometheusAddModalClose('#modal-{{adapter_name|slugify}}-add','btnAddPrometheus');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="monitoringPrometheusAddModalChange('#modal-{{adapter_name|slugify}}-add', '#modal-add-adapter','btnAddPrometheus');"><em class="owf owf-prev"></em><span>{% get_message 'MOSJA26011' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="createPrometheusAdapterinfo();" id="btnAddPrometheus"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+        <form id="toSaveDataPro" action="#" method="POST">
+          <input type="hidden" id="add_record_pro"  value="" name="add_record" />
+          {% csrf_token %}
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の追加画面 -->
+
+
+<!-- 監視先の詳細編集 -->
+<div id="modal-prometheus-edit" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-edit"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="monitoringModalClose('#modal-prometheus-edit','btnEditPrometheus');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26201' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editPrometheusName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26202' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA26013' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editPrometheusUri" data-maxlength="512" data-type="text" type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editPrometheusUsername" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26208' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="editPrometheusPass" data-maxlength="64" type="password" class="validation-input" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26209' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="select">
+                          <select id="edit-prometheus-rule-select">
+                            {% for rule_item in rule_type_list %}
+                              {% if rule_item.editable == True and rule_item.active == True %}
+                            <option value="{{ rule_item.rule_type_id }}" >{{ rule_item.rule_type_name }}</option>
+                              {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr id="edit-prometheus-rule-condition">
+                    <th><div class="cell-inner">{% get_message 'MOSJA26205' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <!-- ルール種別選択前 -->
+                      <div id="edit-rule-none-prometheus" class="unselected" style="display: none;">{% get_message 'MOSJA26210' request.user.get_lang_mode showMsgId=False %}</div>
+
+                      <!-- ルール種別選択後 -->
+                      <table id="edit-rule-detail-prometheus" class="table-in-table table-prometheus">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26206' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26207' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="editPrometheustable"></tbody>
+                      </table>
+
+                    </div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th><td><div id="editPrometheusUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th><td><div id="editPrometheusTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="monitoringModalClose('#modal-prometheus-edit','btnEditPrometheus');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button id="btnEditPrometheus" class="oase-button" onclick="updatePrometheusAdapterInfo()"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の詳細編集 -->
+
+<!-- 監視先の一覧 -->
+<section id="prometheus-adapter-ver1">
+<div class="oase-section-title">
+  <div class="oase-section-title-inner">
+
+    <div class="oase-section-title-table">
+      <h2>{{adapter_name}}</h2>
+    </div>
+
+  </div>
+</div>
+
+<!-- プルダウン用にデータ属性を作成 -->
+<div hidden id="prometheus-items" data-prometheusitems={{monitoring_items}}></div>
+
+{% if info_list|length %}
+<div class="oase-table">
+  <div class="oase-table-load loading">
+    <div class="oase-table-loader-inner">
+      <em class="owf owf-update"></em>
+    </div>
+  </div>
+
+  <div class="oase-table-inner">
+    <table>
+
+      <thead>
+        <tr>
+          <th class="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="action-name sort filter" filter-type="common" filter-label="action-name"><div class="cell-inner">{% get_message 'MOSJA26201' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="uri sort filter" filter-type="common" filter-label="uri"><div class="cell-inner">{% get_message 'MOSJA26202' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="user-name sort filter" filter-type="common" filter-label="user-name"><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="rule-type sort filter" filter-type="common" filter-label="rule-type"><div class="cell-inner">{% get_message 'MOSJA26204' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="execution-date sort filter" filter-type="date" filter-label="execution-date"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+        </tr>
+      </thead>
+
+      <tbody id="tbodyPrometheusAdapterInfo">
+        {% for i in info_list %}
+        <tr id="prometheusadapter-{{ i.prometheus_adapter_id }}" data-zabbix_id="{{ i.prometheus_adapter_id }}" data-name="{{ i.prometheus_disp_name }}" data-uri="{{ i.uri }}" data-username="{{ i.username }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
+          <td class="operation-menu">
+            <div class="cell-inner">
+              <ul>
+                <li><button class="tooltip detail oase-mini-button" onClick="setInfoInPrometheusDetailView('prometheusadapter-{{ i.prometheus_adapter_id }}'); modalOpen('#modal-prometheus-detail');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+          </td>
+
+          <td class="action-name">
+            <div class="cell-inner">{{ i.prometheus_disp_name }}</div>
+          </td>
+
+          <td class="uri">
+            <div class="cell-inner">{{ i.uri }}</div>
+          </td>
+
+          <td class="user-name">
+            <div class="cell-inner">{{ i.username }}</div>
+          </td>
+
+          {% if i.active %}
+          <td class="rule-type">
+            <div class="cell-inner">{{ i.rule_type_name }}</div>
+          </td>
+          {% else %}
+          <td class="rule-type error">
+            <div class="cell-inner">
+              <ul class="error-list">
+                <li><em class="owf owf-cross"></em>{% get_message 'MOSJA26213' request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" data-tooltip="{% get_message 'MOSJA26212' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></li>
+              </ul>
+            </div>
+          </td>
+          {% endif %}
+
+          <td class="last-update-user">
+            <div class="cell-inner">{{ i.last_update_user }}</div>
+          </td>
+
+          <td class="execution-date">
+            <div class="cell-inner">
+              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="oase-table-footer">
+    <ul class="button-group">
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd class="rowCount">4</dd>
+        </dl>
+      </li>
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd>
+            <select class="rowShowNum">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </dd>
+        </dl>
+      </li>
+
+      <li>
+        <button class="pagingPrev button" disabled=""><em class="owf owf-minus"></em></button>
+        <input class="pagingNow" type="text"> / <span class="pagingMax">1</span>
+        <button class="pagingNext button" disabled=""><em class="owf owf-plus"></em></button>
+      </li>
+
+      <li>
+        <button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+      <li>
+        <button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+    </ul>
+  </div>
+
+</div>
+
+{% else %}
+<div class="oase-none">
+  <p>{% autoescape off %}{% get_message 'MOSJA26213' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+</div>
+{% endif %}
+</section>
+{% endblock%}
