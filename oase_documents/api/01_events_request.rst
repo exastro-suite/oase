@@ -107,7 +107,7 @@ eventinfo
 
 ::
 
- {"result": true, "msg": "Accept request.", "trace_id": "TOS2018111904243770328833e21239f2524e6d8032763940f6c72f"} 
+ {"result": true, "msg": "Accept request.", "trace_id": "TOS_20210412053112220048_0000000010"} 
 
 
 
