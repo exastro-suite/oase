@@ -60,7 +60,11 @@ class MonitoringAdapterSupportTool():
         adapter_disp_info['info_list'] = adapter.get_info_list(request)
         adapter_disp_info['define'] = adapter.get_define()
         adapter_disp_info['icon_name'] = adapter.get_icon_name()
-        adapter_disp_info['monitoring_items'] = adapter.get_monitoring_items()
+
+        if adapter_cls_info['adp_id'] == 1:
+            adapter_disp_info['monitoring_items'] = adapter.get_zabbix_items()
+        elif adapter_cls_info['adp_id'] == 2:
+            adapter_disp_info['monitoring_items'] = adapter.get_prometheus_items()
 
         return adapter_disp_info
 
@@ -126,7 +130,7 @@ def monitoring(request):
             adapter_disp_info = MonitoringAdapterSupportTool.get_adapter_disp_info(ua, request)
 
             adapter_list.append(adapter_disp_info)
-            
+
         # ルール取得
         rule_type_data_obj_dict = get_rule_type_data_obj_dict(request)
         rule_type_list = rule_type_data_obj_dict.values()
