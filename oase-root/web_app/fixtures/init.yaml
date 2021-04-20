@@ -1545,7 +1545,7 @@
     name: Prometheus
     version: 1.0.0
     adapter_major_version: 1
-    icon_name: oda-adapter-Prometheus
+    icon_name: oda-adapter-prometheus
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
