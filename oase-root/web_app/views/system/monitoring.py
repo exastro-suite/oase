@@ -60,7 +60,7 @@ class MonitoringAdapterSupportTool():
         adapter_disp_info['info_list'] = adapter.get_info_list(request)
         adapter_disp_info['define'] = adapter.get_define()
         adapter_disp_info['icon_name'] = adapter.get_icon_name()
-        adapter_disp_info['zabbix_items'] = adapter.get_zabbix_items()
+        adapter_disp_info['monitoring_items'] = adapter.get_monitoring_items()
 
         return adapter_disp_info
 
