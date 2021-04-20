@@ -19,7 +19,7 @@
 
 ::
 
- curl -X GET -k "https://<HostName>/oase_web/restapi/actionhistory/historyrequest" -H "accept: application/json" -d "{\"traceid\":\"TOS20181105083550515229ad75ce0b346544c29b65420712103f8c\"}"
+ curl -X GET -k "https://<HostName>/oase_web/restapi/actionhistory/historyrequest" -H "accept: application/json" -d "{\"traceid\":\"TOS_20210412053112220048_0000000010\"}"
 
 
 2.1.2 リクエストヘッダ
@@ -51,7 +51,7 @@ traceid
 
 ::
 
- TOS20181105083550515229ad75ce0b346544c29b65420712103f8c
+ TOS_20210412053112220048_0000000010
 
 
 
