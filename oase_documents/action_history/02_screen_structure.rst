@@ -243,7 +243,7 @@
 
 固有項目(ドライバ毎)
 ^^^^^^^^^^^^^^^^^^^^
-* 詳細フィルター画面における、IT Automation (以降、ITAと略) の項目は次の通りです。
+* 履歴詳細画面における、Exastro IT Automation (以降、ITAと略) の項目は次の通りです。
 
 .. figure:: ../images/action_history/action_history_12.png
    :scale: 100%
@@ -329,7 +329,7 @@
    :scale: 100%
    :align: center
 
-   図 2.2-2-6 ドライバアンインストールについて
+   図 2.2-2-5 ドライバアンインストールについて
 
 
 (3)詳細フィルター
