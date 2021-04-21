@@ -56,7 +56,7 @@ def send_request(request_data_dic):
         # リクエストデータの有無確認
         if len(request_data_dic) <= 0:
             result = False
-            logger.system_log('LOSM25001')
+            logger.system_log('LOSM30011')
             raise
 
         # jsonの文字列形式ヘ
@@ -77,19 +77,19 @@ def send_request(request_data_dic):
             r_content = json.loads(r.content.decode('utf-8'))
         except json.JSONDecodeError:
             result = False
-            logger.system_log('LOSM25002', traceback.format_exc())
+            logger.system_log('LOSM30008', traceback.format_exc())
             raise
 
         # リクエストの実行中に失敗した場合
         if not r_content["result"]:
             result = False
             msg = r_content["msg"]
-            logger.system_log('LOSM25003', 'result: %s, msg: %s' % (result, msg))
+            logger.system_log('LOSM30009', 'result: %s, msg: %s' % (result, msg))
 
     except Exception as e:
         if result:
             result = False
-            logger.system_log('LOSM25004', traceback.format_exc())
+            logger.system_log('LOSM30010', traceback.format_exc())
 
     logger.logic_log('LOSI00002', 'result: %s' % (result))
 
