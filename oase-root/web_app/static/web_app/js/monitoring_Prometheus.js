@@ -174,6 +174,7 @@ function setInfoInPrometheusDetailView(idName) {
     var name         = $(trId).data('name');
     var uri          = $(trId).data('uri');
     var username     = $(trId).data('username');
+    var query        = $(trId).data('query');
     var ruletypeid   = $(trId).data('ruletypeid');
     var ruletypename = $(trId).data('ruletypename');
     var matchlist    = $(trId).data('matchlist');
@@ -184,6 +185,7 @@ function setInfoInPrometheusDetailView(idName) {
     $('#viewPrometheusName').text(name);
     $('#viewPrometheusUri').text(uri);
     $('#viewPrometheusUsername').text(username);
+    $('#viewPrometheusQuery').text(query);
     $('#viewPrometheusRuletype').text(ruletypename);
     $('#viewPrometheusUpdateuser').text(updateuser);
     $('#viewPrometheusTimestamp').text(timestamp);
@@ -213,6 +215,7 @@ function setInfoInPrometheusEditView() {
     var uri          = $(trId).data('uri');
     var username     = $(trId).data('username');
     var password     = $(trId).data('password');
+    var query        = $(trId).data('query');
     var ruletypeid   = $(trId).data('ruletypeid');
     var matchlist    = $(trId).data('matchlist');
     var updateuser   = $(trId).data('updateuser');
@@ -222,6 +225,7 @@ function setInfoInPrometheusEditView() {
     $('#editPrometheusUri').val(uri);
     $('#editPrometheusUsername').val(username);
     $('#editPrometheusPass').val(password);
+    $('#editPrometheusQuery').val(query);
     $('#edit-prometheus-rule-select').val(ruletypeid);
     if(!ruletypeid || ruletypeid <= 0) {
         renderErrorMsg($('#edit-prometheus-rule-select'), getMessage("MOSJA26215", false));
@@ -286,6 +290,7 @@ function setPrometheusInfo(idInfo){
     adapterInfo["uri"] = $(idInfo['uri']).val();
     adapterInfo["username"] = $(idInfo['username']).val();
     adapterInfo["password"] = $(idInfo['password']).val();
+    adapterInfo["query"] = $(idInfo['query']).val();
     adapterInfo["rule_type_id"] = $(idInfo['rule_type_id']).val();
 
     var conditionalData = {}; // 条件名、Prometheus項目を辞書形式で格納
@@ -410,6 +415,7 @@ function validatePrometheusAdapterData(objTBody, adapterInfo){
     var uri          = adapterInfo["uri"];
     var username     = adapterInfo["username"];
     var password     = adapterInfo["password"];
+    var query        = adapterInfo["query"];
     var ruletypeid   = adapterInfo["rule_type_id"];
     var matchlist    = adapterInfo['match_list'];
 
@@ -428,8 +434,8 @@ function validatePrometheusAdapterData(objTBody, adapterInfo){
             // idが取得できた場合
             if(selector != "#") {
                 chk_PrometheusName[strID] = $(selector).data('name');
-                chk_uri[strID]       = $(selector).data('uri');
-                chk_ruletypeid[strID] = $(selector).data('ruletypeid');
+                chk_uri[strID]            = $(selector).data('uri');
+                chk_ruletypeid[strID]     = $(selector).data('ruletypeid');
             }
         }
     }
@@ -443,6 +449,7 @@ function validatePrometheusAdapterData(objTBody, adapterInfo){
     errorMsg['uri'] = "";
     errorMsg['username'] = "";
     errorMsg['password'] = "";
+    errorMsg['query'] = "";
     errorMsg['rule_type_id'] = "";
 
     // adapternameの重複チェック
@@ -503,6 +510,7 @@ function getIdInfoPrometheus(mode){
         'uri'             : "#" + mode + "PrometheusUri",
         'username'        : "#" + mode + "PrometheusUsername",
         'password'        : "#" + mode + "PrometheusPass",
+        'query'           : "#" + mode + "PrometheusQuery",
         'rule_type_id'    : "#" + mode + "-prometheus-rule-select",
         'match_list'      : "#" + mode + "Prometheustable tr",
     };
@@ -529,6 +537,7 @@ var renderPrometheusErrorMsg = function(errorMsg, mode) {
     renderErrorMsg(idInfo['uri'], errorMsg['uri']);
     renderErrorMsg(idInfo['username'], errorMsg['username']);
     renderErrorMsg(idInfo['password'], errorMsg['password']);
+    renderErrorMsg(idInfo['query'], errorMsg['query']);
     renderErrorMsg(idInfo['rule_type_id'], errorMsg['rule_type_id']);
 
     //--------------------------------------------
