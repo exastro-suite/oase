@@ -117,7 +117,6 @@ class PrometheusAdapterSubModules:
         """
 
         # クラス生成
-        self.monitoring_history = None
         self.prometheus_adapter_id = prometheus_adapter_id
         self.prometheus_adapter = None
         self.monitoring_history = None
@@ -236,6 +235,10 @@ class PrometheusAdapterSubModules:
                 prometheus_adapter_id=self.prometheus_adapter_id, status=PROCESSED
             ).order_by('prometheus_lastchange').reverse().first()
 
+        except PrometheusAdapter.DoesNotExist:
+            logger.logic_log('LOSM30007', self.prometheus_adapter_id)
+            return False
+
         except Exception as e:
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
 
@@ -255,6 +258,7 @@ class PrometheusAdapterSubModules:
 
         runnable = True
         error_occurred = False
+        last_monitoring_time = now.strftime('%Y-%m-%dT%H:%M:%S.000Z')
         try:
             # 監視実行
             from_dt = prometheus_lastchange.strftime('%Y-%m-%dT%H:%M:%S.000Z')

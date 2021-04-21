@@ -71,11 +71,11 @@ class PrometheusApi(object):
 
         except Exception as e:
             # ログインできなかった場合は上位で処理
-            logger.system_log('LOSM25000', 'Prometheus Login error.')
+            logger.system_log('LOSM30015', 'Prometheus Login error.')
             raise
 
         if self._has_error(result):
-            logger.system_log('LOSM25000', 'GetResponse error.')
+            logger.system_log('LOSM30015', 'GetResponse error.')
             raise Exception('login response has an error')
 
         self.auth_token = result.get('result')
@@ -96,15 +96,6 @@ class PrometheusApi(object):
 
         headers = {"Content-Type": "application/x-www-form-urlencoded"}
         data = params
-        """
-        data = json.dumps({
-                'jsonrpc': '2.0',
-                'method': method,
-                'params': params,
-                'auth': self.auth_token,
-                'id': self.request_id,
-            })
-        """
 
         try:
             response = requests.post(self.uri, data=data, headers=headers)
@@ -112,11 +103,11 @@ class PrometheusApi(object):
 
         except requests.exceptions.ConnectTimeout:
             # "リトライについて検討すべき"
-            logger.system_log('LOSM25000', 'Prometheus Timeout error.')
+            logger.system_log('LOSM30015', 'Prometheus Timeout error.')
             raise
 
         except requests.exceptions.RequestException:
-            logger.system_log('LOSM25000', 'RequestException error.')
+            logger.system_log('LOSM30015', 'RequestException error.')
             raise
 
         if response.status_code != 200:
@@ -127,7 +118,7 @@ class PrometheusApi(object):
             resp = json.loads(response.text)
 
         except Exception as e:
-            logger.system_log('LOSM25000', 'JSON decode error. response=%s' % response)
+            logger.system_log('LOSM30015', 'JSON decode error. response=%s' % response)
             logger.logic_log('LOSI00005', traceback.format_exc())
             raise
 
@@ -140,8 +131,6 @@ class PrometheusApi(object):
         [戻り値]
         result: 発生中の障害情報
         """
-        #if type(last_change_since) != int:
-        #    raise TypeError('You must set datatype of last_change_since with Unix instead of datetime')
 
         method = 'trigger.get'
         params = {
@@ -157,7 +146,7 @@ class PrometheusApi(object):
             raise
 
         if self._has_error(response):
-            logger.system_log('LOSM25000', 'GetResponse error.')
+            logger.system_log('LOSM30015', 'GetResponse error.')
             raise Exception('response error')
 
 
