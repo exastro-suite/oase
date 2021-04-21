@@ -96,13 +96,13 @@ def message_formatting(prometheus_message, rule_type_id, prometheus_adapter_id):
 
     except RuleType.DoesNotExist as e:
         result = False
-        logger.system_log('LOSM25006', rule_type_id)
+        logger.system_log('LOSM30012', rule_type_id)
         logger.logic_log('LOSM00001', 'rule_type_id: %s, Traceback: %s' % (rule_type_id, traceback.format_exc()))
 
     except Exception as e:
         if result:
             result = False
-            logger.system_log('LOSM25007')
+            logger.system_log('LOSM30013')
             logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
 
     logger.logic_log('LOSI00002', 'result: %s' % (result))
@@ -154,7 +154,7 @@ def formatting_eventinfo(key_list, data_dic, eventinfo):
 
     # prometheus_response_keyとeventinfoの数が合わなかったらデータ作成終了
     if len(key_list) != len(eventinfo):
-        logger.system_log('LOSM25008', len(eventinfo), len(key_list))
+        logger.system_log('LOSM30014', len(eventinfo), len(key_list))
         return False
 
     return True
