@@ -449,6 +449,7 @@ class OASELogID:
     Ary['LOSM30012'] = "The specified rule type id does not exist."
     Ary['LOSM30013'] = "An unexpected error occurred."
     Ary['LOSM30014'] = "Data creation failed. eventinfo length: {}, key_list length: {}"
+    Ary['LOSM30015'] = "Failed to post request_data for Prometheus. {}"
     Ary['LOSM31000'] = "Servicenow incident management linkage failed. traceid: {}, status: {}"
     Ary['LOSM31001'] = "Servicenow notification failed in {}."
     Ary['LOSM31002'] = "Database update processing failed. traceid: {}, status: {}"
