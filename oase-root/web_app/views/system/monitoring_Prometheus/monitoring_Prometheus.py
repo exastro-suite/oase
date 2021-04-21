@@ -203,11 +203,12 @@ class PrometheusAdapterInfo():
         error_flag = False
         error_msg  = {
             'prometheus_disp_name' : '',
-            'uri'      : '',
-            'username' : '',
-            'password' : '',
-            'rule_type_id':'',
-            'match_list':'',
+            'uri'                  : '',
+            'username'             : '',
+            'password'             : '',
+            'query'                : '',
+            'rule_type_id'         : '',
+            'match_list'           : '',
         }
         now = datetime.datetime.now(pytz.timezone('UTC'))
 
@@ -235,6 +236,7 @@ class PrometheusAdapterInfo():
             adapter.uri                   = rq['uri']
             adapter.username              = rq['username']
             adapter.password              = encrypted_password
+            adapter.metric                = rq['query']
             adapter.rule_type_id          = rq['rule_type_id']
             adapter.last_update_user      = request.user.user_name
             adapter.last_update_timestamp = now
@@ -292,6 +294,7 @@ class PrometheusAdapterInfo():
             'uri' : '',
             'username' : '',
             'password' : '',
+            'query' : '',
             'rule_type_id':'',
         }
         now = datetime.datetime.now(pytz.timezone('UTC'))
@@ -314,12 +317,13 @@ class PrometheusAdapterInfo():
 
             # Prometheusアダプタの追加
             prometheus_adp = PrometheusAdapter(
-                prometheus_disp_name = rq['prometheus_disp_name'],
-                uri                  = rq['uri'],
-                username             = rq['username'],
-                password             = encrypted_password,
-                rule_type_id         = rq['rule_type_id'],
-                last_update_user     = request.user.user_name,
+                prometheus_disp_name  = rq['prometheus_disp_name'],
+                uri                   = rq['uri'],
+                username              = rq['username'],
+                password              = encrypted_password,
+                metric                = rq['query'],
+                rule_type_id          = rq['rule_type_id'],
+                last_update_user      = request.user.user_name,
                 last_update_timestamp = now,
             )
             prometheus_adp.save(force_insert=True)
@@ -420,12 +424,6 @@ class PrometheusAdapterInfo():
             error_msg['uri'] += get_message('MOSJA26226', lang) + '\n'
             logger.user_log('LOSM32006', rq['uri'], request=request)
 
-        # username未入力チェック
-        if len(rq['username']) == 0:
-            error_flag = True
-            error_msg['username'] += get_message('MOSJA26227', lang) + '\n'
-            logger.user_log('LOSM32001', 'username', request=request)
-
         # username長さチェック
         if len(rq['username']) > 64:
             error_flag = True
@@ -438,12 +436,6 @@ class PrometheusAdapterInfo():
             error_flag = True
             error_msg['username'] += get_message('MOSJA26229', lang) + '\n'
             logger.user_log('LOSM32006', rq['username'], request=request)
-
-        # password未入力チェック
-        if len(rq['password']) == 0:
-            error_flag = True
-            error_msg['password'] += get_message('MOSJA26230', lang) + '\n'
-            logger.user_log('LOSM32001', 'password', request=request)
 
         # password長さチェック
         # 追加の場合
@@ -478,6 +470,20 @@ class PrometheusAdapterInfo():
                     error_flag = True
                     error_msg['password'] += get_message('MOSJA26232', lang) + '\n'
                     logger.user_log('LOSM32006', rq['password'], request=request)
+
+        # query長さチェック
+        if len(rq['query']) > 128:
+            error_flag = True
+            error_msg['query'] += get_message('MOSJA26242', lang) + '\n'
+            logger.user_log('LOSM32002', 'query', 128, rq['query'], request=request)
+
+        # query絵文字使用チェック
+        value_list = emo_chk.is_emotion(rq['query'])
+        if len(value_list) > 0:
+            error_flag = True
+            error_msg['query'] += get_message('MOSJA26243', lang) + '\n'
+            logger.user_log('LOSM32006', rq['query'], request=request)
+
 
         # rule_type_id未入力チェック
         if len(rq['rule_type_id']) == 0:
