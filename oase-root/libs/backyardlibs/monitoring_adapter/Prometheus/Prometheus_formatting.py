@@ -88,7 +88,7 @@ def message_formatting(prometheus_message, rule_type_id, prometheus_adapter_id):
             request_data['eventinfo'] = eventinfo
 
             # eventdatetimeの取得 lastchangeを2019/12/25 00:00:00の形式に変換する
-            request_data['eventdatetime'] = datetime.fromtimestamp(int(data_dic[0]), pytz.timezone('Asia/Tokyo')).strftime("%Y/%m/%d %H:%M:%S")
+            request_data['eventdatetime'] = datetime.fromtimestamp(int(data_dic['evtime']), pytz.timezone('Asia/Tokyo')).strftime("%Y/%m/%d %H:%M:%S")
 
             request_data_list.append(request_data)
 
@@ -134,8 +134,9 @@ def formatting_eventinfo(key_list, data_dic, eventinfo):
     for prometheus_key in key_list:
 
         # Prometheus項目名が存在したら配列に追加
-        #if prometheus_key in data_dic and data_dic[prometheus_key] != None:
-        if len(data_dic) > int(prometheus_key) and data_dic[int(prometheus_key)]:
+        #if len(data_dic) > int(prometheus_key) and data_dic[int(prometheus_key)]:
+        if prometheus_key in data_dic and data_dic[prometheus_key] != None:
+            """
             if prometheus_key == 'metric':
                 for hosts_data in data_dic[prometheus_key]:
                     if 'instance' in hosts_data:
@@ -151,6 +152,10 @@ def formatting_eventinfo(key_list, data_dic, eventinfo):
 
             else:
                 eventinfo.append(data_dic[int(prometheus_key)])
+            """
+
+            eventinfo.append(data_dic[prometheus_key])
+
 
     # prometheus_response_keyとeventinfoの数が合わなかったらデータ作成終了
     if len(key_list) != len(eventinfo):

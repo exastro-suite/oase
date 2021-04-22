@@ -274,19 +274,57 @@ class PrometheusAdapterSubModules:
             with transaction.atomic():
                 if runnable:
                     triggerManager = ManageTrigger(self.prometheus_adapter_id, self.user)
-                    confirm_list = [] # [(int(record['triggerid']), int(record['lastchange'])) for record in result_data]
-                    if 'data' in result_data and 'result' in result_data['data']:
+                    confirm_list = []
+                    if  'data'   in result_data and 'result' in result_data['data']:
                         for rd in result_data['data']['result']:
-                            confirm_list.append((rd[0],rd[0]))
+                            trigger_str = ''
+                            if 'metric' in rd and 'instance' in rd['metric']:
+                                trigger_str = rd['metric']['instance']
+
+                            if 'metric' in rd and 'job' in rd['metric']:
+                                trigger_str = rd['metric']['job'] if not trigger_str else '%s:%s' % (trigger_str, rd['metric']['job'])
+
+                            if not trigger_str:
+                                continue
+
+                            if 'values' in rd:
+                                for r in rd['values']:
+                                    if len(r) >= 2:
+                                        confirm_list.append((trigger_str, r[0]))
 
                     flag_array = triggerManager.main(confirm_list)
 
                     index = 0
-                    for flag in flag_array:
-                        if flag:
-                            difference.append(result_data['data']['result'][index])
+                    for rd in result_data['data']['result']:
+                        if len(flag_array) <= index:
+                            break
 
-                        index = index + 1
+                        job_str = ''
+                        instance_str = ''
+                        if 'metric' in rd and 'instance' in rd['metric']:
+                            instance_str = rd['metric']['instance']
+
+                        if 'metric' in rd and 'job' in rd['metric']:
+                            job_str = rd['metric']['job']
+
+                        if not instance_str and not job_str:
+                            continue
+
+                        if 'values' in rd:
+                            for r in rd['values']:
+                                if len(r) < 2:
+                                    continue
+
+                                if flag_array[index]:
+                                    difference.append(
+                                        {
+                                            'instance' : instance_str,
+                                            'job'      : job_str,
+                                            'evtime'   : r[0],
+                                            'values'   : r[1],
+                                        }
+                                    )
+                                    index = index + 1
 
                     if len(difference) <= 0:
                         runnable = False

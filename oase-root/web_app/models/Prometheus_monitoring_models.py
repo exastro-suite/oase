@@ -98,7 +98,7 @@ class PrometheusMonitoringHistory(models.Model):
 class PrometheusTriggerHistory(models.Model):
     prometheus_trigger_his_id = models.AutoField("Prometheus障害取得履歴ID", primary_key=True)
     prometheus_adapter_id     = models.IntegerField("Prometheus監視マスタID")
-    trigger_id                = models.IntegerField("トリガーID")
+    trigger_id                = models.CharField("トリガーID", max_length=256)
     lastchange                = models.IntegerField("トリガー最終更新日時")
     last_update_timestamp     = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user          = models.CharField("最終更新者", max_length=64)
