@@ -69,7 +69,7 @@ class ManageTrigger:
               例外が発生した場合は空のリストを返す
         """
         logger.logic_log('LOSI00001', 'triggerid_lastchange_list: %s' % (triggerid_lastchange_list))
-        
+
         trigger_history_list = PrometheusTriggerHistory.objects.select_for_update().filter(prometheus_adapter_id=self.prometheus_adapter_id)
         trigger_history_dict = {t.trigger_id:t for t in trigger_history_list}
 
