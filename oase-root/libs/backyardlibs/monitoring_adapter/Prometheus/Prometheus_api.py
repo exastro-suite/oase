@@ -112,7 +112,7 @@ class PrometheusApi(object):
 
         if response.status_code != 200:
             # 200以外は関知しない 上位で処理
-            raise Exception('Failed to get response')
+            raise Exception('Failed to get response. sts_code=%s, reason=%s' % (response.status_code, getattr(response, 'text', '')))
 
         try:
             resp = json.loads(response.text)
@@ -137,7 +137,7 @@ class PrometheusApi(object):
             "query" : self.metric,
             "start" : last_change_since,
             "end"   : now,
-            "step"  : "3600",
+            "step"  : "10s",
         }
 
         try:
