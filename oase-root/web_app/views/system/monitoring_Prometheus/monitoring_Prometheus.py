@@ -49,8 +49,6 @@ logger = OaseLogger.get_instance() # ロガー初期化
 # Prometheus項目
 #-------------------
 Prometheus_ITEMS = [
-                   'instance',
-                   'namespace',
                    'values',
                ]
 
