@@ -221,6 +221,7 @@ class AdCollabExecutor():
         add_target_user_login_id = cur_ad_user_login_id_set - oase_ad_user_login_id_set
         add_user_bulk_list = []
         tmp_user = None
+        lang_mode = defs.LANG_MODE.get_default_lang()
         for auser_login_id in add_target_user_login_id:
             ad_user_info = cur_ad_user_dict[auser_login_id]
             tmp_user = User(
@@ -228,7 +229,7 @@ class AdCollabExecutor():
                         user_name = ad_user_info['display_name'],
                         password = 'oase_ad_collaboration', # 仮...ログインでは使われない
                         mail_address = ad_user_info['mail'] if len(ad_user_info['mail']) > 0 else 'oase_ad_collaboration_' + ad_user_info['login_id'],
-                        lang_mode_id = defs.LANG_MODE.JP,
+                        lang_mode_id = lang_mode,
                         disp_mode_id = defs.DISP_MODE.DEFAULT,
                         ad_data_flag = '1',
                         disuse_flag = '0',
