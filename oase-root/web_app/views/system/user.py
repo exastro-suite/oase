@@ -261,9 +261,10 @@ def modify(request):
     [メソッド概要]
       データ更新処理
     """
+
     #====アカウント追加時の初期値====#
     disp = defs.DISP_MODE.DEFAULT
-    lang = defs.LANG_MODE.JP
+    lang = defs.LANG_MODE.get_default_lang()
 
     msg                  = ''
     error_msg            = ''
