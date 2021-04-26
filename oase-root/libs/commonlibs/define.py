@@ -349,6 +349,16 @@ class LANG_MODE():
         'JP', 'EN',
     ]
 
+    @classmethod
+    def get_default_lang(cls):
+
+        from django.conf import settings
+
+        lang = cls.JP
+        if getattr(settings, 'LANGUAGE_CODE', 'ja') == 'en-us':
+            lang = cls.EN
+
+        return lang
 
 #-------------------
 # DISP_MODE_ID
