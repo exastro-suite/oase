@@ -376,6 +376,7 @@ class ITAManager(AbstractManager):
             elif convert_flg.upper() == 'TRUE':
                 menu_id = int(menu_id_list[0])
                 parameter_list = {}
+                commitinfo_list = []
 
                 event_info_list = ast.literal_eval(events_request.event_info)['EVENT_INFO']
                 if len(event_info_list) == 0:
@@ -390,6 +391,28 @@ class ITAManager(AbstractManager):
                         parameter_list[menu_id]['host_name'] = event_info_list[0]
                     else:
                         parameter_list[menu_id]['param_list'].append(event_info_list[i])
+                        itaparcom = ItaParametaCommitInfo(
+                            response_id           = self.response_id,
+                            commit_order          = rhdm_res_act.execution_order,
+                            menu_id               = int(menu_id),
+                            ita_order             = i + 1,
+                            parameter_value       = event_info_list[i],
+                            last_update_timestamp = Comobj.getStringNowDateTime(),
+                            last_update_user      = self.last_update_user
+                        )
+                        commitinfo_list.append(itaparcom)
+
+                if len(commitinfo_list) > 0:
+                    try:
+                        ItaParametaCommitInfo.objects.bulk_create(commitinfo_list)
+
+                    except Exception as e:
+                        logger.system_log('LOSE01133', self.trace_id, traceback.format_exc())
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01071')
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
 
             for k, v in parameter_list.items():
                 if not v['host_name']:
