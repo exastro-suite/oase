@@ -22,6 +22,7 @@ urlpatterns = [
     re_path(r'^personal_config$',  personal_config.personal_config,  name='personal_config'),
     re_path(r'^modify/mailaddr$',  personal_config.modify_mailaddr,  name='user_modify_mailaddr'),
     re_path(r'^determ/mailaddr$',  personal_config.determ_mailaddr,  name='user_determ_mailaddr'),
+    path('personal_config/language', personal_config.modify_language, name='modify_language'),
 
     # アカウントロックユーザ
     path('locked_user', locked_user.locked_user, name='locked_user'),
