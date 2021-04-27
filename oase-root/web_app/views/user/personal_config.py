@@ -26,8 +26,8 @@ import traceback
 import pytz
 import datetime
 
-from django.shortcuts import render,redirect
-from django.http import HttpResponse, Http404
+from django.shortcuts import render
+from django.http import HttpResponse
 from django.http import HttpResponseServerError
 from django.db import transaction
 from django.conf import settings
