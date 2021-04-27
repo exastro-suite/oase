@@ -200,6 +200,73 @@ function ModifyMailAddress()
     });
 }
 
+
+////////////////////////////////////////////////
+//  言語変更
+////////////////////////////////////////////////
+function changeLanguage()
+{
+
+    $("#btnChLang").prop("disabled", true);
+
+    var elements = document.getElementsByName("language");
+    for ( var lang="", i=elements.length; i--; ) {
+        if ( elements[i].checked ) {
+            lang = elements[i].value;
+            break;
+        }
+    }
+
+    lang_info = {};
+    lang_info['lang_mode_id'] = lang;
+
+    var json_str = JSON.stringify({"lang_info": lang_info});
+    document.getElementById("lang_data").value = json_str;
+
+    document.getElementById("formLangData").submit();
+}
+
+function submitAction2()
+{
+
+    if(confirm(getMessage("MOSJA31046", false)) == true){
+
+        $.ajax({
+            type : "POST",
+            url  : "{% url 'web_app:user:modify_language' %}",
+            data : $("#formLangData").serialize(),
+            dataType: "json",
+        }).done(function(response_json) {
+            if(response_json.status == 'success') {
+                alert(getMessage("MOSJA31040", false));
+                beforeunloadThroughFlag = true;
+                window.location.href = '/oase_web/user/personal_config';
+            }
+            else {
+                // 今回エラーを表記
+                msg_obj = response_json.error_msg;
+                alert(msg_obj);
+
+                $("#btnChLang").prop("disabled", false);
+                beforeunloadThroughFlag = true;
+                window.location.href = '/oase_web/user/personal_config';
+            }
+        })
+        .fail(function(respdata, stscode, resp) {
+            if(stscode == "error") {
+                beforeunloadThroughFlag = true;
+                window.location.href = "/oase_web/top/logout";
+            } else {
+                alert(getMessage("MOSJA32008", false) +  respdata.responseText);
+                $("#btnChLang").prop("disabled", false);
+            }
+        });
+    }
+    else {
+        $("#btnChLang").prop("disabled", false);
+    }
+}
+
 -->
 </script>
 {% endblock %}
@@ -239,6 +306,7 @@ function ModifyMailAddress()
               {% if passwd_flag %}
               <li><a href="#oase-config-user-password">{% get_message 'MOSJA31021' request.user.get_lang_mode showMsgId=False %}</a></li>
               {% endif %}
+              <li><a href="#oase-config-user-language">{% get_message 'MOSJA31041' request.user.get_lang_mode showMsgId=False %}</a></li>
               {% comment %}
               <li><a href="#oase-config-user-screen">画面設定（※まだいらない）</a></li>
               {% endcomment %}
@@ -348,7 +416,7 @@ function ModifyMailAddress()
               </div>
               <div class="oase-config-footer">
                 <ul class="oase-button-group">
-                  <li><button class="oase-button" id="btnChPW" onclick= "changePW()" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA31038' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button" id="btnChPW" onclick="changePW()" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA31038' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                 </ul>
               </div>
               <form id="formPsData" action="javascript:submitAction()" method="POST">
@@ -357,6 +425,44 @@ function ModifyMailAddress()
               </form>
             </section>
             {% endif %}
+
+            <section id="oase-config-user-language">
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA31041' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+              <div class="oase-config-body">
+                <div class="oase-config-item">
+                  <p>{% get_message 'MOSJA31042' request.user.get_lang_mode showMsgId=False %}</p>
+                  <table>
+                    <tbody>
+                      <tr>
+                        <th>
+                          <div class="cell-inner">
+                            <input type="radio" name="language" value="1" {% if lang_mode_id == 1 %} checked {% endif %}>{% get_message 'MOSJA31043' request.user.get_lang_mode showMsgId=False %}
+                          </div>
+                        </th>
+                      </tr>
+                      <tr>
+                        <th>
+                          <div class="cell-inner">
+                            <input type="radio" name="language" value="2" {% if lang_mode_id == 2 %} checked {% endif %}>{% get_message 'MOSJA31044' request.user.get_lang_mode showMsgId=False %}
+                          </div>
+                        </th>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button save" id="btnChLang" onclick="changeLanguage()" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA31045' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+              <form id="formLangData" action="javascript:submitAction2()" method="POST">
+                <input type="hidden" id="lang_data" value="" name="lang_info" />
+                {% csrf_token %}
+              </form>
+            </section>
 
             {% comment %}
             <section id="oase-config-user-screen">
