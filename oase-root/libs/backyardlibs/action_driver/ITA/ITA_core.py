@@ -1172,7 +1172,7 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
 
-    def update_c_parameter_sheet(self, config, host_name, operation_name, exec_schedule_date, parameter_list, menu_id, ary_result):
+    def update_c_parameter_sheet(self, config, host_name, operation_name, exec_schedule_date, parameter_list, menu_id, ary_result, col_revision):
         """
         [概要]
         パラメーターシート更新メソッド
@@ -1194,8 +1194,8 @@ class ITA1Core(DriverCore):
             update_data[Cstobj.COL_PARAMETER + i] = p
 
         # パラメータ項目の次は備考欄、最終更新日時、更新用の最終更新日時を設定(備考欄は空白)
-        update_data[Cstobj.COL_PARAMETER + i + 2] = select_data[0][Cstobj.COL_PARAMETER + i + 2]
-        update_data[Cstobj.COL_PARAMETER + i + 3] = select_data[0][Cstobj.COL_PARAMETER + i + 3]
+        update_data[Cstobj.COL_PARAMETER + i + col_revision + 0] = select_data[0][Cstobj.COL_PARAMETER + i + col_revision + 0]
+        update_data[Cstobj.COL_PARAMETER + i + col_revision + 1] = select_data[0][Cstobj.COL_PARAMETER + i + col_revision + 1]
 
         result = {}
         ret = self.restobj.rest_insert(update_data, result, 'update')
@@ -1347,7 +1347,8 @@ class ITA1Core(DriverCore):
             if row_count > 0:
                 row_data = self.restobj.rest_get_row_data(ary_result)
                 for r in row_data:
-                    num += int(r[target_col])
+                    if target_col > 0:
+                        num += int(r[target_col])
                     move_id_name = '%s:%s' % (str(r[2]), str(r[3]))
                     if move_id_name not in move_info[orch_id]:
                         move_info[orch_id].append(move_id_name)
