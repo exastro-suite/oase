@@ -29,6 +29,7 @@ import datetime
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import HttpResponseServerError
+from django.db import transaction
 from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.urls import reverse
@@ -385,3 +386,52 @@ def _reverse_conv_login_id_mailaddr(hash_login, hash_maddr, now):
     else:
         logger.user_log('LOSI10009', hash_maddr)
         raise OASEError('MOSJA31010', 'LOSM10000')
+
+
+################################################
+@require_POST
+def modify_language(request):
+    """
+    [メソッド概要]
+      言語変更処理
+    """
+
+    error_msg = {}
+    result = 'success'
+    error_flag = False
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    try:
+        with transaction.atomic():
+
+            json_str = request.POST.get('lang_info', None)
+            data = json.loads(json_str)
+
+            user = User.objects.select_for_update().get(user_id=request.user.user_id)
+            user.lang_mode_id = int(data['lang_info']['lang_mode_id'])
+            user.last_update_user = request.user.user_name
+            user.last_update_timestamp = now
+            user.save(force_update=True)
+
+    except User.DoesNotExist:
+        error_msg = get_message('MOSJA31047', request.user.get_lang_mode())
+        logger.logic_log('LOSM17001', request=request)
+
+    except Exception as e:
+        error_msg = get_message('MOSJA31048', request.user.get_lang_mode())
+        logger.logic_log('LOSM17009', 'traceback: %s' % (traceback.format_exc()), request=request)
+
+    if len(error_msg) > 0:
+        error_flag = True
+
+    # 結果レスポンス
+    response_data = {}
+    response_data['status'] = 'success' if error_flag == False else 'failure'
+    response_data['error_msg'] = error_msg
+
+    response_json = json.dumps(response_data, ensure_ascii=False)
+    logger.logic_log('LOSI00002', 'user_id: %s, session_key: %s' % (request.user.user_id, request.session.session_key))
+
+    return HttpResponse(response_json, content_type="application/json")
+
