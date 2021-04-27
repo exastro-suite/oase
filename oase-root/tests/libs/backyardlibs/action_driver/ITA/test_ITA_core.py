@@ -421,7 +421,7 @@ def test_update_c_parameter_sheet_ok(monkeypatch):
     monkeypatch.setattr(core.restobj, 'rest_insert',       method_dummy_output_data)
     ret = core.update_c_parameter_sheet(
         config, host_name, operation_name, 
-        exec_schedule_date, parameter_list, menu_id, ary_result
+        exec_schedule_date, parameter_list, menu_id, ary_result, 3
     )
     assert ret == 0
 

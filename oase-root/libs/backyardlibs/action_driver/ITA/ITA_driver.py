@@ -509,8 +509,9 @@ class ITAManager(AbstractManager):
                         return ACTION_EXEC_ERROR, DetailStatus
 
                     if ret_select > 0:
+                        col_revision = 3 if self.ita_driver.version in ['1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0'] else 2
                         ret = self.ITAobj.update_c_parameter_sheet(
-                            self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result)
+                            self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result, col_revision)
                     elif ret_select == 0:
                         ret = self.ITAobj.insert_c_parameter_sheet(
                             host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
@@ -795,10 +796,13 @@ class ITAManager(AbstractManager):
         # 変数カウントのあるパラメーターシートに対して取得要求
         total_count = 0
         subst_count = 0
+        if self.ita_driver.version in ['1.7.0',]:
+            total_count = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, ita_order__gt=0).count()
+
         for orch_id, num in var_count.items():
             total_count += num
 
-            if num <= 0:
+            if num <= 0 and self.ita_driver.version not in ['1.7.0',]:
                 continue
 
             menu_id, target_table = self.orchestrator_id_to_menu_id(orch_id)
@@ -907,6 +911,9 @@ class ITAManager(AbstractManager):
                 menu_id = '2100020306'
                 target_table = 'E_ANSIBLE_LRL_PATTERN'
                 target_col = Cstobj.EAP_LEGACYROLE_VAR_COUNT
+
+        if self.ita_driver.version in ['1.7.0',]:
+            target_col = 0
 
         return menu_id, target_table, target_col
 
