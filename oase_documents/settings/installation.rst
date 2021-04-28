@@ -150,7 +150,7 @@ OASEのインストール手順を下記に示します。
    19, oase_directory, /exastro, OASEのインストールディレクトリ
    20, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
    21, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
-   22, oase_language, ja, OASEの言語設定（日本語：ja）
+   22, oase_language, ja, OASEの言語設定（日本語：ja 英語：en）
    23, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
    24, oase_domain, exastro-oase.local, OASEのドメイン名
    25, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
@@ -280,7 +280,7 @@ OASEのインストール手順を下記に示します。
  # e.g) ev_location:127.0.0.1
  ev_location:127.0.0.1
 
- # Select language. ("ja")
+ # Select language. ("ja" or "en")
  # e.g) oase_language:ja
  oase_language:ja
 
