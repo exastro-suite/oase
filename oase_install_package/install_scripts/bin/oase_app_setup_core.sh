@@ -57,7 +57,13 @@ sed -i -e 's/^#    "path"/    "path"/g' $OASE_SETTING_FILE
 sed -i -e 's/^#}/}/g' $OASE_SETTING_FILE
 
 sed -i -e '/^    "location"/s/127.0.0.1/'${ev_location}'/g' $OASE_SETTING_FILE
-sed -i -e '/^LANGUAGE_CODE/s/ja/'${oase_language}'/g' $OASE_SETTING_FILE
+
+if [ ${oase_language} == 'en' ]; then
+    oase_lang='en-us'
+else
+    oase_lang=${oase_language}
+fi
+sed -i -e '/^LANGUAGE_CODE/s/ja/'${oase_lang}'/g' $OASE_SETTING_FILE
 
 sed -i -e "/^        'NAME'     :/s/OASE_DB/${db_name}/g" $OASE_SETTING_FILE
 sed -i -e "/^        'USER'     :/s/OASE_USER/${db_username}/g" $OASE_SETTING_FILE
