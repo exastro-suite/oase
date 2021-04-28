@@ -42,7 +42,7 @@ create_initcustom() {
         exit 1
     fi
 
-    if [ ${oase_language} == 'ja' ]; then
+    if [ ${oase_language} == 'ja_JP' ]; then
         admin_name='システム管理者'
     else
         admin_name='administrator'
@@ -186,7 +186,7 @@ log "INFO : Start create init.yaml."
 OASE_FIXTURES_DIR=$(cd $oase_directory/OASE/oase-root/web_app/fixtures/;pwd)
 OASE_INIT_FILE=$OASE_FIXTURES_DIR/init.yaml
 
-if [ ${oase_language} == 'ja' ]; then
+if [ ${oase_language} == 'ja_JP' ]; then
     oase_lang=1
     oase_admin='システム管理者'
     oase_admin_msg='システム管理用の全権限を持つ'
