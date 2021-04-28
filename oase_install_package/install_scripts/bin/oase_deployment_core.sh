@@ -74,6 +74,14 @@ else
 
 fi
 
+yum list installed | grep "httpd" > /dev/null
+if [ $? -eq 0 ]; then
+    mkdir /exastro/OASE/oase-root/logs/webaplogs/debug
+    touch /exastro/OASE/oase-root/logs/webaplogs/webap.log
+    touch /exastro/OASE/oase-root/logs/webaplogs/debug/webap.log
+    chown -R apache:apache /exastro/OASE/oase-root/logs/webaplogs/
+fi
+
 
 ################################################################################
 log "INFO : Material deployment is completed."

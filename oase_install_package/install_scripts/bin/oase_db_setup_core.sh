@@ -42,6 +42,12 @@ create_initcustom() {
         exit 1
     fi
 
+    if [ ${oase_language} == 'ja' ]; then
+        admin_name='システム管理者'
+    else
+        admin_name='administrator'
+    fi
+
 cat << EOS >> $OASE_INICUSTOM_FILE
 - model: web_app.System
   pk: $1
@@ -52,7 +58,7 @@ cat << EOS >> $OASE_INICUSTOM_FILE
     value: $5
     maintenance_flag: 0
     last_update_timestamp: $6
-    last_update_user: システム管理者
+    last_update_user: ${admin_name}
 
 EOS
 
@@ -170,6 +176,60 @@ create_initcustom 53 "RabbitMQキュー名"              "RABBITMQ"      "MQ_QUE
 
 ################################################################################
 log "INFO : Create init_custom.yaml is completed."
+################################################################################
+
+################################################################################
+log "INFO : Start create init.yaml."
+################################################################################
+
+# get init.yaml
+OASE_FIXTURES_DIR=$(cd $oase_directory/OASE/oase-root/web_app/fixtures/;pwd)
+OASE_INIT_FILE=$OASE_FIXTURES_DIR/init.yaml
+
+if [ ${oase_language} == 'ja' ]; then
+    oase_lang=1
+    oase_admin='システム管理者'
+    oase_admin_msg='システム管理用の全権限を持つ'
+    oase_sso='SSOデフォルトグループ'
+    oase_sso_msg='SSOユーザーの初回ログイン時に自動割り当てされるグループ'
+    user_name01='アクションドライバープロシージャ'
+    user_name02='OASEエージェントプロシージャ'
+    user_name03='OASEルール適用プロシージャ'
+    user_name04='OASE_AD連携プロシージャ'
+    user_name05='ZABBIXアダプタプロシージャ'
+    user_name06='OASE_ITA連携プロシージャ'
+else
+    oase_lang=2
+    oase_admin='administrator'
+    oase_admin_msg='All rights reserved for system administration.'
+    oase_sso='SSODefaultGroup'
+    oase_sso_msg='Group automatically assigned to SSO users upon their first login.'
+    user_name01='ActionDriverProcedure'
+    user_name02='OASEAgentProcedure'
+    user_name03='OASERuleApplicationProcedure'
+    user_name04='OASEADLinkedProcedure'
+    user_name05='OASEAdapterProcedure'
+    user_name06='OASEITALinkedProcedure'
+fi
+
+sed -i -e '/^    lang_mode_id:/s/1/'${oase_lang}'/g' $OASE_INIT_FILE
+sed -i -e '/^    last_update_user:/s/システム管理者/'${oase_admin}'/g' $OASE_INIT_FILE
+sed -i -e '/^    user_name:/s/システム管理者/'${oase_admin}'/g' $OASE_INIT_FILE
+
+sed -i -e '/^    group_name:/s/システム管理者/'${oase_admin}'/g' $OASE_INIT_FILE
+sed -i -e "/^    summary:/s/システム管理用の全権限を持つ/${oase_admin_msg}/g" $OASE_INIT_FILE
+sed -i -e '/^    group_name:/s/SSOデフォルトグループ/'${oase_sso}'/g' $OASE_INIT_FILE
+sed -i -e "/^    summary:/s/SSOユーザーの初回ログイン時に自動割り当てされるグループ/${oase_sso_msg}/g" $OASE_INIT_FILE
+
+sed -i -e '/^    user_name:/s/アクションドライバープロシージャ/'${user_name01}'/g' $OASE_INIT_FILE
+sed -i -e '/^    user_name:/s/OASEエージェントプロシージャ/'${user_name02}'/g' $OASE_INIT_FILE
+sed -i -e '/^    user_name:/s/OASEルール適用プロシージャ/'${user_name03}'/g' $OASE_INIT_FILE
+sed -i -e '/^    user_name:/s/OASE_AD連携プロシージャ/'${user_name04}'/g' $OASE_INIT_FILE
+sed -i -e '/^    user_name:/s/ZABBIXアダプタプロシージャ/'${user_name05}'/g' $OASE_INIT_FILE
+sed -i -e '/^    user_name:/s/OASE_ITA連携プロシージャ/'${user_name06}'/g' $OASE_INIT_FILE
+
+################################################################################
+log "INFO : Create init.yaml is completed."
 ################################################################################
 
 ################################################################################
