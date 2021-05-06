@@ -29,8 +29,8 @@ function setPermissions(groupId) {
     var summary = $(trId).data('summary');
     var name = $(trId).data('name');
     var permissionTypes = $(trId).data('types');
-    var menuIdList  = ["2141001006", "2141002002", "2141002008", "2141002003", "2141002004", "2141002007"];
-    var radioIdList = ["#radio1-","#radio2-","#radio3-","#radio4-","#radio5-", "#radio6-"];
+    var menuIdList  = ["2141001006", "2141001009", "2141002002", "2141002008", "2141002003", "2141002004", "2141002007"];
+    var radioIdList = ["#radio1-","#radio2-","#radio3-","#radio4-","#radio5-", "#radio6-", "#radio7-"];
     // グループ名と要約を参照/編集の子画面にセット
     $('[name=modal-name]').html(textEntities(name));
     $('[name=modal-summary]').html(textEntities(summary));
@@ -125,7 +125,7 @@ function reset(){
     }
 
     var permissionTypes = $('#permissionTypes').data('types');
-    var array = ["2141001006", "2141002002", "2141002008", "2141002003", "2141002004", "2141002007"];
+    var array = ["2141001006", "2141001009", "2141002002", "2141002008", "2141002003", "2141002004", "2141002007"];
 
     //編集モードを維持したまま値をリセットする
     if(confirm(getMessage("MOSJA23010", false))){
@@ -251,7 +251,7 @@ function submitAction() {
 
                 <tbody>
                 {% for group, acs in group_list %}
-                  <tr id="group{{ group.group_id }}" data-types='{"2141001006":"{{acs.0.permission_type_id}}", "2141002002":"{{acs.1.permission_type_id}}", "2141002008":"{{acs.2.permission_type_id}}", "2141002003":"{{acs.3.permission_type_id}}", "2141002004":"{{acs.4.permission_type_id}}",  "2141002007":"{{acs.5.permission_type_id}}"}' data-name='{{ group.group_name }}' data-summary='{{ group.summary }}'>
+                  <tr id="group{{ group.group_id }}" data-types='{"2141001006":"{{acs.0.permission_type_id}}", "2141001009":"{{acs.1.permission_type_id}}", "2141002002":"{{acs.2.permission_type_id}}", "2141002008":"{{acs.3.permission_type_id}}", "2141002003":"{{acs.4.permission_type_id}}", "2141002004":"{{acs.5.permission_type_id}}",  "2141002007":"{{acs.6.permission_type_id}}"}' data-name='{{ group.group_name }}' data-summary='{{ group.summary }}'>
                     <td class="operation-menu"><div class="cell-inner">
                         <ul>
                             <li><button class="tooltip detail oase-mini-button" onClick="setPermissions('{{ group.group_id }}');modalOpen('#modal-authority');"><em class="owf owf-authority"></em><span>{% get_message 'MOSJA23026' request.user.get_lang_mode showMsgId=False %}</span></button></li> 
@@ -346,37 +346,42 @@ function submitAction() {
                     </thead>
                     <tbody>
                       <tr>
-                        <th><div class="cell-inner">{% get_message 'MOSJA00089' request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <th rowspan="2"><div class="cell-inner">{% get_message 'MOSJA00089' request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{% get_message 'MOSJA00078' request.user.get_lang_mode showMsgId=False %}</div></td>
                         <td><div class="cell-inner">{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</div></td>
                         <td id="{{ menu_id_list.0 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-cross"></em></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="cell-inner">{% get_message 'MOSJA37000' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        <td class="blank"><div class="cell-inner"></div></td>
+                        <td id="{{ menu_id_list.1 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-cross"></em></div></td>
                       </tr>
 
                       <tr>
                         <th rowspan="5"><div class="cell-inner">{% get_message 'MOSJA23030' request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{% get_message 'MOSJA23031' request.user.get_lang_mode showMsgId=False %}</div></td>
                         <td class="blank"><div class="cell-inner"></div></td>
-                        <td id="{{ menu_id_list.1 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-loupe"></em></div></td>
+                        <td id="{{ menu_id_list.2 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-loupe"></em></div></td>
                       </tr>
                       <tr>
                         <td><div class="cell-inner">{% get_message 'MOSJA28000' request.user.get_lang_mode showMsgId=False %}</div></td>
                         <td class="blank"><div class="cell-inner"></div></td>
-                        <td id="{{ menu_id_list.2 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
+                        <td id="{{ menu_id_list.3 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
                       </tr>
                       <tr>
                         <td><div class="cell-inner">{% get_message 'MOSJA23000' request.user.get_lang_mode showMsgId=False %}</div></td>
                         <td class="blank"><div class="cell-inner"></div></td>
-                        <td id="{{ menu_id_list.3 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
+                        <td id="{{ menu_id_list.4 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
                       </tr>
                       <tr>
                         <td><div class="cell-inner">{% get_message 'MOSJA23032' request.user.get_lang_mode showMsgId=False %}</div></td>
                         <td class="blank"><div class="cell-inner"></div></td>
-                        <td id="{{ menu_id_list.4 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
+                        <td id="{{ menu_id_list.5 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-circle"></em></div></td>
                       </tr>
                       <tr>
                         <td><div class="cell-inner">{% get_message 'MOSJA23033' request.user.get_lang_mode showMsgId=False %}</div></td>
                         <td class="blank"><div class="cell-inner"></div></td>
-                        <td id="{{ menu_id_list.5 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-cross"></em></div></td>
+                        <td id="{{ menu_id_list.6 }}" class="authority-type"><div class="cell-inner"><em class="owf owf-cross"></em></div></td>
                       </tr>
 
                     </tbody>
@@ -451,49 +456,56 @@ function submitAction() {
                         </thead>
                         <tbody>
                           <tr id="type-dt">
-                            <th><div class="cell-inner">{% get_message 'MOSJA00089' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <th rowspan="2"><div class="cell-inner">{% get_message 'MOSJA00089' request.user.get_lang_mode showMsgId=False %}</div></th>
                             <td><div class="cell-inner">{% get_message 'MOSJA00078' request.user.get_lang_mode showMsgId=False %}</div></td>
                             <td><div class="cell-inner">{% get_message 'MOSJA00090' request.user.get_lang_mode showMsgId=False %}</div></td>
                             <td class="level3"><div class="cell-inner"><input type="radio" id="radio1-3" name="{{ menu_id_list.0 }}" value="3"><label class="radio" for="radio1-3"></label></div></td>
                             <td class="level2"><div class="cell-inner"><input type="radio" id="radio1-2" name="{{ menu_id_list.0 }}" value="2"><label class="radio" for="radio1-2"></label></div></td>
                             <td class="level1"><div class="cell-inner"><input type="radio" id="radio1-1" name="{{ menu_id_list.0 }}" value="1"><label class="radio" for="radio1-1"></label></div></td>
                           </tr>
-
-                          <tr id="type-system">
-                            <th rowspan="5"><div class="cell-inner">{% get_message 'MOSJA23030' request.user.get_lang_mode showMsgId=False %}</div></th>
-                            <td><div class="cell-inner">{% get_message 'MOSJA23031' request.user.get_lang_mode showMsgId=False %}</div></td>
+                          <tr id="type-sso">
+                            <td><div class="cell-inner">{% get_message 'MOSJA37000' request.user.get_lang_mode showMsgId=False %}</div></td>
                             <td class="blank"><div class="cell-inner"></div></td>
                             <td class="level3"><div class="cell-inner"><input type="radio" id="radio2-3" name="{{ menu_id_list.1 }}" value="3"><label class="radio" for="radio2-3"></label></div></td>
                             <td class="level2"><div class="cell-inner"><input type="radio" id="radio2-2" name="{{ menu_id_list.1 }}" value="2"><label class="radio" for="radio2-2"></label></div></td>
                             <td class="level1"><div class="cell-inner"><input type="radio" id="radio2-1" name="{{ menu_id_list.1 }}" value="1"><label class="radio" for="radio2-1"></label></div></td>
                           </tr>
-                          <tr id="type-sso">
-                            <td><div class="cell-inner">{% get_message 'MOSJA28000' request.user.get_lang_mode showMsgId=False %}</div></td>
+
+                          <tr id="type-system">
+                            <th rowspan="5"><div class="cell-inner">{% get_message 'MOSJA23030' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div class="cell-inner">{% get_message 'MOSJA23031' request.user.get_lang_mode showMsgId=False %}</div></td>
                             <td class="blank"><div class="cell-inner"></div></td>
                             <td class="level3"><div class="cell-inner"><input type="radio" id="radio3-3" name="{{ menu_id_list.2 }}" value="3"><label class="radio" for="radio3-3"></label></div></td>
                             <td class="level2"><div class="cell-inner"><input type="radio" id="radio3-2" name="{{ menu_id_list.2 }}" value="2"><label class="radio" for="radio3-2"></label></div></td>
                             <td class="level1"><div class="cell-inner"><input type="radio" id="radio3-1" name="{{ menu_id_list.2 }}" value="1"><label class="radio" for="radio3-1"></label></div></td>
                           </tr>
-                          <tr id="type-group">
-                            <td><div class="cell-inner">{% get_message 'MOSJA23000' request.user.get_lang_mode showMsgId=False %}</div></td>
+                          <tr id="type-sso">
+                            <td><div class="cell-inner">{% get_message 'MOSJA28000' request.user.get_lang_mode showMsgId=False %}</div></td>
                             <td class="blank"><div class="cell-inner"></div></td>
                             <td class="level3"><div class="cell-inner"><input type="radio" id="radio4-3" name="{{ menu_id_list.3 }}" value="3"><label class="radio" for="radio4-3"></label></div></td>
                             <td class="level2"><div class="cell-inner"><input type="radio" id="radio4-2" name="{{ menu_id_list.3 }}" value="2"><label class="radio" for="radio4-2"></label></div></td>
                             <td class="level1"><div class="cell-inner"><input type="radio" id="radio4-1" name="{{ menu_id_list.3 }}" value="1"><label class="radio" for="radio4-1"></label></div></td>
                           </tr>
-                          <tr id="type-user">
-                            <td><div class="cell-inner">{% get_message 'MOSJA23032' request.user.get_lang_mode showMsgId=False %}</div></td>
+                          <tr id="type-group">
+                            <td><div class="cell-inner">{% get_message 'MOSJA23000' request.user.get_lang_mode showMsgId=False %}</div></td>
                             <td class="blank"><div class="cell-inner"></div></td>
                             <td class="level3"><div class="cell-inner"><input type="radio" id="radio5-3" name="{{ menu_id_list.4 }}" value="3"><label class="radio" for="radio5-3"></label></div></td>
                             <td class="level2"><div class="cell-inner"><input type="radio" id="radio5-2" name="{{ menu_id_list.4 }}" value="2"><label class="radio" for="radio5-2"></label></div></td>
                             <td class="level1"><div class="cell-inner"><input type="radio" id="radio5-1" name="{{ menu_id_list.4 }}" value="1"><label class="radio" for="radio5-1"></label></div></td>
                           </tr>
-                          <tr id="type-action">
-                            <td><div class="cell-inner">{% get_message 'MOSJA23033' request.user.get_lang_mode showMsgId=False %}</div></td>
+                          <tr id="type-user">
+                            <td><div class="cell-inner">{% get_message 'MOSJA23032' request.user.get_lang_mode showMsgId=False %}</div></td>
                             <td class="blank"><div class="cell-inner"></div></td>
                             <td class="level3"><div class="cell-inner"><input type="radio" id="radio6-3" name="{{ menu_id_list.5 }}" value="3"><label class="radio" for="radio6-3"></label></div></td>
                             <td class="level2"><div class="cell-inner"><input type="radio" id="radio6-2" name="{{ menu_id_list.5 }}" value="2"><label class="radio" for="radio6-2"></label></div></td>
                             <td class="level1"><div class="cell-inner"><input type="radio" id="radio6-1" name="{{ menu_id_list.5 }}" value="1"><label class="radio" for="radio6-1"></label></div></td>
+                          </tr>
+                          <tr id="type-action">
+                            <td><div class="cell-inner">{% get_message 'MOSJA23033' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td class="blank"><div class="cell-inner"></div></td>
+                            <td class="level3"><div class="cell-inner"><input type="radio" id="radio7-3" name="{{ menu_id_list.6 }}" value="3"><label class="radio" for="radio7-3"></label></div></td>
+                            <td class="level2"><div class="cell-inner"><input type="radio" id="radio7-2" name="{{ menu_id_list.6 }}" value="2"><label class="radio" for="radio7-2"></label></div></td>
+                            <td class="level1"><div class="cell-inner"><input type="radio" id="radio7-1" name="{{ menu_id_list.6 }}" value="1"><label class="radio" for="radio7-1"></label></div></td>
                           </tr>
 
 
