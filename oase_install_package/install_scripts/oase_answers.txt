@@ -114,9 +114,9 @@ oase_directory:/exastro
 # e.g) ev_location:127.0.0.1
 ev_location:
 
-# Select language. ("ja" or "en")
-# e.g) oase_language:ja
-oase_language:ja
+# Select language. ("en_US" or "ja_JP")
+# e.g) oase_language:en_US
+oase_language:ja_JP
 
 # Select Operation System. ("CentOS7" or "RHEL7" or "RHEL8")
 # e.g) oase_os:RHEL7
