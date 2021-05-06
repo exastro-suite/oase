@@ -110,11 +110,7 @@ def eventsrequest(request):
         if not cls_evtoken.initialize:
             cls_evtoken.load_data()
 
-        stscode, msg = cls_evtoken.check_request_token(
-            request,
-            json_str[EventsRequestCommon.KEY_RULETYPE],
-            int(json_str[EventsRequestCommon.KEY_REQTYPE])
-        )
+        stscode, msg = cls_evtoken.check_request_token(request)
 
         logger.logic_log('LOSI13027', trace_id, stscode, msg)
 
