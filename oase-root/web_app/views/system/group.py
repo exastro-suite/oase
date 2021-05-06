@@ -58,7 +58,10 @@ def group(request):
     permission_type = request.user_config.get_menu_auth_type(MENU_ID)
     editable_user = True if permission_type == defs.ALLOWED_MENTENANCE else False
 
-    menu_id_list = [2141001006, 2141002002, 2141002008, 2141002003, 2141002004, 2141002007]
+    menu_id_list = [
+        2141001006, 2141001009,
+        2141002002, 2141002008, 2141002003, 2141002004, 2141002007
+    ]
     acs_perm_list = AccessPermission.objects.filter(
         group_id__gte=defs.GROUP_DEFINE.GROUP_ID_ADMIN,
         menu_id__in=menu_id_list,
@@ -76,13 +79,21 @@ def group(request):
         group_count = len(group_list_tmp)
 
         # グループごとにアクセス権限を分けたリストを作成する
-        for mid in menu_id_list:
-            for acs_perm in acs_perm_list:
-                if acs_perm.group_id not in acs_list:
-                    acs_list[acs_perm.group_id] = []
+        for acs_perm in acs_perm_list:
+            if acs_perm.group_id not in acs_list:
+                acs_list[acs_perm.group_id] = []
+                for mid in menu_id_list:
+                    acs_list[acs_perm.group_id].append(
+                        AccessPermission(
+                            menu_id            = mid,
+                            permission_type_id = defs.NO_AUTHORIZATION
+                        )
+                    )
 
-                if mid == acs_perm.menu_id:
-                    acs_list[acs_perm.group_id].append(acs_perm)
+            for i, v in enumerate(acs_list[acs_perm.group_id]):
+                if acs_perm.menu_id == v.menu_id:
+                    acs_list[acs_perm.group_id][i] = acs_perm
+                    break
 
     except:
         logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
@@ -177,22 +188,50 @@ def complete_permission(request, group_id):
 
             # 選択されたグループIDのメニューのアクセス権限を取得
             # oase_webのメニューIDは2141001001以上
-            menu_id_list = [2141001006, 2141002002, 2141002008, 2141002003, 2141002004, 2141002007]
+            menu_id_list = [
+                2141001006, 2141001009,
+                2141002002, 2141002008, 2141002003, 2141002004, 2141002007
+            ]
             acs_list_upd = AccessPermission.objects.filter(group_id=group_id, menu_id__in=menu_id_list)
 
-            for acs in acs_list_upd:
-                menu_id = str(acs.menu_id)
-                if menu_id not in request.POST:
+            for k, v in request.POST.items():
+
+                # 変更対象外のメニューIDがリクエストされた場合は無視
+                for mid in menu_id_list:
+                    if k == str(mid):
+                        break
+
+                else:
                     continue
 
-                new_type_id = int(request.POST.get(menu_id))
+                # リクエスト情報の型変換
+                menu_id     = int(k)
+                new_type_id = int(v)
 
-                # 変更があったもののみ更新
-                if acs.permission_type_id != new_type_id:
-                    acs.permission_type_id = new_type_id
-                    acs.last_update_user = request.user.user_name
-                    acs.last_update_timestamp = now
-                    acs.save(force_update=True)
+                # 既存レコードをチェックし、権限に変更があれば更新する
+                for acs in acs_list_upd:
+                    if acs.menu_id != menu_id:
+                        continue
+
+                    # 変更があったもののみ更新
+                    if acs.permission_type_id != new_type_id:
+                        acs.permission_type_id = new_type_id
+                        acs.last_update_user = request.user.user_name
+                        acs.last_update_timestamp = now
+                        acs.save(force_update=True)
+
+                    break
+
+                # DB未登録の場合は挿入する
+                else:
+                    AccessPermission(
+                        group_id              = group_id,
+                        menu_id               = menu_id,
+                        rule_type_id          = 0,
+                        permission_type_id    = new_type_id,
+                        last_update_user      = request.user.user_name,
+                        last_update_timestamp = now
+                    ).save(force_insert=True)
 
             selected_group.last_update_user = request.user.user_name
             selected_group.last_update_timestamp = now
