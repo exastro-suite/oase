@@ -58,10 +58,10 @@ sed -i -e 's/^#}/}/g' $OASE_SETTING_FILE
 
 sed -i -e '/^    "location"/s/127.0.0.1/'${ev_location}'/g' $OASE_SETTING_FILE
 
-if [ ${oase_language} == 'en' ]; then
+if [ ${oase_language} == 'en_US' ]; then
     oase_lang='en-us'
 else
-    oase_lang=${oase_language}
+    oase_lang='ja'
 fi
 sed -i -e '/^LANGUAGE_CODE/s/ja/'${oase_lang}'/g' $OASE_SETTING_FILE
 
