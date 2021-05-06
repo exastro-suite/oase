@@ -106,13 +106,11 @@ class OASEEventToken(object):
 
         self.initialize = False
         self.token_info = {}
-        self.group_info = {}
 
 
     def load_data(self):
 
         self.token_info = {}
-        self.group_info = {}
 
         # トークン情報取得
         token_ids = []
@@ -124,81 +122,14 @@ class OASEEventToken(object):
             self.token_info[tkn]['token_id']    = tkn_id
             self.token_info[tkn]['period_from'] = dt_from
             self.token_info[tkn]['period_to']   = dt_to
-            self.token_info[tkn]['group_list']  = []
-
-        # トークン権限情報取得
-        grp_ids = []
-        if len(token_ids) > 0:
-            rset = TokenPermission.objects.filter(
-                token_id__in=token_ids, permission_type_id=defs.ALLOWED_MENTENANCE
-            ).values_list(
-                'token_id', 'group_id'
-            )
-
-            for tkn_id, grp_id in rset:
-                grp_ids.append(grp_id)
-
-                for k, v in self.token_info.items():
-                    if tkn_id == v['token_id']:
-                        v['group_list'].append(grp_id)
-
-        # ディシジョンテーブル情報取得
-        rule_info = {}
-        rset = RuleType.objects.filter(disuse_flag=str(defs.ENABLE)).values_list('rule_type_id', 'rule_type_name')
-        for rule_id, rule_name in rset:
-            rule_info[rule_id] = rule_name
-
-        # グループごとのルールアクセス権限情報取得
-        if len(grp_ids) > 0:
-            rset = AccessPermission.objects.filter(
-                group_id__in       = grp_ids,
-                menu_id__in        = [2141001004, 2141001005],
-                rule_type_id__in   = list(rule_info.keys())
-            ).exclude(
-                permission_type_id = defs.NO_AUTHORIZATION
-            ).values_list(
-                'group_id', 'menu_id', 'rule_type_id', 'permission_type_id'
-            )
-
-            for grp_id, menu_id, rule_id, perm_type in rset:
-                if grp_id not in self.group_info:
-                    self.group_info[grp_id] = {
-                        defs.PRODUCTION : [],
-                        defs.STAGING    : [],
-                    }
-
-                req_type   = 0
-                allow_list = []
-                if menu_id == 2141001004:    # 2141001004 : ステージング
-                    req_type   = defs.STAGING
-                    allow_list = defs.MENU_CATEGORY.ALLOW_EVERY
-
-                elif menu_id == 2141001005:  # 2141001005 : プロダクション
-                    req_type   = defs.PRODUCTION
-                    allow_list = defs.MENU_CATEGORY.ALLOW_ADMIN
-
-                # 不明なリクエスト種別は無効
-                if req_type == 0:
-                    continue
-
-                # リクエスト種別に応じた権限がなければ無効
-                if perm_type not in allow_list:
-                    continue
-
-                # 有効なルールでなければ無効
-                rule_name = rule_info[rule_id] if rule_id in rule_info else None
-                if not rule_name:
-                    continue
-
-                self.group_info[grp_id][req_type].append(rule_name)
 
 
         self.initialize = True
 
-        logger.logic_log('LOSI13026', self.token_info, self.group_info)
+        logger.logic_log('LOSI13026', self.token_info)
 
 
-    def check_request_token(self, request, rule_name, req_type):
+    def check_request_token(self, request):
         """
         [メソッド概要]
           tokenチェック
@@ -216,7 +147,7 @@ class OASEEventToken(object):
         tkn = request.META.get('HTTP_AUTHORIZATION', None)
 
         # tokenチェック
-        sts = self.check_token(tkn, rule_name, req_type)
+        sts = self.check_token(tkn)
 
         # tokenなし
         if sts == self.STS_NOTOKEN:
@@ -236,7 +167,7 @@ class OASEEventToken(object):
         return  stscode, message
 
 
-    def check_token(self, token, rule_name, req_type):
+    def check_token(self, token):
         """
         [メソッド概要]
           tokenチェック
@@ -249,7 +180,7 @@ class OASEEventToken(object):
                   STS_PERMISSION = 3  # 権限なし
         """
 
-        logger.logic_log('LOSI00001', 'tkn=%s, rule_name=%s, req_type=%s' % (token, rule_name, req_type))
+        logger.logic_log('LOSI00001', 'tkn=%s' % (token))
 
         # リクエストにトークンがなければ異常
         if token is None:
@@ -275,16 +206,6 @@ class OASEEventToken(object):
         if (self.token_info[token]['period_from'] and now <  self.token_info[token]['period_from']) \
         or (self.token_info[token]['period_to']   and now >= self.token_info[token]['period_to']):
             return self.STS_INVALID
-
-        # ルールに対する権限がなければ禁止
-        perm = defs.NO_AUTHORIZATION
-        for gr in self.token_info[token]['group_list']:
-            if gr in self.group_info and rule_name in self.group_info[gr][req_type]:
-                perm = defs.ALLOWED_MENTENANCE
-                break
-
-        if perm != defs.ALLOWED_MENTENANCE:
-            return self.STS_PERMISSION
 
 
         return self.STS_OK

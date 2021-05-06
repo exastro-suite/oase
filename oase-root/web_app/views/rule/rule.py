@@ -702,7 +702,7 @@ def rule_pseudo_request(request, rule_type_id):
                 raise Exception()
 
             # RestApiにリクエストを投げる
-            tkn = _get_token_by_group(request.user_config.group_id_list, now)
+            tkn = _get_token(now)
             scheme = urlsplit(request.build_absolute_uri(None)).scheme
             url = scheme + '://127.0.0.1:' + request.META['SERVER_PORT'] + reverse('web_app:event:eventsrequest')
             r = requests.post(
@@ -2691,45 +2691,24 @@ def _validate_contains(value):
     return True
 
 
-def _get_token_by_group(groups, now=None):
+def _get_token(now=None):
     """
     [メソッド概要]
-      ユーザーが所属するグループから、有効なトークンを取得する
-      ※対象ルールに対する権限を有するものとし、ここでは判定しない
+      有効なトークンを取得する
     [引数]
-      groups : list     : ユーザーが所属するグループIDのリスト
       now    : datetime : 現在日時
     [戻り値]
       tkn    : string   : トークン
     """
 
-    tkn = ''
-
-    # 所属がなければトークンなし
-    if len(groups) <= 0:
-        return ''
-
-    # 所属グループの権限ありトークンIDを取得
-    tkn_ids = list(
-        TokenPermission.objects.filter(
-            group_id__in=groups, permission_type_id=defs.ALLOWED_MENTENANCE
-        ).values_list(
-            'token_id', flat=True
-        )
-    )
-
-    # 所属グループの権限ありトークンIDがなければトークンなし
-    if len(tkn_ids) <= 0:
-        return ''
-
-    # 有効なトークンを取得
     if not now:
         now = datetime.datetime.now(pytz.timezone('UTC'))
 
+    tkn = ''
+
+    # 有効なトークンを取得
     tkn_list = list(
         TokenInfo.objects.filter(
-            token_id__in=tkn_ids
-        ).filter(
             Q(use_start_time__isnull=True) | Q(use_start_time__lte=now)
         ).filter(
             Q(use_end_time__isnull=True)   | Q(use_end_time__gt=now)
