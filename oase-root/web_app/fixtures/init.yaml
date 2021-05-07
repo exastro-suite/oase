@@ -594,6 +594,26 @@
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
+- model: web_app.AccessPermission
+  pk: -2140000031
+  fields:
+    group_id: 1
+    menu_id: 2141001009
+    rule_type_id: 0
+    permission_type_id: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000032
+  fields:
+    group_id: 2
+    menu_id: 2141001009
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
 
 ################################
 # 条件式マスタ
@@ -1459,6 +1479,15 @@
   fields:
     menu_group_id: 2140002000
     menu_name: SSO設定
+    login_necessity: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.Menu
+  pk: 2141001009
+  fields:
+    menu_group_id: 2140001000
+    menu_name: トークン払い出し
     login_necessity: 1
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
