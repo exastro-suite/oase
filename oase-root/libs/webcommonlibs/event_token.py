@@ -104,7 +104,7 @@ class OASEEventToken(object):
           初期化処理
         """
 
-        self.initialize = False
+        self.init_flag  = False
         self.token_info = {}
 
 
@@ -124,7 +124,7 @@ class OASEEventToken(object):
             self.token_info[tkn]['period_to']   = dt_to
 
 
-        self.initialize = True
+        self.init_flag = True
 
         logger.logic_log('LOSI13026', self.token_info)
 
