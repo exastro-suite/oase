@@ -571,6 +571,7 @@ class TokenInfo(models.Model):
     DOSL17001:トークン情報管理
     """
     token_id = models.AutoField("トークンID", primary_key=True)
+    token_name = models.CharField("トークン名", max_length=64)
     token_data = models.CharField("トークンデータ", max_length=64)
     use_start_time = models.DateTimeField("利用開始日",null=True)
     use_end_time = models.DateTimeField("利用終了日",null=True)
@@ -589,7 +590,7 @@ class TokenPermission(models.Model):
     DOSL17002:トークン権限管理
     """
     token_permission_id = models.AutoField("トークン権限ID", primary_key=True)
-    token_id = models.IntegerField("表示フラグ")
+    token_id = models.IntegerField("トークンID")
     group_id = models.IntegerField("グループID")
     permission_type_id = models.IntegerField("権限種別ID")
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
