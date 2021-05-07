@@ -30,7 +30,7 @@ from django.test import Client
 
 from libs.commonlibs.common import Common
 from web_app.models.models import User, PasswordHistory
-from web_app.models.models import TokenInfo, TokenPermission
+from web_app.models.models import TokenInfo, TokenPermission, Group, AccessPermission
 from web_app.views.rule import token 
 
 
@@ -130,6 +130,84 @@ def tokenpermission_data():
 
     TokenPermission.objects.filter(last_update_user='pytest_user').delete()
 
+@pytest.fixture()
+def tokeninfo_data_index():
+    """
+    """
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    
+    TokenInfo(
+        token_id = 12345,
+        token_data = 'pytest_token_data',
+        use_start_time = datetime.datetime.now(pytz.timezone('UTC')),
+        use_end_time = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest_user'
+    ).save(force_insert=True)
+
+    yield
+
+    TokenInfo.objects.filter(last_update_user='pytest_user').delete()
+
+@pytest.fixture()
+def tokenpermission_data_index():
+    """
+    """
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    
+    TokenPermission(
+        token_permission_id = 12345,
+        token_id = 12345,
+        group_id = 999,
+        permission_type_id = 1,
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest_user'
+    ).save(force_insert=True)
+
+    yield
+
+    TokenPermission.objects.filter(last_update_user='pytest_user').delete()
+
+@pytest.fixture()
+def group_data():
+    """
+    """
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    
+    Group(
+        group_id = 999,
+        group_name = 'pytest_group_name',
+        summary = 'pytest_summary',
+        ad_data_flag = 0,
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest_user'
+    ).save(force_insert=True)
+
+    yield
+
+    Group.objects.filter(last_update_user='pytest_user').delete()
+
+@pytest.fixture()
+def accesspermission_data():
+    """
+    """
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    AccessPermission(
+        permission_id = 123,
+        group_id = 999,
+        menu_id = 999,
+        rule_type_id = 999,
+        permission_type_id = 1,
+        last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+        last_update_user = 'pytest_user',
+    ).save(force_insert=True)
+
+    yield
+
+    AccessPermission.objects.filter(last_update_user='pytest_user').delete()
+
 
 ################################################################
 # トークン削除テスト
@@ -177,4 +255,35 @@ class TestDeleteToken(object):
         assert 'error_msg' in response
         assert 'MOSJA37016' in response['error_msg']
 
+################################################################
+# トークン一覧テスト
+################################################################
+@pytest.mark.django_db
+class TestIndexToken(object):
+
+    @pytest.mark.usefixtures('tokeninfo_data_index', 'tokenpermission_data_index', 'group_data', 'accesspermission_data')
+    def test_ok(self):
+        """
+        トークン一覧
+        ※ 正常系
+        """
+        group_id_list = 999
+        admin = get_adminstrator()
+        response = admin.get(reverse('web_app:rule:token'))
+        print(response)
+        assert response.status_code == 200
+
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data', 'group_data', 'accesspermission_data')
+    def test_ng(self):
+        """
+        アクション履歴一覧
+        ※ 異常系
+        """
+        group_id_list = 999
+        admin = get_adminstrator()
+        response = admin.get(reverse('web_app:rule:token'))
+        print(response)
+        with pytest.raises(Exception):
+            assert response.status_code != 200
 
