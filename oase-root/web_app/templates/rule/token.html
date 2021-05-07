@@ -281,6 +281,44 @@ function getPermissionChecked(num, perm){
     return "";
 }
 
+
+function deleteToken(btn, url)
+{
+    //  ボタン非活性
+    btn.disabled = true;
+
+    //  確認
+    if(confirm(getMessage('MOSJA37018', false)) != true)
+    {
+        btn.disabled = false;
+        return;
+    }
+
+    //  削除リクエスト
+    $.ajax({
+        type : "GET",
+        url  : url,
+    })
+    .done(function(respdata) {
+        if(respdata.status == "failure")
+        {
+            alert(respdata.error_msg);
+        }
+        else
+        {
+            alert(getMessage("MOSJA00200", false));
+        }
+
+        location.href = respdata.redirect_url;
+    })
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA00014", true));
+        window.location.href = "{% url 'web_app:top:logout' %}";
+    });
+
+    //  ボタン活性
+    btn.disabled = false;
+}
 -->
 </script>
 
@@ -398,7 +436,7 @@ $(function(){
                       <div class="cell-inner">
                         <ul>
                           <li><button class="tooltip detail oase-mini-button" onClick="modalOpen('#token-info');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA37006' request.user.get_lang_mode showMsgId=False %}</span></button></li>
-                          <li><button class="tooltip detail oase-mini-button" onClick=""><em class="owf owf-trash"></em><span>{% get_message 'MOSJA37007' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                          <li><button class="tooltip detail oase-mini-button" onClick="deleteToken(this, '{% url 'web_app:rule:token_delete' token.token_id %}');"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA37007' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                         </ul>
                       </div>
                     </td>
