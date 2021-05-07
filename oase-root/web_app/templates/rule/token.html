@@ -1,0 +1,529 @@
+{% extends "common/page_base_tpl.html" %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load static %}
+{% load common %}
+{% load tz %}
+{% block myheader %}
+
+<script type="text/javascript">
+<!--
+
+////////////////////////////////////////////////
+//  DB登録（新規登録・複製）
+////////////////////////////////////////////////
+function submitTableData(){
+
+    var tableInfo     = {};
+    var objTBody      = document.getElementById("data_object_data");
+    var groupList     = new Array();
+
+    // ボタン制御 連打防止
+    $("#btnUpd").prop("disabled", true);
+    if(confirm(getMessage('MOSJA00002',false)) == true){
+
+        //--------------------------------------------
+        // トークン名, 有効期限 の取得
+        //--------------------------------------------
+        tableInfo["token_name"]      = $("#token_name").val();
+        tableInfo["user_end_time"] = $("#user_end_time").val();
+
+        //--------------------------------------------
+        // アクセス権限の取得
+        //--------------------------------------------
+        var groupInfo = {};
+        var permInfo  = {};
+        var permList  = new Array();
+        var permValue = '0';
+
+        {% for gr in group_list %}
+        groupInfo = {};
+        permList  = [];
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001003"]:checked').val();
+        permInfo['menu_id'] = '2141001003';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001004"]:checked').val();
+        permInfo['menu_id'] = '2141001004';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001005"]:checked').val();
+        permInfo['menu_id'] = '2141001005';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001007"]:checked').val();
+        permInfo['menu_id'] = '2141001007';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141001008"]:checked').val();
+        permInfo['menu_id'] = '2141001008';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        permInfo  = {};
+        permValue = $('input[name="radio{{gr.id}}_2141002006"]:checked').val();
+        permInfo['menu_id'] = '2141002006';
+        permInfo['permission_type_id'] = permValue;
+        permList.push(permInfo);
+
+        groupInfo['group_id']   = '{{gr.id}}';
+        groupInfo['permission'] = permList;
+        groupList.push(groupInfo);
+        {% endfor %}
+
+        //--------------------------------------------
+        // エラーチェック
+        //--------------------------------------------
+        var errorList    = [];
+        var errorDict    = {}; //{"エラー表示箇所","エラータイトル", "エラーメッセージ"}
+    
+        var noSelect = false;
+        $(".conditional-expression").each(function(index, element){
+            if($(element).find("option:selected").val() == ""){
+                $(element).addClass("non-select");
+                noSelect = true;
+            }
+        });
+
+        if(noSelect){
+            errorDict["errorTag"]     = $(".non-select");
+            errorDict["errorTitle"]   = getMessage('MOSJA00095', false);
+            errorDict["errorMessage"] = getMessage("MOSJA00015", true);
+            errorList.push($.extend(true,{},errorDict));
+        }
+         
+        // エラーがあれば表示
+        if (errorList.length != 0){
+            alert(getMessage('MOSJA00096', false));
+            $.each(errorList, function(index, errorDict){
+                nonInput(errorDict["errorTag"], errorDict["errorTitle"], errorDict["errorMessage"]);
+            });
+        }else{
+            //登録情報をjson形式に変換し、任意のvalueにセットする。
+            var jstr = JSON.stringify({"table_info": tableInfo, "group_list":groupList});
+            $("#add_record").val(jstr);
+    
+            //formにセットした登録情報をサーバーに送る
+            document.getElementById("formTableData").submit();
+        }
+
+    } else {
+        $("#btnUpd").prop("disabled", false);
+    }
+}
+
+////////////////////////////////////////////////
+// 新規追加画面の表示
+////////////////////////////////////////////////
+function showNewTable(){
+
+    // モーダル画面のタイトル初期化
+    $("#modal-title-new").text(getMessage('MOSJA00090', false));
+    // 基本情報 初期化
+    $("#token_name").val("");
+    $("#user_end_time").val("");
+
+    // バリデーションエラー初期化
+    $(".error-list").remove();
+    $("td").removeClass("error");
+
+    // アクセス権限情報埋め込み
+    var html = '';
+    {% if group_list|length %}
+    html += '<dl>';
+      {% for gr in group_list %}
+    html += createHTMLAccessPermission('dlAuthGrpListNew', '{{gr.id}}', '{{gr.name}}', '{{gr.perm}}');
+      {% endfor %}
+
+    html += '</dl>';
+    {% else %}
+    html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
+    {% endif %}
+
+    $("#dlAuthGrpListNew").html(html);
+}
+
+////////////////////////////////////////////////
+// 権限グループリストの簡易表示を更新する
+////////////////////////////////////////////////
+$(function(){
+  // 条件式選択時 エラー解除
+  $(".conditional-expression").change(function(){
+    $(".select .error-list").remove();
+    $(".select").removeClass("error");
+  });
+
+  // 権限グループリスト開閉
+  $('.authority-group-list').on('click', 'dt', function(){
+    var $clickElement = $( this );
+    var $parentBlock = $clickElement.closest('.oase-modal-body');
+    var scrollTop = $clickElement.offset().top - $parentBlock.offset().top + $parentBlock.scrollTop() - 8;
+    $( this ).next().slideToggle( 0 ,function(){
+      // 開いたときスクロールする
+      if( $( this ).is(':visible') ) {
+        $parentBlock.animate({ scrollTop: scrollTop }, 300 );
+      }
+    });
+  });
+  
+  // 権限グループリストの簡易表示を変更
+  $('.oase-modal').on({
+    'click': function(){
+      var trIndex = $(this).parents('tbody').find('tr').index( $(this).parents('tr') ) + 1;
+      var authorityLevel = $(this).val();
+      $(this).parents('dd').prev('dt').find('.authority' + trIndex + ' em').removeClass().addClass('level' + authorityLevel );
+    }
+  }, 'input[type="radio"]');
+});
+
+////////////////////////////////////////////////
+// 権限グループリストを表示する
+////////////////////////////////////////////////
+function createHTMLAccessPermission(tagID, grID, grName, perm){
+    var html = '';
+
+    //グループ別権限
+    html += '<dd>';
+    html += '  <div class="oase-modal-table">';
+    html += '    <table class="authority-table">';
+    html += '      <thead>';
+    html += '        <tr>';
+    html += '          <th><div class="cell-inner">' + getMessage('MOSJA37014', false) + '</div></th>';
+
+
+    {% comment %}新規追加画面 or 編集画面{% endcomment %}
+    if(tagID == "dlAuthGrpListNew" || tagID == "dlAuthGrpListEdit"){
+        html += '          <th><div class="cell-inner"><em class="owf owf-cross"></em><br>' + getMessage('MOSJA00086', false) + '</div></th>';
+        html += '          <th><div class="cell-inner"><em class="owf owf-loupe"></em><br>' + getMessage('MOSJA00087', false) + '</div></th>';
+        html += '          <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA00088', false) + '</div></th>';
+    }
+    {% comment %}参照画面{% endcomment %}
+    else if(tagID == "dlAuthGrpListDisp"){
+        {% comment %}MOSJA27028 : 設定値{% endcomment %}
+        html += '          <th><div class="cell-inner">' + getMessage('MOSJA27028', false) + '</div></th>';
+    }
+
+    html += '        </tr>';
+    html += '      </thead>';
+
+    // 詳細表示
+    html += '      <tbody>';
+    html += '        <tr>';
+
+    {% comment %}新規追加画面{% endcomment %}
+    if(tagID == "dlAuthGrpListNew"){
+        html += '          <th><div class="cell-inner">' + grName + '</div></th>';
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1" name="radio' + grID + '"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2" name="radio' + grID + '"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3" name="radio' + grID + '"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3"></label></div></td>';
+    }
+    {% comment %}更新画面{% endcomment %}
+    else if(tagID == "dlAuthGrpListEdit"){
+        html += '          <th><div class="cell-inner">' + grName + '</div></th>';
+        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1b" name="radio' + grID + 'b"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1b"></label></div></td>';
+        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2b" name="radio' + grID + 'b"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2b"></label></div></td>';
+        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3b" name="radio' + grID + 'b"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3b"></label></div></td>';
+    }
+    {% comment %}参照画面{% endcomment %}
+    else if(tagID == "dlAuthGrpListDisp"){
+        {% comment %}MOSJA27029 : 現在の設定値{% endcomment %}
+        html += '          <th><div class="cell-inner">' + grName + '</div></th>';
+        html += '          <td class="authority-type level' + perm + '">';
+        html += '            <div class="cell-inner">';
+        html +=                getPermissionText(perm);
+        html += '            </div>';
+        html += '          </td>';
+    }
+
+    html += '        </tr>';
+    html += '      </tbody>';
+    html += '    </table>';
+    html += '  </div>';
+    html += '</dd>';
+
+    return html;
+}
+
+function getPermissionChecked(num, perm){
+    if(num == "1" && perm == "3")
+        return " checked";
+
+    else if(num == "2" && perm == "2")
+        return " checked";
+
+    else if(num == "3" && perm == "1")
+        return " checked";
+
+    return "";
+}
+
+-->
+</script>
+
+<script>
+$(function(){
+  const $modalToken = $('#new-token'),
+        $tokenGenerate = $('#token-generate,#token-redisplay');
+  
+  // カレンダー
+  $modalToken.find('.token-end').oaseDatePicker();
+  
+  // クリップボードにコピー
+  if ( navigator.clipboard === undefined && document.execCommand === undefined ) {
+    // 未対応の場合はボタンを削除
+    $tokenGenerate.find('.oase-token-copy').remove();
+  } else {
+    $tokenGenerate.find('.oase-token-copy').on('click', function(){
+
+      const $copyButton = $( this );
+
+      // 表示アニメ
+      const clickCopy = function(){
+        $copyButton.addClass('copy');
+
+        setTimeout( function(){
+          $copyButton.removeClass('copy');
+        }, 1000 );
+      }
+
+      if( !$copyButton.is('.copy') ){
+        if ( navigator.clipboard !== undefined ) {
+          // navigator.clipboard
+          const text = $tokenGenerate.find('.oase-token-data').text();
+          navigator.clipboard.writeText(text);
+          clickCopy();
+        } else if ( document.execCommand !== undefined ) {
+          // document.execCommand
+          const tokenElm = $tokenGenerate.find('.oase-token-data').get(0),
+                range = document.createRange(),
+                selection = window.getSelection();
+          range.selectNodeContents( tokenElm );
+          selection.removeAllRanges();
+          selection.addRange( range );
+          document.execCommand('copy');
+          selection.removeAllRanges();
+          clickCopy();
+        }    
+
+      }
+
+    });
+  }
+  
+});
+
+</script>
+
+{% endblock %}
+
+{% block maincontent %}
+<div class="oase-main">
+  <main class="oase-main-inner">
+
+    <div class="oase-main-header">
+      <div class="oase-main-header-inner">
+
+        <div class="oase-main-title">
+          <div class="oase-main-title-inner">
+            <h1>{% get_message 'MOSJA37000' request.user.get_lang_mode showMsgId=False %}</h1>
+          </div><!-- /.oase-main-title-inner -->
+        </div><!-- /.oase-main-title -->
+
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group">
+              <li><button class="oase-button" onClick="showNewTable();modalOpen('#new-token');"><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37001' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+
+      </div><!-- /.oase-main-header-inner -->
+    </div><!-- /.oase-main-header -->
+
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
+
+      {% if token_list|length %}
+        <section>
+
+          <div class="oase-table">
+
+            <div class="oase-table-load loading">
+              <div class="oase-table-loader-inner">
+                <em class="owf owf-update">
+                </em>
+              </div>
+            </div>
+
+            <div class="oase-table-inner">
+              <table class="oase-filter oase-sort">
+                <thead>
+                  <tr>
+                    <th class="operation-menu" filter-label="operation-menu"><div class="cell-inner">{% get_message 'MOSJA37002' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="token-name sort filter" filter-type="common" filter-label="token-name"><div class="cell-inner">{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="token-start sort filter" filter-type="date" filter-label="token-start"><div class="cell-inner">{% get_message 'MOSJA37004' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="token-end sort filter" filter-type="date" filter-label="token-end"><div class="cell-inner">{% get_message 'MOSJA37005' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <th class="last-modified sort filter" filter-type="date" filter-label="last-modified"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for token in token_list %}
+                  <tr>
+                    <td class="operation-menu">
+                      <div class="cell-inner">
+                        <ul>
+                          <li><button class="tooltip detail oase-mini-button" onClick="modalOpen('#token-info');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA37006' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                          <li><button class="tooltip detail oase-mini-button" onClick=""><em class="owf owf-trash"></em><span>{% get_message 'MOSJA37007' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                        </ul>
+                      </div>
+                    </td>
+                    <td class="token-name"><div class="cell-inner">{{token.token_data}}</div></td>
+                    <td class="token-start"><div class="cell-inner"><time datetime="{{ token.use_start_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
+                    {% if token.use_end_time|length %}
+                    <td class="token-end"><div class="cell-inner"><time datetime="{{ token.use_end_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_end_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
+                    {% else %}
+                    <td class="token-end"><div class="cell-inner"><time datetime="{{ token.use_end_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_end_time|timezone:'Asia/Tokyo' }}</time></div></td>
+                    {% endif %}
+                    <td class="last-update-user"><div class="cell-inner">{{token.last_update_user}}</div></td>
+                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ token.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="oase-table-footer">
+              <ul class="button-group">
+                <li><dl><dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt><dd class="rowCount">0</dd></dl></li>
+                <li><dl><dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt><dd>
+                  <select class="rowShowNum">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50" selected>50</option>
+                    <option value="100">100</option>
+                  </select>
+                </dd></dl></li>
+                <li>
+                  <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                  <input class="pagingNow" type="text"> /
+                  <span class="pagingMax">0</span>
+                  <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+                </li>
+                <li>
+                  <button class="scrollTop button tooltip">
+                    <em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span>
+                  </button>
+                </li>
+                <li>
+                  <button class="scrollBottom button tooltip">
+                    <em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+          </div>
+
+        </section>
+      {% else %}
+        <div class="oase-none">
+          <p>{% autoescape off%}{% get_message 'MOSJA37012' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+        </div>
+      {% endif %}
+
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
+
+  </main><!-- /.oase-main-inner -->
+</div><!-- /.oase-main -->
+
+<!-- 新規トークン払い出し -->
+<div id="new-token" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+      
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37001' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
+          <button class="oase-modal-close" onclick="modalClose('#new-token');"><em class="owf owf-cross"></em></button>
+        </div>
+        
+        <div class="oase-modal-body">
+            <div class="oase-modal-block">
+              <h3>{% get_message 'MOSJA37008' request.user.get_lang_mode showMsgId=False %}</h3>
+              <div class="oase-modal-table">
+                <table>
+                  <tbody>
+
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %} <sup>*</sup></div></th>
+                      <td>
+                        <div class="cell-inner"><input class="validation-input" type="text" placeholder="{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %}" title="" data-maxlength="64" name="tiken-name"></div>
+                      </td>
+                    </tr>
+                    
+                    <tr>
+                      <th><div class="cell-inner">{% get_message 'MOSJA37009' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <td>
+                        <div class="cell-inner"><input type="text" placeholder="{% get_message 'MOSJA37010' request.user.get_lang_mode showMsgId=False %}" class="token-end" name="token-end"></div>
+                      </td>
+                    </tr>
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            
+            <div class="oase-modal-block">
+
+              <h3>{% get_message 'MOSJA37013' request.user.get_lang_mode showMsgId=False %}</h3>  
+              <div id="dlAuthGrpListNew" class="authority-group-list">
+                <!-- jQueryでここにタグ追加される -->
+              </div>
+
+            </div>   
+        </div>
+          
+        
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="modalClose('#new-token');">
+              <em class="owf owf-cross"></em><span>{% get_message 'MOSJA37011' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button clear" onclick="submitTableData();">
+              <em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37000' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  
+</div>
+
+{% endblock%}

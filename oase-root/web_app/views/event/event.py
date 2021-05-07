@@ -36,11 +36,13 @@ import subprocess
 import traceback
 import ast
 import pika
+import django.dispatch
 
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.dispatch import receiver
 from retry import retry
 
 from web_app.models.models import User, EventsRequest, DataObject, RuleType
@@ -53,6 +55,7 @@ from libs.webcommonlibs.event_token import OASEEventToken
 from libs.webcommonlibs.common import TimeConversion
 
 logger = OaseLogger.get_instance() # ロガー初期化
+sig_reload_token = django.dispatch.Signal()
 
 
 # token管理クラス初期化
@@ -107,7 +110,7 @@ def eventsrequest(request):
             raise Exception(msg)
 
         # tokenチェック
-        if not cls_evtoken.initialize:
+        if not cls_evtoken.init_flag:
             cls_evtoken.load_data()
 
         stscode, msg = cls_evtoken.check_request_token(request)
@@ -464,4 +467,18 @@ def _rabbitMQ_conf():
 
     except Exception as e:
         logger.system_log('LOSM13024', traceback.format_exc())
+
+
+class SigToken(object):
+
+    def send_sig(self):
+
+        sig_reload_token.send(sender=self.__class__)
+
+
+@receiver(sig_reload_token, sender=SigToken)
+def _reload_evetoken(sender, *args, **kwargs):
+
+    cls_evtoken.load_data()
+
 
