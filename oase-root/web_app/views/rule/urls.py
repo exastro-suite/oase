@@ -14,7 +14,7 @@
 #
 
 from django.urls import path, re_path
-from . import action_history, rule, decision_table, request_history
+from . import action_history, rule, decision_table, request_history, token
 
 app_name = 'rule'
 urlpatterns = [
@@ -26,6 +26,10 @@ urlpatterns = [
     path('decision_table/delete_table/<int:rule_type_id>/', decision_table.delete_table, name='delete_table'),
     path('decision_table/modify/<int:rule_type_id>/', decision_table.modify_detail, name='table_modify_detail'),
     re_path(r'^decision_table/download/(?P<rule_type_id>\d+)/$',  decision_table.download,  name='download'),
+
+    # トークン払い出し
+    path('token', token.index, name='token'),
+    path('token/delete/<int:token_id>/', token.delete, name='token_delete'),
 
     # ルール
     re_path(r'^rule$',         rule.rule,         name='rule'),
