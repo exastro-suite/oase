@@ -603,7 +603,7 @@ class OASELogID:
     Ary['LOSI13023'] = "Bulk Events Request processing Start."
     Ary['LOSI13024'] = "Event Request processing End. (ErrorFlag:{})"
     Ary['LOSI13025'] = "This Backend denied. (Path:{}, Backend:{})"
-    Ary['LOSI13026'] = "Initialize token info. (token_info:{})"
+    Ary['LOSI13026'] = "Initialize token info. (token_info:{}, group_info:{})"
     Ary['LOSI13027'] = "Checked a request token. (TraceID:{}, sts:{}, msg:{})"
     Ary['LOSI14001'] = "Does not have {} authority. [rule_type_id:{}, auth_rule_ids:{}]"
     Ary['LOSI16001'] = "Mail Template Modify. Update ID:{}, Delete ID:{}. (user_id: {})"
@@ -642,6 +642,8 @@ class OASELogID:
     Ary['LOSI30002'] = "Prometheus Adapter sub end. prometheus_adapter_id:{}"
     Ary['LOSI30003'] = "Delete from OASE_T_PROMETHEUS_TRIGGER_HISTORY. (prometheus_adapter_id:{}, trigger_id:{})"
     Ary['LOSI37000'] = "Failed to delete the token, For authority reasons. token_id:{}, user_groups:{}"
+    Ary['LOSI37001'] = "Failed to update the token, For authority reasons. token_id:{}, user_groups:{}"
+    Ary['LOSI37002'] = "Failed to update the token because the permission value is invalid. token_id:{}, user_group:{}, permission_type_id:{}"
 # LOOE
     Ary['LOOE00001'] = "LOOE message1"
     Ary['LOOE00002'] = "LOOE message2"

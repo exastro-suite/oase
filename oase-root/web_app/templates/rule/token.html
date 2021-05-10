@@ -319,6 +319,187 @@ function deleteToken(btn, url)
     //  ボタン活性
     btn.disabled = false;
 }
+
+////////////////////////////////////////////////
+//  詳細画面の表示制御
+////////////////////////////////////////////////
+function showDetail(token_id){
+
+    {% for token in token_list %}
+        if ( token_id == {{token.token_id}} ) {
+            $('#viewToken').attr('data-recordid', token_id);
+            $('#viewTokenNmae').text("{{token.token_name}}");
+            $('#viewUseStartTime').text("{{token.use_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}");
+            {% if token.use_end_time|length %}
+            $('#viewUseEndTime').text("{{token.use_end_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}");
+            {% else %}
+            $('#viewUseEndTime').text("{{token.use_end_time|timezone:'Asia/Tokyo'}}");
+            {% endif %}
+            $('#viewTokenLastUpdateUser').text("{{token.last_update_user}}");
+            $('#viewTokenLastUpdateTimestamp').text("{{token.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}");
+            $("#hid_tokenid").val(token_id);
+
+            html = '';
+            html += '<table class="authority-table">';
+            html += '  <thead>';
+            html += '    <tr>';
+            html += '      <th><div class="cell-inner">' + getMessage('MOSJA37021', false) + '</div></th>';
+            html += '      <th><div class="cell-inner">' + getMessage('MOSJA37022', false) + '</div></th>';
+            html += '    </tr>';
+            html += '  </thead>';
+            html += '  <tbody>';
+            {% for p in token.permission %}
+            grName = '{{p.group_name}}'
+            grId   = '{{p.group_id}}'
+            html += '    <tr>';
+            html += '      <th><div id="viewGroupNmae' + grId + '" class="cell-inner">' + grName + '</div></th>';
+            {% if p.permission_type_id == 1 %}
+            html += '      <td class="authority-type level1">';
+            html += '        <div class="cell-inner"><em class="owf owf-circle"></em>' + getMessage('MOSJA37023', false) + '</div>';
+            {% else %}
+            html += '      <td class="authority-type level3">';
+            html += '        <div class="cell-inner"><em class="owf owf-circle"></em>' + getMessage('MOSJA37024', false) + '</div>';
+            {% endif %}
+            html += '      </td>';
+            html += '    </tr>';
+            {% endfor %}
+            html += '  </tbody>';
+            html += '</table>';
+            $("#tokenAuthGrpListView").html(html);
+        }
+    {% endfor %}
+}
+
+////////////////////////////////////////////////
+//  トークンの編集画面にデータをセット
+////////////////////////////////////////////////
+function setInfoInTokenEditView() {
+
+    trId         = $('#viewToken').attr('data-recordid');
+    tokenName    = $("#viewTokenNmae").text();
+    useStartTime = $("#viewUseStartTime").text();
+    useEndTime   = $("#viewUseEndTime").text();
+
+    $('#editTokenNmae').text(tokenName);
+    $('#editUseStartTime').text(useStartTime);
+    $('#editUseEndTime').text(useEndTime);
+
+    {% for token in token_list %}
+    if (trId == {{token.token_id}}){
+        html = '';
+        html += '<table class="authority-table">';
+        html += '  <thead>';
+        html += '    <tr>';
+        html += '      <th><div class="cell-inner">' + getMessage('MOSJA37021', false) + '</div></th>';
+        html += '      <th><div class="cell-inner"><em class="owf owf-cross"></em><br>' + getMessage('MOSJA37024', false) + '</div></th>';
+        html += '      <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA37023', false) + '</div></th>';
+        html += '    </tr>';
+        html += '  </thead>';
+        html += '  <tbody>';
+        {% for p in token.permission %}
+        grName = '{{p.group_name}}'
+        grId   = '{{p.group_id}}'
+        html += '    <tr>';
+        html += '      <th><div id="editGroupNmae' + grId + '" class="cell-inner">' + grName + '</div></th>';
+        html += '      <td class="level3">';
+        html += '        <div class="cell-inner">';
+        {% if p.permission_type_id == 0 %}
+        html += '          <input value="0" type="radio" name="token-authority' + grId + '" id="token-authority' + grId + '-3b" checked>';
+        {% else %}
+        html += '          <input value="0" type="radio" name="token-authority' + grId + '" id="token-authority' + grId + '-3b">';
+        {% endif %}
+        html += '          <label class="radio" for="token-authority' + grId + '-3b"></label>';
+        html += '        </div>';
+        html += '      </td>';
+        html += '      <td class="level1">';
+        html += '        <div class="cell-inner">';
+        {% if p.permission_type_id == 1 %}
+        html += '          <input value="1" type="radio" name="token-authority' + grId + '" id="token-authority' + grId + '-1b" checked>';
+        {% else %}
+        html += '          <input value="1" type="radio" name="token-authority' + grId + '" id="token-authority' + grId + '-1b">';
+        {% endif %}
+        html += '          <label class="radio" for="token-authority' + grId + '-1b"></label>';
+        html += '        </div>';
+        html += '      </td>';
+        html += '    </tr>';
+        {% endfor %}
+        html += '  </tbody>';
+        html += '</table>';
+        $("#tokenAuthGrpListEdit").html(html);
+    }
+    {% endfor %}
+
+}
+
+////////////////////////////////////////////////
+//  トークン編集画面の更新処理
+////////////////////////////////////////////////
+function updateToken() {
+
+    var btnId = "#btnUpdToken";
+    $(btnId).prop("disabled", true);
+
+    var confirmMsg = getMessage("MOSJA37026", false);
+    if(!confirm(confirmMsg)){
+        $(btnId).prop("disabled", false);
+        return;
+    }
+
+    var permissionRecords = [];
+    var tokenInfo = {};
+
+    {% for gr in group_list %}
+        group_id = '{{gr.group_id}}';
+        permission_type_id = $('input[name="token-authority{{gr.group_id}}"]:checked').val();
+        var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
+        permissionRecords.push(record)
+    {% endfor %}
+
+    tokenInfo["token_id"]   = $('#viewToken').attr('data-recordid')
+    tokenInfo["permission"] = permissionRecords;
+
+    var jstr = JSON.stringify({"token_info": tokenInfo});
+    $("#upd_record").val(jstr);
+
+    document.getElementById("formTokenData2").submit();
+}
+
+function submitAction2(){
+
+    var tokenID = $("#hid_tokenid").val();
+
+    $.ajax({
+        type : "POST",
+        url  : "token/update/" + tokenID + "/",
+        data : $("#formTokenData2").serialize(),
+        dataType: "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            alert(getMessage('MOSJA00011', false));
+            beforeunloadThroughFlag = true;
+            $("#btnUpdToken").prop("disabled", false);
+            location.href = response_json.redirect_url;
+        } else {
+            if(response_json.error_msg) {
+                alert(response_json.error_msg);
+            }else{
+                alert(getMessage("MOSJA37027", true));
+            }
+            $("#btnUpdToken").prop("disabled", false);
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        if(stscode == "error") {
+            alert(getMessage('MOSJA00014', false));
+            $("#btnUpdToken").prop("disabled", false);
+            window.location.href = "/oase_web/top/logout";
+        } else {
+            alert(getMessage('MOSJA00014', false) + "\n" + respdata.responseText);
+            $("#btnUpdToken").prop("disabled", false);
+        }
+    });
+}
 -->
 </script>
 
@@ -394,7 +575,9 @@ $(function(){
         <div class="oase-main-menu">
           <div class="oase-main-menu-inner">
             <ul class="oase-button-group">
+              {% if hasUpdateAuthority %}
               <li><button class="oase-button" onClick="showNewTable();modalOpen('#new-token');"><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37001' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              {% endif %}
             </ul>
           </div><!-- /.oase-main-menu-inner -->
         </div><!-- /.oase-main-menu -->
@@ -436,7 +619,9 @@ $(function(){
                       <div class="cell-inner">
                         <ul>
                           <li><button class="tooltip detail oase-mini-button" onClick="modalOpen('#token-info');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA37006' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                          {% if hasUpdateAuthority %}
                           <li><button class="tooltip detail oase-mini-button" onClick="deleteToken(this, '{% url 'web_app:rule:token_delete' token.token_id %}');"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA37007' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                          {% endif %}
                         </ul>
                       </div>
                     </td>
@@ -493,6 +678,207 @@ $(function(){
           <p>{% autoescape off%}{% get_message 'MOSJA37012' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
         </div>
       {% endif %}
+
+        <!-- トークン詳細 -->
+        <div id="token-info" class="oase-modal">
+
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+                  <div class="oase-modal-title"><h2><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37019' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
+                  <button class="oase-modal-close" onclick="modalClose('#token-info');"><em class="owf owf-cross"></em></button>
+                </div>
+
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA37008' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div class="oase-modal-table">
+                      <table>
+                        <tbody id="viewToken" data-recordid=''>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="viewTokenNmae" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA37004' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="viewUseStartTime" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA37005' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="viewUseEndTime" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="viewTokenLastUpdateUser" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="viewTokenLastUpdateTimestamp" class="cell-inner"></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA37013' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div id="tokenAuthGrpListView" class="oase-modal-table">
+                      <!-- jQueryでここにタグ追加される -->
+                    </div>
+                  </div>
+                </div>
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button cancel" onclick="modalClose('#token-info');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    {% if hasUpdateAuthority %}
+                    <li><button class="oase-button edit" onclick="setInfoInTokenEditView(); modalChange('#token-info', '#token-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    {% endif %}
+                    <li><button class="oase-button clear" onclick="modalChange('#token-info','#token-password')"><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37020' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- トークン編集 -->
+        <div id="token-edit" class="oase-modal">
+
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+                  <div class="oase-modal-title"><h2><em class="owf owf-edit"></em><span>{% get_message 'MOSJA37025' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
+                  <button class="oase-modal-close" onclick="modalClose('#token-edit');"><em class="owf owf-cross"></em></button>
+                </div>
+
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+
+                    <div class="oase-modal-table">
+                      <table>
+                        <tbody>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="editTokenNmae" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA37004' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="editUseStartTime" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA37005' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td><div id="editUseEndTime" class="cell-inner"></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  <div class="oase-modal-block">
+                    <h3>{% get_message 'MOSJA37013' request.user.get_lang_mode showMsgId=False %}</h3>
+                    <div id="tokenAuthGrpListEdit" class="oase-modal-table">
+                      <!-- jQueryでここにタグ追加される -->
+                    </div>
+                  </div>
+                </div>
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button cancel" onclick="modalClose('#token-edit', '#btnUpdToken');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    <li><button class="oase-button" id="btnUpdToken" onclick="updateToken();"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+
+                <form id="formTokenData2" action="javascript:submitAction2()" method="POST">
+                  {% csrf_token %}
+                  <input type="hidden" id="upd_record" value="" name="upd_record" />
+                  <input type="hidden" id="hid_tokenid" value="hid_tokenid" />
+                </form>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="token-password" class="oase-modal">
+
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+                  <div class="oase-modal-title"><em class="owf owf-lock"></em> パスワードの再入力</div>
+                </div>
+
+                <div class="oase-modal-body">
+                  <div class="oase-modal-block">
+                    <h3>トークンを再表示するにはパスワードを入力してください</h3>
+                    <div class="oase-modal-table">
+                      <table>
+                        <tbody>
+                          <tr>
+                            <th><div class="cell-inner">パスワード</div></th>
+                            <td>
+                              <div class="cell-inner">
+                                <div class="password"><input type="password"><div class="password-show"></div></div>
+                              </div>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onClick="modalClose('#token-password');"><em class="owf owf-cross"></em><span>キャンセル</span></button></li>
+                    <li><button class="oase-button" onClick="confirmOpen('#token-redisplay')"><em class="owf owf-onetime"></em><span>トークン再表示</span></button></li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="token-redisplay" class="oase-confirm">
+
+          <div class="oase-confirm-main">
+            <div class="oase-confirm-inner">
+              <div class="oase-confirm-content">
+
+                <div class="oase-confirm-header">
+                  <div class="oase-confirm-title"><em class="owf owf-onetime"></em> トークン再表示</div>
+                </div>
+
+                <div class="oase-confirm-body">
+                  <p>トークンを再表示しました。</p>
+                  <div class="oase-token">
+                    <div class="oase-token-data">pokopoko3939mogumogu</div>
+                    <div class="oase-token-copy tooltip" title="クリップボードにコピー"><em class="owf owf-plus"></em></div>
+                  </div>
+                </div>
+
+                <div class="oase-confirm-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onClick="confirmClose('#token-redisplay');modalClose('#token-password')"><em class="owf owf-cross"></em><span>閉じる</span></button></li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-overlay"></div>
+        <div class="oase-confirm-overlay"></div>
 
       </div><!-- /.oase-main-body-inner -->
     </div><!-- /.oase-main-body -->
