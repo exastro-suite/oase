@@ -31,6 +31,7 @@ urlpatterns = [
     path('token', token.index, name='token'),
     path('token/delete/<int:token_id>/', token.delete, name='token_delete'),
     path('token/update/<int:token_id>/', token.update, name='token_update'),
+    path('token/disp/', token.display, name='token_display'),
 
     # ルール
     re_path(r'^rule$',         rule.rule,         name='rule'),
