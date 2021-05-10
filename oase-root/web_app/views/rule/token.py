@@ -76,9 +76,6 @@ def index(request):
         group_list = Group.objects.filter(
             group_id__in=user_groups).values('group_id', 'group_name').order_by('group_id')
 
-        token_permission = TokenPermission.objects.filter(
-            group_id__in=user_groups).values('token_id', 'group_id', 'permission_type_id').order_by('token_id')
-
         group_info = {}
         for group in group_list:
             group_info[group['group_id']] = group['group_name']
