@@ -37,6 +37,7 @@ from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.urls import reverse
 from libs.commonlibs import define as defs
+from libs.commonlibs.common import Common
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.webcommonlibs.decorator import *
 from libs.webcommonlibs.oase_exception import OASEError
@@ -305,4 +306,80 @@ def update(request, token_id):
 
     response_json = json.dumps(response_data)
     return HttpResponse(response_json, content_type="application/json")
+
+
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
+def display(request):
+    """
+    [メソッド概要]
+    トークンの再表示
+    """
+
+    logger.logic_log('LOSI00001', 're-display token request.', request=request)
+
+    response_data = {
+        'status' : 'failure',
+        'msg'    : '',
+    }
+
+    try:
+        # パラメーター取得
+        tkn_id = int(request.POST.get('tkn_id', '0'))
+        passwd = request.POST.get('passwd', '')
+        passwd = Common.oase_hash(passwd)
+
+        # 権限チェック
+        perm_flg = TokenPermission.objects.filter(
+            token_id           = tkn_id,
+            group_id__in       = request.user_config.group_id_list,
+            permission_type_id = defs.ALLOWED_MENTENANCE
+        ).exists()
+
+        if not perm_flg:
+            raise OASEError('MOSJA37035', 'LOSI37003', log_params=[tkn_id, request.user_config.group_id_list])
+
+        # パラメーターチェック
+        if passwd != request.user.password:
+            raise OASEError('MOSJA37036', 'LOSI37004', log_params=[tkn_id, ])
+
+        # トークン取得
+        tkn = TokenInfo.objects.get(token_id=tkn_id).token_data
+
+        # 応答データ
+        response_data['status'] = 'success'
+        response_data['msg']    = tkn
+
+    except TokenInfo.DoesNotExist:
+        logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
+        response_data['status'] = 'failure'
+        response_data['msg'] = get_message('MOSJA37017', request.user.get_lang_mode())
+
+    except OASEError as e:
+        if e.log_id:
+            if e.arg_list and isinstance(e.arg_list, list):
+                logger.logic_log(e.log_id, *(e.arg_list), request=request)
+            else:
+                logger.logic_log(e.log_id, request=request)
+
+        if e.msg_id:
+            if e.arg_dict and isinstance(e.arg_dict, dict):
+                msg = get_message(e.msg_id, request.user.get_lang_mode(), **(e.arg_dict))
+            else:
+                msg = get_message(e.msg_id, request.user.get_lang_mode())
+
+        response_data['status'] = 'failure'
+        response_data['msg'] = msg
+
+    except Exception as e:
+        logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
+        response_data['status'] = 'failure'
+        response_data['msg'] = get_message('MOSJA37037', request.user.get_lang_mode())
+
+
+    logger.logic_log('LOSI00002', 'result:%s, token_id=%s' % (response_data['status'], tkn_id), request=request)
+
+    # 応答
+    response_json = json.dumps(response_data)
+    return HttpResponse(response_json, content_type="application/json")
+
 
