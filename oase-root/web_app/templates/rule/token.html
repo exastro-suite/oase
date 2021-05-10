@@ -618,14 +618,14 @@ $(function(){
                     <td class="operation-menu">
                       <div class="cell-inner">
                         <ul>
-                          <li><button class="tooltip detail oase-mini-button" onClick="modalOpen('#token-info');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA37006' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                          <li><button class="tooltip detail oase-mini-button" onClick="modalOpen('#token-info');showDetail({{token.token_id}});"><em class="owf owf-details"></em><span>{% get_message 'MOSJA37006' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                           {% if hasUpdateAuthority %}
                           <li><button class="tooltip detail oase-mini-button" onClick="deleteToken(this, '{% url 'web_app:rule:token_delete' token.token_id %}');"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA37007' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                           {% endif %}
                         </ul>
                       </div>
                     </td>
-                    <td class="token-name"><div class="cell-inner">{{token.token_data}}</div></td>
+                    <td class="token-name"><div class="cell-inner">{{token.token_name}}</div></td>
                     <td class="token-start"><div class="cell-inner"><time datetime="{{ token.use_start_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
                     {% if token.use_end_time|length %}
                     <td class="token-end"><div class="cell-inner"><time datetime="{{ token.use_end_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_end_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
