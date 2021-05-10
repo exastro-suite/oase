@@ -19,6 +19,46 @@ Copyright 2019 NEC Corporation
 {% load common %}
 {% load tz %}
 {% block myheader %}
+<style>
+.oase-token {
+display: table;
+table-layout: fixed;
+border-collapse: collapse;
+width: calc( 100% - 16px );
+margin: 0 auto 24px;
+}
+.oase-token > div {
+display: table-cell
+}
+.oase-token-data {
+padding: 0 16px;
+border: 1px solid #CCC;
+line-height: 48px;
+text-align: center;
+letter-spacing: .05em;
+font-family: Consolas, "メイリオ", Meiryo, Osaka, "ＭＳ Ｐゴシック", "MS PGothic", "sans-serif";
+font-size: 16px;
+}
+.oase-token-copy {
+width: 48px;
+border: 1px solid #CCC;
+text-align: center;
+vertical-align: middle;
+font-size: 16px;
+cursor: pointer;
+}
+.oase-token-copy.copy > em {
+display: inline-block;
+animation: tokenCopy .8s;
+}
+@keyframes tokenCopy {
+  0% { transform: scale( 0.7 ); }
+  20% { transform: scale( 1.3 ); }
+  40% { transform: scale( 0.85 ); }
+  60% { transform: scale( 1.15 ); }
+  100% { transform: scale( 1 ); }
+}
+</style>
 
 <script type="text/javascript">
 <!--
@@ -282,6 +322,9 @@ function getPermissionChecked(num, perm){
 }
 
 
+////////////////////////////////////////////////
+// 指定のトークンを削除する
+////////////////////////////////////////////////
 function deleteToken(btn, url)
 {
     //  ボタン非活性
@@ -319,6 +362,52 @@ function deleteToken(btn, url)
     //  ボタン活性
     btn.disabled = false;
 }
+
+
+////////////////////////////////////////////////
+// 指定のトークンを表示する
+////////////////////////////////////////////////
+function displayToken(btn)
+{
+    //  ボタン非活性
+    btn.disabled = true;
+
+    //  リクエストパラメーター
+    var data = {
+        "tkn_id" : $('#viewToken').attr('data-recordid'),
+        "passwd" : document.getElementById("tkn_passwd").value,
+        "csrfmiddlewaretoken" : document.getElementsByName("csrfmiddlewaretoken")[0].value
+    };
+
+    //  トークン表示リクエスト
+    $.ajax({
+        type     : "POST",
+        url      : "{% url 'web_app:rule:token_display' %}",
+        data     : data,
+    })
+    .done(function(respdata) {
+        //  ボタン活性
+        btn.disabled = false;
+
+        if(respdata.status == "failure")
+        {
+            alert(respdata.msg);
+            beforeunloadThroughFlag = true;
+        }
+        else
+        {
+            document.getElementById("tkn_passwd").value = "";
+            confirmOpen('#token-redisplay');
+            $("#oase-token-data-re-disp").html(respdata.msg);
+            beforeunloadThroughFlag = true;
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA00014", true));
+        window.location.href = "{% url 'web_app:top:logout' %}";
+    });
+}
+
 
 ////////////////////////////////////////////////
 //  詳細画面の表示制御
@@ -806,6 +895,7 @@ $(function(){
           </div>
         </div>
 
+        {% comment %} トークン再表示のパスワード入力モーダル {% endcomment %}
         <div id="token-password" class="oase-modal">
 
           <div class="oase-modal-main">
@@ -813,20 +903,20 @@ $(function(){
               <div class="oase-modal-content">
 
                 <div class="oase-modal-header">
-                  <div class="oase-modal-title"><em class="owf owf-lock"></em> パスワードの再入力</div>
+                  <div class="oase-modal-title"><em class="owf owf-lock"></em> {% get_message 'MOSJA37020' request.user.get_lang_mode showMsgId=False %}</div>
                 </div>
 
                 <div class="oase-modal-body">
                   <div class="oase-modal-block">
-                    <h3>トークンを再表示するにはパスワードを入力してください</h3>
+                    <h3>{% get_message 'MOSJA37030' request.user.get_lang_mode showMsgId=False %}</h3>
                     <div class="oase-modal-table">
                       <table>
                         <tbody>
                           <tr>
-                            <th><div class="cell-inner">パスワード</div></th>
+                            <th><div class="cell-inner">{% get_message 'MOSJA37031' request.user.get_lang_mode showMsgId=False %}</div></th>
                             <td>
                               <div class="cell-inner">
-                                <div class="password"><input type="password"><div class="password-show"></div></div>
+                                <div class="password"><input id="tkn_passwd" type="password"><div class="password-show"></div></div>
                               </div>
                             </td>
                           </tr>
@@ -838,8 +928,8 @@ $(function(){
 
                 <div class="oase-modal-footer">
                   <ul class="oase-button-group">
-                    <li><button class="oase-button" onClick="modalClose('#token-password');"><em class="owf owf-cross"></em><span>キャンセル</span></button></li>
-                    <li><button class="oase-button" onClick="confirmOpen('#token-redisplay')"><em class="owf owf-onetime"></em><span>トークン再表示</span></button></li>
+                    <li><button class="oase-button" onClick="modalClose('#token-password');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    <li><button class="oase-button" onClick="displayToken(this);"><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37020' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                   </ul>
                 </div>
 
@@ -848,6 +938,7 @@ $(function(){
           </div>
         </div>
 
+        {% comment %} トークン再表示 {% endcomment %}
         <div id="token-redisplay" class="oase-confirm">
 
           <div class="oase-confirm-main">
@@ -855,20 +946,20 @@ $(function(){
               <div class="oase-confirm-content">
 
                 <div class="oase-confirm-header">
-                  <div class="oase-confirm-title"><em class="owf owf-onetime"></em> トークン再表示</div>
+                  <div class="oase-confirm-title"><em class="owf owf-onetime"></em> {% get_message 'MOSJA37020' request.user.get_lang_mode showMsgId=False %}</div>
                 </div>
 
                 <div class="oase-confirm-body">
-                  <p>トークンを再表示しました。</p>
+                  <p>{% get_message 'MOSJA37032' request.user.get_lang_mode showMsgId=False %}</p>
                   <div class="oase-token">
-                    <div class="oase-token-data">pokopoko3939mogumogu</div>
-                    <div class="oase-token-copy tooltip" title="クリップボードにコピー"><em class="owf owf-plus"></em></div>
+                    <div id="oase-token-data-re-disp" class="oase-token-data"></div>
+                    <div class="oase-token-copy tooltip" title="{% get_message 'MOSJA37033' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-plus"></em></div>
                   </div>
                 </div>
 
                 <div class="oase-confirm-footer">
                   <ul class="oase-button-group">
-                    <li><button class="oase-button" onClick="confirmClose('#token-redisplay');modalClose('#token-password')"><em class="owf owf-cross"></em><span>閉じる</span></button></li>
+                    <li><button class="oase-button" onClick="confirmClose('#token-redisplay');modalClose('#token-password')"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span></button></li>
                   </ul>
                 </div>
 
@@ -947,7 +1038,7 @@ $(function(){
       </div>
     </div>
   </div>
-  
+
 </div>
 
 {% endblock%}

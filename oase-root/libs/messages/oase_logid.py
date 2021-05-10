@@ -644,6 +644,8 @@ class OASELogID:
     Ary['LOSI37000'] = "Failed to delete the token, For authority reasons. token_id:{}, user_groups:{}"
     Ary['LOSI37001'] = "Failed to update the token, For authority reasons. token_id:{}, user_groups:{}"
     Ary['LOSI37002'] = "Failed to update the token because the permission value is invalid. token_id:{}, user_group:{}, permission_type_id:{}"
+    Ary['LOSI37003'] = "Failed to re-display the token, For authority reasons. token_id:{}, user_groups:{}"
+    Ary['LOSI37004'] = "Invalid password. token_id:{}"
 # LOOE
     Ary['LOOE00001'] = "LOOE message1"
     Ary['LOOE00002'] = "LOOE message2"
