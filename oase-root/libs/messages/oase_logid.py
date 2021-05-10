@@ -603,7 +603,7 @@ class OASELogID:
     Ary['LOSI13023'] = "Bulk Events Request processing Start."
     Ary['LOSI13024'] = "Event Request processing End. (ErrorFlag:{})"
     Ary['LOSI13025'] = "This Backend denied. (Path:{}, Backend:{})"
-    Ary['LOSI13026'] = "Initialize token info. (token_info:{}, group_info:{})"
+    Ary['LOSI13026'] = "Initialize token info. (token_info:{})"
     Ary['LOSI13027'] = "Checked a request token. (TraceID:{}, sts:{}, msg:{})"
     Ary['LOSI14001'] = "Does not have {} authority. [rule_type_id:{}, auth_rule_ids:{}]"
     Ary['LOSI16001'] = "Mail Template Modify. Update ID:{}, Delete ID:{}. (user_id: {})"
