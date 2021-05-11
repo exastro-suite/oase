@@ -29,6 +29,8 @@ import traceback
 import re
 import socket
 import urllib.parse
+import secrets
+import ast
 
 from django.http import HttpResponse, Http404
 from django.shortcuts import render,redirect
@@ -43,6 +45,7 @@ from libs.webcommonlibs.decorator import *
 from libs.webcommonlibs.oase_exception import OASEError
 from web_app.models.models import TokenInfo, TokenPermission, Group, AccessPermission
 from web_app.templatetags.common import get_message
+from web_app.serializers.unicode_check import UnicodeCheck
 from importlib import import_module
 from web_app.views.event.event import SigToken
 
@@ -382,4 +385,142 @@ def display(request):
     response_json = json.dumps(response_data)
     return HttpResponse(response_json, content_type="application/json")
 
+
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_ADMIN)
+@require_POST
+def create(request):
+    """
+    [メソッド概要]
+      データ更新処理
+      POSTリクエストのみ
+    """
+
+    logger.logic_log('LOSI00001', 'Create New Token', request=request)
+
+    response_data = {
+        'status'       : 'success',
+        'redirect_url' : reverse('web_app:rule:token'),
+    }
+
+    msg = ''
+    error_msg = {
+        'token_name' : '',
+    }
+
+    emo_chk = UnicodeCheck()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    # トークン生成
+    token_value = secrets.token_urlsafe(24)
+
+    # 要求パラメーター取得
+    token_name = request.POST.get('token-name', '')
+    end_time   = request.POST.get('token-end', '').replace('/', '-')
+    token_perm = request.POST.get('token-perm', '[]')
+    token_perm = ast.literal_eval(token_perm)
+
+    try:
+        with transaction.atomic():
+            # トークン名入力チェック
+            if len(token_name) == 0:
+                response_data['status'] = 'failure'
+                error_msg['token_name'] += get_message('MOSJA37040', request.user.get_lang_mode()) + '\n'
+
+            # トークン名文字列長チェック
+            if len(token_name) > 64:
+                response_data['status'] = 'failure'
+                error_msg['token_name'] += get_message('MOSJA37043', request.user.get_lang_mode()) + '\n'
+
+            # トークン名禁止文字チェック
+            emo_flag = False
+            value_list = emo_chk.is_emotion(token_name)
+            if len(value_list) > 0:
+                emo_flag = True
+                response_data['status'] = 'failure'
+                error_msg['token_name'] += get_message('MOSJA37044', request.user.get_lang_mode()) + '\n'
+
+            # トークン名重複チェック
+            if not emo_flag and TokenInfo.objects.filter(token_name=token_name).exists():
+                response_data['status'] = 'failure'
+                error_msg['token_name'] += get_message('MOSJA37045', request.user.get_lang_mode()) + '\n'
+
+
+            # 日時のチェック(有効期限は空欄の場合は期限なし)
+            if end_time:
+                end_time = datetime.datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+
+            else:
+                end_time = None
+
+            if len(error_msg['token_name']) != 0:
+                raise Exception()
+
+            # 権限チェック
+            permission_list_reg = []
+            for pm in token_perm:
+                if pm['permission_type_id'] not in ['0', '1']:
+                    raise OASEError('MOSJA37039', 'LOSI37006', log_params=[pm['group_id'], pm['permission_type_id']])
+
+            # DB保存
+            token_info = TokenInfo(
+                token_name            = token_name,
+                token_data            = token_value,
+                use_start_time        = now,
+                use_end_time          = end_time,
+                last_update_timestamp = now,
+                last_update_user      = request.user.user_name
+            )
+            token_info.save(force_insert=True)
+
+            permission_list_reg = []
+            for pm in token_perm:
+                permission_list_reg.append(
+                    TokenPermission(
+                        token_id              = token_info.token_id,
+                        group_id              = pm['group_id'],
+                        permission_type_id    = pm['permission_type_id'],
+                        last_update_timestamp = now,
+                        last_update_user      = request.user.user_name
+                    )
+                )
+
+            if len(permission_list_reg) > 0:
+                TokenPermission.objects.bulk_create(permission_list_reg)
+
+            response_data['status'] = 'success'
+            response_data['redirect_url'] = '/oase_web/rule/token'
+            response_data['token'] = token_value
+
+
+    except OASEError as e:
+        if e.log_id:
+            if e.arg_list and isinstance(e.arg_list, list):
+                logger.logic_log(e.log_id, *(e.arg_list), request=request)
+            else:
+                logger.logic_log(e.log_id, request=request)
+
+        if e.msg_id:
+            if e.arg_dict and isinstance(e.arg_dict, dict):
+                msg = get_message(e.msg_id, request.user.get_lang_mode(), **(e.arg_dict))
+            else:
+                msg = get_message(e.msg_id, request.user.get_lang_mode())
+
+        response_data['status'] = 'failure'
+        response_data['msg'] = msg
+
+    except Exception as e:
+        # 異常処理
+        logger.system_log('LOSI00005', traceback.format_exc(), request=request)
+        response_data['status'] = 'failure'
+        response_data['error_msg'] = error_msg
+
+    logger.logic_log('LOSI00002', 'status: %s' % (response_data['status']), request=request)
+
+    # 作成成功時はシグナル送信して、トークンをリロード
+    if response_data['status'] == 'success':
+        cls = SigToken()
+        cls.send_sig()
+
+    response_json = json.dumps(response_data)
+    return HttpResponse(response_json, content_type="application/json")
 
