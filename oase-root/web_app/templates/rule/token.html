@@ -62,124 +62,133 @@ animation: tokenCopy .8s;
 
 <script type="text/javascript">
 <!--
+////////////////////////////////////////////////
+//  未入力エラー処理
+////////////////////////////////////////////////
+function nonInput(tag, errorTitle, errorMessage){
+    tag.parents('th, td').addClass('error');
+    var errorHTML = '<ul class="error-list"><li><em class="owf owf-cross"></em>' + errorTitle + '<span class="tooltip help" title="' + errorMessage + '"><em class="owf owf-question"></em></span></li></ul>';
+        tag.after( errorHTML );
+    if( tag = $("#rule_type_name")){
+        tag.addClass("server-error");
+    }
+}
+
 
 ////////////////////////////////////////////////
 //  DB登録（新規登録・複製）
 ////////////////////////////////////////////////
-function submitTableData(){
+function submitTokenData(){
 
-    var tableInfo     = {};
+    var tokenInfo     = {};
     var objTBody      = document.getElementById("data_object_data");
-    var groupList     = new Array();
 
     // ボタン制御 連打防止
     $("#btnUpd").prop("disabled", true);
-    if(confirm(getMessage('MOSJA00002',false)) == true){
-
-        //--------------------------------------------
-        // トークン名, 有効期限 の取得
-        //--------------------------------------------
-        tableInfo["token_name"]      = $("#token_name").val();
-        tableInfo["user_end_time"] = $("#user_end_time").val();
-
-        //--------------------------------------------
-        // アクセス権限の取得
-        //--------------------------------------------
-        var groupInfo = {};
-        var permInfo  = {};
-        var permList  = new Array();
-        var permValue = '0';
-
-        {% for gr in group_list %}
-        groupInfo = {};
-        permList  = [];
-
-        permInfo  = {};
-        permValue = $('input[name="radio{{gr.id}}_2141001003"]:checked').val();
-        permInfo['menu_id'] = '2141001003';
-        permInfo['permission_type_id'] = permValue;
-        permList.push(permInfo);
-
-        permInfo  = {};
-        permValue = $('input[name="radio{{gr.id}}_2141001004"]:checked').val();
-        permInfo['menu_id'] = '2141001004';
-        permInfo['permission_type_id'] = permValue;
-        permList.push(permInfo);
-
-        permInfo  = {};
-        permValue = $('input[name="radio{{gr.id}}_2141001005"]:checked').val();
-        permInfo['menu_id'] = '2141001005';
-        permInfo['permission_type_id'] = permValue;
-        permList.push(permInfo);
-
-        permInfo  = {};
-        permValue = $('input[name="radio{{gr.id}}_2141001007"]:checked').val();
-        permInfo['menu_id'] = '2141001007';
-        permInfo['permission_type_id'] = permValue;
-        permList.push(permInfo);
-
-        permInfo  = {};
-        permValue = $('input[name="radio{{gr.id}}_2141001008"]:checked').val();
-        permInfo['menu_id'] = '2141001008';
-        permInfo['permission_type_id'] = permValue;
-        permList.push(permInfo);
-
-        permInfo  = {};
-        permValue = $('input[name="radio{{gr.id}}_2141002006"]:checked').val();
-        permInfo['menu_id'] = '2141002006';
-        permInfo['permission_type_id'] = permValue;
-        permList.push(permInfo);
-
-        groupInfo['group_id']   = '{{gr.id}}';
-        groupInfo['permission'] = permList;
-        groupList.push(groupInfo);
-        {% endfor %}
-
-        //--------------------------------------------
-        // エラーチェック
-        //--------------------------------------------
-        var errorList    = [];
-        var errorDict    = {}; //{"エラー表示箇所","エラータイトル", "エラーメッセージ"}
-    
-        var noSelect = false;
-        $(".conditional-expression").each(function(index, element){
-            if($(element).find("option:selected").val() == ""){
-                $(element).addClass("non-select");
-                noSelect = true;
-            }
-        });
-
-        if(noSelect){
-            errorDict["errorTag"]     = $(".non-select");
-            errorDict["errorTitle"]   = getMessage('MOSJA00095', false);
-            errorDict["errorMessage"] = getMessage("MOSJA00015", true);
-            errorList.push($.extend(true,{},errorDict));
-        }
-         
-        // エラーがあれば表示
-        if (errorList.length != 0){
-            alert(getMessage('MOSJA00096', false));
-            $.each(errorList, function(index, errorDict){
-                nonInput(errorDict["errorTag"], errorDict["errorTitle"], errorDict["errorMessage"]);
-            });
-        }else{
-            //登録情報をjson形式に変換し、任意のvalueにセットする。
-            var jstr = JSON.stringify({"table_info": tableInfo, "group_list":groupList});
-            $("#add_record").val(jstr);
-    
-            //formにセットした登録情報をサーバーに送る
-            document.getElementById("formTableData").submit();
-        }
-
-    } else {
+    if(confirm(getMessage('MOSJA00002',false)) == false){
         $("#btnUpd").prop("disabled", false);
+        return;
     }
+
+    //--------------------------------------------
+    // トークン名, 有効期限 の取得
+    //--------------------------------------------
+    tokenInfo["token_name"]    = $("#token_name").val();
+    tokenInfo["user_end_time"] = $("#user_end_time").val();
+
+    //--------------------------------------------
+    // アクセス権限の取得
+    //--------------------------------------------
+    var permissionRecords = [];
+
+    {% for gr in group_list %}
+        group_id = '{{gr.group_id}}';
+        permission_type_id = $('input[name="token-authority{{gr.group_id}}"]:checked').val();
+        if(permission_type_id === undefined)
+        {
+            permission_type_id = '0';
+        }
+
+        var record = {"group_id" : group_id, "permission_type_id" : permission_type_id};
+        permissionRecords.push(record)
+    {% endfor %}
+
+    tokenInfo["permission"] = permissionRecords;
+
+    //--------------------------------------------
+    // エラーチェック
+    //--------------------------------------------
+    var errorList    = [];
+    var errorDict    = {}; //{"エラー表示箇所","エラータイトル", "エラーメッセージ"}
+
+    var noSelect = false;
+    $(".conditional-expression").each(function(index, element){
+        if($(element).find("option:selected").val() == ""){
+            $(element).addClass("non-select");
+            noSelect = true;
+        }
+    });
+
+    if(noSelect){
+        errorDict["errorTag"]     = $(".non-select");
+        errorDict["errorTitle"]   = getMessage('MOSJA00095', false);
+        errorDict["errorMessage"] = getMessage("MOSJA00015", true);
+        errorList.push($.extend(true,{},errorDict));
+    }
+
+    // エラーがあれば表示
+    if (errorList.length != 0){
+        alert(getMessage('MOSJA00096', false));
+        $.each(errorList, function(index, errorDict){
+            nonInput(errorDict["errorTag"], errorDict["errorTitle"], errorDict["errorMessage"]);
+        });
+        return;
+    }
+
+    //--------------------------------------------
+    // リクエスト送信
+    //--------------------------------------------
+    //登録情報をjson形式に変換し、任意のvalueにセットする。
+    var jstr = JSON.stringify(tokenInfo["permission"]);
+    $("#token-perm").val(jstr);
+
+    $.ajax({
+        type : "POST",
+        url  : "{% url 'web_app:rule:token_create' %}",
+        data : $("#oase-token-data").serialize(),
+        dataType : "json",
+    })
+    .done(function(response_json) {
+        if(response_json.status == 'success') {
+            confirmOpen('#token-generate');
+            $('#tokenGenerate').text(response_json.token);
+            beforeunloadThroughFlag = true;
+        } else {
+            if(response_json.msg) {
+                alert(response_json.msg);
+            }else{
+                alert(getMessage('MOSJA00005', true) + "\n");
+            }
+
+            if(response_json.error_msg){
+                errorMsg = response_json.error_msg;
+                Object.keys(errorMsg).forEach(function(id) {
+                    errorStr = errorMsg[id];
+                    nonInput($("#"+id), getMessage('MOSJA00097', false), errorMsg[id]);
+                });
+            }
+        }
+    })
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA00014", true));
+        window.location.href = "{% url 'web_app:top:logout' %}";
+    });
 }
 
 ////////////////////////////////////////////////
 // 新規追加画面の表示
 ////////////////////////////////////////////////
-function showNewTable(){
+function showNewToken(){
 
     // モーダル画面のタイトル初期化
     $("#modal-title-new").text(getMessage('MOSJA00090', false));
@@ -192,19 +201,39 @@ function showNewTable(){
     $("td").removeClass("error");
 
     // アクセス権限情報埋め込み
-    var html = '';
-    {% if group_list|length %}
-    html += '<dl>';
-      {% for gr in group_list %}
-    html += createHTMLAccessPermission('dlAuthGrpListNew', '{{gr.id}}', '{{gr.name}}', '{{gr.perm}}');
-      {% endfor %}
-
-    html += '</dl>';
-    {% else %}
-    html += '<div class="oase-none"><p>' + getMessage('MOSJA14000', false) + '</p></div>';
-    {% endif %}
-
+    html = '';
+    html += '<table class="authority-table">';
+    html += '  <thead>';
+    html += '    <tr>';
+    html += '      <th><div class="cell-inner">' + getMessage('MOSJA37021', false) + '</div></th>';
+    html += '      <th><div class="cell-inner"><em class="owf owf-cross"></em><br>' + getMessage('MOSJA37024', false) + '</div></th>';
+    html += '      <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA37023', false) + '</div></th>';
+    html += '    </tr>';
+    html += '  </thead>';
+    html += '  <tbody>';
+    {% for gr in group_list %}
+    grName = '{{gr.group_name}}'
+    grId   = '{{gr.group_id}}'
+    html += '    <tr>';
+    html += '      <th><div id="addGroupNmae' + grId + '" class="cell-inner">' + grName + '</div></th>';
+    html += '      <td class="level3">';
+    html += '        <div class="cell-inner">';
+    html += '          <input value="0" type="radio" name="token-authority' + grId + '" id="token-authority' + grId + '-3a" checked>';
+    html += '          <label class="radio" for="token-authority' + grId + '-3a"></label>';
+    html += '        </div>';
+    html += '      </td>';
+    html += '      <td class="level1">';
+    html += '        <div class="cell-inner">';
+    html += '          <input value="1" type="radio" name="token-authority' + grId + '" id="token-authority' + grId + '-1a">';
+    html += '          <label class="radio" for="token-authority' + grId + '-1a"></label>';
+    html += '        </div>';
+    html += '      </td>';
+    html += '    </tr>';
+    {% endfor %}
+    html += '  </tbody>';
+    html += '</table>';
     $("#dlAuthGrpListNew").html(html);
+
 }
 
 ////////////////////////////////////////////////
@@ -239,87 +268,6 @@ $(function(){
     }
   }, 'input[type="radio"]');
 });
-
-////////////////////////////////////////////////
-// 権限グループリストを表示する
-////////////////////////////////////////////////
-function createHTMLAccessPermission(tagID, grID, grName, perm){
-    var html = '';
-
-    //グループ別権限
-    html += '<dd>';
-    html += '  <div class="oase-modal-table">';
-    html += '    <table class="authority-table">';
-    html += '      <thead>';
-    html += '        <tr>';
-    html += '          <th><div class="cell-inner">' + getMessage('MOSJA37014', false) + '</div></th>';
-
-
-    {% comment %}新規追加画面 or 編集画面{% endcomment %}
-    if(tagID == "dlAuthGrpListNew" || tagID == "dlAuthGrpListEdit"){
-        html += '          <th><div class="cell-inner"><em class="owf owf-cross"></em><br>' + getMessage('MOSJA00086', false) + '</div></th>';
-        html += '          <th><div class="cell-inner"><em class="owf owf-loupe"></em><br>' + getMessage('MOSJA00087', false) + '</div></th>';
-        html += '          <th><div class="cell-inner"><em class="owf owf-circle"></em><br>' + getMessage('MOSJA00088', false) + '</div></th>';
-    }
-    {% comment %}参照画面{% endcomment %}
-    else if(tagID == "dlAuthGrpListDisp"){
-        {% comment %}MOSJA27028 : 設定値{% endcomment %}
-        html += '          <th><div class="cell-inner">' + getMessage('MOSJA27028', false) + '</div></th>';
-    }
-
-    html += '        </tr>';
-    html += '      </thead>';
-
-    // 詳細表示
-    html += '      <tbody>';
-    html += '        <tr>';
-
-    {% comment %}新規追加画面{% endcomment %}
-    if(tagID == "dlAuthGrpListNew"){
-        html += '          <th><div class="cell-inner">' + grName + '</div></th>';
-        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1" name="radio' + grID + '"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1"></label></div></td>';
-        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2" name="radio' + grID + '"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2"></label></div></td>';
-        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3" name="radio' + grID + '"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3"></label></div></td>';
-    }
-    {% comment %}更新画面{% endcomment %}
-    else if(tagID == "dlAuthGrpListEdit"){
-        html += '          <th><div class="cell-inner">' + grName + '</div></th>';
-        html += '          <td class="level3"><div class="cell-inner"><input value="3" type="radio" id="radio' + grID + '-1b" name="radio' + grID + 'b"' + getPermissionChecked('1', perm) + '><label class="radio" for="radio' + grID + '-1b"></label></div></td>';
-        html += '          <td class="level2"><div class="cell-inner"><input value="2" type="radio" id="radio' + grID + '-2b" name="radio' + grID + 'b"' + getPermissionChecked('2', perm) + '><label class="radio" for="radio' + grID + '-2b"></label></div></td>';
-        html += '          <td class="level1"><div class="cell-inner"><input value="1" type="radio" id="radio' + grID + '-3b" name="radio' + grID + 'b"' + getPermissionChecked('3', perm) + '><label class="radio" for="radio' + grID + '-3b"></label></div></td>';
-    }
-    {% comment %}参照画面{% endcomment %}
-    else if(tagID == "dlAuthGrpListDisp"){
-        {% comment %}MOSJA27029 : 現在の設定値{% endcomment %}
-        html += '          <th><div class="cell-inner">' + grName + '</div></th>';
-        html += '          <td class="authority-type level' + perm + '">';
-        html += '            <div class="cell-inner">';
-        html +=                getPermissionText(perm);
-        html += '            </div>';
-        html += '          </td>';
-    }
-
-    html += '        </tr>';
-    html += '      </tbody>';
-    html += '    </table>';
-    html += '  </div>';
-    html += '</dd>';
-
-    return html;
-}
-
-function getPermissionChecked(num, perm){
-    if(num == "1" && perm == "3")
-        return " checked";
-
-    else if(num == "2" && perm == "2")
-        return " checked";
-
-    else if(num == "3" && perm == "1")
-        return " checked";
-
-    return "";
-}
 
 
 ////////////////////////////////////////////////
@@ -665,7 +613,7 @@ $(function(){
           <div class="oase-main-menu-inner">
             <ul class="oase-button-group">
               {% if hasUpdateAuthority %}
-              <li><button class="oase-button" onClick="showNewTable();modalOpen('#new-token');"><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37001' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              <li><button class="oase-button" onClick="showNewToken();modalOpen('#new-token');"><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37001' request.user.get_lang_mode showMsgId=False %}</span></button></li>
               {% endif %}
             </ul>
           </div><!-- /.oase-main-menu-inner -->
@@ -767,6 +715,73 @@ $(function(){
           <p>{% autoescape off%}{% get_message 'MOSJA37012' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
         </div>
       {% endif %}
+
+        <!-- トークン新規 -->
+        <div id="new-token" class="oase-modal">
+
+          <div class="oase-modal-main">
+            <div class="oase-modal-inner">
+              <div class="oase-modal-content">
+
+                <div class="oase-modal-header">
+                  <div class="oase-modal-title"><h2><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37001' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
+                  <button class="oase-modal-close" onclick="modalClose('#new-token');"><em class="owf owf-cross"></em></button>
+                </div>
+
+                <div class="oase-modal-body">
+                  <form id="oase-token-data">
+                    <div class="oase-modal-block">
+                      <h3>{% get_message 'MOSJA37008' request.user.get_lang_mode showMsgId=False %}</h3>
+                      <div class="oase-modal-table">
+                        <table>
+                          <tbody>
+
+                            <tr>
+                              <th><div class="cell-inner">{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %} <sup>*</sup></div></th>
+                              <td>
+                                <div class="cell-inner"><input id="token_name" class="validation-input" type="text" placeholder="{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %}" title="" data-maxlength="64" name="token-name" required></div>
+                              </td>
+                            </tr>
+
+                            <tr>
+                              <th><div class="cell-inner">{% get_message 'MOSJA37009' request.user.get_lang_mode showMsgId=False %}</div></th>
+                              <td>
+                                <div class="cell-inner"><input type="text" placeholder="{% get_message 'MOSJA37010' request.user.get_lang_mode showMsgId=False %}" class="token-end" name="token-end"></div>
+                              </td>
+                            </tr>
+
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <div class="oase-modal-block">
+
+                      <h3>{% get_message 'MOSJA37013' request.user.get_lang_mode showMsgId=False %}</h3>
+                      <div id="dlAuthGrpListNew" class="oase-modal-table">
+                        <!-- jQueryでここにタグ追加される -->
+                      </div>
+
+                    </div>
+                    <input id="token-perm" type="hidden" name="token-perm" value=""></input>
+                    {% csrf_token %}
+                  </form>
+                </div>
+
+                <div class="oase-modal-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button cancel" onclick="modalClose('#new-token');">
+                      <em class="owf owf-cross"></em><span>{% get_message 'MOSJA37011' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                    <li><button class="oase-button clear" onclick="submitTokenData();">
+                      <em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37000' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+        </div>
 
         <!-- トークン詳細 -->
         <div id="token-info" class="oase-modal">
@@ -895,6 +910,35 @@ $(function(){
           </div>
         </div>
 
+        <div id="token-generate" class="oase-confirm">
+
+          <div class="oase-confirm-main">
+            <div class="oase-confirm-inner">
+              <div class="oase-confirm-content">
+
+                <div class="oase-confirm-header">
+                  <div class="oase-confirm-title"><em class="owf owf-onetime"></em> {% get_message 'MOSJA37041' request.user.get_lang_mode showMsgId=False %}</div>
+                </div>
+
+                <div class="oase-confirm-body">
+                  <p>{% get_message 'MOSJA37042' request.user.get_lang_mode showMsgId=False %}</p>
+                  <div class="oase-token">
+                    <div id="tokenGenerate" class="oase-token-data"></div>
+                    <div class="oase-token-copy tooltip" title="{% get_message 'MOSJA37033' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-plus"></em></div>
+                  </div>
+                </div>
+
+                <div class="oase-confirm-footer">
+                  <ul class="oase-button-group">
+                    <li><button class="oase-button" onClick="confirmClose('#token-generate');modalClose('#new-token');window.location.reload();"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00070' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
         {% comment %} トークン再表示のパスワード入力モーダル {% endcomment %}
         <div id="token-password" class="oase-modal">
 
@@ -976,69 +1020,5 @@ $(function(){
 
   </main><!-- /.oase-main-inner -->
 </div><!-- /.oase-main -->
-
-<!-- 新規トークン払い出し -->
-<div id="new-token" class="oase-modal">
-
-  <div class="oase-modal-main">
-    <div class="oase-modal-inner">
-      <div class="oase-modal-content">
-      
-        <div class="oase-modal-header">
-          <div class="oase-modal-title"><h2><em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37001' request.user.get_lang_mode showMsgId=False %}</span></h2></div>
-          <button class="oase-modal-close" onclick="modalClose('#new-token');"><em class="owf owf-cross"></em></button>
-        </div>
-        
-        <div class="oase-modal-body">
-            <div class="oase-modal-block">
-              <h3>{% get_message 'MOSJA37008' request.user.get_lang_mode showMsgId=False %}</h3>
-              <div class="oase-modal-table">
-                <table>
-                  <tbody>
-
-                    <tr>
-                      <th><div class="cell-inner">{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %} <sup>*</sup></div></th>
-                      <td>
-                        <div class="cell-inner"><input class="validation-input" type="text" placeholder="{% get_message 'MOSJA37003' request.user.get_lang_mode showMsgId=False %}" title="" data-maxlength="64" name="tiken-name"></div>
-                      </td>
-                    </tr>
-                    
-                    <tr>
-                      <th><div class="cell-inner">{% get_message 'MOSJA37009' request.user.get_lang_mode showMsgId=False %}</div></th>
-                      <td>
-                        <div class="cell-inner"><input type="text" placeholder="{% get_message 'MOSJA37010' request.user.get_lang_mode showMsgId=False %}" class="token-end" name="token-end"></div>
-                      </td>
-                    </tr>
-
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            
-            <div class="oase-modal-block">
-
-              <h3>{% get_message 'MOSJA37013' request.user.get_lang_mode showMsgId=False %}</h3>  
-              <div id="dlAuthGrpListNew" class="authority-group-list">
-                <!-- jQueryでここにタグ追加される -->
-              </div>
-
-            </div>   
-        </div>
-          
-        
-        <div class="oase-modal-footer">
-          <ul class="oase-button-group">
-            <li><button class="oase-button cancel" onclick="modalClose('#new-token');">
-              <em class="owf owf-cross"></em><span>{% get_message 'MOSJA37011' request.user.get_lang_mode showMsgId=False %}</span></button></li>
-            <li><button class="oase-button clear" onclick="submitTableData();">
-              <em class="owf owf-onetime"></em><span>{% get_message 'MOSJA37000' request.user.get_lang_mode showMsgId=False %}</span></button></li>
-          </ul>
-        </div>
-        
-      </div>
-    </div>
-  </div>
-
-</div>
 
 {% endblock%}
