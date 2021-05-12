@@ -104,8 +104,6 @@ class PrometheusAdapterInfo():
         cipher = AESCipher(settings.AES_KEY)
         for prometheus_obj in prometheus_adapter_obj_list:
             prometheus_info = prometheus_obj.__dict__
-            if prometheus_obj.password:
-                prometheus_info['password'] = cipher.decrypt(prometheus_obj.password)
 
             prometheus_info['editable'] = rule_type_data_obj_dict[prometheus_obj.rule_type_id]['editable']
             prometheus_info['active'] = rule_type_data_obj_dict[prometheus_obj.rule_type_id]['active']
@@ -202,8 +200,6 @@ class PrometheusAdapterInfo():
         error_msg  = {
             'prometheus_disp_name' : '',
             'uri'                  : '',
-            'username'             : '',
-            'password'             : '',
             'query'                : '',
             'rule_type_id'         : '',
             'match_list'           : '',
@@ -224,16 +220,10 @@ class PrometheusAdapterInfo():
             if error_flag:
                 raise UserWarning('validation error.')
 
-            # パスワードを暗号化
-            cipher = AESCipher(settings.AES_KEY)
-            encrypted_password = cipher.encrypt(rq['password'])
-
             # Prometheusアダプタの更新
             adapter = PrometheusAdapter.objects.get(pk=prometheus_adapter_id)
             adapter.prometheus_disp_name  = rq['prometheus_disp_name']
             adapter.uri                   = rq['uri']
-            adapter.username              = rq['username']
-            adapter.password              = encrypted_password
             adapter.metric                = rq['query']
             adapter.rule_type_id          = rq['rule_type_id']
             adapter.last_update_user      = request.user.user_name
@@ -290,8 +280,6 @@ class PrometheusAdapterInfo():
         error_msg  = {
             'prometheus_disp_name' : '',
             'uri' : '',
-            'username' : '',
-            'password' : '',
             'query' : '',
             'rule_type_id':'',
         }
@@ -309,16 +297,10 @@ class PrometheusAdapterInfo():
             if error_flag:
                 raise UserWarning('validation error.')
 
-            # パスワードを暗号化
-            cipher = AESCipher(settings.AES_KEY)
-            encrypted_password = cipher.encrypt(rq['password'])
-
             # Prometheusアダプタの追加
             prometheus_adp = PrometheusAdapter(
                 prometheus_disp_name  = rq['prometheus_disp_name'],
                 uri                   = rq['uri'],
-                username              = rq['username'],
-                password              = encrypted_password,
                 metric                = rq['query'],
                 rule_type_id          = rq['rule_type_id'],
                 last_update_user      = request.user.user_name,
@@ -421,53 +403,6 @@ class PrometheusAdapterInfo():
             emo_flag_uri = True
             error_msg['uri'] += get_message('MOSJA26226', lang) + '\n'
             logger.user_log('LOSM32006', rq['uri'], request=request)
-
-        # username長さチェック
-        if len(rq['username']) > 64:
-            error_flag = True
-            error_msg['username'] += get_message('MOSJA26228', lang) + '\n'
-            logger.user_log('LOSM32002', 'username', 64, rq['username'], request=request)
-
-        # username絵文字使用チェック
-        value_list = emo_chk.is_emotion(rq['username'])
-        if len(value_list) > 0:
-            error_flag = True
-            error_msg['username'] += get_message('MOSJA26229', lang) + '\n'
-            logger.user_log('LOSM32006', rq['username'], request=request)
-
-        # password長さチェック
-        # 追加の場合
-        if rq['prometheus_adapter_id'] == '0':
-            if len(rq['password']) > 64:
-                error_flag = True
-                error_msg['password'] += get_message('MOSJA26231', lang) + '\n'
-                logger.user_log('LOSM32002', 'password', 64, rq['password'], request=request)
-
-            # password絵文字使用チェック
-            value_list = emo_chk.is_emotion(rq['password'])
-            if len(value_list) > 0:
-                error_flag = True
-                error_msg['password'] += get_message('MOSJA26232', lang) + '\n'
-                logger.user_log('LOSM32006', rq['password'], request=request)
-
-        # 変更の場合
-        else:
-            old_password = PrometheusAdapter.objects.get(prometheus_adapter_id=rq['prometheus_adapter_id']).password
-            # パスワード復号
-            cipher = AESCipher(settings.AES_KEY)
-            old_password_dec = cipher.decrypt(old_password)
-            if old_password != rq['password']:
-                if len(rq['password']) > 64:
-                    error_flag = True
-                    error_msg['password'] += get_message('MOSJA26231', lang) + '\n'
-                    logger.user_log('LOSM32002', 'password', 64, rq['password'], request=request)
-
-                # password絵文字使用チェック
-                value_list = emo_chk.is_emotion(rq['password'])
-                if len(value_list) > 0:
-                    error_flag = True
-                    error_msg['password'] += get_message('MOSJA26232', lang) + '\n'
-                    logger.user_log('LOSM32006', rq['password'], request=request)
 
         # query長さチェック
         if len(rq['query']) > 128:

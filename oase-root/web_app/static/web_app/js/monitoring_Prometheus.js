@@ -173,7 +173,6 @@ function setInfoInPrometheusDetailView(idName) {
 
     var name         = $(trId).data('name');
     var uri          = $(trId).data('uri');
-    var username     = $(trId).data('username');
     var query        = $(trId).data('query');
     var ruletypeid   = $(trId).data('ruletypeid');
     var ruletypename = $(trId).data('ruletypename');
@@ -184,7 +183,6 @@ function setInfoInPrometheusDetailView(idName) {
     $('#viewPrometheusDetail').attr('data-recordid', idName);
     $('#viewPrometheusName').text(name);
     $('#viewPrometheusUri').text(uri);
-    $('#viewPrometheusUsername').text(username);
     $('#viewPrometheusQuery').text(query);
     $('#viewPrometheusRuletype').text(ruletypename);
     $('#viewPrometheusUpdateuser').text(updateuser);
@@ -213,8 +211,6 @@ function setInfoInPrometheusEditView() {
     var trId         = '#' + $('#viewPrometheusDetail').attr('data-recordid');
     var name         = $(trId).data('name');
     var uri          = $(trId).data('uri');
-    var username     = $(trId).data('username');
-    var password     = $(trId).data('password');
     var query        = $(trId).data('query');
     var ruletypeid   = $(trId).data('ruletypeid');
     var matchlist    = $(trId).data('matchlist');
@@ -223,8 +219,6 @@ function setInfoInPrometheusEditView() {
 
     $('#editPrometheusName').val(name);
     $('#editPrometheusUri').val(uri);
-    $('#editPrometheusUsername').val(username);
-    $('#editPrometheusPass').val(password);
     $('#editPrometheusQuery').val(query);
     $('#edit-prometheus-rule-select').val(ruletypeid);
     if(!ruletypeid || ruletypeid <= 0) {
@@ -288,8 +282,6 @@ function setPrometheusInfo(idInfo){
     adapterInfo["adapter_id"] = 2;
     adapterInfo["prometheus_disp_name"] = $(idInfo['prometheus_disp_name']).val();
     adapterInfo["uri"] = $(idInfo['uri']).val();
-    adapterInfo["username"] = $(idInfo['username']).val();
-    adapterInfo["password"] = $(idInfo['password']).val();
     adapterInfo["query"] = $(idInfo['query']).val();
     adapterInfo["rule_type_id"] = $(idInfo['rule_type_id']).val();
 
@@ -413,8 +405,6 @@ function validatePrometheusAdapterData(objTBody, adapterInfo){
     var strID = "";
     var PrometheusName   = adapterInfo["prometheus_disp_name"];
     var uri          = adapterInfo["uri"];
-    var username     = adapterInfo["username"];
-    var password     = adapterInfo["password"];
     var query        = adapterInfo["query"];
     var ruletypeid   = adapterInfo["rule_type_id"];
     var matchlist    = adapterInfo['match_list'];
@@ -447,8 +437,6 @@ function validatePrometheusAdapterData(objTBody, adapterInfo){
     // 検査開始
     errorMsg['prometheus_disp_name'] = "";
     errorMsg['uri'] = "";
-    errorMsg['username'] = "";
-    errorMsg['password'] = "";
     errorMsg['query'] = "";
     errorMsg['rule_type_id'] = "";
 
@@ -508,8 +496,6 @@ function getIdInfoPrometheus(mode){
         'modalwindow'     : modalwindowid,
         'prometheus_disp_name': "#" + mode + "PrometheusName",
         'uri'             : "#" + mode + "PrometheusUri",
-        'username'        : "#" + mode + "PrometheusUsername",
-        'password'        : "#" + mode + "PrometheusPass",
         'query'           : "#" + mode + "PrometheusQuery",
         'rule_type_id'    : "#" + mode + "-prometheus-rule-select",
         'match_list'      : "#" + mode + "Prometheustable tr",
@@ -535,8 +521,6 @@ var renderPrometheusErrorMsg = function(errorMsg, mode) {
 
     renderErrorMsg(idInfo['prometheus_disp_name'], errorMsg['prometheus_disp_name']);
     renderErrorMsg(idInfo['uri'], errorMsg['uri']);
-    renderErrorMsg(idInfo['username'], errorMsg['username']);
-    renderErrorMsg(idInfo['password'], errorMsg['password']);
     renderErrorMsg(idInfo['query'], errorMsg['query']);
     renderErrorMsg(idInfo['rule_type_id'], errorMsg['rule_type_id']);
 

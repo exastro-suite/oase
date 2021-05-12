@@ -53,10 +53,6 @@ Copyright 2019 NEC Corporation
                     <td><div id="viewPrometheusUri" class="cell-inner"></div></td>
                   </tr>
                   <tr>
-                    <th><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}</div></th>
-                    <td><div id="viewPrometheusUsername" class="cell-inner"></div></td>
-                  </tr>
-                  <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA26241' request.user.get_lang_mode showMsgId=False %}</div></th>
                     <td><div id="viewPrometheusQuery" class="cell-inner"></div></td>
                   </tr>
@@ -136,14 +132,6 @@ Copyright 2019 NEC Corporation
                   <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA26202' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA26013' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                     <td><div class="cell-inner"><input id="addPrometheusUri" data-maxlength="512" type="text" data-type="text" class="validation-input" value="" required></div></td>
-                  </tr>
-                  <tr>
-                    <th><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
-                    <td><div class="cell-inner"><input id="addPrometheusUsername"  data-maxlength="64" data-type="text" class="validation-input" type="text" value="" ></div></td>
-                  </tr>
-                  <tr>
-                    <th><div class="cell-inner">{% get_message 'MOSJA26208' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
-                    <td><div class="cell-inner"><div class="password"><input id="addPrometheusPass" data-maxlength="64" type="password" data-type="text" class="validation-input" value="" ><div class="password-show"></div></div></div></td>
                   </tr>
                   <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA26241' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA26014' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
@@ -243,14 +231,6 @@ Copyright 2019 NEC Corporation
                     <td><div class="cell-inner"><input id="editPrometheusUri" data-maxlength="512" data-type="text" type="text" class="validation-input" value="" required></div></td>
                   </tr>
                   <tr>
-                    <th><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
-                    <td><div class="cell-inner"><input id="editPrometheusUsername" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" ></div></td>
-                  </tr>
-                  <tr>
-                    <th><div class="cell-inner">{% get_message 'MOSJA26208' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
-                    <td><div class="cell-inner"><div class="password"><input id="editPrometheusPass" data-maxlength="64" type="password" class="validation-input" value="" ><div class="password-show"></div></div></div></td>
-                  </tr>
-                  <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA26241' request.user.get_lang_mode showMsgId=False %}<span class="help tooltip" title="{% get_message 'MOSJA26014' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                     <td><div class="cell-inner"><input id="editPrometheusQuery" data-maxlength="128" data-type="text" class="validation-input" type="text" value="" ></div></td>
                   </tr>
@@ -347,7 +327,6 @@ Copyright 2019 NEC Corporation
           <th class="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div></th>
           <th class="action-name sort filter" filter-type="common" filter-label="action-name"><div class="cell-inner">{% get_message 'MOSJA26201' request.user.get_lang_mode showMsgId=False %}</div></th>
           <th class="uri sort filter" filter-type="common" filter-label="uri"><div class="cell-inner">{% get_message 'MOSJA26202' request.user.get_lang_mode showMsgId=False %}</div></th>
-          <th class="user-name sort filter" filter-type="common" filter-label="user-name"><div class="cell-inner">{% get_message 'MOSJA26203' request.user.get_lang_mode showMsgId=False %}</div></th>
           <th class="query sort filter" filter-type="common" filter-label="query"><div class="cell-inner">{% get_message 'MOSJA26241' request.user.get_lang_mode showMsgId=False %}</div></th>
           <th class="rule-type sort filter" filter-type="common" filter-label="rule-type"><div class="cell-inner">{% get_message 'MOSJA26204' request.user.get_lang_mode showMsgId=False %}</div></th>
           <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
@@ -357,7 +336,7 @@ Copyright 2019 NEC Corporation
 
       <tbody id="tbodyPrometheusAdapterInfo">
         {% for i in info_list %}
-        <tr id="prometheusadapter-{{ i.prometheus_adapter_id }}" data-zabbix_id="{{ i.prometheus_adapter_id }}" data-name="{{ i.prometheus_disp_name }}" data-uri="{{ i.uri }}" data-username="{{ i.username }}" data-query="{{ i.metric }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
+        <tr id="prometheusadapter-{{ i.prometheus_adapter_id }}" data-zabbix_id="{{ i.prometheus_adapter_id }}" data-name="{{ i.prometheus_disp_name }}" data-uri="{{ i.uri }}" data-query="{{ i.metric }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
           <td class="operation-menu">
             <div class="cell-inner">
               <ul>
@@ -372,10 +351,6 @@ Copyright 2019 NEC Corporation
 
           <td class="uri">
             <div class="cell-inner">{{ i.uri }}</div>
-          </td>
-
-          <td class="user-name">
-            <div class="cell-inner">{{ i.username }}</div>
           </td>
 
           <td class="query">
