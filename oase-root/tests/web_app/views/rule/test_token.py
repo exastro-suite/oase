@@ -379,3 +379,161 @@ class TestUpdateToken(object):
         assert 'error_msg' in response
         assert 'MOSJA37027' in response['error_msg']
 
+
+################################################################
+# トークン作成テスト
+################################################################
+@pytest.mark.django_db
+class TestCreateToken(object):
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data')
+    def test_ok(self):
+        """
+        正常系
+        """
+
+        json_str = {
+            'token-name'          : ['pytest_token_name_999'],
+            'token-end'           : ['2022/05/31 00:00:00'],
+            'token-authority1'    : ['1'],
+            'token-perm'          : ['[{"group_id":"1","permission_type_id":"1"}]'],
+            'csrfmiddlewaretoken' : ['E0pNzPO2MBCW0rgrWfuMEBzyvS6nUsKxKfBBa8Nl0xc4MAA8aK46aXrtVTsMGFUH'],
+        }
+
+        admin = get_adminstrator()
+        response = admin.post('/oase_web/rule/token/create/', json_str)
+        response = json.loads(response.content)
+
+        assert response['status'] == 'success'
+
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data')
+    def test_ng_token_name_none(self):
+        """
+        異常系(トークン名が空)
+        """
+
+        json_str = {
+            'token-name'          : [''],
+            'token-end'           : ['2022/05/31 00:00:00'],
+            'token-authority1'    : ['1'],
+            'token-perm'          : ['[{"group_id":"1","permission_type_id":"1"}]'],
+            'csrfmiddlewaretoken' : ['E0pNzPO2MBCW0rgrWfuMEBzyvS6nUsKxKfBBa8Nl0xc4MAA8aK46aXrtVTsMGFUH'],
+        }
+
+        admin = get_adminstrator()
+        response = admin.post('/oase_web/rule/token/create/', json_str)
+        response = json.loads(response.content)
+
+        assert 'error_msg' in response
+        assert 'MOSJA37040' in response['error_msg']['token_name']
+
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data')
+    def test_ng_token_name_over(self):
+        """
+        異常系(トークン名文字列超過)
+        """
+
+        json_str = {
+            'token-name'          : ['abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!#$'],
+            'token-end'           : ['2022/05/31 00:00:00'],
+            'token-authority1'    : ['1'],
+            'token-perm'          : ['[{"group_id":"1","permission_type_id":"1"}]'],
+            'csrfmiddlewaretoken' : ['E0pNzPO2MBCW0rgrWfuMEBzyvS6nUsKxKfBBa8Nl0xc4MAA8aK46aXrtVTsMGFUH'],
+        }
+
+        admin = get_adminstrator()
+        response = admin.post('/oase_web/rule/token/create/', json_str)
+        response = json.loads(response.content)
+
+        assert 'error_msg' in response
+        assert 'MOSJA37043' in response['error_msg']['token_name']
+
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data')
+    def test_ng_token_name_emoji(self):
+        """
+        異常系(トークン名絵文字)
+        """
+
+        json_str = {
+            'token-name'          : ['😀'],
+            'token-end'           : ['2022/05/31 00:00:00'],
+            'token-authority1'    : ['1'],
+            'token-perm'          : ['[{"group_id":"1","permission_type_id":"1"}]'],
+            'csrfmiddlewaretoken' : ['E0pNzPO2MBCW0rgrWfuMEBzyvS6nUsKxKfBBa8Nl0xc4MAA8aK46aXrtVTsMGFUH'],
+        }
+
+        admin = get_adminstrator()
+        response = admin.post('/oase_web/rule/token/create/', json_str)
+        response = json.loads(response.content)
+
+        assert 'error_msg' in response
+        assert 'MOSJA37044' in response['error_msg']['token_name']
+
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data')
+    def test_ng_token_name_duplicate(self):
+        """
+        異常系(トークン名重複)
+        """
+
+        json_str = {
+            'token-name'          : ['pytest_token_name'],
+            'token-end'           : ['2022/05/31 00:00:00'],
+            'token-authority1'    : ['1'],
+            'token-perm'          : ['[{"group_id":"1","permission_type_id":"1"}]'],
+            'csrfmiddlewaretoken' : ['E0pNzPO2MBCW0rgrWfuMEBzyvS6nUsKxKfBBa8Nl0xc4MAA8aK46aXrtVTsMGFUH'],
+        }
+
+        admin = get_adminstrator()
+        response = admin.post('/oase_web/rule/token/create/', json_str)
+        response = json.loads(response.content)
+
+        assert 'error_msg' in response
+        assert 'MOSJA37045' in response['error_msg']['token_name']
+
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data')
+    def test_ng_permission_type_id_illegal(self):
+        """
+        異常系(グループ別権限値不正)
+        """
+
+        json_str = {
+            'token-name'          : ['pytest_token_name_999'],
+            'token-end'           : ['2022/05/31 00:00:00'],
+            'token-authority1'    : ['1'],
+            'token-perm'          : ['[{"group_id":"1","permission_type_id":"2"}]'],
+            'csrfmiddlewaretoken' : ['E0pNzPO2MBCW0rgrWfuMEBzyvS6nUsKxKfBBa8Nl0xc4MAA8aK46aXrtVTsMGFUH'],
+        }
+
+        admin = get_adminstrator()
+        response = admin.post('/oase_web/rule/token/create/', json_str)
+        response = json.loads(response.content)
+
+        assert 'msg' in response
+        assert 'MOSJA37039' in response['msg']
+
+
+    @pytest.mark.usefixtures('tokeninfo_data', 'tokenpermission_data')
+    def test_ng_exception(self):
+        """
+        異常系(DBエラー)
+        """
+
+        json_str = {
+            'token-name'          : ['pytest_token_name_999'],
+            'token-end'           : ['2022/05/31 00:00:00'],
+            'token-authority1'    : ['1'],
+            'token-perm'          : ['[{"group_id":"1","permission_type_id":"a"}]'],
+            'csrfmiddlewaretoken' : ['E0pNzPO2MBCW0rgrWfuMEBzyvS6nUsKxKfBBa8Nl0xc4MAA8aK46aXrtVTsMGFUH'],
+        }
+
+        admin = get_adminstrator()
+        response = admin.post('/oase_web/rule/token/create/', json_str)
+        response = json.loads(response.content)
+
+        assert response['status'] == 'failure'
+
