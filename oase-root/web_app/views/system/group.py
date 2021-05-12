@@ -37,6 +37,7 @@ from web_app.models.models import UserGroup
 from web_app.models.models import AccessPermission
 from web_app.models.models import PasswordHistory
 from web_app.models.models import System
+from web_app.models.models import TokenPermission
 from web_app.templatetags.common import get_message
 from web_app.views.forms.group_form import GroupForm
 from libs.webcommonlibs.common import Common as WebCommon
@@ -341,6 +342,7 @@ def modify(request):
             User.objects.filter(pk__in=delete_user_list).delete()
             PasswordHistory.objects.filter(user_id__in=delete_user_list).delete()
             AccessPermission.objects.filter(group_id__in=group_id_list_del).delete()
+            TokenPermission.objects.filter(group_id__in=group_id_list_del).delete()
 
     except Exception as e:
         logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
