@@ -24,6 +24,7 @@ OASEをより深く知りたい場合は、ここにあるドキュメントを�
    common/index
    login/index
    decision_table/index
+   token/index
    rule/index
    action_history/index
    system_config/index
