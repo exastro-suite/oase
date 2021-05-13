@@ -42,11 +42,11 @@ Copyright 2019 NEC Corporation
         <select class="update" id="selModify{{black.black_list_id}}">
           {% if black.manual_reg_flag %}
             <option value="{{opelist_non.v}}" selected>{{opelist_non.k}}</option>
-            <option value="{{opelist_up.v}}" >{{opelist_up.k}}</option>
-            <option value="{{opelist_del.v}}" >{{opelist_del.k}}</option>
+            <option value="{{opelist_up.v}}" >{% get_message opelist_up.k request.user.get_lang_mode showMsgId=False %}</option>
+            <option value="{{opelist_del.v}}" >{% get_message opelist_del.k request.user.get_lang_mode showMsgId=False %}</option>
           {% else %}
             <option value="{{opelist_non.v}}" >{{opelist_non.k}}</option>
-            <option value="{{opelist_del.v}}" >{{opelist_del.k}}</option>
+            <option value="{{opelist_del.v}}" >{% get_message opelist_del.k request.user.get_lang_mode showMsgId=False %}</option>
           {% endif %}
         </select>
       </div></div></td>
