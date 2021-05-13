@@ -104,11 +104,13 @@ function resetPW() {
                     </button>
                 </li>
                 {% endif %}
+                {% comment %}
                 <li>
-                  <a href="mailto:abc@sample.com;def@sample.com">
+                  <a href="mailto:abc@example.com;def@example.com">
                     <em class="owf owf-mail"></em>{% get_message 'MOSJA00073' lang_mode showMsgId=False %}
                   </a>
                 </li>
+                {% endcomment %}
             </ul>
         </div>
 

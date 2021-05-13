@@ -53,7 +53,9 @@ Copyright 2019 NEC Corporation
                 {% if mm.selected == "logout" %}
                 <a href="{{mm.link}}" onclick="logout()">{{mm.caption}}</a>
                 {% elif mm.selected == "contact" %}
-                <a href="mailto:abc@sample.com;def@sample.com">{{mm.caption}}</a>
+                  {% comment %}
+                <a href="mailto:abc@example.com;def@example.com">{{mm.caption}}</a>
+                  {% endcomment %}
                 {%endif%}
 
               </li>
