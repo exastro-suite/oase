@@ -42,6 +42,7 @@ from libs.webcommonlibs.oase_mail import *
 from web_app.models.models import System
 from web_app.models.models import User
 from web_app.templatetags.common import get_message
+from web_app.views.top.login import _get_system_lang_mode
 
 logger = OaseLogger.get_instance() # ロガー初期化
 
@@ -60,7 +61,7 @@ def onetime_pass_exec(request):
     json_str = request.POST.get('user_info', None)
 
     if json_str == None:
-        msg = get_message('MOSJA32009')
+        msg = get_message('MOSJA32009', _get_system_lang_mode())
         logger.user_log('LOSM17011', request=request)
         return HttpResponseServerError(msg)
 
@@ -69,7 +70,7 @@ def onetime_pass_exec(request):
     if not 'user_info' in data and \
         not 'loginId' in data['user_info'] and \
         not 'mailAddr' in data['user_info'] :
-        msg = get_message('MOSJA32009')
+        msg = get_message('MOSJA32009', _get_system_lang_mode())
         logger.user_log('LOSM17011', request=request)
         return HttpResponseServerError(msg)
 
@@ -114,13 +115,13 @@ def onetime_pass_exec(request):
 
     except User.DoesNotExist:
         error_flag = True
-        error_msg['loginId'] = get_message('MOSJA32031')
+        error_msg['loginId'] = get_message('MOSJA32031', _get_system_lang_mode())
         logger.user_log('LOSM17014', login_id, request=request)
 
     except Exception as e:
         error_flag = True
         logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
-        error_msg['db'] = get_message('MOSJA32019') + str('\n') + str(e.args)
+        error_msg['db'] = get_message('MOSJA32019', _get_system_lang_mode()) + str('\n') + str(e.args)
 
     ##################################################
     # ユーザにワンタイムパスワードをメールで通知
@@ -142,7 +143,7 @@ def onetime_pass_exec(request):
 
         send_result = smtp.send_mail(user_mail)
         if send_result:
-            send_result = get_message(send_result)
+            send_result = get_message(send_result, _get_system_lang_mode())
             error_flag = True
             error_msg['mail'] = send_result
             logger.logic_log('LOSE17000', send_result, request=request)
@@ -169,12 +170,12 @@ def _validate(request, login_id, mail_address):
 
     if not login_id:
         error_flag = True
-        error_msg['loginId'] = get_message('MOSJA00003')
+        error_msg['loginId'] = get_message('MOSJA00003', _get_system_lang_mode())
         logger.user_log('LOSM17012', 'login_id', request=request)
 
     if not mail_address:
         error_flag = True
-        error_msg['mailAddr'] = get_message('MOSJA00003')
+        error_msg['mailAddr'] = get_message('MOSJA00003', _get_system_lang_mode())
         logger.user_log('LOSM17012', 'mail_address', request=request)
 
     # loginIdでuser情報取得(Userの対象レコードをロック)
@@ -184,7 +185,7 @@ def _validate(request, login_id, mail_address):
         # mailAddrが違う場合
         if user.mail_address != mail_address:
             error_flag = True
-            error_msg['mailAddr'] = get_message('MOSJA32032')
+            error_msg['mailAddr'] = get_message('MOSJA32032', _get_system_lang_mode())
             logger.user_log('LOSM17013', user.mail_address,
                             mail_address, request=request)
 

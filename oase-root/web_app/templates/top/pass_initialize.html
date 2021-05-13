@@ -154,24 +154,24 @@ $(function(){
 
           <div class="oase-modal-header">
             <div class="oase-modal-title">
-              <h2><em class="owf owf-reset"></em>{% get_message 'MOSJA32024' request.user.get_lang_mode showMsgId=False %}</h2>
+              <h2><em class="owf owf-reset"></em>{% get_message 'MOSJA32024' lang_mode showMsgId=False %}</h2>
             </div>
           </div>
 
           <div class="oase-modal-body">
             <div class="oase-modal-block">
-              <h3>{% get_message 'MOSJA32025' request.user.get_lang_mode showMsgId=False %}</h3>
-              <p>{% get_message 'MOSJA32026' request.user.get_lang_mode showMsgId=False %}<br>
+              <h3>{% get_message 'MOSJA32025' lang_mode showMsgId=False %}</h3>
+              <p>{% get_message 'MOSJA32026' lang_mode showMsgId=False %}<br>
                 {% if passInit != 0 %}
-                  {% get_message 'MOSJA32027' strConName=passInit showMsgId=False %}<br>
-                  {% get_message 'MOSJA32028' strConName=passInit showMsgId=False %}<br>
+                  {% get_message 'MOSJA32027' lang_mode strConName=passInit showMsgId=False %}<br>
+                  {% get_message 'MOSJA32028' lang_mode strConName=passInit showMsgId=False %}<br>
                 {% endif %}
               </p>
               <div class="oase-modal-table">
                 <table>
                   <tbody>
                     <tr>
-                      <th><div class="cell-inner">{% get_message 'MOSJA00034' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <th><div class="cell-inner">{% get_message 'MOSJA00034' lang_mode showMsgId=False %}</div></th>
                       <td>
                         <div class="cell-inner">
                           <input type="text" data-type="loginID" data-maxlength="32" class="validation-input" id="loginId">
@@ -179,7 +179,7 @@ $(function(){
                       </td>
                     </tr>
                     <tr>
-                      <th><div class="cell-inner">{% get_message 'MOSJA00035' request.user.get_lang_mode showMsgId=False %}</div></th>
+                      <th><div class="cell-inner">{% get_message 'MOSJA00035' lang_mode showMsgId=False %}</div></th>
                       <td>
                         <div class="cell-inner">
                           <input type="text" data-maxlength="256" data-type="mail" class="validation-input" id="mailAddr" />
@@ -190,9 +190,9 @@ $(function(){
                 </table>
               </div><!-- /.oase-modal-table -->
 
-              <p>{% get_message 'MOSJA32043' request.user.get_lang_mode showMsgId=False %}<br>
+              <p>{% get_message 'MOSJA32043' lang_mode showMsgId=False %}<br>
                 <a class="oase-mini-button" href="mailto:abc@sample.com;def@sample.com">
-                  <em class="owf owf-mail"></em><span>{% get_message 'MOSJA00073' request.user.get_lang_mode showMsgId=False %}</span>
+                  <em class="owf owf-mail"></em><span>{% get_message 'MOSJA00073' lang_mode showMsgId=False %}</span>
                 </a>
               </p>
 
@@ -203,12 +203,12 @@ $(function(){
             <ul class="oase-button-group">
               <li>
                  <button class="oase-button cancel" id="btnCan" onclick="cancel();" >
-                  <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span>
+                  <em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' lang_mode showMsgId=False %}</span>
                 </button>
               </li>
               <li>
                 <button class="oase-button ok" id="btnUpd" onclick="resetPW();">
-                  <em class="owf owf-check"></em><span>{% get_message 'MOSJA32044' request.user.get_lang_mode showMsgId=False %}</span>
+                  <em class="owf owf-check"></em><span>{% get_message 'MOSJA32044' lang_mode showMsgId=False %}</span>
                 </button>
               </li>
               <form id="formResetData" action="javascript:submitAction()" method="POST">
