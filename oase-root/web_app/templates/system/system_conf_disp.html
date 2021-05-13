@@ -95,7 +95,11 @@ var groupListRow = heredocHTML( function(){/*
                     {% for s in system_log_list %}
                     {% if s.category == "LOG_STORAGE_PERIOD" %}
                       <tr>
+                        {% if forloop.first %}
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
+                        {% else %}
                         <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        {% endif %}
                         <td><div class="cell-inner"><span>{{s.value}} {% get_message 'MOSJA22050' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                     {% endif %}
@@ -127,7 +131,7 @@ var groupListRow = heredocHTML( function(){/*
                   <tbody>
                     {% for s in system_session_list %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner"><span>{{s.value}} {% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                     {% endfor %}
@@ -158,37 +162,37 @@ var groupListRow = heredocHTML( function(){/*
                     {% for s in system_password_list %}
                       {% if s.config_id == "Pass_Valid_Period" %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22054' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                         {% elif s.config_id == "Pass_generate_manage" %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22055' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                         {% elif s.config_id == "PASS_ERROR_THRESHOLD" %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                         {% elif s.config_id == "ACCOUNT_LOCK_PERIOD" %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                         {% elif s.config_id == "INITIAL_PASS_VALID_PERIOD" %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22057' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                         {% elif s.config_id == "ACCOUNT_LOCK_MAX_TIMES" %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       </tr>
                         {% elif s.config_id == "IPADDR_LOGIN_RETRY_MAX" %}
                       <tr>
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         {% if not disabled_flag %}
                         <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                         {% else %}
@@ -197,7 +201,7 @@ var groupListRow = heredocHTML( function(){/*
                       </tr>
                         {% elif s.config_id == "NOTIFICATION_DESTINATION_TYPE" %}
                       <tr id="nd" data-value="{{s.value}}">
-                        <th><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td><div class="cell-inner">
                         {% if s.value == "0" %}
                           {% get_message 'MOSJA22058' request.user.get_lang_mode showMsgId=False %}
@@ -209,7 +213,7 @@ var groupListRow = heredocHTML( function(){/*
                       </tr>
                         {% elif s.config_id == "NOTIFICATION_DESTINATION" %}
                       <tr>
-                        <th id="notification-destination-name"><div class="cell-inner">{{s.config_name}}</div></th>
+                        <th id="notification-destination-name"><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td id="notification-destination-value"><div class="cell-inner">{{s.value|default:''}}</div></td>
                       </tr>
                         {% endif %}
@@ -240,7 +244,7 @@ var groupListRow = heredocHTML( function(){/*
                   {% if s.config_id == "ADCOLLABORATION" %}
                   <thead>
                     <tr>
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td><div class="cell-inner">{%if s.value == "0"%}{% get_message 'MOSJA22062' request.user.get_lang_mode showMsgId=False %}{% else %}{% get_message 'MOSJA22063' request.user.get_lang_mode showMsgId=False %}{% endif %}</div></td>
                     </tr>
                   </thead>
@@ -249,25 +253,25 @@ var groupListRow = heredocHTML( function(){/*
                   <tbody>
                     <tr>
                       {% if s.config_id == "ADMINISTRATOR_USER" %}
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td><div class="cell-inner">{{s.value}}</div></td>
                       {% elif s.config_id == "ACCESS_POINT" %}
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td><div class="cell-inner">{{s.value}}</div></td>
                       {% elif s.config_id == "AD_LINKAGE_TIMER" %}
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td><div class="cell-inner">{{s.value}}</div></td>
                       {% elif s.config_id == "CONNECTION_TIMEOUT" %}
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       {% elif s.config_id == "READ_TIMEOUT" %}
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td><div class="cell-inner">{{s.value}}<span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></div></td>
                       {% elif s.config_id == "AUTHSERVER_SEARCH_CHAR" %}
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td><div class="cell-inner">{{s.value}}</div></td>
                       {% elif s.config_id == "TARGET_GROUP_LIST" %}
-                      <th><div class="cell-inner">{{s.config_name}}</div></th>
+                      <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                       <td class="target-group-list"><div class="cell-inner">
                         <table>
                           <thead>
