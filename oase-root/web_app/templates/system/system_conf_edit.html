@@ -548,7 +548,11 @@ function submitRedirect(){
                     {% for system in system_log_list %}
                     {% if system.category == "LOG_STORAGE_PERIOD" %}
                       <tr>
+                        {% if forloop.first %}
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00114' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        {% else %}
                         <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00114' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        {% endif %}
                         <td class="input-number"><div class="cell-inner"><label><input class="log-input validation-input" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="7" maxlength="1" required ><span>{% get_message 'MOSJA22050' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input type="range" min="1" max="7" value="{{system.value}}"></div></div></td>
                       </tr>
@@ -583,7 +587,7 @@ function submitRedirect(){
                     {% for system in system_session_list %}
                     {% if system.category == "SESSION_TIMEOUT" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00115' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00115' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="input-number"><div class="cell-inner"><label><input class="session-input validation-input" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="60" maxlength="2" required ><span>{% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input type="range" min="1" max="60" value="{{system.value}}"></div></div></td>
                       </tr>
@@ -621,37 +625,37 @@ function submitRedirect(){
                     {% if system.category == "PASSWORD" %}
                       <tr>
                       {% if system.config_id == "Pass_Valid_Period" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00116' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00116' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="config-switch"><div class="cell-inner"><input data-switch="#password-validity-period" class="config-switch-input" type="checkbox" id="input-switch1" {% if system.value != "0" %} checked {% endif %}><label for="input-switch1" class="config-switch-label"></label></div></td>
                         <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="password-validity-period" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="180" maxlength="3" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22054' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input id="password-validity-period-range" type="range" min="1" max="180" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
                       {% elif system.config_id == "Pass_generate_manage" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00117' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00117' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="config-switch"><div class="cell-inner"><input data-switch="#password-generations" class="config-switch-input" type="checkbox" id="input-switch2" {% if system.value != "0" %} checked {% endif %}><label for="input-switch2" class="config-switch-label"></label></div></td>
                         <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="password-generations" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="5" maxlength="1" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22055' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input id="password-generations-range" type="range" min="1" max="5" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
                       {% elif system.config_id == "PASS_ERROR_THRESHOLD" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00118' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00118' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="config-switch"><div class="cell-inner"><input data-switch="#password-error-threshold" class="config-switch-input" type="checkbox" id="input-switch3" {% if system.value != "0" %} checked {% endif %}><label for="input-switch3" class="config-switch-label"></label></div></td>
                         <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="password-error-threshold" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="10" maxlength="2" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input id="password-error-threshold-range" type="range" min="1" max="10" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
                       {% elif system.config_id == "ACCOUNT_LOCK_PERIOD" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00119' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00119' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="config-switch"><div class="cell-inner"></div></td>
                         <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="account-lock-duration" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="120" maxlength="3" required ><span>{% get_message 'MOSJA22052' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input id="account-lock-duration-range" type="range" min="1" max="120" value="{{system.value}}"></div></div></td>
                       {% elif system.config_id == "INITIAL_PASS_VALID_PERIOD" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00120' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00120' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="config-switch"><div class="cell-inner"><input data-switch="#one-time-password" class="config-switch-input" type="checkbox" id="input-switch4" {% if system.value != "0" %} checked {% endif %}><label for="input-switch4" class="config-switch-label"></label></div></td>
                         <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="one-time-password" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="72" maxlength="2" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22057' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input id="one-time-password-range" type="range" min="1" max="72" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
                       {% elif system.config_id == "ACCOUNT_LOCK_MAX_TIMES" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00121' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00121' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="config-switch"><div class="cell-inner"><input data-switch="#account-lock-limit" class="config-switch-input" type="checkbox" id="input-switch5" {% if system.value != "0" %} checked {% endif %}><label for="input-switch5" class="config-switch-label"></label></div></td>
                         <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="account-lock-limit" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="10" maxlength="2" {% if system.value == "0" %} disabled {% endif %} required ><span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range"><div class="cell-inner"><div class="range"><input id="account-lock-limit-range" type="range" min="1" max="10" value="{{system.value}}" {% if system.value == "0" %} disabled {% endif %}></div></div></td>
                       {% elif system.config_id == "IPADDR_LOGIN_RETRY_MAX" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00122' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00122' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         {% if not disabled_flag %}
                         <td class="config-switch"><div class="cell-inner"><input data-switch="#login-attempt-limit" class="config-switch-input" type="checkbox" id="input-switch6" {% if system.value != "0" and not disabled_flag %} checked {% endif %} {% if disabled_flag %} disabled {% endif %}><label for="input-switch6" class="config-switch-label"></label></div></td>
                         <td class="input-number"><div class="cell-inner"><label><input class="lifetime-input validation-input" id="login-attempt-limit" type="number" name="{{system.config_id}}" value="{{system.value}}" min="1" max="1000" maxlength="4" {% if system.value == "0" or disabled_flag %} disabled {% endif %} required ><span>{% get_message 'MOSJA22056' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
@@ -662,7 +666,7 @@ function submitRedirect(){
                         <td class="input-range"><div class="cell-inner"></div></td>.
                         {% endif %}
                       {% elif system.config_id == "NOTIFICATION_DESTINATION_TYPE" %}
-                        <th><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00123' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00123' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td colspan="3"><div class="cell-inner"><div class="select">
                           <select id="nd" name="{{system.config_id}}" value="{{system.value}}" onclick="controlMailForm()" data-value="{{system.value}}">
                             <option value="0"{% if system.value == "0" %} selected {% endif %}>{% get_message 'MOSJA22058' request.user.get_lang_mode showMsgId=False %}</option>
@@ -671,7 +675,7 @@ function submitRedirect(){
                           </select>
                         </div></div></td>
                       {% elif system.config_id == "NOTIFICATION_DESTINATION" %}
-                        <th id="notification-destination-name"><div class="cell-inner">{{system.config_name}}<span class="tooltip help" title="{% get_message 'MOSJA00124' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th id="notification-destination-name"><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00124' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td colspan="3" id="notification-destination-value"><div class="cell-inner"><input class="validation-input" name="{{system.config_id}}" type="text" data-type="loginIDs" data-maxlength="4000" value="{{system.value|default:''}}" placeholder="{% get_message 'MOSJA00125' request.user.get_lang_mode showMsgId=False %}" ></div></td>
                       {% endif %}
                     {% endif %}
@@ -709,7 +713,7 @@ function submitRedirect(){
                     {% if system.config_id == "ADCOLLABORATION" %}
                     <thead>
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}</div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
                         <td class="config-switch"><div class="cell-inner"><input data-switch=".active-directory-setting" class="config-switch-input" name="{{system.config_id}}" type="checkbox" id="input-switch7"  value={% if system.value == "0" %} "0" {% else %} "1" checked {% endif %} required ><label for="input-switch7" class="config-switch-label"></label></div></td>
                         <td colspan="2"><div class="cell-inner"></div></td>
                       </tr>
@@ -719,44 +723,44 @@ function submitRedirect(){
                     {% endif%}
                     {% if system.config_id == "ADMINISTRATOR_USER" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00126' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00126' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="64" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
                       </tr>
                     {% elif system.config_id == "ADMINISTRATOR_PW" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00127' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00127' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td colspan="3"><div class="cell-inner"><div class="password"><input class="validation-input" type="password" id="{{system.config_id}}" name="{{system.config_id}}" value="{{system.value|default:""}}" required ><div class="password-show"></div></div></div></td>
                       </tr>
                     {% elif system.config_id == "ACCESS_POINT" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00128' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00128' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="512" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
                       </tr>
                     {% elif system.config_id == "AD_LINKAGE_TIMER" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00129' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00129' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="80" data-type="adLinkageTimer" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
                       </tr>
                     {% elif system.config_id == "CONNECTION_TIMEOUT" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00130' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00130' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="input-number"><div class="cell-inner"><label><input class="validation-input" data-maxlength="5" class="lifetime-input" type="number" name="{{system.config_id}}" min="1" max="99999" value="{{system.value}}" maxlength="5" required ><span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range" colspan="2"><div class="cell-inner"><div class="range"><input type="range" min="1" max="99999" data-step="60" value="{{system.value}}"></div></div></td>
                       </tr>
                     {% elif system.config_id == "READ_TIMEOUT" %}
                        <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00131' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00131' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td class="input-number"><div class="cell-inner"><label><input class="validation-input lifetime-input" data-maxlength="5" type="number" name="{{system.config_id}}"  min="1" max="99999" value="{{system.value}}" maxlength="5" required ><span>{% get_message 'MOSJA22066' request.user.get_lang_mode showMsgId=False %}</span></label></div></td>
                         <td class="input-range" colspan="2"><div class="cell-inner"><div class="range"><input type="range" min="1" max="99999" data-step="60" value="{{system.value}}"></div></div></td>
                       </tr>
                     {% elif system.config_id == "AUTHSERVER_SEARCH_CHAR" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00132' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00132' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
                         <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="256" type="text" name="{{system.config_id}}" value="{{system.value|default:""}}" required /></div></td>
                       </tr>
                     {% elif system.config_id == "TARGET_GROUP_LIST" %}
                       <tr>
-                        <th><div class="cell-inner">{{system.config_name}}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00133' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span><br><button class="oase-mini-button"  onClick="tableRowAdd('.target-group-list table', groupListRow, 30 );"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA22068' request.user.get_lang_mode showMsgId=False %}</span></button></div></th>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA00133' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span><br><button class="oase-mini-button"  onClick="tableRowAdd('.target-group-list table', groupListRow, 30 );"><em class="owf owf-plus"></em><span>{% get_message 'MOSJA22068' request.user.get_lang_mode showMsgId=False %}</span></button></div></th>
                         <td colspan="3" class="target-group-list"><div class="cell-inner">
                           <table>
                             <thead>
