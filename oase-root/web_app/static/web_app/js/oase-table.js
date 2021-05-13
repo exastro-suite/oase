@@ -271,7 +271,7 @@ filterHtmlText += '<ul>';
 filterHtmlText += '<li><label class="regexp"><input type="checkbox" checked>' + getMessage("MOSJA00212", false) + '</label></li>';
 filterHtmlText += '<li><label class="ignore-case"><input type="checkbox" checked>' + getMessage("MOSJA00213", false) + '</label></li>';
 filterHtmlText += '<li><label class="point-up"><input type="checkbox" checked>' + getMessage("MOSJA00214", false) + '</label></li>';
-filterHtmlText += '<li><label class="negative"><input type="checkbox">否定</label></li>';
+filterHtmlText += '<li><label class="negative"><input type="checkbox">' + getMessage("MOSJA00302", false) + '</label></li>';
 filterHtmlText += '</ul>';
 filterHtmlText += '</div>';
 
