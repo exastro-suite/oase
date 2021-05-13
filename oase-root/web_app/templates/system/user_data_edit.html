@@ -40,7 +40,7 @@ Copyright 2019 NEC Corporation
             {% if forloop.first %}
           <option value="{{o.v}}" selected>{{o.k}}</option>
             {% else %}
-          <option value="{{o.v}}">{{o.k}}</option>
+          <option value="{{o.v}}">{% get_message o.k request.user.get_lang_mode showMsgId=False %}</option>
             {% endif %}
           {% endfor %}
         </select>

@@ -104,7 +104,7 @@ def edit(request):
         'white_list'        : white_list,
         'opelist_non'       : defs.DABASE_OPECODE.OPELIST_MOD[0],
         'opelist_up'        : defs.DABASE_OPECODE.OPELIST_MOD[1],
-        'opelist_del'       : {'k':'無効', 'v':defs.DABASE_OPECODE.OPE_DELETE},
+        'opelist_del'       : {'k':'MOSJA00303', 'v':defs.DABASE_OPECODE.OPE_DELETE},
         'edit_mode'         : True,
     }
 

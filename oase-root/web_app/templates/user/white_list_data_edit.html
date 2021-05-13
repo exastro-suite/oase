@@ -35,8 +35,8 @@ Copyright 2019 NEC Corporation
       <td class="operation-menu"><div class="cell-inner"><div class="select">
         <select class="update" id="selModify{{white.white_list_id}}">
           <option value="{{opelist_non.v}}" selected>{{opelist_non.k}}</option>
-          <option value="{{opelist_up.v}}" >{{opelist_up.k}}</option>
-          <option value="{{opelist_del.v}}" >{{opelist_del.k}}</option>
+          <option value="{{opelist_up.v}}" >{% get_message opelist_up.k request.user.get_lang_mode showMsgId=False %}</option>
+          <option value="{{opelist_del.v}}" >{% get_message opelist_del.k request.user.get_lang_mode showMsgId=False %}</option>
         </select>
       </div></div></td>
       <td class="address input"><div class="cell-inner"><input type="text" data-type="ip" id="ipaddr{{white.white_list_id}}" value="{{white.ipaddr}}" class="validation-input"></div></td>

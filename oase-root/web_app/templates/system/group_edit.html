@@ -387,10 +387,10 @@ function submitAction()
                       {% else %}
                         {% if group.group_id == 1 or group.group_id == 2 %}
                           {% if o.v == 2 %}
-                            <option value="{{o.v}}">{{o.k}}</option>
+                            <option value="{{o.v}}">{% get_message o.k request.user.get_lang_mode showMsgId=False %}</option>
                           {% endif %}
                         {% else %}
-                          <option value="{{o.v}}">{{o.k}}</option>
+                          <option value="{{o.v}}">{% get_message o.k request.user.get_lang_mode showMsgId=False %}</option>
                         {% endif %}
                       {% endif %}
                     {% endfor %}

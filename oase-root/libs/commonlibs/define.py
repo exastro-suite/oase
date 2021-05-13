@@ -409,7 +409,7 @@ class DABASE_OPECODE():
     OPE_DELETE      = 3
 
     OPELIST_ADD     = [{'k':'', 'v':OPE_NOTHING}, {'k':'追加', 'v':OPE_INSERT}, ]
-    OPELIST_MOD     = [{'k':'', 'v':OPE_NOTHING}, {'k':'更新', 'v':OPE_UPDATE}, {'k':'削除', 'v':OPE_DELETE}, ]
+    OPELIST_MOD     = [{'k':'', 'v':OPE_NOTHING}, {'k':'MOSJA00030', 'v':OPE_UPDATE}, {'k':'MOSJA00081', 'v':OPE_DELETE}, ]
 
 
 #-------------------
