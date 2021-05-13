@@ -755,7 +755,7 @@
 - model: web_app.System
   pk: 1
   fields:
-    config_name: DMタイムアウト
+    config_name: DM Timeout
     category: DMSETTINGS
     config_id: DM_TIMEOUT
     value: 10
@@ -766,7 +766,7 @@
 - model: web_app.System
   pk: 3
   fields:
-    config_name: ルールファイルコピー元パス
+    config_name: Rule file copy path
     category: RULE
     config_id: RULEFILE_SRCPATH
     value: /libs/backyardlibs/apply_driver/
@@ -777,7 +777,7 @@
 - model: web_app.System
   pk: 5
   fields:
-    config_name: Active Directory連携
+    config_name: MOSJA22076
     category: LOG_STORAGE_PERIOD
     config_id: AD_COLLAB_LOG
     value: 7
@@ -788,7 +788,7 @@
 - model: web_app.System
   pk: 6
   fields:
-    config_name: メッセージ振り分け機能
+    config_name: Message dividing function
     category: LOG_STORAGE_PERIOD
     config_id: MESSAGE_SORT_LOG
     value: 7
@@ -832,7 +832,7 @@
 - model: web_app.System
   pk: 10
   fields:
-    config_name: パスワード有効期間
+    config_name: MOSJA22078
     category: PASSWORD
     config_id: Pass_Valid_Period
     value: 90
@@ -843,7 +843,7 @@
 - model: web_app.System
   pk: 11
   fields:
-    config_name: 同一パスワード設定不可世代数
+    config_name: MOSJA22079
     category: PASSWORD
     config_id: Pass_generate_manage
     value: 3
@@ -854,7 +854,7 @@
 - model: web_app.System
   pk: 12
   fields:
-    config_name: パスワード誤り閾値
+    config_name: MOSJA22080
     category: PASSWORD
     config_id: PASS_ERROR_THRESHOLD
     value: 3
@@ -865,7 +865,7 @@
 - model: web_app.System
   pk: 13
   fields:
-    config_name: アカウントロック継続期間
+    config_name: MOSJA22081
     category: PASSWORD
     config_id: ACCOUNT_LOCK_PERIOD
     value: 30
@@ -876,7 +876,7 @@
 - model: web_app.System
   pk: 14
   fields:
-    config_name: ワンタイムパスワード有効期間
+    config_name: MOSJA22082
     category: PASSWORD
     config_id: INITIAL_PASS_VALID_PERIOD
     value: 24
@@ -887,7 +887,7 @@
 - model: web_app.System
   pk: 15
   fields:
-    config_name: Active Directory連携
+    config_name: MOSJA22083
     category: ACTIVE_DIRECTORY
     config_id: ADCOLLABORATION
     value: 0
@@ -898,7 +898,7 @@
 - model: web_app.System
   pk: 16
   fields:
-    config_name: 管理者ユーザ
+    config_name: MOSJA00242
     category: ACTIVE_DIRECTORY
     config_id: ADMINISTRATOR_USER
     value: 
@@ -909,7 +909,7 @@
 - model: web_app.System
   pk: 17
   fields:
-    config_name: 管理者パスワード
+    config_name: MOSJA00243
     category: ACTIVE_DIRECTORY
     config_id: ADMINISTRATOR_PW
     value: 
@@ -920,7 +920,7 @@
 - model: web_app.System
   pk: 18
   fields:
-    config_name: 接続先
+    config_name: MOSJA00244
     category: ACTIVE_DIRECTORY
     config_id: ACCESS_POINT
     value: 
@@ -931,7 +931,7 @@
 - model: web_app.System
   pk: 19
   fields:
-    config_name: 連携時刻
+    config_name: MOSJA00245
     category: ACTIVE_DIRECTORY
     config_id: AD_LINKAGE_TIMER
     value: 
@@ -942,7 +942,7 @@
 - model: web_app.System
   pk: 20
   fields:
-    config_name: 接続タイムアウト
+    config_name: MOSJA00246
     category: ACTIVE_DIRECTORY
     config_id: CONNECTION_TIMEOUT
     value: 30
@@ -953,7 +953,7 @@
 - model: web_app.System
   pk: 21
   fields:
-    config_name: 読み取りタイムアウト
+    config_name: MOSJA00247
     category: ACTIVE_DIRECTORY
     config_id: READ_TIMEOUT
     value: 30
@@ -964,7 +964,7 @@
 - model: web_app.System
   pk: 22
   fields:
-    config_name: 認証サーバ検索文字
+    config_name: MOSJA00248
     category: ACTIVE_DIRECTORY
     config_id: AUTHSERVER_SEARCH_CHAR
     value: 
@@ -975,7 +975,7 @@
 - model: web_app.System
   pk: 23
   fields:
-    config_name: 対象グループリスト
+    config_name: MOSJA00249
     category: ACTIVE_DIRECTORY
     config_id: TARGET_GROUP_LIST
     value: 
@@ -986,7 +986,7 @@
 - model: web_app.System
   pk: 24
   fields:
-    config_name: セッションタイムアウト値
+    config_name: MOSJA00250
     category: SESSION_TIMEOUT
     config_id: SESSION_TIMEOUT
     value: 30
@@ -997,7 +997,7 @@
 - model: web_app.System
   pk: 25
   fields:
-    config_name: DMプロトコル
+    config_name: DM Protocol
     category: DMSETTINGS
     config_id: DM_PROTOCOL
     value: http
@@ -1008,7 +1008,7 @@
 - model: web_app.System
   pk: 30
   fields:
-    config_name: ルールファイル一時設置パス
+    config_name: Rule file temporary installation path
     category: RULE
     config_id: RULEFILE_TMPPATH
     value: /temp/rule/
@@ -1019,7 +1019,7 @@
 - model: web_app.System
   pk: 33
   fields:
-    config_name: イベントリクエスト再試行上限
+    config_name: Event request retry limit
     category: AGENTSETTINGS
     config_id: AGENT_RETRY_MAX
     value: 5
@@ -1030,16 +1030,10 @@
 - model: web_app.System
   pk: 34
   fields:
-    config_name: メール_前文
+    config_name: Mail_Preface
     category: OASE_MAIL
     config_id: MAIL_HEADER_JP
-    value: |
-      =====================================================
-      
-      本メールは、『Operation Autonomy Support Engine』より
-      自動送信しています。
-      
-      =====================================================
+    value: MOSJA00281
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
@@ -1047,20 +1041,10 @@
 - model: web_app.System
   pk: 35
   fields:
-    config_name: メール_署名
+    config_name: Mail_Signature
     category: OASE_MAIL
     config_id: MAIL_SIGNATURE_JP
-    value: |
-
-      この内容にお心当たりのない場合は、お手数ですが本メールを破棄してください。
-
-      =====================================================
-      お問合せ先
-      %s
-
-      Operation Autonomy Support Engine ログイン
-      %s
-      =====================================================
+    value: MOSJA00282
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
@@ -1068,7 +1052,7 @@
 - model: web_app.System
   pk: 36
   fields:
-    config_name: アカウントロック上限回数
+    config_name: MOSJA00262
     category: PASSWORD
     config_id: ACCOUNT_LOCK_MAX_TIMES
     value: 5
@@ -1079,7 +1063,7 @@
 - model: web_app.System
   pk: 37
   fields:
-    config_name: 同一IP連続ログイン試行上限
+    config_name: MOSJA00263
     category: PASSWORD
     config_id: IPADDR_LOGIN_RETRY_MAX
     value: 100
@@ -1090,7 +1074,7 @@
 - model: web_app.System
   pk: 38
   fields:
-    config_name: メール通知種別
+    config_name: MOSJA00264
     category: PASSWORD
     config_id: NOTIFICATION_DESTINATION_TYPE
     value: 0
@@ -1101,7 +1085,7 @@
 - model: web_app.System
   pk: 39
   fields:
-    config_name: メール通知先ログインID
+    config_name: MOSJA00265
     category: PASSWORD
     config_id: NOTIFICATION_DESTINATION
     value: 
@@ -1112,7 +1096,7 @@
 - model: web_app.System
   pk: 41
   fields:
-    config_name: 保護パスワード
+    config_name: Protection password
     category: RULE
     config_id: PROTECTION_PW
     value: iDly81iEuo/oMWajdgahcPnq/20EAJUKcs2xL4H/X4WAaYl4VCnkMwDvk4PLvKr0SywbqW4H5p6cMTR0e4ZEgYP1+6/BfZNharLTWXhHysc=
@@ -1123,7 +1107,7 @@
 - model: web_app.System
   pk: 42
   fields:
-    config_name: ステージング世代管理上限
+    config_name: Staging generation management limit
     category: RULE
     config_id: STAGING_GENERATION
     value: 10
@@ -1134,7 +1118,7 @@
 - model: web_app.System
   pk: 43
   fields:
-    config_name: プロダクション世代管理上限
+    config_name: Production generation management limit
     category: RULE
     config_id: PRODUCTION_GENERATION
     value: 10
@@ -1145,7 +1129,7 @@
 - model: web_app.System
   pk: 44
   fields:
-    config_name: メールアドレス変更URL有効期間
+    config_name: E-mail address change URL validity period
     category: URL_VALID_PERIOD
     config_id: MAILADDR_URL_VALID_PERIOD
     value: 24
@@ -1156,18 +1140,10 @@
 - model: web_app.System
   pk: 45
   fields:
-    config_name: メールアドレス変更通知本文
+    config_name: E-mail address change notification body text
     category: OASE_MAIL
     config_id: MODIFY_MAILADDR_NOTIFY
-    value: |
-      %s 様
-
-        メールアドレスの変更を承りました。
-        ご登録いただいたメールアドレスの確定には、下記URLへのアクセスが必要です。
-        下記URLへは%s時間以内にアクセスをお願いいたします。
-        有効期間を過ぎますと、メールアドレスの変更は無効となり、再設定が必要となりますのでご了承ください。
-
-        %s
+    value: MOSJA00283
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
@@ -1175,7 +1151,7 @@
 - model: web_app.System
   pk: 46
   fields:
-    config_name: DTルール数上限
+    config_name: DT Rule limit
     category: RULE
     config_id: RULE_ROW_MAX
     value: 5000
@@ -1186,7 +1162,7 @@
 - model: web_app.System
   pk: 47
   fields:
-    config_name: テストリクエスト数上限
+    config_name: Test request limit
     category: RULE
     config_id: REQUEST_ROW_MAX
     value: 1000
@@ -1197,10 +1173,10 @@
 - model: web_app.System
   pk: 48
   fields:
-    config_name: 承認待ちアクション通知件名
+    config_name: Action pending approval notice subject
     category: OASE_MAIL
     config_id: PREACTION_MAIL_SUBJECT
-    value: 待機中アクション
+    value: MOSJA00284
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
@@ -1208,26 +1184,10 @@
 - model: web_app.System
   pk: 49
   fields:
-    config_name: 承認待ちアクション通知本文
+    config_name: Action pending approval notice body text
     category: OASE_MAIL
     config_id: PREACTION_MAIL_CONTENT
-    value: |
-      下記のアクションは、ボタン押下での実行対象です。
-      実行してもよろしければ、下記URLの画面から該当アクションの「アクション実行」ボタンを押下してください。
-
-      URL
-      %(act_his_url)s
-
-      イベント情報
-      イベント発生日時 : %(event_to_time)s
-      %(event_info)s
-
-      アクション情報
-      トレースID : %(trace_id)s
-      ルール種別 : %(rule_type)s
-      ルール名 : %(rule_name)s
-      アクション種別 : %(act_type)s
-      最終実行日時 : %(timestamp)s
+    value: MOSJA00285
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
@@ -1257,11 +1217,10 @@
 - model: web_app.System
   pk: 56
   fields:
-    config_name: 未知事象通知件名
+    config_name: Unknown event notification subject
     category: OASE_MAIL
     config_id: UNKNOWN_EVENT_MAIL_SUBJECT
-    value: |
-      [OASE]未知事象通知
+    value: MOSJA00286
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
@@ -1269,27 +1228,10 @@
 - model: web_app.System
   pk: 57
   fields:
-    config_name: 未知事象通知本文
+    config_name: Unknown event notification body text
     category: OASE_MAIL
     config_id: UNKNOWN_EVENT_MAIL_CONTENT
-    value: |
-      設定されたルールにマッチされないイベント情報がOASEに投入されました。
-      未知事象となりますのでご確認ください。
-
-      [ディシジョンテーブル名]
-      %(decision_table_name)s
-
-      [イベント発生日時]
-      %(event_to_time)s
-
-      [リクエスト受信日時]
-      %(request_reception_time)s
-
-      [イベント情報]
-      %(event_info)s
-
-      [トレースID]
-      %(trace_id)s
+    value: MOSJA00287
     maintenance_flag: 0
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
