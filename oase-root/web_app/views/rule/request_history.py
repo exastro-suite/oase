@@ -84,7 +84,7 @@ def index(request):
             if status in defs.REQUEST_HISTORY_STATUS.ICON_INFO:
                 req.class_info = defs.REQUEST_HISTORY_STATUS.ICON_INFO[status]
             else:
-                req.class_info = {'status':'attention','name':'owf-attention','description':'リクエストエラー'}
+                req.class_info = {'status':'attention','name':'owf-attention','description':'MOSJA36019'}
 
             # ルール種別欄
             rules = RuleType.objects.filter(rule_type_id=req.rule_type_id)

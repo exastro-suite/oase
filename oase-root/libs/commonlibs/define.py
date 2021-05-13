@@ -646,42 +646,42 @@ class REQUEST_HISTORY_STATUS():
         UNPROCESS:{
                   'status':'attention',
                   'name':'owf-gear',
-                  'description':'未処理'
+                  'description':'MOSJA36011'
         },
         PROCESSING:{
                   'status':'running',
                   'name':'owf-gear',
-                  'description':'処理中'
+                  'description':'MOSJA36012'
         },
         RULE_MATCH:{
                   'status':'complete',
                   'name':'owf-check',
-                  'description':'マッチ済'
+                  'description':'MOSJA36013'
         },
         RULE_UNMATCH:{
                   'status':'attention',
                   'name':'owf-question',
-                  'description':'ルール未検出'
+                  'description':'MOSJA36014'
         },
         RULE_IN_COOPERATION:{
                   'status':'running',
                   'name':'owf-gear',
-                  'description':'ServiceNow連携中'
+                  'description':'MOSJA36015'
         },
         RULE_ALREADY_LINKED:{
                   'status':'complete',
                   'name':'owf-check',
-                  'description':'ServiceNow連携済み'
+                  'description':'MOSJA36016'
         },
         RULE_ERROR:{
                   'status':'attention',
                   'name':'owf-attention',
-                  'description':'ルール実行エラー'
+                  'description':'MOSJA36017'
         },
         FORCE_PROCESSED:{
                   'status':'error',
                   'name':'owf-attention',
-                  'description':'強制終了'
+                  'description':'MOSJA36018'
         },
     }
 

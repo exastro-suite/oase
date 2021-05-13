@@ -86,7 +86,7 @@ Copyright 2019 NEC Corporation
                   <div class="cell-inner">
                       <span class="tooltip">
                         <em class="owf {{ history.class_info.name }}"></em>
-                        <span>{{ history.class_info.description }}</span>
+                        <span>{% get_message history.class_info.description request.user.get_lang_mode showMsgId=False %}</span>
                       </span>
                   </div>
                 </th>
