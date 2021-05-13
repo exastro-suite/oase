@@ -203,6 +203,22 @@ def _get_url_after_login(request):
 
 
 ################################################
+def _get_system_lang_mode():
+    """
+    [メソッド概要]
+      システムデフォルトの言語モードを取得
+    """
+
+    lang_mode = 'JA'
+
+    sys_lang = getattr(settings, 'LANGUAGE_CODE', 'ja')
+    if sys_lang == 'en-us':
+        lang_mode = 'EN'
+
+    return lang_mode
+
+
+################################################
 def login(request):
 
     logger.logic_log('LOSI00001', 'None', request=request)
@@ -238,7 +254,7 @@ def login(request):
         'logout'        : logout,
         'ad_collabo'    : ad_collabo,
         'pass_init_url' : pass_init_url,
-        'lang_mode'     : 'JA',
+        'lang_mode'     : _get_system_lang_mode(),
         'sso_list'      : sso_list,
     }
 
@@ -474,7 +490,7 @@ def pass_initialize(request):
         'logout'        : '',
         'ad_collabo'    : '',
         'redirect_url'  : redirect_url,
-        'lang_mode'     : 'JA',
+        'lang_mode'     : _get_system_lang_mode(),
     }
 
     logger.logic_log('LOSI00002', 'None', request=request)

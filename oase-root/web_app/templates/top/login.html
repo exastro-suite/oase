@@ -46,7 +46,7 @@ function resetPW() {
         <div class="oase-login-error">
             <p>
                 <em class="owf owf-attention"></em>
-                {% autoescape off %}{% get_message msg %}{% endautoescape %}
+                {% autoescape off %}{% get_message msg lang_mode %}{% endautoescape %}
             </p>
         </div>
         {% endif %}
@@ -78,7 +78,7 @@ function resetPW() {
 
         {% if sso_list|length %}
           {% comment %} MOSJA10043 : 他のアカウントでログイン {% endcomment %}
-        {% get_message 'MOSJA10043' showMsgId=False %}
+        {% get_message 'MOSJA10043' lang_mode showMsgId=False %}
         <div class="oase-login-btn">
           {% for sso in sso_list %}
           <a href="{% url 'web_app:top:sso_auth' sso.id %}">
@@ -99,14 +99,14 @@ function resetPW() {
                 {% if ad_collabo == 0 %}
                 <li class="oase-login-forgot">
                     <button class="reset-btn-link reset-pass-btn" onclick="resetPW();">
-                        <em class="owf owf-question"></em>{% get_message 'MOSJA00236' showMsgId=False %}
+                        <em class="owf owf-question"></em>{% get_message 'MOSJA00236' lang_mode showMsgId=False %}
 
                     </button>
                 </li>
                 {% endif %}
                 <li>
                   <a href="mailto:abc@sample.com;def@sample.com">
-                    <em class="owf owf-mail"></em>{% get_message 'MOSJA00073' showMsgId=False %}
+                    <em class="owf owf-mail"></em>{% get_message 'MOSJA00073' lang_mode showMsgId=False %}
                   </a>
                 </li>
             </ul>
