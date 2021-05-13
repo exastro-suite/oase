@@ -48,16 +48,20 @@ page_base_tpl.html
                 {% endif %}
               <!-- Main Menu Title (Contact,Logout) -->
               {% elif mm.default %}
-              <li class="{{mm.selected}}">
-
                 {% if mm.selected == "logout" %}
+              <li class="{{mm.selected}}">
                 <a href="{{mm.link}}" title="{{mm.caption}}" class="tooltip" onclick="logout()">
-                {% elif mm.selected == "contact" %}
-                <a href="mailto:abc@sample.com;def@sample.com" title="{{mm.caption}}" class="tooltip">
-                {%endif%}
-
                   <em class="{{mm.classname}}"></em>
                 </a>
+
+                {% elif mm.selected == "contact" %}
+                  {% comment %}
+              <li class="{{mm.selected}}">
+                <a href="mailto:abc@example.com;def@example.com" title="{{mm.caption}}" class="tooltip">
+                  <em class="{{mm.classname}}"></em>
+                </a>
+                  {% endcomment %}
+                {%endif%}
               {% endif %}
 
                 <!-- Child Menu Name-->
