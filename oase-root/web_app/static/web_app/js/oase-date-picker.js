@@ -76,8 +76,8 @@ let datePickerHTML = ( function(){/*
 </div>
 */}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-datePickerHTML = datePickerHTML.replace(/\{0\}/, getMessage("MOSJA00070", false) );
-datePickerHTML = datePickerHTML.replace(/\{1\}/, getMessage("MOSJA00208", false) );
+datePickerHTML = datePickerHTML.replace(/\{0\}/, getMessage("MOSEN00070", false) );
+datePickerHTML = datePickerHTML.replace(/\{1\}/, getMessage("MOSEN00208", false) );
 
 // Date Picker Calender
 let datePickerCalender = function( year, month ){
