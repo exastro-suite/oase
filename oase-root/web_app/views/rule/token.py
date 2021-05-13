@@ -32,6 +32,7 @@ import urllib.parse
 import secrets
 import ast
 
+from pytz import timezone
 from django.http import HttpResponse, Http404
 from django.shortcuts import render,redirect
 from django.db.models import Q, Max
@@ -448,6 +449,7 @@ def create(request):
             # 日時のチェック(有効期限は空欄の場合は期限なし)
             if end_time:
                 end_time = datetime.datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
+                end_time = timezone('Asia/Tokyo').localize(end_time)
 
             else:
                 end_time = None
