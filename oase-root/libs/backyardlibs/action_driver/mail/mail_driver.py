@@ -29,6 +29,8 @@ from libs.backyardlibs.oase_action_common_libs import ActionDriverCommonModules
 from libs.commonlibs.define import *
 from libs.commonlibs.common import Common
 from libs.commonlibs.aes_cipher import AESCipher
+from web_app.templatetags.common import get_message
+from web_app.views.top.login import _get_system_lang_mode
 from web_app.models.models import DriverType
 from web_app.models.models import PreActionHistory
 from web_app.models.models import ActionType
@@ -520,10 +522,10 @@ class mailManager(AbstractManager):
                                      'PREACTION_MAIL_SUBJECT', 'PREACTION_MAIL_CONTENT']).values('config_id', 'value')
         for r in rset:
             if r['config_id'] == 'PREACTION_MAIL_SUBJECT':
-                mail_subject = r['value']
+                mail_subject = get_message(r['value'], _get_system_lang_mode(), showMsgId=False)
 
             elif r['config_id'] == 'PREACTION_MAIL_CONTENT':
-                mail_content = (r['value'] % mail_add_info)
+                mail_content = get_message(r['value'], _get_system_lang_mode(), showMsgId=False, **(mail_add_info))
 
         return mail_subject, mail_content
 
@@ -536,14 +538,14 @@ class mailManager(AbstractManager):
                     'MAIL_HEADER_JP', 'MAIL_SIGNATURE_JP']).order_by('item_id').values('config_id', 'value'))
         for r in rset:
             if r['config_id'] == 'MAIL_HEADER_JP':
-                header = r['value']
+                header = get_message(r['value'], _get_system_lang_mode(), showMsgId=False)
             if r['config_id'] == 'MAIL_SIGNATURE_JP':
                 # URL整形
                 login_url = reverse('web_app:top:login')
                 inquiry_url = reverse('web_app:top:inquiry')
                 login_url = '%s%s' % (settings.HOST_NAME, login_url)
                 inquiry_url = '%s%s' % (settings.HOST_NAME, inquiry_url)
-                signature = r['value'] % (inquiry_url, login_url)
+                signature = get_message(r['value'], _get_system_lang_mode(), inquiry_url=inquiry_url, login_url=login_url, showMsgId=False)
 
         return str(header) + '\n' + mail_content + '\n\n' + str(signature)
 

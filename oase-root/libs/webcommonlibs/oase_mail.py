@@ -34,6 +34,7 @@ from django.conf import settings
 
 from libs.commonlibs.oase_logger import OaseLogger
 from web_app.models.models import System
+from web_app.templatetags.common import get_message
 
 
 logger = OaseLogger.get_instance() # ロガー初期化
@@ -194,7 +195,7 @@ class OASEMailBase(object):
       OASEからのメール基本クラス
     """
 
-    def __init__(self, addr_from, addr_to, subject, mail_text, inquiry_url, login_url, charset='utf-8', lang='jp'):
+    def __init__(self, addr_from, addr_to, subject, mail_text, inquiry_url, login_url, charset='utf-8', lang=None):
         """
         [メソッド概要]
           初期化処理
@@ -208,10 +209,14 @@ class OASEMailBase(object):
           login_url   : str ログイン画面
         """
 
+        from web_app.views.top.login import _get_system_lang_mode
+        if lang is None:
+            self.lang_mode = _get_system_lang_mode()
+
         # メール情報を初期化
         self.addr_from   = addr_from
         self.addr_to     = addr_to
-        self.subject     = subject
+        self.subject     = get_message(subject, self.lang_mode, showMsgId=False)
         self.mail_text   = mail_text
         self.charset     = charset
         self.inquiry_url = inquiry_url
@@ -223,10 +228,10 @@ class OASEMailBase(object):
         self.signature = ''
 
         try:
-            if lang == 'jp':
-                header, signature = System.objects.filter(config_id__in=['MAIL_HEADER_JP','MAIL_SIGNATURE_JP']).order_by('item_id')
-                self.header = header.value
-                self.signature = signature.value %(self.inquiry_url, self.login_url)
+            header, signature = System.objects.filter(config_id__in=['MAIL_HEADER_JP','MAIL_SIGNATURE_JP']).order_by('item_id')
+            self.header = get_message(header.value, self.lang_mode, showMsgId=False)
+            self.signature = get_message(signature.value, self.lang_mode, inquiry_url=self.inquiry_url, login_url=self.login_url, showMsgId=False)
+
         except Exception as e:
             logger.system_log('LOSM00001', traceback.format_exc())
 
@@ -270,33 +275,7 @@ class OASEMailInitialPasswd(OASEMailBase):
 
     # メール情報
     MAILACC  = "noreply@example.com"
-    SUBJECT  = "パスワード通知"
-    MAILTEXT = (
-        "%s 様\n"
-        "\n"
-        "Operation Autonomy Support Engineへのご登録ありがとうございます。\n\n"
-        "ユーザが新規作成されました。\n"
-        "以下のログインID、ワンタイムパスワードでの初回ログインが必要です。\n"
-        "\n"
-        "[ログインID] 別途メールにて送信\n"
-        "[ワンタイムパスワード] %s\n"
-        "\n"
-        "ワンタイムパスワードの有効期間は%s時間です。\n"
-        "有効期間を過ぎた場合は、ログイン画面の「パスワードをお忘れの場合」\n"
-        "での再発行が必要となります。\n"
-        "\n"
-    )
-    #有効時間が0の場合
-    MAILTEXT2 = (
-        "%s 様\n"
-        "\n"
-        "Operation Autonomy Support Engineへのご登録ありがとうございます。\n\n"
-        "ユーザが新規作成されました。\n"
-        "以下のログインID、ワンタイムパスワードでの初回ログインが必要です。\n"
-        "\n"
-        "[ログインID] 別途メールにて送信\n"
-        "[ワンタイムパスワード] %s\n\n"
-    )
+
 
     def __init__(self, addr_from, addr_to, user_name, passwd, expire_h, inquiry_url, login_url, charset='utf-8'):
         """
@@ -312,6 +291,9 @@ class OASEMailInitialPasswd(OASEMailBase):
           login_url   : str ログイン画面
           charset     : str 文字コード
         """
+
+        self.SUBJECT = "MOSJA00288"
+
         super(OASEMailInitialPasswd, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
         self.create_mail_text(user_name, passwd, expire_h)
 
@@ -324,11 +306,15 @@ class OASEMailInitialPasswd(OASEMailBase):
           passwd    : str 初期パスワード
           expire_h  : int パスワード有効期間(hour)
         """
+
+        self.MAILTEXT  = get_message("MOSJA00289", self.lang_mode, showMsgId=False, user_name=user_name, passwd=passwd, expire_h=expire_h)
+        self.MAILTEXT2 = get_message("MOSJA00290", self.lang_mode, showMsgId=False, user_name=user_name, passwd=passwd)
+
         self.add_header()
         if 1 <= expire_h <= 24:
-            self.add_text(self.MAILTEXT % (user_name, passwd, expire_h))
+            self.add_text(self.MAILTEXT)
         else:
-            self.add_text(self.MAILTEXT2 % (user_name, passwd))
+            self.add_text(self.MAILTEXT2)
         self.add_signature()
 
 
@@ -342,33 +328,7 @@ class OASEMailInitialLoginID(OASEMailBase):
 
     # メール情報
     MAILACC  = "noreply@example.com"
-    SUBJECT  = "ログインID通知"
-    MAILTEXT = (
-        "%s 様\n"
-        "\n"
-        "Operation Autonomy Support Engineへのご登録ありがとうございます。\n\n"
-        "ユーザが新規作成されました。\n"
-        "以下のログインID、ワンタイムパスワードでの初回ログインが必要です。\n"
-        "\n"
-        "[ログインID] %s\n"
-        "[ワンタイムパスワード] 別途メールにて送信\n"
-        "\n"
-        "ワンタイムパスワードの有効期間は%s時間です。\n"
-        "有効期間を過ぎた場合は、ログイン画面の「パスワードをお忘れの場合」\n"
-        "での再発行が必要となります。\n"
-        "\n"
-    )
-    #有効時間が0の場合
-    MAILTEXT2 = (
-        "%s 様\n"
-        "\n"
-        "Operation Autonomy Support Engineへのご登録ありがとうございます。\n\n"
-        "ユーザが新規作成されました。\n"
-        "以下のログインID、ワンタイムパスワードでの初回ログインが必要です。\n"
-        "\n"
-        "[ログインID] %s\n"
-        "[ワンタイムパスワード] 別途メールにて送信\n\n"
-    )
+
 
     def __init__(self, addr_from, addr_to, user_name, login_id, expire_h, inquiry_url, login_url, charset='utf-8'):
         """
@@ -385,6 +345,8 @@ class OASEMailInitialLoginID(OASEMailBase):
           charset     : str 文字コード
         """
 
+        self.SUBJECT = "MOSJA00291"
+
         super(OASEMailInitialLoginID, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
         self.create_mail_text(user_name, login_id, expire_h)
 
@@ -398,11 +360,14 @@ class OASEMailInitialLoginID(OASEMailBase):
           expire_h  : int パスワード有効期間(hour)
         """
 
+        self.MAILTEXT  = get_message("MOSJA00292", self.lang_mode, showMsgId=False, user_name=user_name, login_id=login_id, expire_h=expire_h)
+        self.MAILTEXT2 = get_message("MOSJA00293", self.lang_mode, showMsgId=False, user_name=user_name, login_id=login_id)
+
         self.add_header()
         if 1 <= expire_h <= 24:
-            self.add_text(self.MAILTEXT % (user_name, login_id, expire_h))
+            self.add_text(self.MAILTEXT)
         else:
-            self.add_text(self.MAILTEXT2 % (user_name, login_id))
+            self.add_text(self.MAILTEXT2)
         self.add_signature()
 
 class OASEMailOnetimePasswd(OASEMailBase):
@@ -413,27 +378,7 @@ class OASEMailOnetimePasswd(OASEMailBase):
     """
     # メール情報
     MAILACC  = "noreply@example.com"
-    SUBJECT  = "パスワードリセット通知"
-    MAILTEXT = (
-        "%s 様\n"
-        "\n"
-        "ワンタイムパスワードを発行致しました。\n"
-        "\n"
-        "[ワンタイムパスワード]  %s\n"
-        "\n"
-        "ワンタイムパスワードの有効期間は%s時間です。\n"
-        "有効期間を過ぎると、再設定が必要となります。\n"
-        "必ず、有効期間内にログイン、パスワード変更をお願い致します。\n"
-        "\n"
-    )
-    #有効時間が0の場合
-    MAILTEXT2 = (
-        "%s 様\n"
-        "\n"
-        "ワンタイムパスワードを発行致しました。\n"
-        "\n"
-        "[ワンタイムパスワード]  %s\n\n"
-    )
+
 
     def __init__(self, addr_from, addr_to, user_name, passwd, expire_h, inquiry_url, login_url, charset='utf-8'):
         """
@@ -449,6 +394,9 @@ class OASEMailOnetimePasswd(OASEMailBase):
           login_url   : str ログイン画面
           charset     : str 文字コード
         """
+
+        self.SUBJECT = "MOSJA00294"
+
         super(OASEMailOnetimePasswd, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
         self.create_mail_text(user_name, passwd, expire_h)
 
@@ -461,28 +409,26 @@ class OASEMailOnetimePasswd(OASEMailBase):
           passwd    : str ワンタイムパスワード
           expire_h  : int パスワード有効期間(hour)
         """
+
+        self.MAILTEXT  = get_message("MOSJA00295", self.lang_mode, showMsgId=False, user_name=user_name, passwd=passwd, expire_h=expire_h)
+        self.MAILTEXT2 = get_message("MOSJA00296", self.lang_mode, showMsgId=False, user_name=user_name, passwd=passwd)
+
         self.add_header()
         if 1 <= expire_h <= 24:
-            self.add_text(self.MAILTEXT % (user_name, passwd, expire_h))
+            self.add_text(self.MAILTEXT)
         else:
-            self.add_text(self.MAILTEXT2 % (user_name, passwd))
+            self.add_text(self.MAILTEXT2)
         self.add_signature()
 
 class OASEMailUserLocked(OASEMailBase):
 
     """
     [クラス概要]
-      ワンタイムパスワード通知メール
+      ユーザロック通知メール
     """
     # メール情報
     MAILACC  = "noreply@example.com"
-    SUBJECT  = "ユーザロック通知"
-    MAILTEXT = (
-        "ユーザID「%s」が連続ロック上限回数に達しました。\n"
-        "確認し、問題がなければロックの解除をお願い致します。\n"
-        " %s \n"
-        "\n"
-    )
+
 
     def __init__(self, addr_to, login_id, locked_url, inquiry_url, login_url, charset='utf-8'):
         """
@@ -497,6 +443,9 @@ class OASEMailUserLocked(OASEMailBase):
           login_url   : str ログイン画面
           charset     : str 文字コード
         """
+
+        self.SUBJECT = "MOSJA00297"
+
         super(OASEMailUserLocked, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
         self.create_mail_text(login_id, locked_url)
 
@@ -510,8 +459,10 @@ class OASEMailUserLocked(OASEMailBase):
           locked_url : str アカウントロックユーザ画面
         """
 
+        self.MAILTEXT  = get_message("MOSJA00298", self.lang_mode, showMsgId=False, login_id=login_id, locked_url=locked_url)
+
         self.add_header()
-        self.add_text(self.MAILTEXT % (login_id, locked_url))
+        self.add_text(self.MAILTEXT)
         self.add_signature()
 
 class OASEMailAddBlackList(OASEMailBase):
@@ -523,13 +474,7 @@ class OASEMailAddBlackList(OASEMailBase):
 
     # メール情報
     MAILACC  = "noreply@example.com"
-    SUBJECT  = "ブラックリスト登録"
-    MAILTEXT = (
-        "　IP「%s」からのログインが、連続ログイン試行回数の上限に達したため、ブラックリストに登録しました。\n"
-        "確認後、問題なければ、解除を実施してください\n"
-        "\n"
-        "%s\n"
-    )
+
 
     def __init__(self, addr_to, ipaddr, url, inquiry_url, login_url, charset='utf-8'):
         """
@@ -542,6 +487,9 @@ class OASEMailAddBlackList(OASEMailBase):
           url       : url ブラックリスト画面URL
           charset   : str 文字コード
         """
+
+        self.SUBJECT = "MOSJA00299"
+
         super(OASEMailAddBlackList, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
         self.create_mail_text(ipaddr, url)
 
@@ -553,8 +501,11 @@ class OASEMailAddBlackList(OASEMailBase):
           user_name : str 宛先ユーザ名
           ipaddr    : str ブラックリスト登録されたipアドレス
         """
+
+        self.MAILTEXT  = get_message("MOSJA00300", self.lang_mode, showMsgId=False, ipaddr=ipaddr, url=url)
+
         self.add_header()
-        self.add_text(self.MAILTEXT % (ipaddr, url))
+        self.add_text(self.MAILTEXT)
         self.add_signature()
 
 
@@ -567,7 +518,6 @@ class OASEMailModifyMailAddressNotify(OASEMailBase):
 
     # メール情報
     MAILACC   = "noreply@example.com"
-    SUBJECT   = "メールアドレスのご変更"
     CONFIG_ID = "MODIFY_MAILADDR_NOTIFY"
 
     def __init__(self, addr_to, user_name, valid_hour, url, inquiry_url, login_url, charset='utf-8'):
@@ -578,8 +528,11 @@ class OASEMailModifyMailAddressNotify(OASEMailBase):
           addr_to    : str 宛先メールアドレス
           user_name  : str 宛先ユーザ名
           valid_hour : int メールアドレス変更URLの有効期間(hour)
-          url        : url メールアドレス変更URL
+          url        : str メールアドレス変更URL
         """
+
+        self.SUBJECT = "MOSJA00301"
+
         super(OASEMailModifyMailAddressNotify, self).__init__(self.MAILACC, addr_to, self.SUBJECT, '', inquiry_url, login_url, charset)
         self.create_mail_text(user_name, valid_hour, url)
 
@@ -588,11 +541,13 @@ class OASEMailModifyMailAddressNotify(OASEMailBase):
         [メソッド概要]
           メール本文作成
         [引数]
-          user_name : str 宛先ユーザ名
-          ipaddr    : str ブラックリスト登録されたipアドレス
+          user_name  : str 宛先ユーザ名
+          valid_hour : int メールアドレス変更URLの有効期間(hour)
+          url        : str メールアドレス変更URL
         """
+
         self.mail_text = System.objects.get(config_id=self.CONFIG_ID).value
-        self.mail_text = self.mail_text % (user_name, valid_hour, url)
+        self.mail_text = get_message(self.mail_text, self.lang_mode, showMsgId=False, user_name=user_name, valid_hour=valid_hour, url=url)
 
         self.add_header()
         self.add_signature()
@@ -602,7 +557,7 @@ class OASEMailUnknownEventNotify(OASEMailBase):
 
     """
     [クラス概要]
-      メールアドレス変更通知メール
+      未知事象通知メール
     """
 
     # メール情報
@@ -645,9 +600,10 @@ class OASEMailUnknownEventNotify(OASEMailBase):
         """
 
         self.subject = System.objects.get(config_id=self.SUBJECT).value
-        self.mail_text = System.objects.get(config_id=self.CONFIG_ID).value
+        self.subject = get_message(self.subject, self.lang_mode, showMsgId=False)
 
-        self.mail_text = self.mail_text % (notify_param)
+        self.mail_text = System.objects.get(config_id=self.CONFIG_ID).value
+        self.mail_text = get_message(self.mail_text, self.lang_mode, showMsgId=False, **(notify_param))
 
         self.add_header()
         self.add_signature()
