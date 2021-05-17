@@ -545,7 +545,7 @@ def test_server_list_check_ok(ita_table):
     conditions = {'条件1', '条件2'}
 
     # テストデータ設定
-    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'SERVER_LIST':'mas-pj-dev'}
+    check_info = {'ITA_NAME':ita_disp_name, 'SYMPHONY_CLASS_ID':'1', 'SERVER_LIST':'hostname'}
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -912,7 +912,7 @@ def test_check_dt_act_params_server_list_ok(ita_table):
     # 正常テスト(SERVER_LIST版)
     ############################################
     param_list = ['ITA_NAME=action43',
-                  'SYMPHONY_CLASS_ID=1', 'SERVER_LIST=mas-pj-dev']
+                  'SYMPHONY_CLASS_ID=1', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -964,7 +964,7 @@ def test_check_dt_act_params_ita_name_ng_nokey(ita_table):
     # 異常テスト(ITA_NAMEのキーなし)
     ############################################
     expected_msg = {'id': 'MOSJA03113', 'param': 'ITA_NAME'}
-    param_list = ['SYMPHONY_CLASS_ID=1', 'SERVER_LIST=mas-pj-dev']
+    param_list = ['SYMPHONY_CLASS_ID=1', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -993,7 +993,7 @@ def test_check_dt_act_params_ita_name_ng_notexists(ita_table):
     expected_msg = {'id': 'MOSJA03115', 'param': None}
     act_info = {"driver_name": 'ITA'}
     param_list = ['ITA_NAME=action44',
-                  'SYMPHONY_CLASS_ID=1', 'SERVER_LIST=mas-pj-dev']
+                  'SYMPHONY_CLASS_ID=1', 'SERVER_LIST=hostname']
     set_data_ita_driver(ita_disp_name)
 
     message_list = check_dt_action_params(param_list, act_info, conditions)
@@ -1018,7 +1018,7 @@ def test_check_dt_act_params_symphony_class_id_ng_nokey(ita_table):
     # 異常テスト(SYMPHONY_CLASS_ID、CONDUCTOR_CLASS_IDのキーなし)
     ############################################
     expected_msg = {'id': 'MOSJA03108', 'param': None}
-    param_list = ['ITA_NAME=action43', 'SERVER_LIST=mas-pj-dev']
+    param_list = ['ITA_NAME=action43', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -1045,7 +1045,7 @@ def test_check_dt_act_params_symphony_class_id_ng_noval(ita_table):
     ############################################
     expected_msg = {'id': 'MOSJA03116', 'param': None}
     param_list = ['ITA_NAME=action43',
-                  'SYMPHONY_CLASS_ID=', 'SERVER_LIST=mas-pj-dev']
+                  'SYMPHONY_CLASS_ID=', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -1071,7 +1071,7 @@ def test_check_dt_act_params_conductor_class_id_ng_noval(ita_table):
     ############################################
     expected_msg = {'id': 'MOSJA03207', 'param': None}
     param_list = ['ITA_NAME=action43',
-                  'CONDUCTOR_CLASS_ID=', 'SERVER_LIST=mas-pj-dev']
+                  'CONDUCTOR_CLASS_ID=', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -1096,7 +1096,7 @@ def test_check_dt_act_params_symphony_class_id_ng_reserved(ita_table):
     ############################################
     expected_msg = {'id': 'MOSJA03137', 'param': 'SYMPHONY_CLASS_ID'}
     param_list = ['ITA_NAME=action43',
-                  'SYMPHONY_CLASS_ID={{ VAR_条件1  }}', 'SERVER_LIST=mas-pj-dev']
+                  'SYMPHONY_CLASS_ID={{ VAR_条件1  }}', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -1121,7 +1121,7 @@ def test_check_dt_act_params_conductor_class_id_ng_reserved(ita_table):
     ############################################
     expected_msg = {'id': 'MOSJA03137', 'param': 'CONDUCTOR_CLASS_ID'}
     param_list = ['ITA_NAME=action43',
-                  'CONDUCTOR_CLASS_ID={{ VAR_条件1  }}', 'SERVER_LIST=mas-pj-dev']
+                  'CONDUCTOR_CLASS_ID={{ VAR_条件1  }}', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
@@ -1148,7 +1148,7 @@ def test_check_dt_action_params(ita_table):
     ############################################
     expected_msg = {'id': 'MOSJA03139', 'param': 'OPERATION_ID, SERVER_LIST, MENU_ID'}
     param_list = ['ITA_NAME=action43', 'SYMPHONY_CLASS_ID=1',
-                  'OPERATION_ID=1', 'SERVER_LIST=mas-pj-dev']
+                  'OPERATION_ID=1', 'SERVER_LIST=hostname']
     act_info = {"driver_name": 'ITA'}
     set_data_ita_driver(ita_disp_name)
 
