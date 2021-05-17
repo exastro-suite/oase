@@ -77,9 +77,10 @@ class TestRequestXlFactory:
         cur_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         self.wb = openpyxl.load_workbook(cur_dir + '/template_testrequest.xlsx')
         self.tables_ws = self.wb['Values']
-        self.example_ws = self.wb['記述例']
+        self.example_ws = self.wb['example']
         request_row_max = System.objects.get(config_id='REQUEST_ROW_MAX').value
-        self.tables_ws['B6'].value = '記述できるリクエスト数の上限は %s 件です' % request_row_max
+        #self.tables_ws['B6'].value = '記述できるリクエスト数の上限は %s 件です' % request_row_max
+        self.tables_ws['B6'].value = 'The maximum number of requests that can be written is %s.' % request_row_max
 
         # エクセルの列の最小と最大
         self.col_min = 2 # B列
