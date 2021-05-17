@@ -155,7 +155,7 @@ def test_check_ita_master(ita_table, monkeypatch):
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
     testITA.aryActionParameter['ITA_NAME'] = 'action43'
 
-    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=mas-pj-dev", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1"]}'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=hostname", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1"]}'
     json_parm = json.loads(parm_info)
     testITA.set_action_server_list(json_parm, 1, 1)
 
@@ -227,7 +227,7 @@ def test_check_ita_master(ita_table, monkeypatch):
     testITA.aryActionParameter['CONDUCTOR_CLASS_ID'] = 1
     testITA.aryActionParameter['ITA_NAME'] = 'action43'
 
-    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=mas-pj-dev", "ITA_NAME=ITA176", "CONDUCTOR_CLASS_ID=1"]}'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=hostname", "ITA_NAME=ITA176", "CONDUCTOR_CLASS_ID=1"]}'
     json_parm = json.loads(parm_info)
     testITA.set_action_server_list(json_parm, 1, 1)
 
@@ -604,7 +604,7 @@ def test_set_information(ita_table):
     ############################################
     # テストデータ作成 SERVER_LIST
     ita_disp_name = 'ITA176'
-    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=mas-pj-dev", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1"]}'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=hostname", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1"]}'
     rhdm_res_act, pre_action_history = set_data_for_information(
         1, ita_disp_name, trace_id, parm_info)
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 1
@@ -622,7 +622,7 @@ def test_set_information(ita_table):
     ############################################
     # テストデータ作成
     ita_disp_name = 'dummy'
-    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=mas-pj-dev", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1"]}'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVER_LIST=hostname", "ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1"]}'
     rhdm_res_act, pre_action_history = set_data_for_information(
         1, ita_disp_name, trace_id, parm_info)
     testITA.aryActionParameter['SYMPHONY_CLASS_ID'] = 2
@@ -1624,7 +1624,7 @@ def test_act_ptrn_serverlist_ok(monkeypatch):
     response_id = 1
     last_update_user = 'pytest'
     ita_disp_name = 'ITA176'
-    parm_info = '{"ACTION_PARAMETER_INFO": ["ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1","SERVER_LIST=mas-pj-dev"]}'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["ITA_NAME=ITA176", "SYMPHONY_CLASS_ID=1","SERVER_LIST=hostname"]}'
     rhdm_res_act = set_data_param_information(1, ita_disp_name, trace_id, parm_info)
 
     testITA = ITAManager(trace_id, response_id, last_update_user)
@@ -2230,12 +2230,12 @@ def get_evinfo(act_ptrn):
       act_ptrn : 1=OPERATION_ID, 2=SERVER_LIST, 3=MENU_ID
     """
 
-    event_info = '{"EVENT_INFO":["mas-pj-dev","httpd"]}'
+    event_info = '{"EVENT_INFO":["hostname","httpd"]}'
 
     if act_ptrn == 3:
-        event_info = '{"EVENT_INFO":["mas-pj-dev","httpd","date"]}'
+        event_info = '{"EVENT_INFO":["hostname","httpd","date"]}'
     elif act_ptrn == 4:
-        event_info = '{"EVENT_INFO":["18:09 TEST825   E (対象ノード= mas-pj-dev )( SystemScope(0000):pcheck001[999]: Process [/opt/sample/bin/aaa ,pid=7203]Down TEST001 )TEST002"]}'
+        event_info = '{"EVENT_INFO":["18:09 TEST825   E (対象ノード= hostname )( SystemScope(0000):pcheck001[999]: Process [/opt/sample/bin/aaa ,pid=7203]Down TEST001 )TEST002"]}'
 
     return event_info
 
