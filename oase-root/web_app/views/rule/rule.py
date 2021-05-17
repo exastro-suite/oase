@@ -1949,6 +1949,7 @@ def bulkpseudocall(request, rule_type_id):
         # リクエスト送信
         ####################################################
         scheme = urlsplit(request.build_absolute_uri(None)).scheme
+        tkn = _get_token()
         url = scheme + '://127.0.0.1:' + request.META['SERVER_PORT'] + reverse('web_app:event:eventsrequest')
         for rule_dic in rule_data_list:
             row = ''
@@ -1975,7 +1976,7 @@ def bulkpseudocall(request, rule_type_id):
             r_content = None
             r = requests.post(
                 url,
-                headers={'content-type': 'application/json'},
+                headers={'content-type': 'application/json', 'Authorization' : 'Bearer %s' % (tkn),},
                 data=json_str.encode('utf-8'),
                 verify=False
             )

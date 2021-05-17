@@ -84,14 +84,15 @@ class DecisionTableFactory:
         cur_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         self.wb = openpyxl.load_workbook(cur_dir + '/template.xlsx')
         self.tables_ws = self.wb['Tables']
-        self.example_ws = self.wb['記述例']
+        self.example_ws = self.wb['example']
         self.lists_ws = self.wb['Lists']
         self.condition = self.tables_ws['C7:C18']
         self.action = self.tables_ws['B22:L25']
 
         # ルール上限数記述
         rule_row_max = System.objects.get(config_id='RULE_ROW_MAX').value
-        self.tables_ws['B20'].value = '記述できるルール数の上限は %s 件です' % rule_row_max
+        #self.tables_ws['B20'].value = '記述できるルール数の上限は %s 件です' % rule_row_max
+        self.tables_ws['B20'].value = 'The maximum number of rules that can be written is %s.' % rule_row_max
 
     def _create_header(self):
         """
@@ -348,7 +349,8 @@ class DecisionTableCustomizer:
         """
         tables_ws = self.wb['Tables']
         header_row = tables_ws[11]
-        target_header_text = 'アクション種別\n（必須）'
+        # target_header_text = 'アクション種別\n（必須）'
+        target_header_text = 'Action type\n（Required）'
 
         action_type_col = 0
         for cell in header_row:
