@@ -25,7 +25,7 @@ def test_validate_mail_address_ok_single():
     validate_mail_address 正常終了 1件
     """
     serializer = RuleTypeSerializer()
-    mail_address = "test@test.com"
+    mail_address = "test@example.com"
 
     result = serializer.validate_mail_address(mail_address)
 
@@ -37,7 +37,7 @@ def test_validate_mail_address_ok_multiple():
     validate_mail_address 正常終了　複数件
     """
     serializer = RuleTypeSerializer()
-    mail_address = "test1@test.com;test2@test.com"
+    mail_address = "test1@example.com;test2@example.com"
 
     result = serializer.validate_mail_address(mail_address)
 
@@ -49,7 +49,7 @@ def test_validate_mail_address_ng_length():
     validate_mail_address 異常終了 文字数オーバー
     """
     serializer = RuleTypeSerializer()
-    mail_address = "abcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghij@test.com"
+    mail_address = "abcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefghijalmnopqrstuvwxyzabcdefg@example.com"
 
     try:
         with pytest.raises(serializers.ValidationError):
