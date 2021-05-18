@@ -39,11 +39,13 @@ from django.db.models import Q, Max
 from django.db import transaction
 from django.views.decorators.http import require_POST
 from django.urls import reverse
+from django.conf import settings
 from libs.commonlibs import define as defs
 from libs.commonlibs.common import Common
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.webcommonlibs.decorator import *
 from libs.webcommonlibs.oase_exception import OASEError
+from libs.webcommonlibs.common import TimeConversion
 from web_app.models.models import TokenInfo, TokenPermission, Group, AccessPermission
 from web_app.templatetags.common import get_message
 from web_app.serializers.unicode_check import UnicodeCheck
@@ -410,13 +412,14 @@ def create(request):
 
     emo_chk = UnicodeCheck()
     now = datetime.datetime.now(pytz.timezone('UTC'))
+    time_zone  = settings.TIME_ZONE
 
     # トークン生成
     token_value = secrets.token_urlsafe(24)
 
     # 要求パラメーター取得
     token_name = request.POST.get('token-name', '')
-    end_time   = request.POST.get('token-end', '').replace('/', '-')
+    end_time   = request.POST.get('token-end', '')
     token_perm = request.POST.get('token-perm', '[]')
     token_perm = ast.literal_eval(token_perm)
 
@@ -448,9 +451,8 @@ def create(request):
 
             # 日時のチェック(有効期限は空欄の場合は期限なし)
             if end_time:
-                end_time = datetime.datetime.strptime(end_time, '%Y-%m-%d %H:%M:%S')
-                end_time = timezone('Asia/Tokyo').localize(end_time)
-
+                end_time = TimeConversion.get_time_conversion_utc(
+                    end_time, time_zone)
             else:
                 end_time = None
 

@@ -60,6 +60,7 @@ def historyrequest(request):
     msg                 = ''
     action_history_list = []
     trace_id            = ''
+    time_zone = settings.TIME_ZONE
 
     logger.system_log('LOSI23000')
 
@@ -106,7 +107,7 @@ def historyrequest(request):
                 action_history['rule_type_name']        = act.rule_type_name
                 action_history['rule_name']             = act.rule_name
                 action_history['action_type_id']        = name_version
-                action_history['last_update_timestamp'] = act.last_update_timestamp.astimezone(pytz.timezone('Asia/Tokyo')).strftime('%Y/%m/%d %H:%M')
+                action_history['last_update_timestamp'] = act.last_update_timestamp.astimezone(pytz.timezone(time_zone)).strftime('%Y/%m/%d %H:%M')
                 action_history['last_update_user']      = act.last_update_user
 
                 action_history_list.append(action_history)
