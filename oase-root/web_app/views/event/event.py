@@ -226,7 +226,7 @@ def eventsrequest(request):
 
             evinfo_str = '{"EVENT_INFO":[%s]}' % (evinfo_str)
             event_dt   = json_str[EventsRequestCommon.KEY_EVENTTIME]
-            event_dt   = TimeConversion.get_time_conversion_utc(event_dt, 'Asia/Tokyo')
+            event_dt   = TimeConversion.get_time_conversion_utc(event_dt, getattr(settings, 'TIME_ZONE'))
 
             json_data = {
                 'trace_id'               : trace_id,
