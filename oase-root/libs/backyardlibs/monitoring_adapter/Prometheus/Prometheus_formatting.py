@@ -30,6 +30,8 @@ import datetime
 import pytz
 from datetime import datetime, timezone, timedelta
 
+from django.conf import settings
+
 from web_app.models.models import RuleType
 from web_app.models.Prometheus_monitoring_models import PrometheusMatchInfo
 
@@ -88,7 +90,10 @@ def message_formatting(prometheus_message, rule_type_id, prometheus_adapter_id):
             request_data['eventinfo'] = eventinfo
 
             # eventdatetimeの取得 lastchangeを2019/12/25 00:00:00の形式に変換する
-            request_data['eventdatetime'] = datetime.fromtimestamp(int(data_dic['evtime']), pytz.timezone('Asia/Tokyo')).strftime("%Y/%m/%d %H:%M:%S")
+            request_data['eventdatetime'] = datetime.fromtimestamp(
+                int(data_dic['evtime']),
+                pytz.timezone(getattr(settings, 'TIME_ZONE'))
+            ).strftime("%Y/%m/%d %H:%M:%S")
 
             request_data_list.append(request_data)
 
