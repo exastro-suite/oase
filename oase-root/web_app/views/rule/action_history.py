@@ -39,6 +39,7 @@ from django.shortcuts             import render, redirect
 from django.http                  import HttpResponse
 from django.db                    import transaction
 from django.views.decorators.http import require_POST
+from django.conf import settings
 
 from libs.commonlibs              import define as defs
 from libs.webcommonlibs.decorator import *
@@ -184,6 +185,10 @@ def search_history(request):
     mail_template_name             = ''
     mail_address                   = ''
     servicenow_disp_name           = ''
+    ita_flg                        = False
+    mail_flg                       = False
+    servicenow_flg                 = False
+    time_zone = settings.TIME_ZONE
 
     try:
         # アクション画面のルール別アクセス権限を取得
@@ -219,14 +224,14 @@ def search_history(request):
         action_type  = search_record['action_type']
 
         if request_info['request_event_start'] != '':
-            event_to_time_start = request_info['request_event_start']
-            event_to_time_start = event_to_time_start.replace('/', '-')
+            event_to_time_start = TimeConversion.get_time_conversion_utc(
+                request_info['request_event_start'], time_zone)
         else:
             event_to_time_start = '2000-01-01 00:00'
 
         if request_info['request_event_end'] != '':
-            event_to_time_end = request_info['request_event_end']
-            event_to_time_end = event_to_time_end.replace('/', '-')
+            event_to_time_end = TimeConversion.get_time_conversion_utc(
+                request_info['request_event_end'], time_zone)
         else:
             event_to_time_end = '2999-12-31 23:59'
 
@@ -234,14 +239,14 @@ def search_history(request):
         event_info          = request_info['request_infomation']
 
         if action_info['action_start'] != '':
-            action_start_time_start = action_info['action_start']
-            action_start_time_start = action_start_time_start.replace('/', '-')
+            action_start_time_start = TimeConversion.get_time_conversion_utc(
+                action_info['action_start'], time_zone)
         else:
             action_start_time_start = '2000-01-01 00:00'
 
         if action_info['action_end'] != '':
-            action_start_time_end = action_info['action_end']
-            action_start_time_end = action_start_time_end.replace('/', '-')
+            action_start_time_end = TimeConversion.get_time_conversion_utc(
+                action_info['action_end'], time_zone)
         else:
             action_start_time_end = '2999-12-31 23:59'
 
@@ -435,6 +440,7 @@ def dataobject(request, response_id, execution_order ):
     log_message = []
     logger.logic_log('LOSI00001', 'response_id: %s, execution_order: %s' % (response_id, execution_order), request=request)
     lang = request.user.get_lang_mode()
+    time_zone = settings.TIME_ZONE
 
     try:
         # ルール別アクセス権限チェック
@@ -486,7 +492,7 @@ def dataobject(request, response_id, execution_order ):
                 msg_params = ast.literal_eval(msg_params)
                 message    = get_message(log.message_id, lang, **(msg_params))
 
-            time_stamp = TimeConversion.get_time_conversion(log.last_update_timestamp, 'Asia/Tokyo', request=request)
+            time_stamp = TimeConversion.get_time_conversion(log.last_update_timestamp, time_zone, request=request)
             message='[' + time_stamp +']'+ message
             log_message.append(message)
 
@@ -535,6 +541,7 @@ def download(request, response_id, execution_order):
         log_message = ''
         log_txt     = ''
         lang = request.user.get_lang_mode()
+        time_zone = settings.TIME_ZONE
 
         # ルール別アクセス権限チェック
         act_history_info = ActionHistory.objects.get(response_id=response_id, execution_order=execution_order)
@@ -593,7 +600,7 @@ def download(request, response_id, execution_order):
                 msg_params = ast.literal_eval(msg_params)
                 message    = get_message(action_log.message_id, request.user.get_lang_mode(), **(msg_params))
 
-            time_stamp = TimeConversion.get_time_conversion(action_log.last_update_timestamp, 'Asia/Tokyo', request=request)
+            time_stamp = TimeConversion.get_time_conversion(action_log.last_update_timestamp, time_zone, request=request)
             log_message += '[%s] %s\n' % (time_stamp, message)
 
         # ダウンロード
@@ -639,6 +646,7 @@ def get_logdata(request, response_id, execution_order, act_history_info=None):
         req_dic = {}
         act_dic = {}
         action_history_log_list = []
+        time_zone = settings.TIME_ZONE
 
         # requestからレスポンスIDとアクション実行順判定
         if not response_id or not execution_order:
@@ -655,8 +663,8 @@ def get_logdata(request, response_id, execution_order, act_history_info=None):
         req_info         = EventsRequest.objects.get(trace_id=act_history_info.trace_id)
 
         # 日時の整形
-        act_time_stamp   = TimeConversion.get_time_conversion(act_history_info.action_start_time, 'Asia/Tokyo', request=request)
-        req_time_stamp   = TimeConversion.get_time_conversion(req_info.event_to_time, 'Asia/Tokyo', request=request)
+        act_time_stamp   = TimeConversion.get_time_conversion(act_history_info.action_start_time, time_zone, request=request)
+        req_time_stamp   = TimeConversion.get_time_conversion(req_info.event_to_time, time_zone, request=request)
 
         # リクエスト情報取得
         req_dic['req_time_stamp'] = req_time_stamp

@@ -248,7 +248,8 @@ def upload(request):
 
     try:
         now = datetime.datetime.now(pytz.timezone('UTC'))
-        now_tz = conv_tz(now, 'Asia/Tokyo')
+        time_zone = settings.TIME_ZONE
+        now_tz = conv_tz(now, time_zone)
         user = User.objects.get(user_id=request['upload_user_id'])
         lang = user.get_lang_mode()
 
@@ -511,7 +512,8 @@ def apply(request):
         data['release-id'] = {}
 
         now = datetime.datetime.now(pytz.timezone('UTC'))
-        now_tz = conv_tz(now, 'Asia/Tokyo')
+        time_zone = settings.TIME_ZONE
+        now_tz = conv_tz(now, time_zone)
         user = User.objects.get(user_id=request['apply_user_id'])
         lang = user.get_lang_mode()
 
@@ -1369,7 +1371,8 @@ def build_kjar(request):
         try:
             # データ取得
             now = datetime.datetime.now(pytz.timezone('UTC'))
-            now_tz = conv_tz(now, 'Asia/Tokyo')
+            time_zone = settings.TIME_ZONE
+            now_tz = conv_tz(now, time_zone)
             user = User.objects.get(user_id=request['apply_user_id'])
             ruletypeid = request['ruletypeid']
             ruleid = request['rule_file_id']

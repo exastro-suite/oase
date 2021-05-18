@@ -223,11 +223,12 @@ def data_list(body, user, rule_type_id_list, label_count_list):
         check_evinfo_error(trace_id, json_str, ruletypeid, evinfo_length)
 
         # DB登録用に整形
+        time_zone = settings.TIME_ZONE
         evinfo_str = make_evinfo_str(json_str)
         evinfo_str = '{"EVENT_INFO":[%s]}' % (evinfo_str)
         event_dt = json_str[EventsRequestCommon.KEY_EVENTTIME]
         event_dt = TimeConversion.get_time_conversion_utc(
-            event_dt, 'Asia/Tokyo')
+            event_dt, time_zone)
 
         json_data = {
             'trace_id': trace_id,

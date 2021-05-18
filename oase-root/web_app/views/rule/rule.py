@@ -663,8 +663,9 @@ def rule_pseudo_request(request, rule_type_id):
 
     err_flg = 1
     msg = ''
+    time_zone = settings.TIME_ZONE
     now = datetime.datetime.now(pytz.timezone('UTC'))
-    reception_dt = TimeConversion.get_time_conversion(now, 'Asia/Tokyo', request=request)
+    reception_dt = TimeConversion.get_time_conversion(now, time_zone, request=request)
     trace_id = ''
     event_dt = '----/--/-- --:--:--'
     req_list = []
@@ -746,8 +747,8 @@ def rule_pseudo_request(request, rule_type_id):
                 {'conditional_name':conditional_name_list[i], 'value':v}
                 for i, v in enumerate(eventinfo)
             ]
-            event_dt = TimeConversion.get_time_conversion_utc(eventdatetime, 'Asia/Tokyo', request=request)
-            event_dt = TimeConversion.get_time_conversion(event_dt, 'Asia/Tokyo', request=request)
+            event_dt = TimeConversion.get_time_conversion_utc(eventdatetime, time_zone, request=request)
+            event_dt = TimeConversion.get_time_conversion(event_dt, time_zone, request=request)
             err_flg = 0
 
             msg = get_message('MOSJA12007', request.user.get_lang_mode(), showMsgId=False)
@@ -935,6 +936,7 @@ def rule_get_record(request):
     data = {}
     msg = ''
     err_flg = 0
+    time_zone = settings.TIME_ZONE
 
     try:
         # パラメーターチェック
@@ -1003,9 +1005,9 @@ def rule_get_record(request):
         system_status_str = get_message(RuleDefs.MST_STS_SYSTEM[rule_manage.system_status],request.user.get_lang_mode(), showMsgId=False)
 
         if request.user.get_lang_mode() == 'EN':
-            last_update_timestamp = rule_manage.last_update_timestamp.astimezone(pytz.timezone('Asia/Tokyo')).strftime('%Y, %m, %d, %H:%M')
+            last_update_timestamp = rule_manage.last_update_timestamp.astimezone(pytz.timezone(time_zone)).strftime('%Y, %m, %d, %H:%M')
         else:
-            last_update_timestamp = rule_manage.last_update_timestamp.astimezone(pytz.timezone('Asia/Tokyo')).strftime('%Y年%m月%d日%H:%M')
+            last_update_timestamp = rule_manage.last_update_timestamp.astimezone(pytz.timezone(time_zone)).strftime('%Y年%m月%d日%H:%M')
 
         data = {
             'rule_type_id': rule_manage.rule_type_id,
@@ -1052,6 +1054,7 @@ def rule_polling(request, rule_manage_id, trace_id):
     event_dt = '----/--/-- --:--:--'
     req_list = []
     flg = False
+    time_zone = settings.TIME_ZONE
 
     try:
         with transaction.atomic():
@@ -1083,9 +1086,9 @@ def rule_polling(request, rule_manage_id, trace_id):
                 req_list.append({'conditional_name':rs, 'value':v})
 
             reception_dt = events_request.request_reception_time
-            reception_dt = TimeConversion.get_time_conversion(reception_dt, 'Asia/Tokyo', request=request)
+            reception_dt = TimeConversion.get_time_conversion(reception_dt, time_zone, request=request)
             event_dt = events_request.event_to_time
-            event_dt = TimeConversion.get_time_conversion(event_dt, 'Asia/Tokyo', request=request)
+            event_dt = TimeConversion.get_time_conversion(event_dt, time_zone, request=request)
 
             rule_info = RuleDefs.get_rulestatus_info(events_request.status, request.user.get_lang_mode())
             is_finish = rule_info['is_finish']
@@ -1923,8 +1926,9 @@ def bulkpseudocall(request, rule_type_id):
     message_list   = []
     trace_id_list  = []
 
+    time_zone = settings.TIME_ZONE
     reception_dt = datetime.datetime.now(pytz.timezone('UTC'))
-    reception_dt = TimeConversion.get_time_conversion(reception_dt, 'Asia/Tokyo', request=request)
+    reception_dt = TimeConversion.get_time_conversion(reception_dt, time_zone, request=request)
 
     logger.logic_log('LOSI00001', 'rule_type_id: %s' % rule_type_id, request=request)
 

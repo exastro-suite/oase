@@ -353,12 +353,13 @@ class mailManager(AbstractManager):
             mail_add_info['trace_id'] = self.trace_id
 
             # イベント情報取得
+            time_zone = settings.TIME_ZONE
             er = EventsRequest.objects.get(trace_id=self.trace_id)
             event_info = MailContentCreater()
             mail_add_info['event_info'] = event_info._transform_event_info(
                 er.event_info, er.rule_type_id)
             mail_add_info['event_to_time'] = TimeConversion.get_time_conversion(
-                er.event_to_time, 'Asia/Tokyo')
+                er.event_to_time, time_zone)
 
             # アクション情報取得
             mail_add_info = self._get_action_parameter(mail_add_info, act_type)
@@ -502,14 +503,15 @@ class mailManager(AbstractManager):
         mail_add_info['rule_name'] = self.action_history.rule_name if self.action_history else ''
         mail_add_info['act_type'] = act_type
         mail_add_info['timestamp'] = ''
+        time_zone = settings.TIME_ZONE
         if self.action_history and self.action_history.action_start_time:
             if isinstance(self.action_history.action_start_time, str):
                 mail_add_info['timestamp'] = TimeConversion.get_time_conversion(datetime.datetime.strptime(
-                    self.action_history.action_start_time, '%Y-%m-%d %H:%M:%S.%f'), 'Asia/Tokyo')
+                    self.action_history.action_start_time, '%Y-%m-%d %H:%M:%S.%f'), time_zone)
 
             else:
                 mail_add_info['timestamp'] = TimeConversion.get_time_conversion(
-                    self.action_history.action_start_time, 'Asia/Tokyo')
+                    self.action_history.action_start_time, time_zone)
 
         return mail_add_info
 
@@ -636,10 +638,11 @@ class MailContentCreater:
         logger.logic_log('LOSI00001', 'content: %s, trace_id: %s, tag: %s' % (
             content, trace_id, tag))
 
+        time_zone = settings.TIME_ZONE
         er = EventsRequest.objects.get(trace_id=trace_id)
         event_info = self._transform_event_info(er.event_info, er.rule_type_id)
         event_to_time = TimeConversion.get_time_conversion(
-            er.event_to_time, 'Asia/Tokyo')
+            er.event_to_time, time_zone)
         rule_type_name = RuleType.objects.get(
             pk=er.rule_type_id).rule_type_name
         info = """
@@ -730,6 +733,7 @@ class MailContentCreater:
         rule_type_name = RuleType.objects.get(
             pk=er.rule_type_id).rule_type_name
         driver_type_list = DriverType.objects.all()
+        time_zone = settings.TIME_ZONE
         info = ''
         for rra in rra_list:
             # メールアクションの情報は載せない
@@ -762,7 +766,7 @@ class MailContentCreater:
                 ah = ActionHistory.objects.get(
                     response_id=rra.response_id, execution_order=rra.execution_order)
                 time_stamp = TimeConversion.get_time_conversion(
-                    ah.action_start_time, 'Asia/Tokyo')
+                    ah.action_start_time, time_zone)
                 info += "アクション開始日時 : " + time_stamp + "\n"
 
             except ActionHistory.DoesNotExist:
