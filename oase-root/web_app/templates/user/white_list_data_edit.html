@@ -41,7 +41,7 @@ Copyright 2019 NEC Corporation
       </div></div></td>
       <td class="address input"><div class="cell-inner"><input type="text" data-type="ip" id="ipaddr{{white.white_list_id}}" value="{{white.ipaddr}}" class="validation-input"></div></td>
       <td class="last-update-user"><div class="cell-inner">{{white.upd_user}}</div></td>
-      <td class="add-modified"><div class="cell-inner"><time datetime="{{ white.updated|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{white.updated|timezone:'Asia/Tokyo'}}</time></div></td>
+      <td class="add-modified"><div class="cell-inner"><time datetime="{{ white.updated|localtime|date:'Y-m-d\TH:i:s' }}">{{white.updated|localtime}}</time></div></td>
       <td class="row-delete blank"><div class="cell-inner"></div></td>
     </tr>
     {% endfor %}

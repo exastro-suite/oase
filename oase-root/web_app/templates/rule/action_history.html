@@ -481,7 +481,7 @@ function search_clear(){
 
                 <!-- 最終実行日時 -->
                 <td class="execution-date">
-                  <div class="cell-inner" {% if history.status == 6 %}hidden{% endif %}><time datetime="{{ history.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ history.action_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div>
+                  <div class="cell-inner" {% if history.status == 6 %}hidden{% endif %}><time datetime="{{ history.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ history.action_start_time|localtime|change_datestyle:request.user.get_lang_mode }}</time></div>
                 </td>
 
                 <!-- 最終実行者 -->

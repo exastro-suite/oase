@@ -861,7 +861,7 @@ function showNewTable(){
       </thead>
       <tbody id="tbodyActionInfo{{ driver_id }}">
         {% for i in info_list %}
-        <tr id="itadriver-{{ i.ita_driver_id }}" data-name="{{ i.ita_disp_name }}" data-version="{{i.version}}" data-protocol="{{ i.protocol }}" data-host="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password }}">
+        <tr id="itadriver-{{ i.ita_driver_id }}" data-name="{{ i.ita_disp_name }}" data-version="{{i.version}}" data-protocol="{{ i.protocol }}" data-host="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-password="{{ i.password }}">
           <td class="operation-menu">
             <div class="cell-inner"><ul>
                 <li><button class="tooltip detail oase-mini-button" onClick="setInfoInItaDetailView('itadriver-{{ i.ita_driver_id }}'); modalOpen('#modal-ITA');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
@@ -898,7 +898,7 @@ function showNewTable(){
 
           <td class="execution-date">
             <div class="cell-inner">
-              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}</time>
+              <time datetime="{{ i.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|localtime }}</time>
             </div>
           </td>
         </tr>

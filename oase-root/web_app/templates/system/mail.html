@@ -315,7 +315,7 @@ function _dispError(errorArray, modalId) {
                     <td class="template-name"><div class="cell-inner">{{ mail.mail_template_name }}</div></td>
                     <td class="title"><div class="cell-inner">{{ mail.subject }}</div></td>
                     <td class="last-update-user"><div class="cell-inner">{{ mail.last_update_user }}</div></td>
-                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ mail.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s.u' }}">{{ mail.last_update_timestamp|timezone:'Asia/Tokyo' }}</time></div></td>
+                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ mail.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s.u' }}">{{ mail.last_update_timestamp|localtime }}</time></div></td>
                   </tr>
                   {% endfor %}
                 </tbody>

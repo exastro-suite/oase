@@ -410,7 +410,7 @@ function submitAction()
                     
                   <td id="tdSummary{{ group.group_id }}" class="overview textarea"><div class="cell-inner"><textarea data-type="text" data-maxlength="4000" class="validation-input">{{ group.summary }}</textarea></div></td>
                   <td class="last-update-user"><div class="cell-inner">{{ group.last_update_user }}</div></td>
-                  <td class="last-modified"><div class="cell-inner"><time datetime="{{ group.last_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ group.last_timestamp|timezone:'Asia/Tokyo' }}</time></div></td>
+                  <td class="last-modified"><div class="cell-inner"><time datetime="{{ group.last_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ group.last_timestamp|localtime }}</time></div></td>
                   <td class="row-delete blank"><div class="cell-inner"></div></td>
                 </tr>
                 {% endfor %}

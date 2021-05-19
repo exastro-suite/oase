@@ -260,7 +260,7 @@ function submitAction() {
                     <td id="tdName{{ group.group_id }}" class="template-name"><div class="cell-inner">{{ group.group_name }}</div></td>
                     <td class="overview"><div class="cell-inner paragrap"><p>{{ group.summary }}</p></div></td>
                     <td class="last-update-user"><div class="cell-inner">{{ group.last_update_user }}</div></td>
-                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ group.last_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ group.last_timestamp|timezone:'Asia/Tokyo' }}</time></div></td>
+                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ group.last_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ group.last_timestamp|localtime }}</time></div></td>
                   </tr>
                 {% endfor %}
                 </tbody>

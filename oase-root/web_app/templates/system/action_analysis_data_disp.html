@@ -41,7 +41,7 @@ Copyright 2019 NEC Corporation
       <td class="extraction-method1"><div class="cell-inner">{{params.extraction_method1}}</div></td>
       <td class="extraction-method2"><div class="cell-inner">{{params.extraction_method2}}</div></td>
       <td class="last-update-user"><div class="cell-inner">{{params.last_update_user}}</div></td>
-      <td class="last-update-timestamp"><div class="cell-inner"><time datetime="{{ params.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{params.last_update_timestamp|timezone:'Asia/Tokyo'}}</time></div></td>
+      <td class="last-update-timestamp"><div class="cell-inner"><time datetime="{{ params.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{params.last_update_timestamp|localtime}}</time></div></td>
     </tr>
     {% endfor %}
   </tbody>

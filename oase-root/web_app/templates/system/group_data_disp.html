@@ -50,7 +50,7 @@ Copyright 2019 NEC Corporation
         <td id="tdSummary{{ group.group_id }}" class="group-col-summary">{{ group.summary }}</td>
         {% endif %}
         <td class="uneditable group-col-user">{{ group.last_update_user }}</td>
-        <td class="uneditable group-col-datetime">{{ group.last_timestamp|timezone:'Asia/Tokyo' }}</td>
+        <td class="uneditable group-col-datetime">{{ group.last_timestamp|localtime }}</td>
       </tr>
       {% endfor %}
     </tbody>

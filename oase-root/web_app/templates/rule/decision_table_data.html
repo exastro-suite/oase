@@ -78,7 +78,7 @@ Copyright 2019 NEC Corporation
             </td>
             <td class="last-modified">
               <div class="cell-inner">
-                <time datetime="{{ d.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ d.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time>
+                <time datetime="{{ d.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ d.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode }}</time>
               </div>
             </td>
           </tr>

@@ -63,7 +63,7 @@ Copyright 2019 NEC Corporation
         </div>
       </td>
       <td class="last-update-user"><div class="cell-inner">{{user.upd_user_name}}</div></td>
-      <td class="last-modified"><div class="cell-inner"><time datetime="{{ user.updated|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{user.updated|timezone:'Asia/Tokyo'}}</time></div></td>
+      <td class="last-modified"><div class="cell-inner"><time datetime="{{ user.updated|localtime|date:'Y-m-d\TH:i:s' }}">{{user.updated|localtime}}</time></div></td>
       <td class="row-delete blank"><div class="cell-inner"></div></td>
     </tr>
     {% endfor %}

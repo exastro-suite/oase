@@ -35,7 +35,7 @@ Copyright 2019 NEC Corporation
             <td><div class="cell-inner">{{rule.rule_type_name}}</div></td>
             <td><div class="cell-inner">{{rule.filename}}</div></td>
             <td><div class="cell-inner">{{rule.last_update_user_name}}</div></td>
-            <td><div class="cell-inner"><time datetime="{{ rule.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}</time></div></td>
+            <td><div class="cell-inner"><time datetime="{{ rule.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode}}</time></div></td>
             <td>
               {% if permission_type_prd == 1 %}
               <a href="#modal3_{{rule.rule_manage_id}}" class="modalOpen">
