@@ -98,7 +98,7 @@ Copyright 2019 NEC Corporation
                 </td>
                 <td class="request-reception-date">
                   <div class="cell-inner">
-                    <time datetime="{{ history.request_reception_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ history.request_reception_time|timezone:'Asia/Tokyo' }}</time>
+                    <time datetime="{{ history.request_reception_time|localtime|date:'Y-m-d\TH:i:s' }}">{{ history.request_reception_time|localtime }}</time>
                   </div>
                 </td>
                 <td class="event-information">
@@ -106,7 +106,7 @@ Copyright 2019 NEC Corporation
                 </td>
                 <td class="event-date">
                   <div class="cell-inner">
-                    <time datetime="{{ history.event_to_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ history.event_to_time|timezone:'Asia/Tokyo' }}</time>
+                    <time datetime="{{ history.event_to_time|localtime|date:'Y-m-d\TH:i:s' }}">{{ history.event_to_time|localtime }}</time>
                   </div>
                 </td>
                 <td class="trace-id">

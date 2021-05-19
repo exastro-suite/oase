@@ -113,7 +113,7 @@ Copyright 2019 NEC Corporation
       <td class="extraction-method1 input"><div class="cell-inner"><input type="text" data-type="text" id="extraction_method1{{params.match_id}}" value="{{params.extraction_method1}}" data-maxlength="512" class="validation-input"></div></td>
       <td class="extraction-method2 input"><div class="cell-inner"><input type="text" data-type="text" id="extraction_method2{{params.match_id}}" value="{{params.extraction_method2}}" data-maxlength="512" class="validation-input"></div></td>
       <td class="last-update-user"><div class="cell-inner">{{params.last_update_user}}</div></td>
-      <td class="last-update-timestamp"><div class="cell-inner"><time datetime="{{ params.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{params.last_update_timestamp|timezone:'Asia/Tokyo'}}</time></div></td>
+      <td class="last-update-timestamp"><div class="cell-inner"><time datetime="{{ params.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{params.last_update_timestamp|localtime}}</time></div></td>
       <td class="row-delete blank"><div class="cell-inner"></div></td>
     </tr>
     {% endfor %}

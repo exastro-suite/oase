@@ -275,7 +275,7 @@ Copyright 2019 NEC Corporation
 
       <tbody id="tbodyActionInfo{{ driver_id }}">
         {% for i in info_list %}
-        <tr id="servicenowdriver-{{ i.servicenow_driver_id }}" data-name="{{ i.servicenow_disp_name }}" data-protocol="{{ i.protocol }}" data-hostname="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password }}" data-proxy="{{ i.proxy }}">
+        <tr id="servicenowdriver-{{ i.servicenow_driver_id }}" data-name="{{ i.servicenow_disp_name }}" data-protocol="{{ i.protocol }}" data-hostname="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-password="{{ i.password }}" data-proxy="{{ i.proxy }}">
           <td class="operation-menu">
             <div class="cell-inner">
               <ul>
@@ -314,7 +314,7 @@ Copyright 2019 NEC Corporation
 
           <td class="execution-date">
             <div class="cell-inner">
-              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}</time>
+              <time datetime="{{ i.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|localtime }}</time>
             </div>
           </td>
         </tr>

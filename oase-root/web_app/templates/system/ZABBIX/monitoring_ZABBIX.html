@@ -927,7 +927,7 @@ var renderZabbixErrorMsg = function(errorMsg, mode) {
 
       <tbody id="tbodyZabbixAdapterInfo">
         {% for i in info_list %}
-        <tr id="zabbixadapter-{{ i.zabbix_adapter_id }}" data-zabbix_id="{{ i.zabbix_adapter_id }}" data-name="{{ i.zabbix_disp_name }}" data-protocol="{{ i.protocol }}" data-host="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
+        <tr id="zabbixadapter-{{ i.zabbix_adapter_id }}" data-zabbix_id="{{ i.zabbix_adapter_id }}" data-name="{{ i.zabbix_disp_name }}" data-protocol="{{ i.protocol }}" data-host="{{ i.hostname }}" data-port="{{ i.port }}" data-username="{{ i.username }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-password="{{ i.password }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
           <td class="operation-menu">
             <div class="cell-inner"><ul>
                 <li><button class="tooltip detail oase-mini-button" onClick="setInfoInZabbixDetailView('zabbixadapter-{{ i.zabbix_adapter_id }}'); modalOpen('#modal-zabbix-detail');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
@@ -974,7 +974,7 @@ var renderZabbixErrorMsg = function(errorMsg, mode) {
 
           <td class="execution-date">
             <div class="cell-inner">
-              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time>
+              <time datetime="{{ i.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode }}</time>
             </div>
           </td>
         </tr>

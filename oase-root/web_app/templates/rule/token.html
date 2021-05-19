@@ -366,14 +366,14 @@ function showDetail(token_id){
         if ( token_id == {{token.token_id}} ) {
             $('#viewToken').attr('data-recordid', token_id);
             $('#viewTokenNmae').text("{{token.token_name}}");
-            $('#viewUseStartTime').text("{{token.use_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}");
+            $('#viewUseStartTime').text("{{token.use_start_time|localtime|change_datestyle:request.user.get_lang_mode}}");
             {% if token.use_end_time|length %}
-            $('#viewUseEndTime').text("{{token.use_end_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}");
+            $('#viewUseEndTime').text("{{token.use_end_time|localtime|change_datestyle:request.user.get_lang_mode}}");
             {% else %}
-            $('#viewUseEndTime').text("{{token.use_end_time|timezone:'Asia/Tokyo'}}");
+            $('#viewUseEndTime').text("{{token.use_end_time|localtime}}");
             {% endif %}
             $('#viewTokenLastUpdateUser').text("{{token.last_update_user}}");
-            $('#viewTokenLastUpdateTimestamp').text("{{token.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}");
+            $('#viewTokenLastUpdateTimestamp').text("{{token.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode}}");
             $("#hid_tokenid").val(token_id);
 
             html = '';
@@ -663,14 +663,14 @@ $(function(){
                       </div>
                     </td>
                     <td class="token-name"><div class="cell-inner">{{token.token_name}}</div></td>
-                    <td class="token-start"><div class="cell-inner"><time datetime="{{ token.use_start_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_start_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
+                    <td class="token-start"><div class="cell-inner"><time datetime="{{ token.use_start_time|localtime|date:'Y-m-d\TH:i:s' }}">{{ token.use_start_time|localtime|change_datestyle:request.user.get_lang_mode }}</time></div></td>
                     {% if token.use_end_time|length %}
-                    <td class="token-end"><div class="cell-inner"><time datetime="{{ token.use_end_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_end_time|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
+                    <td class="token-end"><div class="cell-inner"><time datetime="{{ token.use_end_time|localtime|date:'Y-m-d\TH:i:s' }}">{{ token.use_end_time|localtime|change_datestyle:request.user.get_lang_mode }}</time></div></td>
                     {% else %}
-                    <td class="token-end"><div class="cell-inner"><time datetime="{{ token.use_end_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.use_end_time|timezone:'Asia/Tokyo' }}</time></div></td>
+                    <td class="token-end"><div class="cell-inner"><time datetime="{{ token.use_end_time|localtime|date:'Y-m-d\TH:i:s' }}">{{ token.use_end_time|localtime }}</time></div></td>
                     {% endif %}
                     <td class="last-update-user"><div class="cell-inner">{{token.last_update_user}}</div></td>
-                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ token.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ token.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode }}</time></div></td>
+                    <td class="last-modified"><div class="cell-inner"><time datetime="{{ token.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ token.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode }}</time></div></td>
                   </tr>
                   {% endfor %}
                 </tbody>

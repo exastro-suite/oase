@@ -124,7 +124,7 @@ function submitAction(user_id) {
                     <td class="user-name"><div class="cell-inner">{{user.user_name}}</div></td>
                     <td class="user-id"><div class="cell-inner">{{user.login_id}}</div></td>
                     <td class="mail"><div class="cell-inner">{{user.mail_address}}</div></td>
-                    <td class="lock-date"><div class="cell-inner"><time datetime="{{ user.account_lock_time|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{user.account_lock_time|timezone:'Asia/Tokyo'}}</time></div></td>
+                    <td class="lock-date"><div class="cell-inner"><time datetime="{{ user.account_lock_time|localtime|date:'Y-m-d\TH:i:s' }}">{{user.account_lock_time|localtime}}</time></div></td>
                   </tr>
                 {% endfor %}
                 </tbody>

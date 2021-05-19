@@ -123,7 +123,7 @@ Copyright 2019 NEC Corporation
             <!-- 最終更新日時 -->
             <td class="last-modified">
               <div class="cell-inner">
-                <time datetime="{{ rule.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}</time>
+                <time datetime="{{ rule.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode}}</time>
               </div>
             </td>
           </tr>
@@ -179,7 +179,7 @@ Copyright 2019 NEC Corporation
             <!-- 最終更新日時 -->
             <td class="last-modified">
               <div class="cell-inner">
-                <time datetime="{{ rule.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|timezone:'Asia/Tokyo'|change_datestyle:request.user.get_lang_mode}}</time>
+                <time datetime="{{ rule.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{rule.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode}}</time>
               </div>
             </td>
           </tr>
@@ -351,7 +351,7 @@ Copyright 2019 NEC Corporation
                               <th><div class="cell-inner">{% get_message 'MOSJA12066' request.user.get_lang_mode showMsgId=False %}</div></th>
                               <td>
                                 <div class="cell-inner">
-                                  <input type="text" value="{{now|timezone:'Asia/Tokyo'|date:"Y-m-d H:i:s"}}">
+                                  <input type="text" value="{{now|localtime|date:"Y-m-d H:i:s"}}">
                                 </div>
                               </td>
                             </tr>

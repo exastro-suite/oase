@@ -578,7 +578,7 @@ function moveMailTemplate() {
 
       <tbody id="tbodyActionInfo{{ driver_id }}">
         {% for i in info_list %}
-        <tr id="maildriver-{{ i.mail_driver_id }}" data-name="{{ i.mail_disp_name }}" data-protocol="{{ i.protocol_str }}" data-server="{{ i.smtp_server }}" data-port="{{ i.port }}" data-username="{{ i.user }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}" data-password="{{ i.password|default:"" }}">
+        <tr id="maildriver-{{ i.mail_driver_id }}" data-name="{{ i.mail_disp_name }}" data-protocol="{{ i.protocol_str }}" data-server="{{ i.smtp_server }}" data-port="{{ i.port }}" data-username="{{ i.user }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-password="{{ i.password|default:"" }}">
           <td class="operation-menu">
             <div class="cell-inner">
               <ul>
@@ -613,7 +613,7 @@ function moveMailTemplate() {
           
           <td class="execution-date">
             <div class="cell-inner">
-              <time datetime="{{ i.last_update_timestamp|timezone:'Asia/Tokyo'|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|timezone:'Asia/Tokyo' }}</time>
+              <time datetime="{{ i.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|localtime }}</time>
             </div>
           </td>
         </tr>
