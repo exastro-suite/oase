@@ -63,7 +63,7 @@ class Mail1Core(DriverCore):
         [メソッド概要]
             メール送信メゾット
         """
-        logger.logic_log('LOSI00001', 'smtpderver: %s, protocol: %s, port: %s, subject: %s, text: %s, from_address: %s, password: %s, to_address: %s, cc_address: %s, bcc_address: %s,' % (smtpderver, protocol, port, subject, text, from_address, password, to_address, cc_address, bcc_address))
+        logger.logic_log('LOSI00001', 'smtpderver: %s, protocol: %s, port: %s, subject: %s, text: %s, from_address: %s, to_address: %s, cc_address: %s, bcc_address: %s,' % (smtpderver, protocol, port, subject, text, from_address, to_address, cc_address, bcc_address))
 
         try:
             smtpHeader = {}

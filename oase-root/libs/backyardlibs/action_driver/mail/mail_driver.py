@@ -645,18 +645,17 @@ class MailContentCreater:
             er.event_to_time, time_zone)
         rule_type_name = RuleType.objects.get(
             pk=er.rule_type_id).rule_type_name
-        info = """
-[リクエスト情報]
-イベントシリアルNo.：{}
-ルール種別名：{}
-リクエストユーザ：{}
-リクエストサーバ：{}
 
-[イベント情報]
-イベント発生日時：{}
-{}
-""".format(er.trace_id, rule_type_name, er.request_user,
-            er.request_server, event_to_time, event_info)
+        info = ""
+        info += ("[%s]\n" % (get_message('MOSJA01100', _get_system_lang_mode(), showMsgId=False)))
+        info += ("%s : %s\n" % (get_message('MOSJA01101', _get_system_lang_mode(), showMsgId=False), er.trace_id))
+        info += ("%s : %s\n" % (get_message('MOSJA01089', _get_system_lang_mode(), showMsgId=False), rule_type_name))
+        info += ("%s : %s\n" % (get_message('MOSJA01102', _get_system_lang_mode(), showMsgId=False), er.request_user))
+        info += ("%s : %s\n" % (get_message('MOSJA01103', _get_system_lang_mode(), showMsgId=False), er.request_server))
+        info += "\n"
+        info += ("[%s]\n" % (get_message('MOSJA01104', _get_system_lang_mode(), showMsgId=False)))
+        info += ("%s : %s\n" % (get_message('MOSJA01105', _get_system_lang_mode(), showMsgId=False), event_to_time))
+        info += ("%s\n" % (event_info))
 
         content = content.replace(tag, info)
         logger.logic_log('LOSI00002', 'content: %s' % (content))
@@ -746,20 +745,17 @@ class MailContentCreater:
 
             act_param_info = self._transform_json_str(
                 rra.action_parameter_info, 'ACTION_PARAMETER_INFO')
-            info += """
-[アクション情報]
-ルール種別 : {}
-ルール名: {}
-アクション実行順 : {}
-アクション種別 : {}
-アクションパラメータ情報 : {}
-アクションリトライ間隔 : {}
-アクションリトライ回数 : {}
-アクション中断間隔 : {}
-アクション中断回数 : {}
-""".format(rule_type_name, rra.rule_name, rra.execution_order, action_type_str,
-                act_param_info, rra.action_retry_interval, rra.action_retry_count,
-                rra.action_stop_interval, rra.action_stop_count)
+
+            info += ("[%s]\n" % (get_message('MOSJA01088', _get_system_lang_mode(), showMsgId=False)))
+            info += ("%s : %s\n" % (get_message('MOSJA01089', _get_system_lang_mode(), showMsgId=False), rule_type_name))
+            info += ("%s : %s\n" % (get_message('MOSJA01090', _get_system_lang_mode(), showMsgId=False), rra.rule_name))
+            info += ("%s : %s\n" % (get_message('MOSJA01091', _get_system_lang_mode(), showMsgId=False), rra.execution_order))
+            info += ("%s : %s\n" % (get_message('MOSJA01092', _get_system_lang_mode(), showMsgId=False), action_type_str))
+            info += ("%s : %s\n" % (get_message('MOSJA01093', _get_system_lang_mode(), showMsgId=False), act_param_info))
+            info += ("%s : %s\n" % (get_message('MOSJA01094', _get_system_lang_mode(), showMsgId=False), rra.action_retry_interval))
+            info += ("%s : %s\n" % (get_message('MOSJA01095', _get_system_lang_mode(), showMsgId=False), rra.action_retry_count))
+            info += ("%s : %s\n" % (get_message('MOSJA01096', _get_system_lang_mode(), showMsgId=False), rra.action_stop_interval))
+            info += ("%s : %s\n" % (get_message('MOSJA01097', _get_system_lang_mode(), showMsgId=False), rra.action_stop_count))
 
             # アクション日時書き込み
             try:
@@ -767,10 +763,21 @@ class MailContentCreater:
                     response_id=rra.response_id, execution_order=rra.execution_order)
                 time_stamp = TimeConversion.get_time_conversion(
                     ah.action_start_time, time_zone)
-                info += "アクション開始日時 : " + time_stamp + "\n"
+
+                info += (
+                    "%s : %s\n" % (
+                        get_message('MOSJA01098', _get_system_lang_mode(), showMsgId=False),
+                        time_stamp
+                    )
+                )
 
             except ActionHistory.DoesNotExist:
-                info += "アクション開始日時 : 未実行\n"
+                info += (
+                    "%s : %s\n" % (
+                        get_message('MOSJA01098', _get_system_lang_mode(), showMsgId=False),
+                        get_message('MOSJA01099', _get_system_lang_mode(), showMsgId=False)
+                    )
+                )
 
         content = content.replace(tag, info)
 
