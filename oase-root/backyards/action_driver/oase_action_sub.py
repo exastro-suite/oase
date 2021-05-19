@@ -312,13 +312,14 @@ class ActionDriverSubModules:
 
         try:
             with transaction.atomic():
+                now = ActCommon.getStringNowDateTime()
                 rcnt = ActionHistory.objects.filter(response_id=rhdm_res_act.response_id, execution_order=rhdm_res_act.execution_order).count()
                 if rcnt > 0:
                     action_history = ActionHistory.objects.get(response_id=rhdm_res_act.response_id, execution_order=rhdm_res_act.execution_order)
                     action_history.status = status
                     action_history.status_detail = detail
                     action_history.status_update_id = gethostname()
-                    action_history.last_update_timestamp = ActCommon.getStringNowDateTime()
+                    action_history.last_update_timestamp = now
                     action_history.last_update_user = self.user
                     action_history.save(force_update=True)
 
@@ -334,14 +335,14 @@ class ActionDriverSubModules:
                         rule_type_name        = rule_type.rule_type_name,
                         rule_name             = rhdm_res_act.rule_name,
                         execution_order       = rhdm_res_act.execution_order,
-                        action_start_time     = ActCommon.getStringNowDateTime(True),
+                        action_start_time     = now,
                         action_type_id        = rhdm_res_act.action_type_id,
                         status                = status,
                         status_detail         = detail,
                         status_update_id      = gethostname(),
                         action_retry_count    = 0,
                         last_act_user         = self.user,
-                        last_update_timestamp = ActCommon.getStringNowDateTime(),
+                        last_update_timestamp = now,
                         last_update_user      = self.user,
                     )
                     action_history.save(force_insert=True)
