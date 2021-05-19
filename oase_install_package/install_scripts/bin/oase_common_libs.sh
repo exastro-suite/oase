@@ -112,8 +112,22 @@ function check_answer_vars() {
     fi
 
     # config_id: OASE_TIMEZONE
+    local _timezone_flag=true
     if [ -z "${oase_timezone}" ]; then
         log "ERROR : oase_timezone should be enter to timezone."
+        _error_flag=true
+        _timezone_flag=false
+    else
+        while read listtz
+        do
+            if [ ${oase_timezone} == ${listtz} ]; then
+                _timezone_flag=false
+            fi
+        done < "$OASE_INSTALL_SCRIPTS_DIR/list/time_zone_list.txt"
+    fi
+
+    if ${_timezone_flag}; then
+        log "ERROR : oase_timezone is wrong with the answerfile"
         _error_flag=true
     fi
 
