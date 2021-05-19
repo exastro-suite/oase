@@ -30,6 +30,7 @@ create_oase_conf() {
 cat << EOS > "$OASE_CONF_FILE"
 LoadModule wsgi_module modules/mod_wsgi-py36.cpython-36m-x86_64-linux-gnu.so
 
+WSGIPassAuthorization On
 WSGIPythonPath ${oase_directory}/OASE/oase-root
 WSGIScriptAlias / ${oase_directory}/OASE/oase-root/confs/frameworkconfs/wsgi.py
 <Directory "${oase_directory}/OASE/oase-root/confs/frameworkconfs">

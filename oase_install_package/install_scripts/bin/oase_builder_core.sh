@@ -1601,7 +1601,8 @@ if [ "${exec_mode}" == "1" ]; then
     )
 else
     YUM_PACKAGE=(
-        ["httpd"]="httpd httpd-devel"
+        ["httpd"]="httpd"
+        ["httpd-devel"]="httpd-devel"
         ["rabbitmq-server"]="rabbitmq-server --enablerepo=epel"
         ["erlang"]="erlang"
         ["python"]="python36 python36-libs python36-devel python36-pip"

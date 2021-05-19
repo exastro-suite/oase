@@ -111,6 +111,12 @@ function check_answer_vars() {
         _error_flag=true
     fi
 
+    # config_id: OASE_TIMEZONE
+    if [ -z "${oase_timezone}" ]; then
+        log "ERROR : oase_timezone should be enter to timezone."
+        _error_flag=true
+    fi
+
     #################################
     ### oase_db_setup_core.sh 用
     # config_id: RULEFILE_ROOTPATH
