@@ -29,7 +29,7 @@ log "INFO : Create settings.py"
 readonly OASE_CONFS_DIR=$(cd "${oase_directory}/OASE/oase-root/confs/frameworkconfs";pwd)
 readonly SETTINGS_SAMPLE_FILE=${OASE_CONFS_DIR}/settings.py.sample
 readonly OASE_SETTING_FILE=${OASE_CONFS_DIR}/settings.py
-
+readonly OASE_TZLIST_FILE=$OASE_INSTALL_SCRIPTS_DIR/time_zone_list.txt
 # format init_custom.yaml
 if [ ! -e $OASE_SETTING_FILE ]; then
     cp $SETTINGS_SAMPLE_FILE $OASE_SETTING_FILE
@@ -64,6 +64,15 @@ else
     oase_lang='ja'
 fi
 sed -i -e '/^LANGUAGE_CODE/s/ja/'${oase_lang}'/g' $OASE_SETTING_FILE
+
+
+cat "$OASE_INSTALL_SCRIPTS_DIR/list/time_zone_list.txt" | while read listtz
+do
+    if [ ${oase_timezone} == $listtz ]; then
+        sed -i -e "/^TIME_ZONE/s|UTC|${oase_timezone}|g" $OASE_SETTING_FILE
+    fi
+done < "$OASE_INSTALL_SCRIPTS_DIR/list/time_zone_list.txt"
+
 
 sed -i -e "/^        'NAME'     :/s/OASE_DB/${db_name}/g" $OASE_SETTING_FILE
 sed -i -e "/^        'USER'     :/s/OASE_USER/${db_username}/g" $OASE_SETTING_FILE
