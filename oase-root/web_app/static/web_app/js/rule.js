@@ -611,6 +611,7 @@ function pollingSuccess_Bulk(respdata, ruleID) {
     }
     // ステージング検証が正常終了の場合は、フラグ立てる
     else if(parseInt(resp.is_finish) < 0) {
+        $("#frmBulkPseudoCall")[0].reset();
         $("#btnFileSelect").prop("disabled", false);
         $("#btnLogDownload").prop("disabled", false);
         $("#btnClear").prop("disabled", false);
@@ -621,6 +622,7 @@ function pollingSuccess_Bulk(respdata, ruleID) {
     }
     // ステージング検証が異常終了の場合は、テストリクエスト実行ボタンを有効化
     else if(parseInt(resp.is_finish) > 0) {
+        $("#frmBulkPseudoCall")[0].reset();
         $("#btnFileSelect").prop("disabled", false);
         $("#btnLogDownload").prop("disabled", false);
         $("#btnPseudoCall").prop("disabled", false);
