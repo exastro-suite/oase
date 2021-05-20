@@ -107,7 +107,6 @@ def set_DecisionTableFactory():
             'pytesttableObject',
             'RuleTable pytesttable',
             '/root/pytest'
-            'JA'
     )
     return dt_create
 

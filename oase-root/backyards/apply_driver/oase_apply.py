@@ -188,8 +188,8 @@ def create(request):
                 dtcomp.table_name,
                 dtcomp.class_name,
                 dtcomp.fact_name,
-                dtcomp.get_dtable_path(),
-                lang)
+                dtcomp.get_dtable_path()
+            )
             success_flg = dt_fact.create_decision_table()
             if not success_flg:
                 msg = 'MOSJA03501'
