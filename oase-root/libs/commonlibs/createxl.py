@@ -41,6 +41,7 @@ from libs.commonlibs.aes_cipher import AESCipher
 from libs.commonlibs.oase_logger import OaseLogger
 from web_app.models.models import DataObject, RuleType, ConditionalExpression, System, ActionType, DriverType
 from web_app.templatetags.common import get_message
+from web_app.views.top.login import _get_system_lang_mode
 
 logger = OaseLogger.get_instance()
 
@@ -52,7 +53,92 @@ class DecisionTableFactory:
     template.xlsxファイルを基に作成する。
     アクション部はテンプレートをそのまま使えば良い。
     """
-    def __init__(self, rule_type_id, rule_set, table_name, class_name, fact_name, save_path, lang):
+
+    # 多言語対応
+    MSG_INFO = {
+        'Tables'  : {
+            'B11' : ['MOSJA11064',],
+            'B19' : ['MOSJA11081',],
+            'B20' : ['MOSJA11082', {'rule_row_max':0}],
+            'D11' : ['MOSJA11065',],
+            'E11' : ['MOSJA11066',],
+            'F11' : ['MOSJA11067',],
+            'G11' : ['MOSJA11068',],
+            'H11' : ['MOSJA11069',],
+            'I11' : ['MOSJA11070',],
+            'J11' : ['MOSJA11071',],
+            'K11' : ['MOSJA11072',],
+            'L11' : ['MOSJA11073',],
+            'M11' : ['MOSJA11074',],
+            'N11' : ['MOSJA11075',],
+            'O11' : ['MOSJA11076',],
+            'P11' : ['MOSJA11077',],
+            'Q11' : ['MOSJA11078',],
+            'R11' : ['MOSJA11079',],
+            'S11' : ['MOSJA11080',],
+        },
+        'example' : {
+            # 見出し行
+            'B2'  : ['MOSJA11083',],
+            'C2'  : ['MOSJA11084',],
+            'D2'  : ['MOSJA11085',],
+            'E2'  : ['MOSJA11086',],
+            'F2'  : ['MOSJA11087',],
+            'G2'  : ['MOSJA11088',],
+            'H2'  : ['MOSJA11089',],
+            'I2'  : ['MOSJA11090',],
+            'J2'  : ['MOSJA11091',],
+            'K2'  : ['MOSJA11092',],
+            'L2'  : ['MOSJA11093',],
+            'M2'  : ['MOSJA11094',],
+            'N2'  : ['MOSJA11095',],
+            'O2'  : ['MOSJA11096',],
+            'P2'  : ['MOSJA11097',],
+            'Q2'  : ['MOSJA11098',],
+            'R2'  : ['MOSJA11099',],
+            'S2'  : ['MOSJA11100',],
+            # 具体例
+            'C3'  : ['MOSJA11102',],
+            'C4'  : ['MOSJA11102',],
+            'C5'  : ['MOSJA11102',],
+            'C6'  : ['MOSJA11102',],
+            'C7'  : ['MOSJA11102',],
+            'C8'  : ['MOSJA11102',],
+            'C9'  : ['MOSJA11102',],
+            'C10' : ['MOSJA11102',],
+            'C11' : ['MOSJA11102',],
+            'C12' : ['MOSJA11102',],
+            'C13' : ['MOSJA11102',],
+            'C14' : ['MOSJA11102',],
+            'C15' : ['MOSJA11102',],
+            'C16' : ['MOSJA11102',],
+            'C17' : ['MOSJA11102',],
+            'C18' : ['MOSJA11102',],
+            'C19' : ['MOSJA11102',],
+            'C20' : ['MOSJA11102',],
+            'E17' : ['MOSJA11103',],
+            'E19' : ['MOSJA11103',],
+            # 記述例コメント
+            'B23' : ['MOSJA11104',],
+            'C23' : ['MOSJA11105',],
+            'C24' : ['MOSJA11115',],
+            'D23' : ['MOSJA11106',],
+            'E23' : ['MOSJA11107',],
+            'F23' : ['MOSJA11108',],
+            'F24' : ['MOSJA11116',],
+            'F25' : ['MOSJA11117',],
+            'F26' : ['MOSJA11118',],
+            'F27' : ['MOSJA11119',],
+            'G23' : ['MOSJA11109',],
+            'H23' : ['MOSJA11110',],
+            'N23' : ['MOSJA11111',],
+            'P23' : ['MOSJA11112',],
+            'R23' : ['MOSJA11113',],
+            'S23' : ['MOSJA11114',],
+        },
+    }
+
+    def __init__(self, rule_type_id, rule_set, table_name, class_name, fact_name, save_path):
         """
         [メソッド概要]
         B2:E5 = ヘッダーのテンプレート
@@ -78,7 +164,7 @@ class DecisionTableFactory:
         self.save_path = save_path
         self.len_act = 16 # アクション部の数
         self.len_condition = len(self.data_object_list) + len(self.from_to) # 条件部の数
-        self.lang = lang
+        self.lang = _get_system_lang_mode()
 
         # テンプレート読み込み
         cur_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -89,10 +175,20 @@ class DecisionTableFactory:
         self.condition = self.tables_ws['C7:C18']
         self.action = self.tables_ws['B22:L25']
 
-        # ルール上限数記述
-        rule_row_max = System.objects.get(config_id='RULE_ROW_MAX').value
-        #self.tables_ws['B20'].value = '記述できるルール数の上限は %s 件です' % rule_row_max
-        self.tables_ws['B20'].value = 'The maximum number of rules that can be written is %s.' % rule_row_max
+        # 多言語対応
+        for ws_name, v1 in self.MSG_INFO.items():
+            for cell, msg in v1.items():
+                # ルール上限数記述
+                if cell == 'B20':
+                    rule_row_max = System.objects.get(config_id='RULE_ROW_MAX').value
+                    msg[1]['rule_row_max'] = rule_row_max
+
+                if len(msg) >= 2:
+                    self.wb[ws_name][cell].value = get_message(msg[0], self.lang, showMsgId=False, **(msg[1]))
+
+                else:
+                    self.wb[ws_name][cell].value = get_message(msg[0], self.lang, showMsgId=False)
+
 
     def _create_header(self):
         """
@@ -264,14 +360,15 @@ class DecisionTableFactory:
         [メソッド概要]
         アクションリトライ間隔、アクションリトライ回数、アクション抑止間隔、アクション抑止回数の判定処理
         """
-        if len(strs) >= 2 and (get_message('MOSJA03132', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03133', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03134', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03135', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03150', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03151', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03153', self.lang, showMsgId=False) in strs[0]
-                                or get_message('MOSJA03155', self.lang, showMsgId=False) in strs[0]):
+
+        if len(strs) >= 2 and (strs[0] in get_message('MOSJA11069', self.lang, showMsgId=False)
+                                or strs[0] in get_message('MOSJA11070', self.lang, showMsgId=False)
+                                or strs[0] in get_message('MOSJA11071', self.lang, showMsgId=False)
+                                or strs[0] in get_message('MOSJA11072', self.lang, showMsgId=False)
+                                or strs[0] in get_message('MOSJA11073', self.lang, showMsgId=False)
+                                or strs[0] in get_message('MOSJA11074', self.lang, showMsgId=False)
+                                or strs[0] in get_message('MOSJA11076', self.lang, showMsgId=False)
+                                or strs[0] in get_message('MOSJA11078', self.lang, showMsgId=False)):
             return True
         else:
             return False
@@ -338,8 +435,9 @@ class DecisionTableCustomizer:
 
     def __init__(self, input_filepath):
         self.wb = openpyxl.load_workbook(input_filepath)
+        self.lang = _get_system_lang_mode()
 
-    def custom_action_type(self, lang='JA'):
+    def custom_action_type(self):
         """
         [メソッド概要]
         アクション部のバリデーション
@@ -349,8 +447,7 @@ class DecisionTableCustomizer:
         """
         tables_ws = self.wb['Tables']
         header_row = tables_ws[11]
-        # target_header_text = 'アクション種別\n（必須）'
-        target_header_text = 'Action type\n（Required）'
+        target_header_text = get_message('MOSJA11066', self.lang, showMsgId=False)
 
         action_type_col = 0
         for cell in header_row:
@@ -371,7 +468,7 @@ class DecisionTableCustomizer:
 
         dti = ActionType.objects.filter(disuse_flag='0').values_list('driver_type_id', flat=True)
         rs  = DriverType.objects.filter(driver_type_id__in=dti).values('name', 'driver_major_version')
-        ati = [get_message('MOSJA03149', lang, showMsgId=False)]
+        ati = [get_message('MOSJA03149', self.lang, showMsgId=False)]
         for r in rs:
             name_version = r['name'] + '(ver' + str(r['driver_major_version']) + ')'
             ati.append(name_version)
