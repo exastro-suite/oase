@@ -146,7 +146,7 @@ class TestRequestXlFactory:
             try:
                 # コメント追記文言取得
                 mosja = ConditionalExpression.objects.get(conditional_expression_id=d.conditional_expression_id).example
-                example = get_message(mosja, self.request['lang'], showMsgId=False)
+                example = get_message(mosja, self.lang, showMsgId=False)
 
             except ConditionalExpression.DoesNotExist:
                 logger.system_log('LOSM00101', d.conditional_expression_id)
