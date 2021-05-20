@@ -36,6 +36,7 @@ from libs.commonlibs.dt_component import DecisionTableComponent
 from libs.webcommonlibs.sys_config import System
 from web_app.models.models import DataObject, RuleType, ConditionalExpression
 from web_app.templatetags.common import get_message
+from web_app.views.top.login import _get_system_lang_mode
 
 from libs.commonlibs.oase_logger import OaseLogger
 logger = OaseLogger.get_instance() # ロガー初期化
@@ -72,6 +73,7 @@ class TestRequestXlFactory:
         self.save_path = save_path
         self.len_condition = len(self.data_object_list) # 条件部の数
         self.request = request
+        self.lang = _get_system_lang_mode()
 
         # テンプレート読み込み
         cur_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
@@ -79,42 +81,42 @@ class TestRequestXlFactory:
 
         # Values Sheet
         self.tables_ws = self.wb['Values']
-        self.tables_ws['B2'].value = get_message('MOSJA11120', self.request['lang'], showMsgId=False)
-        self.tables_ws['C2'].value = get_message('MOSJA11121', self.request['lang'], showMsgId=False)
-        self.tables_ws['B5'].value = get_message('MOSJA11122', self.request['lang'], showMsgId=False)
+        self.tables_ws['B2'].value = get_message('MOSJA11120', self.lang, showMsgId=False)
+        self.tables_ws['C2'].value = get_message('MOSJA11121', self.lang, showMsgId=False)
+        self.tables_ws['B5'].value = get_message('MOSJA11122', self.lang, showMsgId=False)
         request_row_max = System.objects.get(config_id='REQUEST_ROW_MAX').value
-        self.tables_ws['B6'].value = get_message('MOSJA11123', self.request['lang'], showMsgId=False, count=request_row_max)
+        self.tables_ws['B6'].value = get_message('MOSJA11123', self.lang, showMsgId=False, count=request_row_max)
 
         # Values example
         self.example_ws = self.wb['example']
-        self.example_ws['B2'].value = get_message('MOSJA11124', self.request['lang'], showMsgId=False)
-        self.example_ws['C2'].value = get_message('MOSJA11125', self.request['lang'], showMsgId=False)
-        self.example_ws['D2'].value = get_message('MOSJA11126', self.request['lang'], showMsgId=False)
-        self.example_ws['E2'].value = get_message('MOSJA11127', self.request['lang'], showMsgId=False)
-        self.example_ws['F2'].value = get_message('MOSJA11128', self.request['lang'], showMsgId=False)
-        self.example_ws['G2'].value = get_message('MOSJA11129', self.request['lang'], showMsgId=False)
+        self.example_ws['B2'].value = get_message('MOSJA11124', self.lang, showMsgId=False)
+        self.example_ws['C2'].value = get_message('MOSJA11125', self.lang, showMsgId=False)
+        self.example_ws['D2'].value = get_message('MOSJA11126', self.lang, showMsgId=False)
+        self.example_ws['E2'].value = get_message('MOSJA11127', self.lang, showMsgId=False)
+        self.example_ws['F2'].value = get_message('MOSJA11128', self.lang, showMsgId=False)
+        self.example_ws['G2'].value = get_message('MOSJA11129', self.lang, showMsgId=False)
 
-        self.example_ws['A3'].value = get_message('MOSJA11130', self.request['lang'], showMsgId=False)
-        self.example_ws['B3'].value = get_message('MOSJA11131', self.request['lang'], showMsgId=False)
-        self.example_ws['G3'].value = get_message('MOSJA11132', self.request['lang'], showMsgId=False)
+        self.example_ws['A3'].value = get_message('MOSJA11130', self.lang, showMsgId=False)
+        self.example_ws['B3'].value = get_message('MOSJA11131', self.lang, showMsgId=False)
+        self.example_ws['G3'].value = get_message('MOSJA11132', self.lang, showMsgId=False)
 
-        self.example_ws['A4'].value = get_message('MOSJA11130', self.request['lang'], showMsgId=False)
-        self.example_ws['B4'].value = get_message('MOSJA11133', self.request['lang'], showMsgId=False)
+        self.example_ws['A4'].value = get_message('MOSJA11130', self.lang, showMsgId=False)
+        self.example_ws['B4'].value = get_message('MOSJA11133', self.lang, showMsgId=False)
 
-        self.example_ws['A5'].value = get_message('MOSJA11130', self.request['lang'], showMsgId=False)
-        self.example_ws['B5'].value = get_message('MOSJA11134', self.request['lang'], showMsgId=False)
+        self.example_ws['A5'].value = get_message('MOSJA11130', self.lang, showMsgId=False)
+        self.example_ws['B5'].value = get_message('MOSJA11134', self.lang, showMsgId=False)
 
-        self.example_ws['B8'].value = get_message('MOSJA11135', self.request['lang'], showMsgId=False)
-        self.example_ws['C8'].value = get_message('MOSJA11136', self.request['lang'], showMsgId=False)
-        self.example_ws['D8'].value = get_message('MOSJA11137', self.request['lang'], showMsgId=False)
-        self.example_ws['E8'].value = get_message('MOSJA11138', self.request['lang'], showMsgId=False)
-        self.example_ws['F8'].value = get_message('MOSJA11139', self.request['lang'], showMsgId=False)
-        self.example_ws['G8'].value = get_message('MOSJA11140', self.request['lang'], showMsgId=False)
+        self.example_ws['B8'].value = get_message('MOSJA11135', self.lang, showMsgId=False)
+        self.example_ws['C8'].value = get_message('MOSJA11136', self.lang, showMsgId=False)
+        self.example_ws['D8'].value = get_message('MOSJA11137', self.lang, showMsgId=False)
+        self.example_ws['E8'].value = get_message('MOSJA11138', self.lang, showMsgId=False)
+        self.example_ws['F8'].value = get_message('MOSJA11139', self.lang, showMsgId=False)
+        self.example_ws['G8'].value = get_message('MOSJA11140', self.lang, showMsgId=False)
 
-        self.example_ws['C9'].value = get_message('MOSJA11141', self.request['lang'], showMsgId=False)
-        self.example_ws['D9'].value = get_message('MOSJA11142', self.request['lang'], showMsgId=False)
-        self.example_ws['E9'].value = get_message('MOSJA11143', self.request['lang'], showMsgId=False)
-        self.example_ws['F9'].value = get_message('MOSJA11144', self.request['lang'], showMsgId=False)
+        self.example_ws['C9'].value = get_message('MOSJA11141', self.lang, showMsgId=False)
+        self.example_ws['D9'].value = get_message('MOSJA11142', self.lang, showMsgId=False)
+        self.example_ws['E9'].value = get_message('MOSJA11143', self.lang, showMsgId=False)
+        self.example_ws['F9'].value = get_message('MOSJA11144', self.lang, showMsgId=False)
 
         # エクセルの列の最小と最大
         self.col_min = 2 # B列
