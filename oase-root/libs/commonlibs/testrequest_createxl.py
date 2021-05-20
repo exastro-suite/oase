@@ -76,11 +76,45 @@ class TestRequestXlFactory:
         # テンプレート読み込み
         cur_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)))
         self.wb = openpyxl.load_workbook(cur_dir + '/template_testrequest.xlsx')
+
+        # Values Sheet
         self.tables_ws = self.wb['Values']
-        self.example_ws = self.wb['example']
+        self.tables_ws['B2'].value = get_message('MOSJA11120', self.request['lang'], showMsgId=False)
+        self.tables_ws['C2'].value = get_message('MOSJA11121', self.request['lang'], showMsgId=False)
+        self.tables_ws['B5'].value = get_message('MOSJA11122', self.request['lang'], showMsgId=False)
         request_row_max = System.objects.get(config_id='REQUEST_ROW_MAX').value
-        #self.tables_ws['B6'].value = '記述できるリクエスト数の上限は %s 件です' % request_row_max
-        self.tables_ws['B6'].value = 'The maximum number of requests that can be written is %s.' % request_row_max
+        self.tables_ws['B6'].value = get_message('MOSJA11123', self.request['lang'], showMsgId=False, count=request_row_max)
+
+        # Values example
+        self.example_ws = self.wb['example']
+        self.example_ws['B2'].value = get_message('MOSJA11124', self.request['lang'], showMsgId=False)
+        self.example_ws['C2'].value = get_message('MOSJA11125', self.request['lang'], showMsgId=False)
+        self.example_ws['D2'].value = get_message('MOSJA11126', self.request['lang'], showMsgId=False)
+        self.example_ws['E2'].value = get_message('MOSJA11127', self.request['lang'], showMsgId=False)
+        self.example_ws['F2'].value = get_message('MOSJA11128', self.request['lang'], showMsgId=False)
+        self.example_ws['G2'].value = get_message('MOSJA11129', self.request['lang'], showMsgId=False)
+
+        self.example_ws['A3'].value = get_message('MOSJA11130', self.request['lang'], showMsgId=False)
+        self.example_ws['B3'].value = get_message('MOSJA11131', self.request['lang'], showMsgId=False)
+        self.example_ws['G3'].value = get_message('MOSJA11132', self.request['lang'], showMsgId=False)
+
+        self.example_ws['A4'].value = get_message('MOSJA11130', self.request['lang'], showMsgId=False)
+        self.example_ws['B4'].value = get_message('MOSJA11133', self.request['lang'], showMsgId=False)
+
+        self.example_ws['A5'].value = get_message('MOSJA11130', self.request['lang'], showMsgId=False)
+        self.example_ws['B5'].value = get_message('MOSJA11134', self.request['lang'], showMsgId=False)
+
+        self.example_ws['B8'].value = get_message('MOSJA11135', self.request['lang'], showMsgId=False)
+        self.example_ws['C8'].value = get_message('MOSJA11136', self.request['lang'], showMsgId=False)
+        self.example_ws['D8'].value = get_message('MOSJA11137', self.request['lang'], showMsgId=False)
+        self.example_ws['E8'].value = get_message('MOSJA11138', self.request['lang'], showMsgId=False)
+        self.example_ws['F8'].value = get_message('MOSJA11139', self.request['lang'], showMsgId=False)
+        self.example_ws['G8'].value = get_message('MOSJA11140', self.request['lang'], showMsgId=False)
+
+        self.example_ws['C9'].value = get_message('MOSJA11141', self.request['lang'], showMsgId=False)
+        self.example_ws['D9'].value = get_message('MOSJA11142', self.request['lang'], showMsgId=False)
+        self.example_ws['E9'].value = get_message('MOSJA11143', self.request['lang'], showMsgId=False)
+        self.example_ws['F9'].value = get_message('MOSJA11144', self.request['lang'], showMsgId=False)
 
         # エクセルの列の最小と最大
         self.col_min = 2 # B列
