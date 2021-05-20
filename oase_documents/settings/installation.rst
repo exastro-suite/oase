@@ -298,7 +298,7 @@ OASEのインストール手順を下記に示します。
 
  # Enter time_zone.
  # e.g) time_zone:Asia/Tokyo
- oase_timezone:
+ oase_timezone:Asia/Tokyo
 
 
  ##############################
