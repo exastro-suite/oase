@@ -152,6 +152,7 @@ OASEのインストール手順を下記に示します。
    21, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
    22, oase_language, ja_JP, OASEの言語設定（日本語：ja_JP 英語：en_US）
    23, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
+   24, oase_timezone, , OASEのtimezone設定
    24, oase_domain, exastro-oase.local, OASEのドメイン名
    25, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
    26, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
@@ -294,6 +295,10 @@ OASEのインストール手順を下記に示します。
  # Select Operation System. ("CentOS7" or "RHEL7" or "RHEL8")
  # e.g) oase_os:RHEL7
  oase_os:RHEL7
+
+ # Enter time_zone.
+ # e.g) time_zone:Asia/Tokyo
+ oase_timezone:
 
 
  ##############################
