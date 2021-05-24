@@ -649,7 +649,7 @@ class MailContentCreater:
         info = ""
         info += ("[%s]\n" % (get_message('MOSJA01100', _get_system_lang_mode(), showMsgId=False)))
         info += ("%s : %s\n" % (get_message('MOSJA01101', _get_system_lang_mode(), showMsgId=False), er.trace_id))
-        info += ("%s : %s\n" % (get_message('MOSJA01089', _get_system_lang_mode(), showMsgId=False), rule_type_name))
+        info += ("%s : %s\n" % (get_message('MOSJA00075', _get_system_lang_mode(), showMsgId=False), rule_type_name))
         info += ("%s : %s\n" % (get_message('MOSJA01102', _get_system_lang_mode(), showMsgId=False), er.request_user))
         info += ("%s : %s\n" % (get_message('MOSJA01103', _get_system_lang_mode(), showMsgId=False), er.request_server))
         info += "\n"
@@ -747,7 +747,7 @@ class MailContentCreater:
                 rra.action_parameter_info, 'ACTION_PARAMETER_INFO')
 
             info += ("[%s]\n" % (get_message('MOSJA01088', _get_system_lang_mode(), showMsgId=False)))
-            info += ("%s : %s\n" % (get_message('MOSJA01089', _get_system_lang_mode(), showMsgId=False), rule_type_name))
+            info += ("%s : %s\n" % (get_message('MOSJA00075', _get_system_lang_mode(), showMsgId=False), rule_type_name))
             info += ("%s : %s\n" % (get_message('MOSJA01090', _get_system_lang_mode(), showMsgId=False), rra.rule_name))
             info += ("%s : %s\n" % (get_message('MOSJA01091', _get_system_lang_mode(), showMsgId=False), rra.execution_order))
             info += ("%s : %s\n" % (get_message('MOSJA01092', _get_system_lang_mode(), showMsgId=False), action_type_str))
