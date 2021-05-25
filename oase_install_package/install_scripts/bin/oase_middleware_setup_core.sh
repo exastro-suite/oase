@@ -495,9 +495,10 @@ fi
 # oase_env settings
 if [ ! -e "$OASE_ENV_DIR" ]; then
     mkdir $OASE_ENV_DIR
-elif [ -e "$OASE_ENV_FILE" ]; then
+elif [ -e "$OASE_ENV_FILE".sample ]; then
 
     # Check if backup file exists
+    cp -pf "$OASE_ENV_FILE".sample $OASE_ENV_FILE
     make_backup_file $OASE_ENV_FILE $NOW
 
 fi

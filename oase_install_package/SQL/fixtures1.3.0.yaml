@@ -1,0 +1,590 @@
+################################
+# ユーザ管理
+################################
+- model: web_app.User
+  pk: -2140000007
+  fields:
+    login_id: oase_Prometheus
+    user_name: Prometheusアダプタプロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@xxx.bbb.ccc
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000008
+  fields:
+    login_id: oase_Servicenow
+    user_name: ServiceNow連携プロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@xxx.bbb.ccc
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# ユーザグループ管理
+################################
+- model: web_app.UserGroup
+  pk: -2140000007
+  fields:
+    user_id: -2140000007
+    group_id: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.UserGroup
+  pk: -2140000008
+  fields:
+    user_id: -2140000008
+    group_id: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# ドライバ種別管理
+################################
+- model: web_app.DriverType
+  pk: 1
+  fields:
+    name: ITA
+    version: 1.0.0
+    driver_major_version: 1
+    exastro_flag: 1
+    icon_name: owf-edit
+    icon_name: oda-driver-ita
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.DriverType
+  pk: 2
+  fields:
+    name: mail
+    version: 1.0.0
+    driver_major_version: 1
+    exastro_flag: 0
+    icon_name: owf-mail
+    icon_name: oda-driver-mail
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.DriverType
+  pk: 3
+  fields:
+    name: ServiceNow
+    version: 1.0.0
+    driver_major_version: 1
+    exastro_flag: 0
+    icon_name: oda-driver-servicenow
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# 監視アダプタ種別管理
+################################
+- model: web_app.AdapterType
+  pk: 2
+  fields:
+    name: Prometheus
+    version: 1.0.0
+    adapter_major_version: 1
+    icon_name: oda-adapter-prometheus
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# カウント管理
+################################
+- model: web_app.Count
+  pk: 1
+  fields:
+    count_number: 0
+
+
+################################
+# アクセス権限管理
+################################
+- model: web_app.AccessPermission
+  pk: -2140000031
+  fields:
+    group_id: 1
+    menu_id: 2141001009
+    rule_type_id: 0
+    permission_type_id: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.AccessPermission
+  pk: -2140000032
+  fields:
+    group_id: 2
+    menu_id: 2141001009
+    rule_type_id: 0
+    permission_type_id: 3
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# メニュー管理
+################################
+- model: web_app.Menu
+  pk: 2141001009
+  fields:
+    menu_group_id: 2140001000
+    menu_name: トークン払い出し
+    login_necessity: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# システム設定
+################################
+- model: web_app.System
+  pk: 1
+  fields:
+    config_name: DM Timeout
+    category: DMSETTINGS
+    config_id: DM_TIMEOUT
+    value: 10
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 3
+  fields:
+    config_name: Rule file copy path
+    category: RULE
+    config_id: RULEFILE_SRCPATH
+    value: /libs/backyardlibs/apply_driver/
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 5
+  fields:
+    config_name: MOSJA22076
+    category: LOG_STORAGE_PERIOD
+    config_id: AD_COLLAB_LOG
+    value: 7
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 6
+  fields:
+    config_name: Message dividing function
+    category: LOG_STORAGE_PERIOD
+    config_id: MESSAGE_SORT_LOG
+    value: 7
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 10
+  fields:
+    config_name: MOSJA22078
+    category: PASSWORD
+    config_id: Pass_Valid_Period
+    value: 90
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 11
+  fields:
+    config_name: MOSJA22079
+    category: PASSWORD
+    config_id: Pass_generate_manage
+    value: 3
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 12
+  fields:
+    config_name: MOSJA22080
+    category: PASSWORD
+    config_id: PASS_ERROR_THRESHOLD
+    value: 3
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 13
+  fields:
+    config_name: MOSJA22081
+    category: PASSWORD
+    config_id: ACCOUNT_LOCK_PERIOD
+    value: 30
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 14
+  fields:
+    config_name: MOSJA22082
+    category: PASSWORD
+    config_id: INITIAL_PASS_VALID_PERIOD
+    value: 24
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 15
+  fields:
+    config_name: MOSJA22083
+    category: ACTIVE_DIRECTORY
+    config_id: ADCOLLABORATION
+    value: 0
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 16
+  fields:
+    config_name: MOSJA00242
+    category: ACTIVE_DIRECTORY
+    config_id: ADMINISTRATOR_USER
+    value: 
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 17
+  fields:
+    config_name: MOSJA00243
+    category: ACTIVE_DIRECTORY
+    config_id: ADMINISTRATOR_PW
+    value: 
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 18
+  fields:
+    config_name: MOSJA00244
+    category: ACTIVE_DIRECTORY
+    config_id: ACCESS_POINT
+    value: 
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 19
+  fields:
+    config_name: MOSJA00245
+    category: ACTIVE_DIRECTORY
+    config_id: AD_LINKAGE_TIMER
+    value: 
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 20
+  fields:
+    config_name: MOSJA00246
+    category: ACTIVE_DIRECTORY
+    config_id: CONNECTION_TIMEOUT
+    value: 30
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 21
+  fields:
+    config_name: MOSJA00247
+    category: ACTIVE_DIRECTORY
+    config_id: READ_TIMEOUT
+    value: 30
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 22
+  fields:
+    config_name: MOSJA00248
+    category: ACTIVE_DIRECTORY
+    config_id: AUTHSERVER_SEARCH_CHAR
+    value: 
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 23
+  fields:
+    config_name: MOSJA00249
+    category: ACTIVE_DIRECTORY
+    config_id: TARGET_GROUP_LIST
+    value: 
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 24
+  fields:
+    config_name: MOSJA00250
+    category: SESSION_TIMEOUT
+    config_id: SESSION_TIMEOUT
+    value: 30
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 25
+  fields:
+    config_name: DM Protocol
+    category: DMSETTINGS
+    config_id: DM_PROTOCOL
+    value: http
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 30
+  fields:
+    config_name: Rule file temporary installation path
+    category: RULE
+    config_id: RULEFILE_TMPPATH
+    value: /temp/rule/
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 33
+  fields:
+    config_name: Event request retry limit
+    category: AGENTSETTINGS
+    config_id: AGENT_RETRY_MAX
+    value: 5
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 34
+  fields:
+    config_name: Mail_Preface
+    category: OASE_MAIL
+    config_id: MAIL_HEADER_JP
+    value: MOSJA00281
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 35
+  fields:
+    config_name: Mail_Signature
+    category: OASE_MAIL
+    config_id: MAIL_SIGNATURE_JP
+    value: MOSJA00282
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 36
+  fields:
+    config_name: MOSJA00262
+    category: PASSWORD
+    config_id: ACCOUNT_LOCK_MAX_TIMES
+    value: 5
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 37
+  fields:
+    config_name: MOSJA00263
+    category: PASSWORD
+    config_id: IPADDR_LOGIN_RETRY_MAX
+    value: 100
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 38
+  fields:
+    config_name: MOSJA00264
+    category: PASSWORD
+    config_id: NOTIFICATION_DESTINATION_TYPE
+    value: 0
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 39
+  fields:
+    config_name: MOSJA00265
+    category: PASSWORD
+    config_id: NOTIFICATION_DESTINATION
+    value: 
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 41
+  fields:
+    config_name: Protection password
+    category: RULE
+    config_id: PROTECTION_PW
+    value: iDly81iEuo/oMWajdgahcPnq/20EAJUKcs2xL4H/X4WAaYl4VCnkMwDvk4PLvKr0SywbqW4H5p6cMTR0e4ZEgYP1+6/BfZNharLTWXhHysc=
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 42
+  fields:
+    config_name: Staging generation management limit
+    category: RULE
+    config_id: STAGING_GENERATION
+    value: 10
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 43
+  fields:
+    config_name: Production generation management limit
+    category: RULE
+    config_id: PRODUCTION_GENERATION
+    value: 10
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 44
+  fields:
+    config_name: E-mail address change URL validity period
+    category: URL_VALID_PERIOD
+    config_id: MAILADDR_URL_VALID_PERIOD
+    value: 24
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 45
+  fields:
+    config_name: E-mail address change notification body text
+    category: OASE_MAIL
+    config_id: MODIFY_MAILADDR_NOTIFY
+    value: MOSJA00283
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 46
+  fields:
+    config_name: DT Rule limit
+    category: RULE
+    config_id: RULE_ROW_MAX
+    value: 5000
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 47
+  fields:
+    config_name: Test request limit
+    category: RULE
+    config_id: REQUEST_ROW_MAX
+    value: 1000
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 48
+  fields:
+    config_name: Action pending approval notice subject
+    category: OASE_MAIL
+    config_id: PREACTION_MAIL_SUBJECT
+    value: MOSJA00284
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 49
+  fields:
+    config_name: Action pending approval notice body text
+    category: OASE_MAIL
+    config_id: PREACTION_MAIL_CONTENT
+    value: MOSJA00285
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 56
+  fields:
+    config_name: Unknown event notification subject
+    category: OASE_MAIL
+    config_id: UNKNOWN_EVENT_MAIL_SUBJECT
+    value: MOSJA00286
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 57
+  fields:
+    config_name: Unknown event notification body text
+    category: OASE_MAIL
+    config_id: UNKNOWN_EVENT_MAIL_CONTENT
+    value: MOSJA00287
+    maintenance_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
