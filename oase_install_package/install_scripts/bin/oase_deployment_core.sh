@@ -83,6 +83,13 @@ if [ $? -eq 0 ]; then
 fi
 
 
+# インストールした資材のバージョン情報ファイルをコピー
+if [[ ! -e "${OASE_DIRECTORY}/OASE/oase-root/libs/release" ]] ; then
+    mkdir -p "${OASE_DIRECTORY}/OASE/oase-root/libs/release"
+fi
+cp -p "${OASE_INSTALL_SCRIPTS_DIR}/../OASE/oase-releasefiles/oase_base" "${OASE_DIRECTORY}/OASE/oase-root/libs/release/"
+
+
 ################################################################################
 log "INFO : Material deployment is completed."
 ################################################################################

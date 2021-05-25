@@ -696,16 +696,26 @@ while read LIST_VERSION || [ -n "${LIST_VERSION}" ] ; do
 
     log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
 
-    OASE_UNIQUE_DELETE_FILE=$OASE_INSTALL_PACKAGE_DIR/SQL/OASE"${LIST_VERSION}".sql >> "$LOG_FILE" 2>&1
-    migrate_log=$(echo "source $OASE_UNIQUE_DELETE_FILE" | mysql -u ${db_username} -p${db_password} ${db_name}  2>> "$LOG_FILE")
-    check_result $? "$migrate_log" >> "$LOG_FILE" 2>&1
+    if [ ! -e $OASE_INSTALL_PACKAGE_DIR/SQL/OASE"${LIST_VERSION}".sql ] ; then
+        log "INFO : ${LIST_VERSION}.sql does not exist." >> "$LOG_FILE" 2>&1
 
-    log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
+    else
+        OASE_UNIQUE_DELETE_FILE=$OASE_INSTALL_PACKAGE_DIR/SQL/OASE"${LIST_VERSION}".sql >> "$LOG_FILE" 2>&1
+        migrate_log=$(echo "source $OASE_UNIQUE_DELETE_FILE" | mysql -u ${db_username} -p${db_password} ${db_name}  2>> "$LOG_FILE")
+        check_result $? "$migrate_log" >> "$LOG_FILE" 2>&1
 
-    migrate_log=$(python manage.py loaddata $OASE_INSTALL_PACKAGE_DIR/SQL/fixtures"${LIST_VERSION}".yaml 2>> "$LOG_FILE")
-    check_result $? "$migrate_log" >> "$LOG_FILE" 2>&1
+        log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
+    fi
 
-    log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
+    if [ ! -e $OASE_INSTALL_PACKAGE_DIR/SQL/fixtures"${LIST_VERSION}".yaml ] ; then
+        log "INFO : ${LIST_VERSION}.yaml does not exist." >> "$LOG_FILE" 2>&1
+
+    else
+        migrate_log=$(python manage.py loaddata $OASE_INSTALL_PACKAGE_DIR/SQL/fixtures"${LIST_VERSION}".yaml 2>> "$LOG_FILE")
+        check_result $? "$migrate_log" >> "$LOG_FILE" 2>&1
+
+        log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
+    fi
 
     cd - > /dev/null 2>&1
     EXEC_VERSION=${LIST_VERSION}
