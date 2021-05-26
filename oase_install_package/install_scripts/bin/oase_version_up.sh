@@ -673,6 +673,35 @@ log "INFO : Updating sources."
 #OASEの資材を入れ替える
 cp -rp ${SOURCE_DIR} ${OASE_DIRECTORY}/OASE
 
+if [ ! -e ${OASE_DIRECTORY}/OASE/oase-root/logs/webaplogs/debug ]; then
+    mkdir ${OASE_DIRECTORY}/OASE/oase-root/logs/webaplogs/debug
+    touch ${OASE_DIRECTORY}/OASE/oase-root/logs/webaplogs/webap.log
+    touch ${OASE_DIRECTORY}/OASE/oase-root/logs/webaplogs/debug/webap.log
+    chown -R apache:apache ${OASE_DIRECTORY}/OASE/oase-root/logs/webaplogs/
+else
+    chown -R apache:apache ${OASE_DIRECTORY}/OASE/oase-root/logs/webaplogs/
+fi
+
+chmod -R 777 ${OASE_DIRECTORY}/OASE/oase-root/logs
+chmod -R 777 ${OASE_DIRECTORY}/OASE/oase-root/temp
+
+
+if [ ${oase_language} == 'en_US' ]; then
+    oase_lang='en-us'
+else
+    oase_lang='ja'
+fi
+sed -i -e '/^LANGUAGE_CODE/s/ja/'${oase_lang}'/g' ${OASE_DIRECTORY}/OASE/oase-root/confs/frameworkconfs/settings.py
+
+while read listtz
+do
+    if [ ${oase_timezone} == $listtz ]; then
+        sed -i -e "/^TIME_ZONE/s|UTC|${oase_timezone}|g" ${OASE_DIRECTORY}/OASE/oase-root/confs/frameworkconfs/settings.py
+    fi
+done < "${LIST_DIR}/time_zone_list.txt"
+
+
+
 EXEC_VERSION=${NOW_VERSION}
 while read LIST_VERSION || [ -n "${LIST_VERSION}" ] ; do
 
@@ -715,6 +744,14 @@ while read LIST_VERSION || [ -n "${LIST_VERSION}" ] ; do
         check_result $? "$migrate_log" >> "$LOG_FILE" 2>&1
 
         log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
+    fi
+
+    if [ "${LIST_VERSION}" = "1.3.0" ] ; then
+        log "INFO : backup /etc/httpd/conf.d/oase.conf"
+        result=$(cp -fp /etc/httpd/conf.d/oase.conf /etc/httpd/conf.d/oase.conf.oase_bk 2>&1)
+
+        echo "" >> /etc/httpd/conf.d/oase.conf
+        echo "WSGIPassAuthorization On" >> /etc/httpd/conf.d/oase.conf
     fi
 
     cd - > /dev/null 2>&1
