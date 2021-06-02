@@ -15,6 +15,7 @@
 
  cd oase/oase_install_package/OASE/oase-contents
  tar zxf ZABBIX_Adapter.tar.gz
+ tar zxf Prometheus_Adapter.tar.gz
 
 
 1.2 インストールコマンドの形式

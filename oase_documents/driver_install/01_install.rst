@@ -17,6 +17,7 @@
  cd oase/oase_install_package/OASE/oase-contents
  tar zxf ITA_Driver.tar.gz
  tar zxf mail_Driver.tar.gz
+ tar zxf ServiceNow_Driver.tar.gz
 
 
 1.2 インストールコマンドの形式
@@ -61,6 +62,7 @@ OASE本体をインストールされた際のoase-root直下で実施します�
 
    1, 1, ITAドライバをインストールします。
    2, 2, mailドライバをインストールします。
+   3, 3, ServiceNowドライバをインストールします。
 
 
 1.3 インストール状態の確認
