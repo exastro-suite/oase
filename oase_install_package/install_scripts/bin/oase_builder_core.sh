@@ -1420,7 +1420,7 @@ download() {
 
     #----------------------------------------------------------------------
     #Create the installer archive
-    OASE_VERSION="1.2.0"
+    OASE_VERSION=`cat $OASE_INSTALL_PACKAGE_DIR/OASE/oase-releasefiles/oase_base | cut -f 9 -d " "`
     DATE=`date +"%Y%m%d%H%M%S"`
 
     OFFLINE_INSTALL_FILE="oase_Ver"$OASE_VERSION"_offline_"$DATE".tar.gz"
