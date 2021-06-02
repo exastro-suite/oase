@@ -40,12 +40,12 @@
    :header: No,  物理名,論理名, 属性,長さ,空白
    :widths: 5, 20, 20,15,15,10
 
-   1, traceid, トレースID,文字列,  55,不可
+   1, traceid, イベントシリアルNo.,文字列,  35,不可
 
 
 traceid
 ~~~~~~~~~~~~
-取得したいアクション履歴に紐付くトレースIDを指定します。
+取得したいアクション履歴に紐付くイベントシリアルNo.を指定します。
 
 **記述例**
 
@@ -123,7 +123,7 @@ msg
    1,Successful completion.,正常終了
    2,Successful completion. (Staging environment),正常終了（ステージング）
    3,Successful completion. (Production environment),正常終了(プロダクション)
-   4,Invalid trace ID,無効なトレースIDです
+   4,Invalid trace ID,無効なイベントシリアルNo.です
    5,Invalid data.,無効なデータです。
    6,Invalid request. Must be GET. Not POST.,無効なリクエスト。 GETである必要があります。POSTではありません。
    7,Invalid request format. Must be JSON.,無効なリクエスト形式。 JSON形式である必要があります。
@@ -133,7 +133,7 @@ msg
 
 action_history_list
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-リクエストしたトレースIDに対するアクション履歴の情報（status、rule_type_name、rule_name、action_type_id、last_update_timestamp、last_update_user）が記述されます。
+リクエストしたイベントシリアルNo.に対するアクション履歴の情報（status、rule_type_name、rule_name、action_type_id、last_update_timestamp、last_update_user）が記述されます。
 
 
 status
@@ -165,7 +165,7 @@ status
 
 rule_type_name
 ~~~~~~~~~~~~~~~~~~~
-ディシジョンテーブル画面で設定したルール種別が表示されます。
+ディシジョンテーブル画面で設定したディシジョンテーブル名が表示されます。
 
 **記述例**
 
