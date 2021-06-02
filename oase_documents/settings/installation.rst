@@ -153,9 +153,15 @@ OASEのインストール手順を下記に示します。
    22, oase_language, ja_JP, OASEの言語設定（日本語：ja_JP 英語：en_US）
    23, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
    24, oase_timezone, , OASEのtimezone設定
-   24, oase_domain, exastro-oase.local, OASEのドメイン名
-   25, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
-   26, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
+   25, oase_base, yes, OASE本体のインストール有無指定
+   26, ita_driver, yes, ITAドライバーのインストール有無指定
+   27, mail_driver, yes, mailドライバーのインストール有無指定
+   28, servicenow_driver, no, ServiceNowドライバーのインストール有無指定
+   29, zabbix_adapter, yes, Zabbixアダプターのインストール有無指定
+   30, prometheus_adapter, no, Prometheusアダプターのインストール有無指定
+   31, oase_domain, exastro-oase.local, OASEのドメイン名
+   32, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
+   33, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
 
 
 .. note::
@@ -302,6 +308,20 @@ OASEのインストール手順を下記に示します。
 
 
  ##############################
+ # Installation package
+ ##############################
+ # Select the target you need to install.
+ # yes : need
+ # no  : no need
+ oase_base:yes
+ ita_driver:yes
+ mail_driver:yes
+ servicenow_driver:no
+ zabbix_adapter:yes
+ prometheus_adapter:no
+
+
+ ##############################
  # SSLサーバ証明書
  ##############################
  # Enter the oase domain name.
@@ -335,7 +355,7 @@ OASEのインストール手順を下記に示します。
 | 2. 処理の確認
 | 環境構築ツールを実行するとoase_install.logに処理内容が出力されます。
 
-.. note:: ログ格納パス：　/(インストール資材展開先)/oase_install_package/install_scripts/logs
+.. note:: ログ格納パス： /(インストール資材展開先)/oase_install_package/install_scripts/logs
 
 
 
