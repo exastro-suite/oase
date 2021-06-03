@@ -65,6 +65,11 @@ class Command(BaseCommand):
             dest='srcpath',
             help='インストール資材のコピー元ルートパス',
             required=True)
+        parser.add_argument(
+            '--delete',
+            action='store_true',
+            dest='all_delete',
+            help='アンインストールスクリプト')
 
     def __init__(self):
 
@@ -77,9 +82,9 @@ class Command(BaseCommand):
         self.dst_dir = ''
 
     def handle(self, *args, **options):
-
         self.adapter_ids_inst = self.ids_str_to_list(options['insts'])
         self.adapter_ids_uninst = self.ids_str_to_list(options['uninsts'])
+        self.adapter_all_delete = options['all_delete']
 
         self.src_dir = options['srcpath']
         self.dst_dir = settings.BASE_DIR
@@ -123,7 +128,14 @@ class Command(BaseCommand):
         if len(self.adapter_ids_uninst) > 0:
             adp_master_uninst = get_adapter_master(self.adapter_ids_uninst)
 
-        if len(adp_master_inst) <= 0 and len(adp_master_uninst) <= 0:
+        if (self.adapter_all_delete == True):
+            adp_master_inst = []
+            adp_master_uninst = []
+            monitoring_type_id_list = list(MonitoringType.objects.filter(disuse_flag=str(defs.ENABLE)).values_list('monitoring_type_id',flat=True))
+            if len(monitoring_type_id_list) > 0:
+                adp_master_uninst = get_adapter_master(monitoring_type_id_list)
+
+        if len(adp_master_inst) <= 0 and len(adp_master_uninst) <= 0 and self.adapter_all_delete == False:
             adp_master = get_adapter_master()
 
             print('不正なアダプタIDが指定されています')
