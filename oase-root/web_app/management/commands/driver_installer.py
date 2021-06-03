@@ -62,7 +62,12 @@ class Command(BaseCommand):
             dest='srcpath',
             help='インストール資材のコピー元ルートパス',
             required=True)
-
+        parser.add_argument(
+            '--delete',
+            action='store_true',
+            dest='all_delete',
+            help='アンインストールスクリプト')
+            
     def __init__(self):
 
         self.now = datetime.datetime.now(pytz.timezone('UTC'))
@@ -74,9 +79,9 @@ class Command(BaseCommand):
         self.dst_dir = ''
 
     def handle(self, *args, **options):
-
         self.driver_ids_inst = self.ids_str_to_list(options['insts'])
         self.driver_ids_uninst = self.ids_str_to_list(options['uninsts'])
+        self.driver_all_delete = options['all_delete']
 
         self.src_dir = options['srcpath']
         self.dst_dir = settings.BASE_DIR
@@ -120,7 +125,14 @@ class Command(BaseCommand):
         if len(self.driver_ids_uninst) > 0:
             drv_master_uninst = get_driver_master(self.driver_ids_uninst)
 
-        if len(drv_master_inst) <= 0 and len(drv_master_uninst) <= 0:
+        if (self.driver_all_delete == True):
+            drv_master_inst = []
+            drv_master_uninst = []
+            driver_type_id_list = list(ActionType.objects.filter(disuse_flag=str(defs.ENABLE)).values_list('driver_type_id',flat=True))
+            if len(driver_type_id_list) > 0:
+                drv_master_uninst = get_driver_master(driver_type_id_list)
+
+        if len(drv_master_inst) <= 0 and len(drv_master_uninst) <= 0 and self.driver_all_delete == False:
             drv_master = get_driver_master()
 
             print('使い方')
