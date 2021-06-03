@@ -78,6 +78,14 @@ function check_answer_vars() {
     log "INFO : Start to check answer vars"
     local _error_flag=false
 
+    if [ -z "${oase_base}" ]; then
+        log "ERROR : oase_base should be enter to value(yes or no)."
+        _error_flag=true
+    elif [ "${oase_base}" != "yes" ]; then
+        log 'ERROR : It is necessary to install OASE main functions (oase_base).'
+        _error_flag=true
+    fi
+
     if [ -z "${install_mode}" ]; then
         log "ERROR : install_mode should be enter to value(Install or Uninstall)"
         _error_flag=true
@@ -240,6 +248,28 @@ function check_answer_vars() {
     fi
     if [ "${oase_os}" != 'CentOS7' -a "${oase_os}" != 'RHEL7' -a "${oase_os}" != 'RHEL8' ]; then
         log "ERROR : oase_os should be set to CentOS7 or RHEL7"
+        _error_flag=true
+    fi
+
+    # Installation package
+    if [ -z "${ita_driver}" ]; then
+        log "ERROR : ita_driver should be enter to value(yes or no)"
+        _error_flag=true
+    fi
+    if [ -z "${mail_driver}" ]; then
+        log "ERROR : mail_driver should be enter to value(yes or no)"
+        _error_flag=true
+    fi
+    if [ -z "${servicenow_driver}" ]; then
+        log "ERROR : servicenow_driver should be enter to value(yes or no)"
+        _error_flag=true
+    fi
+    if [ -z "${zabbix_adapter}" ]; then
+        log "ERROR : zabbix_adapter should be enter to value(yes or no)"
+        _error_flag=true
+    fi
+    if [ -z "${prometheus_adapter}" ]; then
+        log "ERROR : prometheus_adapter should be enter to value(yes or no)"
         _error_flag=true
     fi
 

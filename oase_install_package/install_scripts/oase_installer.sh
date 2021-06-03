@@ -66,6 +66,10 @@ function oase_install() {
         log "ERROR : Failed to execute ${OASE_INSTALL_BIN_DIR}/oase_settings_core.sh"
         return 1
     fi
+
+    # Installation package
+    install_package
+
     log "INFO : Finished to install"
 }
 
@@ -101,6 +105,54 @@ function oase_versionup() {
         return 1
     fi
     log "INFO : Finished to versionup"
+}
+
+function install_package() {
+    log "INFO : Start to Driver install"
+
+    # ITA Driver
+    if [ ${ita_driver} = "yes" ]; then
+        cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/ITA_Driver.tar.gz ${oase_directory}
+        tar -zxvf ${oase_directory}/ITA_Driver.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f ${oase_directory}/ITA_Driver.tar.gz
+        python3 ${oase_directory}/OASE/oase-root/manage.py driver_installer -p ${oase_directory}/plugins -i 1 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    # mail Driver
+    if [ ${mail_driver} = "yes" ]; then
+        cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/mail_Driver.tar.gz ${oase_directory}
+        tar -zxvf ${oase_directory}/mail_Driver.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f ${oase_directory}/mail_Driver.tar.gz
+        python3 ${oase_directory}/OASE/oase-root/manage.py driver_installer -p ${oase_directory}/plugins -i 2 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    # ServiceNow Driver
+    if [ ${servicenow_driver} = "yes" ]; then
+        cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/ServiceNow_Driver.tar.gz ${oase_directory}
+        tar -zxvf ${oase_directory}/ServiceNow_Driver.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f ${oase_directory}/ServiceNow_Driver.tar.gz
+        python3 ${oase_directory}/OASE/oase-root/manage.py driver_installer -p ${oase_directory}/plugins -i 3 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    log "INFO : Finished to Driver install"
+    log "INFO : Start to Adapter install"
+
+    # ZABBIX Adapter
+    if [ ${zabbix_adapter} = "yes" ]; then
+        cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/ZABBIX_Adapter.tar.gz ${oase_directory}
+        tar -zxvf ${oase_directory}/ZABBIX_Adapter.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f ${oase_directory}/ZABBIX_Adapter.tar.gz
+        python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins -i 1 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    # Prometheus Adapter
+    if [ ${servicenow_driver} = "yes" ]; then
+        cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/Prometheus_Adapter.tar.gz ${oase_directory}
+        tar -zxvf ${oase_directory}/Prometheus_Adapter.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f ${oase_directory}/Prometheus_Adapter.tar.gz
+        python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins -i 2 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+    log "INFO : Finished to Adapter install"
 }
 
 ################################################################################
