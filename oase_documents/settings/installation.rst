@@ -151,20 +151,19 @@ OASEのインストール手順を下記に示します。
    20, mavenrep_path, /root/.m2/repository/com/oase/, Mavenリポジトリのディレクトリ
    21, oasemail_smtp, "{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}", OASEで使用するメールのSMTP設定
    22, oase_directory, /exastro, OASEのインストールディレクトリ
-   23, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
-   24, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
-   25, oase_language, ja_JP, OASEの言語設定（日本語：ja_JP 英語：en_US）
-   26, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
-   27, oase_timezone, , OASEのtimezone設定
-   28, oase_base, yes, OASE本体のインストール有無指定
-   29, ita_driver, yes, ITAドライバのインストール有無指定
-   30, mail_driver, yes, mailドライバのインストール有無指定
-   31, servicenow_driver, no, ServiceNowドライバのインストール有無指定
-   32, zabbix_adapter, yes, Zabbixアダプタのインストール有無指定
-   33, prometheus_adapter, no, Prometheusアダプタのインストール有無指定
-   34, oase_domain, exastro-oase.local, OASEのドメイン名
-   35, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
-   36, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
+   23, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
+   24, oase_language, ja_JP, OASEの言語設定（日本語：ja_JP 英語：en_US）
+   25, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
+   26, oase_timezone, , OASEのtimezone設定
+   27, oase_base, yes, OASE本体のインストール有無指定
+   28, ita_driver, yes, ITAドライバのインストール有無指定
+   29, mail_driver, yes, mailドライバのインストール有無指定
+   30, servicenow_driver, no, ServiceNowドライバのインストール有無指定
+   31, zabbix_adapter, yes, Zabbixアダプタのインストール有無指定
+   32, prometheus_adapter, no, Prometheusアダプタのインストール有無指定
+   33, oase_domain, exastro-oase.local, OASEのドメイン名
+   34, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
+   35, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
 
 
 .. note::
