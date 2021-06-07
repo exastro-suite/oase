@@ -140,28 +140,31 @@ OASEのインストール手順を下記に示します。
    9, db_password, OASE_PASSWD, MariaDBのパスワード
    10, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
    11, jboss_root_directory, /exastro/JBossEAP, JBossEAPのインストールディレクトリ
-   12, rhdm_adminname, admin0000, RHDMの管理者名
-   13, rhdm_password, password@1, RHDMの管理者パスワード
-   14, dm_ipaddrport, localhost:8080, ディシジョンマネージャを設定したサーバのIPアドレス
-   15, rulefile_rootpath, /exastro/rule, ルールファイルを格納するディレクトリ
-   16, apply_ipaddrport, 127.0.0.1:50001, アプライサービスを設定したサーバのIPアドレス
-   17, mavenrep_path, /root/.m2/repository/com/oase/, Mavenリポジトリのディレクトリ
-   18, oasemail_smtp, "{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}", OASEで使用するメールのSMTP設定
-   19, oase_directory, /exastro, OASEのインストールディレクトリ
-   20, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
-   21, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
-   22, oase_language, ja_JP, OASEの言語設定（日本語：ja_JP 英語：en_US）
-   23, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
-   24, oase_timezone, , OASEのtimezone設定
-   25, oase_base, yes, OASE本体のインストール有無指定
-   26, ita_driver, yes, ITAドライバのインストール有無指定
-   27, mail_driver, yes, mailドライバのインストール有無指定
-   28, servicenow_driver, no, ServiceNowドライバのインストール有無指定
-   29, zabbix_adapter, yes, Zabbixアダプタのインストール有無指定
-   30, prometheus_adapter, no, Prometheusアダプタのインストール有無指定
-   31, oase_domain, exastro-oase.local, OASEのドメイン名
-   32, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
-   33, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
+   12, rules_engine, , 使用するルールエンジンを選択(rhdm or drools)
+   13, rule_engine_adminname, admin0000, ルールエンジンの管理者名
+   14, rule_engine_password, password@1, ルールエンジンのパスワード
+   15, rule_engine_ipaddrport, localhost:8080, ルールエンジンのIPアドレスとポート番号
+   16, rhdm_path, , RHDMインストーラーファイルのパス(rules_engineにrhdmを指定時のみ入力。絶対パスで指定してください)
+   17, jboss_eap_path, , Jboss EAPインストーラーファイルのパス(rules_engineにrhdmを指定時のみ入力。絶対パスで指定してください)
+   18, rulefile_rootpath, /exastro/rule, ルールファイルを格納するディレクトリ
+   19, apply_ipaddrport, 127.0.0.1:50001, アプライサービスを設定したサーバのIPアドレス
+   20, mavenrep_path, /root/.m2/repository/com/oase/, Mavenリポジトリのディレクトリ
+   21, oasemail_smtp, "{'IPADDR':'127.0.0.1','PORT':25,'AUTH':False}", OASEで使用するメールのSMTP設定
+   22, oase_directory, /exastro, OASEのインストールディレクトリ
+   23, oase_session_engine, file, OASEのセッション管理方法（DB：db/ファイル：file/キャッシュ：cache）
+   24, ev_location, 127.0.0.1, EVTIMERサーバを設定したサーバのIPアドレス
+   25, oase_language, ja_JP, OASEの言語設定（日本語：ja_JP 英語：en_US）
+   26, oase_os, , OASEをインストールするサーバのOS（CentOS7/RHEL7/RHEL8）
+   27, oase_timezone, , OASEのtimezone設定
+   28, oase_base, yes, OASE本体のインストール有無指定
+   29, ita_driver, yes, ITAドライバのインストール有無指定
+   30, mail_driver, yes, mailドライバのインストール有無指定
+   31, servicenow_driver, no, ServiceNowドライバのインストール有無指定
+   32, zabbix_adapter, yes, Zabbixアダプタのインストール有無指定
+   33, prometheus_adapter, no, Prometheusアダプタのインストール有無指定
+   34, oase_domain, exastro-oase.local, OASEのドメイン名
+   35, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
+   36, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
 
 
 .. note::
@@ -234,17 +237,34 @@ OASEのインストール手順を下記に示します。
 
 
  ##############################
+ # Rules Engine
+ ##############################
+ # Rules engine to be used.("rhdm" or "drools")
+ # e.g) rules_engine:drools
+ rules_engine:
+
+ # Decide the Administrator name, password.
+ # e.g) rule_engine_adminname:admin0000
+ rule_engine_adminname:admin0000
+ # e.g) rule_engine_password:password@1
+ rule_engine_password:password@1
+
+ # Enter IP address & port for Rule Engine.
+ # e.g) rule_engine_ipaddrport:localhost:8080
+ rule_engine_ipaddrport:localhost:8080
+
+
+ ##############################
  # RHDM
  ##############################
- # Decide the Administrator name, password.
- # e.g) rhdm_adminname:admin0000
- rhdm_adminname:admin0000
- # e.g) rhdm_password:password@1
- rhdm_password:password@1
+ # Full path of RHDM materials.
+ # e.g) rhdm_path:/tmp/rhdm-installer-x.x.x.jar
+ rhdm_path:
 
- # Enter IP address & port for Decision Manager.
- # e.g) dm_ipaddrport:localhost:8080
- dm_ipaddrport:localhost:8080
+ # Full path of jboss-eap materials.
+ # Only used for RHDM.
+ # e.g) jboss_eap_path:/tmp/jboss-eap-x.x.x-installer.jar
+ jboss_eap_path:
 
 
  ##############################
