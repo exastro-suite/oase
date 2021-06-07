@@ -205,7 +205,7 @@ OASEのインストール手順を下記に示します。
 
  # Enter IP address for RabbitMQ.
  # e.g) RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
- RabbitMQ_ipaddr:xxx.xxx.xxx.xxx
+ RabbitMQ_ipaddr:127.0.0.1
 
  ##############################
  # MariaDB
@@ -241,7 +241,7 @@ OASEのインストール手順を下記に示します。
  ##############################
  # Rules engine to be used.("rhdm" or "drools")
  # e.g) rules_engine:drools
- rules_engine:
+ rules_engine:rhdm
 
  # Decide the Administrator name, password.
  # e.g) rule_engine_adminname:admin0000
@@ -259,12 +259,12 @@ OASEのインストール手順を下記に示します。
  ##############################
  # Full path of RHDM materials.
  # e.g) rhdm_path:/tmp/rhdm-installer-x.x.x.jar
- rhdm_path:
+ rhdm_path:/tmp/rhdm-installer-7.3.1.jar
 
  # Full path of jboss-eap materials.
  # Only used for RHDM.
  # e.g) jboss_eap_path:/tmp/jboss-eap-x.x.x-installer.jar
- jboss_eap_path:
+ jboss_eap_path:/tmp/jboss-eap-7.2.0-installer.jar
 
 
  ##############################
