@@ -33,7 +33,7 @@ webコンテンツ、BackYardコンテンツ、データベースは、次のよ
 
    1, 端末, Web, "http(s)
                  [80(443)/tcp]", OASEのWebコンテンツへのアクセス
-   2, BackYard, RHDM, "http
+   2, BackYard, RHDM or Drools, "http
                       [8080/tcp]", ディシジョンテーブルのコンテナ管理
    3, Web, BackYard, "tcp
                      [50001/tcp]", ディシジョンテーブルのファイル管理
