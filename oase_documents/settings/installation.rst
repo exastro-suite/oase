@@ -139,7 +139,7 @@ OASEのインストール手順を下記に示します。
    8, db_username, OASE_USER, MariaDBで使用するユーザ名
    9, db_password, OASE_PASSWD, MariaDBのパスワード
    10, db_erase, erase, アンインストール時にDBを消すかどうか（消す：erase/残す：leave）
-   11, jboss_root_directory, /exastro/JBossEAP, JBossEAPのインストールディレクトリ
+   11, jboss_root_directory, /exastro/JBoss, JBossのインストールディレクトリ
    12, rules_engine, , 使用するルールエンジンを選択(rhdm or drools)
    13, rule_engine_adminname, admin0000, ルールエンジンの管理者名
    14, rule_engine_password, password@1, ルールエンジンのパスワード
@@ -228,11 +228,11 @@ OASEのインストール手順を下記に示します。
 
 
  ##############################
- # JBoss EAP
+ # JBoss
  ##############################
  # Enter JBoss install directory.
- # e.g) jboss_root_directory:/exastro/JBossEAP
- jboss_root_directory:/exastro/JBossEAP
+ # e.g) jboss_root_directory:/exastro/JBoss
+ jboss_root_directory:/exastro/JBoss
 
 
  ##############################
@@ -513,8 +513,8 @@ OASEのインストール手順を下記に示します。
  | OutOfMemoryErrorの障害が発生している場合は再起動コマンドを実行してください。
  | # systemctl restart jboss-eap-rhel.service
  | 再起動後、以下のコマンドを実行して、KIEコンテナーの一覧を確認します。
- | # curl -u [RHDM管理ユーザー名]:[RHDM管理パスワード] -H "accept: application/json" -X GET "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers"
+ | # curl -u [ルールエンジン管理ユーザー名]:[ルールエンジン管理パスワード] -H "accept: application/json" -X GET "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers"
  | 削除したいKIEコンテナーのcontainer-idを指定して以下のコマンドを実行することにより、KIEコンテナーが削除されます。
- | # curl -u [RHDM管理ユーザー名]:[RHDM管理パスワード] -X DELETE "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers/default-kieserver/containers/[container-id]" -H "accept: application/json"
- | ※IPアドレスはRHDMをインストールしたサーバのアドレス
+ | # curl -u [ルールエンジン管理ユーザー名]:[ルールエンジン管理パスワード] -X DELETE "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers/default-kieserver/containers/[container-id]" -H "accept: application/json"
+ | ※IPアドレスはルールエンジンをインストールしたサーバのアドレス
 
