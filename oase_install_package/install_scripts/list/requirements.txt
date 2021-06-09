@@ -17,7 +17,7 @@ pytz
 
 ### Requirements with Version Specifiers
 mysqlclient==2.0.1
-django==2.2.21
+django==2.2.22
 openpyxl==2.5.14
 xlrd==1.2.0
 
