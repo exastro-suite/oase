@@ -524,5 +524,5 @@ OASEのインストール手順を下記に示します。
  | # curl -u [ルールエンジン管理ユーザー名]:[ルールエンジン管理パスワード] -X DELETE "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers/default-kieserver/containers/[container-id]" -H "accept: application/json"
  | ※IPアドレスはルールエンジンをインストールしたサーバのアドレス
  |
- | ※ルールエンジンを変更した場合、変更前のルールを移行されず、アンインストール時に削除されます。
+ | ※ルールエンジンを変更した場合、変更前のルールは移行されず、アンインストール時に削除されます。
  
