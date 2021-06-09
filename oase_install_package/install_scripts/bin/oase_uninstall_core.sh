@@ -430,18 +430,6 @@ if [ $? -gt 0 ]; then
     error_flag=true
 fi
 
-#----------------------------------------------
-# OASEドライバー削除 / ドライバーアンインストール
-#----------------------------------------------
-
-python3 ${oase_directory}/OASE/oase-root/manage.py driver_installer -p ${oase_directory}/plugins --delete
-
-#----------------------------------------------
-# OASEアダプター削除 / アダプターアンインストール
-#----------------------------------------------
-
-python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins --delete
-
 #----------------------------------------
 # OASEサービス削除 / oase_env系削除
 #----------------------------------------
