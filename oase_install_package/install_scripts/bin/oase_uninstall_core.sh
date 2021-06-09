@@ -28,8 +28,14 @@ readonly OASE_BACKUP_FILE_SUFFIX='.oase_bk'
 readonly OASE_UNINSTALING_FILE_SUFFIX='.oase_during_uninstallation'
 
 JBOSS_ROOT_DIR="${jboss_root_directory}"
-JBOSS_CONF_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/bin/standalone.conf
-STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
+
+if [ "${rules_engine}" == "drools" ]; then
+    JBOSS_CONF_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/bin/standalone.conf
+fi
+
+if [ "${rules_engine}" == "drools" ]; then
+    STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
+fi
 
 KERNEL_PARAM_FILE=/etc/sysctl.conf
 OASE_CONF_FILE=/etc/httpd/conf.d/oase.conf
@@ -186,14 +192,18 @@ function delete_middleware_confs() {
     fi
 
     # decision server
-    repair_conffile "${JBOSS_CONF_FILE}"
-    if [ $? -gt 0 ]; then
-        _error_flag=true
+    if [ "${rules_engine}" == "drools" ]; then
+        repair_conffile "${JBOSS_CONF_FILE}"
+        if [ $? -gt 0 ]; then
+            _error_flag=true
+        fi
     fi
 
-    repair_conffile "${STANDALONE_FULL_FILE}"
-    if [ $? -gt 0 ]; then
-        _error_flag=true
+    if [ "${rules_engine}" == "drools" ]; then
+        repair_conffile "${STANDALONE_FULL_FILE}"
+        if [ $? -gt 0 ]; then
+            _error_flag=true
+        fi
     fi
 
     repair_conffile "${MAVEN_CONF_SETTINGS_FILE}"
@@ -412,14 +422,38 @@ if [ ${db_erase} = 'erase' ]; then
     fi
 fi
 
-disable_service 'httpd drools rabbitmq-server'
-if [ $? -gt 0 ]; then
-    error_flag=true
-fi
 
-delete_service '/usr/lib/systemd/system' 'drools'
-if [ $? -gt 0 ]; then
-    error_flag=true
+
+
+if [ "${rules_engine}" == "drools" ]; then
+    disable_service 'httpd drools rabbitmq-server'
+    if [ $? -gt 0 ]; then
+        error_flag=true
+    fi
+
+    delete_service '/usr/lib/systemd/system' 'drools'
+    if [ $? -gt 0 ]; then
+        error_flag=true
+    fi
+elif [ "${rules_engine}" == "rhdm" ]; then
+    disable_service 'httpd rabbitmq-server'
+    if [ $? -gt 0 ]; then
+        error_flag=true
+    fi
+
+    service jboss-eap-rhel stop
+    if [ $? -gt 0 ]; then
+        error_flag=true
+    fi
+    chkconfig --del jboss-eap-rhel.sh
+    if [ $? -gt 0 ]; then
+        error_flag=true
+    fi
+
+    delete_service '/usr/lib/systemd/system' 'jboss-eap-rhel'
+    if [ $? -gt 0 ]; then
+        error_flag=true
+    fi
 fi
 
 #----------------------------------------
@@ -429,6 +463,18 @@ delete_middleware_confs
 if [ $? -gt 0 ]; then
     error_flag=true
 fi
+
+#----------------------------------------------
+# OASEドライバー削除 / ドライバーアンインストール
+#----------------------------------------------
+
+python3 ${oase_directory}/OASE/oase-root/manage.py driver_installer -p ${oase_directory}/plugins --delete
+
+#----------------------------------------------
+# OASEアダプター削除 / アダプターアンインストール
+#----------------------------------------------
+
+python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins --delete
 
 #----------------------------------------
 # OASEサービス削除 / oase_env系削除

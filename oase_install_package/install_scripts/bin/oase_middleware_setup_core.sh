@@ -223,13 +223,13 @@ edit_standalone_full() {
     # insert property
     sed -i -e '/<\/extensions>/a \    <system-properties>' $1
     sed -i -e '/<system-properties>/a \        <property name="org.kie.server.controller" value="http://localhost:8080/decision-central/rest/controller"\/>' $1
-    sed -i -e '/<property name="org.kie.server.controller" value=/a \        <property name="org.kie.server.controller.user" value="'${RHDM_ADMINNAME}'"\/>' $1
-    sed -i -e '/<property name="org.kie.server.controller.user" value="'${RHDM_ADMINNAME}'"\/>/a \        <property name="org.kie.server.controller.pwd" value="'${RHDM_PASSWORD}'"\/>' $1
-    sed -i -e '/<property name="org.kie.server.controller.pwd" value="'${RHDM_PASSWORD}'"\/>/a \        <property name="org.kie.server.id" value="default-kieserver"\/>' $1
+    sed -i -e '/<property name="org.kie.server.controller" value=/a \        <property name="org.kie.server.controller.user" value="'${RULE_ENGINE_ADMINNAME}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.controller.user" value="'${RULE_ENGINE_ADMINNAME}'"\/>/a \        <property name="org.kie.server.controller.pwd" value="'${RULE_ENGINE_PASSWORD}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.controller.pwd" value="'${RULE_ENGINE_PASSWORD}'"\/>/a \        <property name="org.kie.server.id" value="default-kieserver"\/>' $1
     sed -i -e '/<property name="org.kie.server.id" value="default-kieserver"\/>/a \        <property name="org.kie.server.location" value="http://localhost:8080/kie-server/services/rest/server"\/>' $1
-    sed -i -e '/<property name="org.kie.server.location" value=/a \        <property name="org.kie.server.user" value="'${RHDM_ADMINNAME}'"\/>' $1
-    sed -i -e '/<property name="org.kie.server.user" value="'${RHDM_ADMINNAME}'"\/>/a \        <property name="org.kie.server.pwd" value="'${RHDM_PASSWORD}'"\/>' $1
-    sed -i -e '/<property name="org.kie.server.pwd" value="'${RHDM_PASSWORD}'"\/>/a \    <\/system-properties>' $1
+    sed -i -e '/<property name="org.kie.server.location" value=/a \        <property name="org.kie.server.user" value="'${RULE_ENGINE_ADMINNAME}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.user" value="'${RULE_ENGINE_ADMINNAME}'"\/>/a \        <property name="org.kie.server.pwd" value="'${RULE_ENGINE_PASSWORD}'"\/>' $1
+    sed -i -e '/<property name="org.kie.server.pwd" value="'${RULE_ENGINE_PASSWORD}'"\/>/a \    <\/system-properties>' $1
 }
 
 ############################################################
@@ -302,15 +302,19 @@ JBOSS_EAP_RHEL_SH=$INITD_DIR/jboss-eap-rhel.sh
 MAVEN_CONF_SETTINGS_FILE="${M2_HOME}"/conf/settings.xml
 M2_SETTINGS_DIR=/root/.m2
 M2_SETTINGS_FILE="${M2_SETTINGS_DIR}"/settings.xml
-STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
-RHDM_ADMINNAME=${rhdm_adminname}
-RHDM_PASSWORD=${rhdm_password}
+RULE_ENGINE_ADMINNAME=${rule_engine_adminname}
+RULE_ENGINE_PASSWORD=${rule_engine_password}
 OASE_ENV_DIR=${OASE_ROOT_DIR}/confs/backyardconfs/services
 OASE_ENV_FILE=${OASE_ENV_DIR}/oase_env
 DROOLS_SERVICE_FILE=/lib/systemd/system/drools.service
 CERTIFICATE_PATH=${certificate_path}
 PRIVATE_KEY_PATH=${private_key_path}
 OASE_DOMAIN=${oase_domain}
+
+if [ "${rules_engine}" == "drools" ]; then
+    STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
+fi
+
 
 # sysctl.conf
 if [ ! -e "$KERNEL_PARAM_FILE" ]; then
@@ -459,15 +463,17 @@ fi
 create_m2_settings "$M2_SETTINGS_FILE"
 
 # Decision Server settings
-if [ ! -e "$STANDALONE_FULL_FILE".oase_bk ]; then
-    if [ -e "$STANDALONE_FULL_FILE" ]; then
+if [ "${rules_engine}" == "drools" ]; then
+    if [ ! -e "$STANDALONE_FULL_FILE".oase_bk ]; then
+        if [ -e "$STANDALONE_FULL_FILE" ]; then
 
-        # Check if backup file exists
-        make_backup_file $STANDALONE_FULL_FILE $NOW
+            # Check if backup file exists
+            make_backup_file $STANDALONE_FULL_FILE $NOW
 
+        fi
+
+        edit_standalone_full "$STANDALONE_FULL_FILE"
     fi
-
-    edit_standalone_full "$STANDALONE_FULL_FILE"
 fi
 
 if [ -e "$JBOSS_CONF_FILE" ]; then
@@ -477,20 +483,27 @@ if [ -e "$JBOSS_CONF_FILE" ]; then
 
 fi
 
-if [ -e "$DROOLS_SERVICE_FILE" ]; then
+if [ "${rules_engine}" == "drools" ]; then
+    if [ -e "$DROOLS_SERVICE_FILE" ]; then
 
-    # Check if backup file exists
-    make_backup_file $DROOLS_SERVICE_FILE $NOW
+        # Check if backup file exists
+        make_backup_file $DROOLS_SERVICE_FILE $NOW
+    fi
+
+    create_drools_service "$JBOSS_ROOT_DIR"
+
+    # drools.service
+    if [ ! -e "$DROOLS_SERVICE_FILE" ]; then
+        log ""$DROOLS_SERVICE_FILE" not exists."
+        log "INFO : Abort installation." 
+        exit 1
+    fi
+elif [ "${rules_engine}" == "rhdm" ]; then
+    cp ${jboss_root_directory}/bin/init.d/jboss-eap-rhel.sh /etc/init.d/jboss-eap-rhel.sh
+    chmod +x /etc/init.d/jboss-eap-rhel.sh
+    chkconfig --add jboss-eap-rhel.sh
 fi
 
-create_drools_service "$JBOSS_ROOT_DIR"
-
-# drools.service
-if [ ! -e "$DROOLS_SERVICE_FILE" ]; then
-    log ""$DROOLS_SERVICE_FILE" not exists."
-    log "INFO : Abort installation." 
-    exit 1
-fi
 
 # oase_env settings
 if [ ! -e "$OASE_ENV_DIR" ]; then

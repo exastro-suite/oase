@@ -708,7 +708,7 @@ configure_java(){
 configure_drools(){
     #WildFly install
     if [ -d ${jboss_root_directory} ]; then
-        echo "install skip RHDM" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip rule engine" >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
         # standalone.conf書き換え
         standalone_conf
@@ -745,11 +745,11 @@ configure_drools(){
         expect \"(a):\"
         send \"b\\r\"
         expect \"Username :\"
-        send \""${rhdm_adminname}\\r"\"
+        send \""${rule_engine_adminname}\\r"\"
         expect \"Password :\"
-        send \""${rhdm_password}\\r"\"
+        send \""${rule_engine_password}\\r"\"
         expect \"Re-enter Password :\"
-        send \""${rhdm_password}\\r"\"
+        send \""${rule_engine_password}\\r"\"
         expect \"What groups do you want this user to belong to\"
         send \"admin,kie-server,rest-all\\r\"
         expect \"Is this correct yes/no?\"
@@ -760,6 +760,76 @@ configure_drools(){
 
     # standalone.conf書き換え
     standalone_conf
+}
+
+#rhdm install
+configure_rhdm(){
+    #jboss-eap
+    mkdir -p ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    # 0: English
+    jboss_lang=0
+    expect -c "
+        set timeout -1
+        spawn java -jar ${jboss_eap_path}
+        expect \"Please choose\"
+        send \""${jboss_lang}\\r"\"
+        expect \"press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"Select the installation path:\"
+        send \""${jboss_root_directory}\\r"\"
+        expect \"press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"Please select which packs you want to install\"
+        send \"0\\r\"
+        expect \"press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"Admin username:\"
+        send \""${rule_engine_adminname}\\r"\"
+        expect \"Admin password:\"
+        send \""${rule_engine_password}\\r"\"
+        expect \"Confirm admin password:\"
+        send \""${rule_engine_password}\\r"\"
+        expect \"press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"Input Selection:\"
+        send \"0\\r\"
+        expect \"press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"Would you like to generate an automatic installation script and properties file? (y/n) [n]:\"
+        send \"n\\r\"
+    " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+    jboss_eap_conf
+    chmod 755 ${jboss_root_directory}/bin/init.d/jboss-eap.conf
+    cp ${jboss_root_directory}/bin/init.d/jboss-eap.conf /etc/default/
+
+    #rhdm
+    expect -c "
+        set timeout -1
+        spawn java -jar ${rhdm_path}
+        expect \"Press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect -re \"/root/RHDM-*\"
+        send \""${jboss_root_directory}\\r"\"
+        expect \"Press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"Press 0 to confirm your selections\"
+        send \"0\\r\"
+        expect \"Press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"User Name:\"
+        send \""${rule_engine_adminname}\\r"\"
+        expect \"Password:\"
+        send \""${rule_engine_password}\\r"\"
+        expect \"Confirm Password:\"
+        send \""${rule_engine_password}\\r"\"
+        expect \"Press 1 to continue, 2 to quit, 3 to redisplay.\"
+        send \"1\\r\"
+        expect \"Would you like to generate an automatic installation script and properties file? (y/n)\"
+        send \"n\\r\"
+    " >> "$OASE_INSTALL_LOG_FILE" 2>&1
 }
 
 #Maven install
@@ -1047,6 +1117,41 @@ EOS
 
 }
 
+jboss_eap_conf() {
+    cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    now=`date +"%Y%m%d"`
+    cp -p bin/init.d/jboss-eap.conf bin/init.d/${now}_jboss-eap.conf.bk
+
+    cat << EOS > "bin/init.d/jboss-eap.conf"
+## Location of JDK
+# JAVA_HOME="/usr/lib/jvm/default-java"
+JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk
+
+## Location of JBoss EAP
+# JBOSS_HOME="/opt/jboss-eap"
+JBOSS_HOME=${jboss_root_directory}
+
+## The username who should own the process.
+# JBOSS_USER=jboss-eap
+JBOSS_USER=root
+
+## The mode JBoss EAP should start, standalone or domain
+JBOSS_MODE=standalone
+
+## Configuration for standalone mode
+JBOSS_CONFIG=standalone-full.xml
+
+## Location to keep the console log
+JBOSS_CONSOLE_LOG="/var/log/jboss-eap/console.log"
+
+## Additionals args to include in startup
+# JBOSS_OPTS="--admin-only -b 127.0.0.1"
+JBOSS_OPTS="-Dfile.encoding=UTF-8 -Djboss.bind.address=0.0.0.0"
+
+EOS
+
+}
+
 ###############################################################################
 # make OASE
 
@@ -1072,8 +1177,12 @@ make_oase() {
     log "INFO : JAVA install"
     configure_java
 
-    log "INFO : RHDM install"
-    configure_drools
+    log "INFO : Rule engine install"
+    if [ "${rules_engine}" == "drools" ]; then
+        configure_drools
+    elif [ "${rules_engine}" == "rhdm" ]; then
+        configure_rhdm
+    fi
 
     log "INFO : Maven install"
     configure_maven
@@ -1193,46 +1302,51 @@ make_oase_offline() {
 
 
     # configure_drools
-    log "INFO : configure RHDM"
+    log "INFO : configure rule engine"
 
     mkdir -p ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/wildfly-14.0.1.Final.tar.gz . >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    tar -xzvf wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    chown -R root:root wildfly-14.0.1.Final
-    rm -f wildfly-14.0.1.Final.tar.gz
 
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/business-central-7.22.0.Final-wildfly14.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${rules_engine}" != "drools" ]; then
+        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/wildfly-14.0.1.Final.tar.gz . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        tar -xzvf wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        chown -R root:root wildfly-14.0.1.Final
+        rm -f wildfly-14.0.1.Final.tar.gz
 
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/kie-server-7.22.0.Final-ee8.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/business-central-7.22.0.Final-wildfly14.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments
-    mv business-central-7.22.0.Final-wildfly14.war decision-central.war
-    mv kie-server-7.22.0.Final-ee8.war kie-server.war
+        cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/kie-server-7.22.0.Final-ee8.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin
-    expect -c "
-        set timeout -1
-        spawn ./add-user.sh
-        expect \"(a):\"
-        send \"b\\r\"
-        expect \"Username :\"
-        send \""${rhdm_adminname}\\r"\"
-        expect \"Password :\"
-        send \""${rhdm_password}\\r"\"
-        expect \"Re-enter Password :\"
-        send \""${rhdm_password}\\r"\"
-        expect \"What groups do you want this user to belong to\"
-        send \"admin,kie-server,rest-all\\r\"
-        expect \"Is this correct yes/no?\"
-        send \"yes\\r\"
-        expect \"yes/no?\"
-        send \"yes\\r\"
-    " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments
+        mv business-central-7.22.0.Final-wildfly14.war decision-central.war
+        mv kie-server-7.22.0.Final-ee8.war kie-server.war
 
-    standalone_conf
+        cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin
+        expect -c "
+            set timeout -1
+            spawn ./add-user.sh
+            expect \"(a):\"
+            send \"b\\r\"
+            expect \"Username :\"
+            send \""${rule_engine_adminname}\\r"\"
+            expect \"Password :\"
+            send \""${rule_engine_password}\\r"\"
+            expect \"Re-enter Password :\"
+            send \""${rule_engine_password}\\r"\"
+            expect \"What groups do you want this user to belong to\"
+            send \"admin,kie-server,rest-all\\r\"
+            expect \"Is this correct yes/no?\"
+            send \"yes\\r\"
+            expect \"yes/no?\"
+            send \"yes\\r\"
+        " >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+        standalone_conf
+    elif [ "${rules_engine}" == "rhdm" ]; then
+        configure_rhdm
+    fi
 
 
     # configure_maven
@@ -1388,9 +1502,11 @@ download() {
 
 
     # wget Drools & Maven.
-    wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/wildfly/14.0.1.Final/wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/drools/release/7.22.0.Final/business-central-7.22.0.Final-wildfly14.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://repo1.maven.org/maven2/org/kie/server/kie-server/7.22.0.Final/kie-server-7.22.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${rules_engine}" == "drools" ]; then
+        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/wildfly/14.0.1.Final/wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/drools/release/7.22.0.Final/business-central-7.22.0.Final-wildfly14.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://repo1.maven.org/maven2/org/kie/server/kie-server/7.22.0.Final/kie-server-7.22.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
     wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
 

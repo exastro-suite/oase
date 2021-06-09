@@ -148,20 +148,20 @@ function check_answer_vars() {
     fi
 
     # config_id: DM_IPADDRPORT
-    if [ -z "${dm_ipaddrport}" ]; then
-        log "ERROR : dm_ipaddrport should be enter to DM IP address & port."
+    if [ -z "${rule_engine_ipaddrport}" ]; then
+        log "ERROR : rule_engine_ipaddrport should be enter to rule engine IP address & port."
         _error_flag=true
     fi
 
     # config_id: DM_USERID
-    if [ -z "${rhdm_adminname}" ]; then
-        log "ERROR : rhdm_adminname should be enter to RHDM Administrator name."
+    if [ -z "${rule_engine_adminname}" ]; then
+        log "ERROR : rule_engine_adminname should be enter to rule engine Administrator name."
         _error_flag=true
     fi
 
     # config_id: DM_PASSWD
-    if [ -z "${rhdm_password}" ]; then
-        log "ERROR : rhdm_password should be enter to RHDM Administrator password."
+    if [ -z "${rule_engine_password}" ]; then
+        log "ERROR : rule_engine_password should be enter to rule engine Administrator password."
         _error_flag=true
     fi
 
@@ -249,6 +249,26 @@ function check_answer_vars() {
     if [ "${oase_os}" != 'CentOS7' -a "${oase_os}" != 'RHEL7' -a "${oase_os}" != 'RHEL8' ]; then
         log "ERROR : oase_os should be set to CentOS7 or RHEL7"
         _error_flag=true
+    fi
+
+    # rule engine
+    if [ -z "${rules_engine}" ]; then
+        log "ERROR : rules_engine should be enter to value(rhdm or drools)"
+        _error_flag=true
+    fi
+    if [ "${rules_engine}" != 'rhdm' -a "${rules_engine}" != 'drools' ]; then
+        log "ERROR : rules_engine should be set to rhdm or drools"
+        _error_flag=true
+    fi
+    if [ "${rules_engine}" == 'rhdm' ]; then
+        if [ -z "${rhdm_path}" ]; then
+            log "ERROR : rhdm_path should be enter to rhdm repository path."
+            _error_flag=true
+        fi
+        if [ -z "${jboss_eap_path}" ]; then
+            log "ERROR : jboss_eap_path should be enter to jboss repository path."
+            _error_flag=true
+        fi
     fi
 
     # Installation package

@@ -213,8 +213,14 @@ run_systemctl oase-apply.service
 run_systemctl oase-accept.service
 
 # jboss-eap-rhel service start
-log "INFO : Start Drools service"
-run_systemctl drools.service
+if [ "${rules_engine}" == "drools" ]; then
+    log "INFO : Start Drools service"
+    run_systemctl drools.service
+elif [ "${rules_engine}" == "rhdm" ]; then
+    log "INFO : Start rhdm service"
+    service jboss-eap-rhel start
+    chkconfig jboss-eap-rhel.sh on
+fi
 
 
 ################################################################################
