@@ -509,12 +509,20 @@ OASEのインストール手順を下記に示します。
 
  | ディシジョンテーブルの最大作成数を超えた場合、ディシジョンテーブルのアップロード・プロダクション適用に失敗する可能性があります。
  | 失敗した場合、以下のディレクトリのログを確認してください。
+ | RHDMの場合
  | /var/log/jboss-eap/console.log
+ | droolsの場合
+ | [JBossのインストールディレクトリ]/wildfly-x.x.x.Final/standalone/log/server.log
  | OutOfMemoryErrorの障害が発生している場合は再起動コマンドを実行してください。
+ | RHDMの場合
  | # systemctl restart jboss-eap-rhel.service
+ | droolsの場合
+ | # systemctl restart drools.service
  | 再起動後、以下のコマンドを実行して、KIEコンテナーの一覧を確認します。
  | # curl -u [ルールエンジン管理ユーザー名]:[ルールエンジン管理パスワード] -H "accept: application/json" -X GET "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers"
  | 削除したいKIEコンテナーのcontainer-idを指定して以下のコマンドを実行することにより、KIEコンテナーが削除されます。
  | # curl -u [ルールエンジン管理ユーザー名]:[ルールエンジン管理パスワード] -X DELETE "http://[IPアドレス]:8080/decision-central/rest/controller/management/servers/default-kieserver/containers/[container-id]" -H "accept: application/json"
  | ※IPアドレスはルールエンジンをインストールしたサーバのアドレス
-
+ |
+ | ※ルールエンジンを変更した場合、変更前のルールを移行されず、アンインストール時に削除されます。
+ 
