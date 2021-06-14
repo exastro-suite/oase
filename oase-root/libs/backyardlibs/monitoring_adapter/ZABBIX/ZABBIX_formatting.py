@@ -35,6 +35,7 @@ from django.conf import settings
 from web_app.models.models import RuleType
 from web_app.models.ZABBIX_monitoring_models import ZabbixMatchInfo
 
+from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 logger = OaseLogger.get_instance()
 
@@ -64,7 +65,7 @@ def message_formatting(zabbix_message, rule_type_id, zabbix_adapter_id):
             raise
 
         # ルール種別名称取得
-        ruletypename = RuleType.objects.get(pk=rule_type_id).rule_type_name
+        ruletypename = RuleType.objects.get(pk=rule_type_id, disuse_flag=str(defs.ENABLE)).rule_type_name
 
         # zabbix_response_key取得
         key_list = list(ZabbixMatchInfo.objects.filter(zabbix_adapter_id=zabbix_adapter_id).order_by(
