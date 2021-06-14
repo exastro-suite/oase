@@ -203,7 +203,7 @@ def data_list(body, user, rule_type_id_list, label_count_list):
         reqtypeid = json_str[EventsRequestCommon.KEY_REQTYPE]
         ruletablename = json_str[EventsRequestCommon.KEY_RULETYPE]
 
-        if ruletablename not in rule_type_id_list:
+        if True:
             rule_type_id_list.update({ruletablename: 0})
             label_count_list.update({ruletablename: 0})
 
