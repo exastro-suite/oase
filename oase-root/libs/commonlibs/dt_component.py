@@ -751,9 +751,11 @@ class DecisionTableComponent(object):
                     break
 
                 # ルール上限数チェック
+                """
                 if row_rule_cnt > rule_row_max:
                     message_list.append(get_message('MOSJA03122', lang, rulerowmax=rule_row_max))
                     break
+                """
 
             # 修正不可領域のチェック
             if wsheet.ncols > self.COL_INDEX_RULE_START + cond_col_cnt + self.ACTION_COLUMN_COUNT_FULL:

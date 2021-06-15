@@ -59,7 +59,7 @@ class DecisionTableFactory:
         'Tables'  : {
             'B11' : ['MOSJA11064',],
             'B19' : ['MOSJA11081',],
-            'B20' : ['MOSJA11082', {'rule_row_max':0}],
+            #'B20' : ['MOSJA11082', {'rule_row_max':0}],
             'D11' : ['MOSJA11065',],
             'E11' : ['MOSJA11066',],
             'F11' : ['MOSJA11067',],
@@ -179,9 +179,11 @@ class DecisionTableFactory:
         for ws_name, v1 in self.MSG_INFO.items():
             for cell, msg in v1.items():
                 # ルール上限数記述
+                """
                 if cell == 'B20':
                     rule_row_max = System.objects.get(config_id='RULE_ROW_MAX').value
                     msg[1]['rule_row_max'] = rule_row_max
+                """
 
                 if len(msg) >= 2:
                     self.wb[ws_name][cell].value = get_message(msg[0], self.lang, showMsgId=False, **(msg[1]))
