@@ -197,6 +197,9 @@ class OASEEventToken(object):
         else:
             return self.STS_NOTOKEN
 
+        # トークン読み込み
+        self.load_data()
+
         # 登録されていないトークンは無効
         if token not in self.token_info:
             return self.STS_INVALID
