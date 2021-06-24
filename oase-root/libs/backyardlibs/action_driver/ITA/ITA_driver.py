@@ -317,7 +317,8 @@ class ITAManager(AbstractManager):
                 if len(commitinfo_list) == 0:
                     commitinfo_list = []
                     for menu_id in menu_id_list:
-                        ita_param_matchinfo_list = list(ItaParameterMatchInfo.objects.filter(menu_id=menu_id).order_by('match_id'))
+                        ita_param_matchinfo_list = list(ItaParameterMatchInfo.objects.filter(
+                            ita_driver_id=self.ita_driver.ita_driver_id, menu_id=menu_id).order_by('match_id'))
                         events_request = EventsRequest.objects.get(trace_id=self.trace_id)
                         data_object_list = list(DataObject.objects.filter(rule_type_id=events_request.rule_type_id).order_by('data_object_id'))
 
