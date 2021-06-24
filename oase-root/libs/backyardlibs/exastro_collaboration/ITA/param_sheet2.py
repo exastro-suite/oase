@@ -130,7 +130,7 @@ class ITAParameterSheetMenuManager2(ITAParameterSheetMenuManager):
             if menu[Cstobj.FCMI_MENU_NAME]:
                 menu_name = menu[Cstobj.FCMI_MENU_NAME]
 
-            if menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
+            if False:# menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
                 group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]
                 vertical_flg = True
                 priority = 3
