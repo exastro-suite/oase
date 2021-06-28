@@ -40,6 +40,7 @@ class ServiceNowActionHistory(models.Model):
     servicenow_action_his_id = models.AutoField("ServiceNowアクション履歴ID", primary_key=True)
     action_his_id            = models.IntegerField("アクション履歴ID", unique=True)
     servicenow_disp_name     = models.CharField("ServiceNow表示名", max_length=64)
+    sys_id                   = models.CharField("ServiceNowレコードID", max_length=64)
     short_description        = models.CharField("概要説明", max_length=512)
     last_update_timestamp    = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user         = models.CharField("最終更新者", max_length=64)
