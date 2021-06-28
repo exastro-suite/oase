@@ -25,6 +25,7 @@ import sys
 import traceback
 import requests
 import json
+import ast
 
 # oase-rootまでのバスを取得
 my_path = os.path.dirname(os.path.abspath(__file__))
@@ -79,6 +80,8 @@ class ServiceNow1Core(DriverCore):
 
         logger.logic_log('LOSI00001', 'trace_id=%s, url=%s' % (self.TraceID, url))
 
+        resp = None
+
         try:
             resp = requests.post(
                 url, auth=(user, passwd), data=data,
@@ -91,15 +94,15 @@ class ServiceNow1Core(DriverCore):
                     'LOSI00002',
                     'Error. trace_id=%s, code=%s' % (self.TraceID, resp.status_code)
                 )
-                return False
+                return None
 
         except Exception as ex:
             logger.logic_log('LOSM01500', self.TraceID, traceback.format_exc())
-            return False
+            return None
 
 
         logger.logic_log('LOSI00002', 'Success. trace_id=%s' % (self.TraceID))
-        return True
+        return resp
 
 
     def create_incident(self, drv):
@@ -115,6 +118,7 @@ class ServiceNow1Core(DriverCore):
         )
 
         result = False
+        sys_id = None
 
         try:
             cipher = AESCipher(settings.AES_KEY)
@@ -162,12 +166,19 @@ class ServiceNow1Core(DriverCore):
                 headers=headers, proxies=proxies
             )
 
+            # POSTが正常ならば sys_id を応答情報から取得
+            if result:
+                resp = ast.literal_eval(result.text)
+
+                if resp and 'result' in resp and 'sys_id' in resp['result']:
+                    sys_id = resp['result']['sys_id']
+
         except Exception as ex:
             logger.logic_log('LOSM01500', self.TraceID, traceback.format_exc())
-            return False
+            return False, None
 
 
         logger.logic_log('LOSI00002', 'result=%s, trace_id=%s' % (result, self.TraceID))
-        return result
+        return result, sys_id
 
 

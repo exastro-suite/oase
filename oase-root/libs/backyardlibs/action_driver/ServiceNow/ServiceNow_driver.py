@@ -93,7 +93,7 @@ class ServiceNowManager(AbstractManager):
         self.core = ServiceNow1Core(trace_id)
 
 
-    def servicenow_action_history_insert(self, servicenow_name, short_desc, exe_order, action_history_id):
+    def servicenow_action_history_insert(self, servicenow_name, sys_id, short_desc, exe_order, action_history_id):
         """
         [概要]
           ServiceNowアクション履歴登録メゾット
@@ -109,6 +109,7 @@ class ServiceNowManager(AbstractManager):
                 ServiceNowActionHistory(
                     action_his_id=action_history_id,
                     servicenow_disp_name=servicenow_name,
+                    sys_id=sys_id,
                     short_description=short_desc,
                     last_update_timestamp=Comobj.getStringNowDateTime(),
                     last_update_user=self.last_update_user,
@@ -313,7 +314,7 @@ class ServiceNowManager(AbstractManager):
 
 
         # リクエスト送信
-        result = self.core.create_incident(self.servicenow_driver)
+        result, sys_id = self.core.create_incident(self.servicenow_driver)
 
         # リクエスト結果判定
         status = PROCESSED if result else ACTION_EXEC_ERROR
@@ -333,6 +334,7 @@ class ServiceNowManager(AbstractManager):
 
             self.servicenow_action_history_insert(
                 self.servicenow_driver.servicenow_disp_name,
+                sys_id,
                 'OASE Event Notify',
                 rhdm_res_act.execution_order,
                 self.action_history.pk,
