@@ -89,6 +89,7 @@ def get_history_data(action_his_id):
     try:
         history = ServiceNowActionHistory.objects.get(action_his_id=action_his_id)
         result['MOSJA13088'] = history.servicenow_disp_name
+        result['MOSJA13126'] = history.sys_id
         result['MOSJA13089'] = history.short_description
 
     except ItaActionHistory.DoesNotExist:
