@@ -264,6 +264,56 @@ def test_is_all_blank_condition():
 
 
 @pytest.mark.django_db
+def test_check_post_action_ok_x():
+    """
+    事後アクションのパラメーターチェック
+    正常系(無効化)
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'X'
+
+    # テスト
+    dtcomp.check_post_action(
+        wsheet, row_index, col_index, row_index + 1, message_list, 'JA'
+    )
+
+    assert len(message_list) == 0
+
+
+@pytest.mark.django_db
+def test_check_post_action_ng_invalid():
+    """
+    事後アクションのパラメーターチェック
+    正常系(無効化)
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+    wsheet = MagicMock()
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'XXX'
+
+    # テスト
+    dtcomp.check_post_action(
+        wsheet, row_index, col_index, row_index + 1, message_list, 'JA'
+    )
+
+    assert len(message_list) == 1
+
+
+@pytest.mark.django_db
 def test_check_action_condition_ok_digit():
     """
     アクション条件回数／期間チェック処理

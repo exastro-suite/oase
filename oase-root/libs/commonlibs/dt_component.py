@@ -1175,7 +1175,7 @@ class DecisionTableComponent(object):
     def check_post_action(self, wsheet, row_index, col_index, row_max, message_list, lang):
         """
         [メソッド概要]
-          事前アクションのパラメーターチェック
+          事後アクションのパラメーターチェック
         [引数]
         col_index: アクション部の開始カラム
         """
