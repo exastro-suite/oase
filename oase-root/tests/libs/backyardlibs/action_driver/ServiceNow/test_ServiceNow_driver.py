@@ -100,9 +100,11 @@ def set_data_for_information(exec_order, servicenow_disp_name, trace_id, parm_in
     テストで使用するデータの生成
     """
     ServiceNowDriver = get_servicenow_driver()
+    ServiceNowActionHistory = get_servicenow_action_history()
     rhdm_response_action = None
     pre_action_history = None
     servicenow_driver = None
+    servicenow_actionhistory = None
     now = datetime.datetime.now(pytz.timezone('UTC'))
     action_stop_interval = 1
     action_stop_count = 1
@@ -177,6 +179,16 @@ def set_data_for_information(exec_order, servicenow_disp_name, trace_id, parm_in
                 last_update_user='pytest',
             )
             servicenow_driver.save(force_insert=True)
+
+            servicenow_actionhistory = ServiceNowActionHistory(
+                action_his_id = action_history.action_history_id,
+                servicenow_disp_name = servicenow_disp_name,
+                sys_id = '1234567890',
+                short_description = 'OASE Event Notify',
+                last_update_timestamp = now,
+                last_update_user = 'pytest',
+            )
+            servicenow_actionhistory.save(force_insert=True)
 
     except Exception as e:
         print(e)
@@ -282,6 +294,7 @@ def test_servicenow_action_history_insert():
     now = datetime.datetime.now(pytz.timezone('UTC'))
     trace_id = EventsRequestCommon.generate_trace_id(now)
     response_id = 1
+    sys_id = '1234567890'
     last_update_user = 'pytest'
     servicenow_disp_name = 'servicenow_test'
     short_desc = 'OASE Event Notify'
@@ -298,7 +311,8 @@ def test_servicenow_action_history_insert():
         servicenow_disp_name,
         short_desc,
         exe_order,
-        action_history_id
+        action_history_id,
+        sys_id
     )
 
     assert servicenowacthist == None
@@ -329,8 +343,8 @@ def test_act_ok(monkeypatch):
     testServiceNow.set_information(rhdm_res_act, pre_action_history)
     testServiceNow.servicenow_driver = ServiceNowDriver.objects.get(servicenow_disp_name=servicenow_disp_name)
 
-    monkeypatch.setattr(testServiceNow, 'servicenow_action_history_insert', lambda a, b, c, d: (0))
-    monkeypatch.setattr(ServiceNow1Core, 'create_incident', lambda a, b: True)
+    monkeypatch.setattr(testServiceNow, 'servicenow_action_history_insert', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ServiceNow1Core, 'create_incident', lambda a, b: (True, '1234567890'))
     status, detai = testServiceNow.act(rhdm_res_act)
 
     assert status == PROCESSED
@@ -360,10 +374,72 @@ def test_act_ng(monkeypatch):
     testServiceNow.set_information(rhdm_res_act, pre_action_history)
     testServiceNow.servicenow_driver = ServiceNowDriver.objects.get(servicenow_disp_name=servicenow_disp_name)
 
-    monkeypatch.setattr(testServiceNow, 'servicenow_action_history_insert', lambda a, b, c, d: (0))
-    monkeypatch.setattr(ServiceNow1Core, 'create_incident', lambda a, b: False)
+    monkeypatch.setattr(testServiceNow, 'servicenow_action_history_insert', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ServiceNow1Core, 'create_incident', lambda a, b: (False, None))
     status, detai = testServiceNow.act(rhdm_res_act)
 
     assert status == ACTION_EXEC_ERROR
 
     delete_data_param_information()
+
+@pytest.mark.django_db
+def test_act_post_ok(monkeypatch):
+    """
+    アクション実行後処理
+    """
+    ServiceNowDriver = get_servicenow_driver()
+    ServiceNowManager = get_servicenow_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    servicenow_disp_name = 'dummy'
+    testServiceNow = ServiceNowManager(trace_id, response_id, last_update_user)
+
+    servicenow_disp_name = 'ServiceNow176'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVICENOW_NAME=ServiceNow176"]}'
+    rhdm_res_act, pre_action_history = set_data_for_information(
+        1, servicenow_disp_name, trace_id, parm_info)
+
+    testServiceNow.aryActionParameter['SERVICENOW_NAME'] = 'ServiceNow176'
+    testServiceNow.set_information(rhdm_res_act, pre_action_history)
+    testServiceNow.servicenow_driver = ServiceNowDriver.objects.get(servicenow_disp_name=servicenow_disp_name)
+
+    monkeypatch.setattr(ServiceNow1Core, 'modify_incident', lambda a, b, c, e: True)
+    status, detai = testServiceNow.act_post(rhdm_res_act)
+
+    assert status == PROCESSED
+
+    delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_act_post_ng(monkeypatch):
+    """
+    アクション実行後処理
+    """
+    ServiceNowDriver = get_servicenow_driver()
+    ServiceNowManager = get_servicenow_manager()
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    servicenow_disp_name = 'dummy'
+    testServiceNow = ServiceNowManager(trace_id, response_id, last_update_user)
+
+    servicenow_disp_name = 'ServiceNow176'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVICENOW_NAME=ServiceNow176"]}'
+    rhdm_res_act, pre_action_history = set_data_for_information(
+        1, servicenow_disp_name, trace_id, parm_info)
+
+    testServiceNow.aryActionParameter['SERVICENOW_NAME'] = 'ServiceNow176'
+    testServiceNow.set_information(rhdm_res_act, pre_action_history)
+    testServiceNow.servicenow_driver = ServiceNowDriver.objects.get(servicenow_disp_name=servicenow_disp_name)
+
+    monkeypatch.setattr(ServiceNow1Core, 'modify_incident', lambda a, b, c, e: False)
+    status, detai = testServiceNow.act_post(rhdm_res_act)
+
+    assert status == SERVER_ERROR
+
+    delete_data_param_information()
+
