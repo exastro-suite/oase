@@ -34,7 +34,6 @@ public class OaseActionUtility implements java.io.Serializable {
     private java.util.List<java.lang.String> stopInterval = new ArrayList<>();
     private java.util.List<java.lang.String> ruleName = new ArrayList<>();
     private java.util.List<java.lang.String> preInfo = new ArrayList<>();
-    private java.util.List<java.lang.String> postInfo = new ArrayList<>();
     private java.util.List<java.lang.String> condCount = new ArrayList<>();
     private java.util.List<java.lang.String> condTerm = new ArrayList<>();
     private java.util.List<java.lang.String> condGroup1 = new ArrayList<>();
@@ -108,14 +107,6 @@ public class OaseActionUtility implements java.io.Serializable {
 
     public void setPreInfo(java.util.List<java.lang.String> preInfo) {
         this.preInfo = preInfo;
-    }
-
-    public java.util.List<java.lang.String> getPostInfo() {
-        return this.postInfo;
-    }
-
-    public void setPostInfo(java.util.List<java.lang.String> postInfo) {
-        this.postInfo = postInfo;
     }
 
     public java.util.List<java.lang.String> getCondCount() {
@@ -198,10 +189,6 @@ public class OaseActionUtility implements java.io.Serializable {
         this.preInfo.add(preInfo);
     }
 
-    public void addPostInfo(String postInfo) {
-        this.postInfo.add(postInfo);
-    }
-
     public void addCondCount(String condCount) {
         this.condCount.add(condCount);
     }
@@ -234,7 +221,6 @@ public class OaseActionUtility implements java.io.Serializable {
             java.util.List<java.lang.String> stopInterval,
             java.util.List<java.lang.String> ruleName,
             java.util.List<java.lang.String> preInfo,
-            java.util.List<java.lang.String> postInfo,
             java.util.List<java.lang.String> condCount,
             java.util.List<java.lang.String> condTerm,
             java.util.List<java.lang.String> condGroup1,
@@ -249,7 +235,6 @@ public class OaseActionUtility implements java.io.Serializable {
         this.stopInterval = stopInterval;
         this.ruleName = ruleName;
         this.preInfo = preInfo;
-        this.postInfo = postInfo;
         this.condCount = condCount;
         this.condTerm = condTerm;
         this.condGroup1 = condGroup1;
