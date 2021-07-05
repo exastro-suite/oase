@@ -58,22 +58,21 @@ class DecisionTableComponent(object):
     COL_INDEX_RULE_START = 2
 
     # アクション部のカラム
-    ACTION_COLUMN_COUNT               = 15  # アクション部のカラム数(必須項目)
+    ACTION_COLUMN_COUNT               = 14  # アクション部のカラム数(必須項目)
     ACTION_COLUMN_COUNT_FULL          = ACTION_COLUMN_COUNT + 2  # アクション部のカラム数(有効日無効日含む)
     REVISION_COL_INDEX_ACTION_TYPE    = 1   # アクション種別のカラム補正値
     REVISION_COL_INDEX_ACTION_PARAMS  = 2   # アクションパラメーターのカラム補正値
     REVISION_COL_INDEX_PREACT_INFO    = 3   # 事前アクション情報のカラム補正値
-    REVISION_COL_INDEX_POSACT_INFO    = 4   # 事後アクション情報のカラム補正値
-    REVISION_COL_INDEX_RETRY_INTERVAL = 5   # リトライ間隔のカラム補正値
-    REVISION_COL_INDEX_RETRY_MAX      = 6   # リトライ回数のカラム補正値
-    REVISION_COL_INDEX_BREAK_INTERVAL = 7   # 抑止間隔のカラム補正値
-    REVISION_COL_INDEX_BREAK_MAX      = 8   # 抑止回数のカラム補正値
-    REVISION_COL_INDEX_COND_COUNT     = 9   # アクション条件回数のカラム補正値
-    REVISION_COL_INDEX_COND_TERM      = 10  # アクション条件期間のカラム補正値
-    REVISION_COL_INDEX_COND_GROUP1    = 11  # アクション条件グループのカラム補正値
-    REVISION_COL_INDEX_COND_PRIORITY1 = 12  # アクション条件グループ優先順位のカラム補正値
-    REVISION_COL_INDEX_COND_GROUP2    = 13  # アクション条件グループのカラム補正値
-    REVISION_COL_INDEX_COND_PRIORITY2 = 14  # アクション条件グループ優先順位のカラム補正値
+    REVISION_COL_INDEX_RETRY_INTERVAL = 4   # リトライ間隔のカラム補正値
+    REVISION_COL_INDEX_RETRY_MAX      = 5   # リトライ回数のカラム補正値
+    REVISION_COL_INDEX_BREAK_INTERVAL = 6   # 抑止間隔のカラム補正値
+    REVISION_COL_INDEX_BREAK_MAX      = 7   # 抑止回数のカラム補正値
+    REVISION_COL_INDEX_COND_COUNT     = 8   # アクション条件回数のカラム補正値
+    REVISION_COL_INDEX_COND_TERM      = 9   # アクション条件期間のカラム補正値
+    REVISION_COL_INDEX_COND_GROUP1    = 10  # アクション条件グループのカラム補正値
+    REVISION_COL_INDEX_COND_PRIORITY1 = 11  # アクション条件グループ優先順位のカラム補正値
+    REVISION_COL_INDEX_COND_GROUP2    = 12  # アクション条件グループのカラム補正値
+    REVISION_COL_INDEX_COND_PRIORITY2 = 13  # アクション条件グループ優先順位のカラム補正値
 
     # Excelのセル種別
     CELL_TYPE_EMPTY  = 0
@@ -778,7 +777,6 @@ class DecisionTableComponent(object):
             self.check_rule_name(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_action_type_and_param(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_pre_action(wsheet, row_index, col_index_act, row_max, message_list, lang)
-            self.check_post_action(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_action_condition(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_group_priority(wsheet, row_index, col_index_act, row_max, message_list, lang)
 
@@ -1172,45 +1170,6 @@ class DecisionTableComponent(object):
                 else:
                     message_list.append(get_message(mosja['id'], lang, keyname=mosja['param'], cellname=cellname))
 
-    def check_post_action(self, wsheet, row_index, col_index, row_max, message_list, lang):
-        """
-        [メソッド概要]
-          事後アクションのパラメーターチェック
-        [引数]
-        col_index: アクション部の開始カラム
-        """
-
-        to_info = {}
-        act_type_info = {}
-        act_type_info['ServiceNow(ver1)'] = {'driver_method': None}
-
-        for row in range(row_index, row_max):
-
-            # ServiceNowドライバー登録情報をチェック
-            col = col_index + self.REVISION_COL_INDEX_POSACT_INFO
-            cell_values = str(wsheet.cell(row, col).value).split(',')
-            if cell_values == ["X"] or cell_values == ["x"]:
-                continue
-
-            # アクション種別ごとのパラメーターチェック
-            drv_method = None
-            if act_type_info['ServiceNow(ver1)']['driver_method']:
-                drv_method = act_type_info['mail(ver1)']['driver_method']
-            else:
-                drv_module = import_module('libs.commonlibs.%s.%s_common' % ('ServiceNow', 'ServiceNow'))
-                drv_method = getattr(drv_module, 'check_dt_action_params')
-                act_type_info['ServiceNow(ver1)']['driver_method'] = drv_method
-
-            conditional_names = {d['conditional_name'] for d in self.data_object_list}
-            mosja_list = drv_method(cell_values, act_type_info['ServiceNow(ver1)'],
-                conditional_names, to_info=to_info, pre_flg=True)
-
-            for mosja in mosja_list:
-                cellname = self.convert_rowcol_to_cellno(row, col)
-                if mosja['param'] is None:
-                    message_list.append(get_message(mosja['id'], lang, cellname=cellname))
-                else:
-                    message_list.append(get_message(mosja['id'], lang, keyname=mosja['param'], cellname=cellname))
 
     def check_action_condition(self, wsheet, row_index, col_index_act, row_max, message_list, lang):
         """
