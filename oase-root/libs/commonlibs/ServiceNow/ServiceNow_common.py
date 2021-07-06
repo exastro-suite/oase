@@ -41,6 +41,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
 
     # SERVICENOW_NAME チェック
     message_list = servicenow_name_check(check_info, act_info, message_list)
+    # INCIDENT_STATUS チェック
     message_list = incident_status_check(check_info, act_info, message_list)
 
     return message_list
@@ -93,7 +94,7 @@ def incident_status_check(check_info, act_info, message_list):
         message_list.append({'id': 'MOSJA03113', 'param': 'INCIDENT_STATUS'})
 
     else:
-        # INCIDENT_STATUS の値が「CLOSE」または「OPEN」であるかチェック
+        # INCIDENT_STATUS の値が「OPEN」または「CLOSE」であるかチェック
         incident_status = check_info['INCIDENT_STATUS']
         if incident_status == '':
             logger.logic_log('LOSM00041', check_info)
