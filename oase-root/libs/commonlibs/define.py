@@ -109,6 +109,7 @@ class ACTION_HISTORY_STATUS():
     ACTION_EXEC_ERROR_HOLD = 2004
     EXASTRO_REQUEST   = 2005
     RETRY             = 2007
+    ACTION_POST_DATA_ERROR = 2008
 
     # ITAアクション固有ステータス
     ITA_UNPROCESS  = 2101  # 未実行
@@ -137,6 +138,7 @@ class ACTION_HISTORY_STATUS():
         ITA_CANCEL       : 'MOSJA13079',
         ITA_FAIL         : 'MOSJA13080',
         PREVENT          : 'MOSJA13081',
+        ACTION_POST_DATA_ERROR : 'MOSJA13127',
         ITA_REGISTERING_SUBSTITUTION_VALUE : 'MOSJA13083',
     }
 
@@ -286,9 +288,17 @@ ITA                 = 1   # ITA
 MAIL                = 2   # メール
 
 class ACTION_TYPE_ID():
-    def __init__(self):
-        self.ITA     = 1   # ITA
-        self.mail    = 2   # メール
+
+    ITA        = 1   # ITA
+    MAIL       = 2   # メール
+    SERVICENOW = 3   # ServiceNow
+
+
+class ADAPTER_TYPE_ID():
+
+    ZABBIX     = 1   # Zabbix
+    PROMETHEUS = 2   # Prometheus
+
 
 #-------------------
 # RULE_TYPE_ID
