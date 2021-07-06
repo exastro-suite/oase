@@ -471,22 +471,10 @@ class ServiceNowManager(AbstractManager):
             return status, detail
 
 
-        # アクション種別取得
-        str_resolver = 'Unknown'
-        if rhdm_res_act.action_type_id == ACTION_TYPE_ID.ITA:
-            str_resolver = 'Exastro IT Automation'
-
-        elif rhdm_res_act.action_type_id == ACTION_TYPE_ID.MAIL:
-            str_resolver = 'Mail'
-
-        elif rhdm_res_act.action_type_id == ACTION_TYPE_ID.SERVICENOW:
-            str_resolver = 'ServiceNow'
-
-
         # インシデントクローズ
         data = {
             'state'       : '7',  # 7:Close
-            'close_notes' : 'Resolved by %s. Closed by %s' % (str_resolver, self.last_update_user),
+            'close_notes' : 'Closed by %s' % (self.last_update_user),
             'close_code'  : 'Closed/Resolved by Caller',
         }
 
