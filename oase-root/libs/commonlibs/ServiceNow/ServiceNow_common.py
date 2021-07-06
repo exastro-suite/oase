@@ -39,8 +39,10 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     # パラメーター情報取得
     check_info = ServiceNowManager.analysis_parameters(params)
 
-    # ITA_NAME チェック
+    # SERVICENOW_NAME チェック
     message_list = servicenow_name_check(check_info, act_info, message_list)
+    # INCIDENT_STATUS チェック
+    message_list = incident_status_check(check_info, act_info, message_list)
 
     return message_list
 
@@ -71,6 +73,36 @@ def servicenow_name_check(check_info, act_info, message_list):
         if not act_info[servicenow_name]:
             logger.logic_log('LOSM00037', check_info)
             message_list.append({'id': 'MOSJA03148', 'param': None})
+
+    return message_list
+
+
+def incident_status_check(check_info, act_info, message_list):
+    """
+    [概要]
+    INCIDENT_STATUSのバリデーションチェックを行う
+    [引数]
+    check_info   : チェック情報
+    act_info     : アクション情報
+    message_list : メッセージリスト
+    [戻り値]
+    message_list : メッセージリスト
+    """
+
+    if 'INCIDENT_STATUS' not in check_info:
+        logger.logic_log('LOSM00039', check_info)
+        message_list.append({'id': 'MOSJA03113', 'param': 'INCIDENT_STATUS'})
+
+    else:
+        # INCIDENT_STATUS の値が「OPEN」または「CLOSE」であるかチェック
+        incident_status = check_info['INCIDENT_STATUS']
+        if incident_status == '':
+            logger.logic_log('LOSM00041', check_info)
+            message_list.append({'id': 'MOSJA03161', 'param': None})
+
+        elif incident_status not in ['OPEN', 'CLOSE']:
+            logger.logic_log('LOSM00040', check_info)
+            message_list.append({'id': 'MOSJA03162', 'param': None})
 
     return message_list
 
