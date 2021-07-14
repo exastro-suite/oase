@@ -203,6 +203,8 @@ class PrometheusAdapterInfo():
             'query'                : '',
             'rule_type_id'         : '',
             'match_list'           : '',
+            'evtime'               : '',
+            'instance'             : '',
         }
         now = datetime.datetime.now(pytz.timezone('UTC'))
 
@@ -225,6 +227,8 @@ class PrometheusAdapterInfo():
             adapter.prometheus_disp_name  = rq['prometheus_disp_name']
             adapter.uri                   = rq['uri']
             adapter.metric                = rq['query']
+            adapter.match_evtime          = rq['evtime']
+            adapter.match_instance        = rq['instance']
             adapter.rule_type_id          = rq['rule_type_id']
             adapter.last_update_user      = request.user.user_name
             adapter.last_update_timestamp = now
@@ -279,9 +283,11 @@ class PrometheusAdapterInfo():
         error_flag = False
         error_msg  = {
             'prometheus_disp_name' : '',
-            'uri' : '',
-            'query' : '',
-            'rule_type_id':'',
+            'uri'                  : '',
+            'query'                : '',
+            'rule_type_id'         : '',
+            'evtime'               : '',
+            'instance'             : '',
         }
         now = datetime.datetime.now(pytz.timezone('UTC'))
 
@@ -302,6 +308,8 @@ class PrometheusAdapterInfo():
                 prometheus_disp_name  = rq['prometheus_disp_name'],
                 uri                   = rq['uri'],
                 metric                = rq['query'],
+                match_evtime          = rq['evtime'],
+                match_instance        = rq['instance'],
                 rule_type_id          = rq['rule_type_id'],
                 last_update_user      = request.user.user_name,
                 last_update_timestamp = now,
@@ -435,6 +443,44 @@ class PrometheusAdapterInfo():
                 logger.user_log('LOSM32001', 'rule_type_id', request=request)
 
         if not rule_type_id_error_flag:
+            # evtime未入力チェック
+            if len(rq['evtime']) == 0:
+                error_flag = True
+                error_msg['evtime'] += get_message('MOSJA26247', lang) + '\n'
+                logger.user_log('LOSM32001', 'evtime', request=request)
+
+            # evtime長さチェック
+            if len(rq['evtime']) > 128:
+                error_flag = True
+                error_msg['evtime'] += get_message('MOSJA26248', lang) + '\n'
+                logger.user_log('LOSM32002', 'evtime', 128, rq['evtime'], request=request)
+
+            # evtime絵文字使用チェック
+            value_list = emo_chk.is_emotion(rq['evtime'])
+            if len(value_list) > 0:
+                error_flag = True
+                error_msg['evtime'] += get_message('MOSJA26249', lang) + '\n'
+                logger.user_log('LOSM32006', rq['evtime'], request=request)
+
+            # instance未入力チェック
+            if len(rq['instance']) == 0:
+                error_flag = True
+                error_msg['instance'] += get_message('MOSJA26250', lang) + '\n'
+                logger.user_log('LOSM32001', 'instance', request=request)
+
+            # instance長さチェック
+            if len(rq['instance']) > 128:
+                error_flag = True
+                error_msg['instance'] += get_message('MOSJA26251', lang) + '\n'
+                logger.user_log('LOSM32002', 'instance', 128, rq['instance'], request=request)
+
+            # instance絵文字使用チェック
+            value_list = emo_chk.is_emotion(rq['instance'])
+            if len(value_list) > 0:
+                error_flag = True
+                error_msg['instance'] += get_message('MOSJA26252', lang) + '\n'
+                logger.user_log('LOSM32006', rq['instance'], request=request)
+
             # 突合情報存在チェック
 
             # 条件名の数を取得
@@ -456,10 +502,10 @@ class PrometheusAdapterInfo():
                     error_msg[id_name] += get_message('MOSJA26236', lang) + '\n'
                     logger.user_log('LOSM32001', 'prometheus_response_key', request=request)
 
-                if len(prometheus_response_key) > 32:
+                if len(prometheus_response_key) > 128:
                     error_flag = True
                     error_msg[id_name] += get_message('MOSJA26238', lang) + '\n'
-                    logger.user_log('LOSM32002', 'prometheus_response_key', 32, prometheus_response_key, request=request)
+                    logger.user_log('LOSM32002', 'prometheus_response_key', 128, prometheus_response_key, request=request)
 
                 # Prometheus項目絵文字使用チェック
                 value_list = emo_chk.is_emotion(prometheus_response_key)
@@ -469,10 +515,12 @@ class PrometheusAdapterInfo():
                     logger.user_log('LOSM32006', rq['prometheus_disp_name'], request=request)
 
                 # 使用可能名チェック
+                """
                 if prometheus_response_key not in Prometheus_ITEMS:
                     error_flag = True
                     error_msg[id_name] += get_message('MOSJA26240', lang) + '\n'
                     logger.user_log('LOSM32007', rq['prometheus_disp_name'], request=request)
+                """
 
         # prometheus_disp_name重複チェック
         if not emo_flag_prometheus_disp_name:

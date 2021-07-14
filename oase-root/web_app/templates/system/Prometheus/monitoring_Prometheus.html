@@ -19,7 +19,7 @@ Copyright 2019 NEC Corporation
 {% load static %}
 {% load common %}
 {% block myheader %}
-    <script type="text/javascript" src="{% static 'web_app/js/monitoring_Prometheus.js' %}?ver=202104211137" charset="UTF-8"></script>
+    <script type="text/javascript" src="{% static 'web_app/js/monitoring_Prometheus.js' %}?ver=202106231034" charset="UTF-8"></script>
 {% endblock %}
 
 {% block maincontent %}
@@ -63,6 +63,25 @@ Copyright 2019 NEC Corporation
                   <tr>
                     <th><div class="cell-inner">{% get_message 'MOSJA26205' request.user.get_lang_mode showMsgId=False %}</div></th>
                     <td><div class="cell-inner">
+
+                      <table class="table-in-table">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26246' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26207' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="viewMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26244' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td><div id="viewPrometheusEventTime" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26245' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td><div id="viewPrometheusInstance" class="cell-inner"></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
 
                       <table class="table-in-table">
                         <thead>
@@ -165,6 +184,25 @@ Copyright 2019 NEC Corporation
                       </div>
 
                       <!-- ルール種別選択後 -->
+                      <table id="add-monitor-detail-prometheus" class="table-in-table table-prometheus" hidden>
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26246' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26207' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="addMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26244' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="addPrometheusEventTime" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26245' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="addPrometheusInstance" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
                       <table id="add-rule-detail-prometheus" class="table-in-table table-prometheus" hidden>
                         <thead>
                           <tr>
@@ -258,6 +296,25 @@ Copyright 2019 NEC Corporation
                       <div id="edit-rule-none-prometheus" class="unselected" style="display: none;">{% get_message 'MOSJA26210' request.user.get_lang_mode showMsgId=False %}</div>
 
                       <!-- ルール種別選択後 -->
+                      <table id="edit-monitor-detail-prometheus" class="table-in-table table-prometheus">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26246' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26207' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="editMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26244' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="editPrometheusEventTime" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26245' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="editPrometheusInstance" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
                       <table id="edit-rule-detail-prometheus" class="table-in-table table-prometheus">
                         <thead>
                           <tr>
@@ -336,7 +393,7 @@ Copyright 2019 NEC Corporation
 
       <tbody id="tbodyPrometheusAdapterInfo">
         {% for i in info_list %}
-        <tr id="prometheusadapter-{{ i.prometheus_adapter_id }}" data-zabbix_id="{{ i.prometheus_adapter_id }}" data-name="{{ i.prometheus_disp_name }}" data-uri="{{ i.uri }}" data-query="{{ i.metric }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
+        <tr id="prometheusadapter-{{ i.prometheus_adapter_id }}" data-zabbix_id="{{ i.prometheus_adapter_id }}" data-name="{{ i.prometheus_disp_name }}" data-uri="{{ i.uri }}" data-query="{{ i.metric }}" data-evtime="{{ i.match_evtime }}" data-instance="{{ i.match_instance }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
           <td class="operation-menu">
             <div class="cell-inner">
               <ul>

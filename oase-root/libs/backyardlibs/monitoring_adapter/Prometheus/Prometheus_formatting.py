@@ -67,28 +67,23 @@ def message_formatting(prometheus_message, rule_type_id, prometheus_adapter_id):
         # ルール種別名称取得
         ruletypename = RuleType.objects.get(pk=rule_type_id, disuse_flag=str(defs.ENABLE)).rule_type_name
 
-        # prometheus_response_key取得
-        key_list = list(PrometheusMatchInfo.objects.filter(prometheus_adapter_id=prometheus_adapter_id).order_by(
-            'prometheus_match_id').values_list('prometheus_response_key', flat=True))
-
         # prometheus_message内のresultをループ
         for data_dic in prometheus_message:
-
-            # データ整形
-            eventinfo = []
-            result = formatting_eventinfo(key_list, data_dic, eventinfo)
 
             # データの不整合があった場合はそのデータを無視する
             if result == False:
                 continue
 
+            for i, d in enumerate(data_dic['evinfo']):
+                if isinstance(d, str):
+                    d = d.replace('\n', '\\n')
+                    data_dic['evinfo'][i] = d
+
             request_data  = { 'decisiontable' : ruletypename,
                               'requesttype'   : '1',
                               'eventdatetime' : '',
-                              'eventinfo'     : '',
+                              'eventinfo'     : data_dic['evinfo'],
                             }
-
-            request_data['eventinfo'] = eventinfo
 
             # eventdatetimeの取得 lastchangeを2019/12/25 00:00:00の形式に変換する
             request_data['eventdatetime'] = datetime.fromtimestamp(
@@ -140,25 +135,7 @@ def formatting_eventinfo(key_list, data_dic, eventinfo):
     for prometheus_key in key_list:
 
         # Prometheus項目名が存在したら配列に追加
-        #if len(data_dic) > int(prometheus_key) and data_dic[int(prometheus_key)]:
         if prometheus_key in data_dic and data_dic[prometheus_key] != None:
-            """
-            if prometheus_key == 'metric':
-                for hosts_data in data_dic[prometheus_key]:
-                    if 'instance' in hosts_data:
-                        eventinfo.append(hosts_data['instance'])
-                    if 'namespace' in hosts_data:
-                        eventinfo.append(hosts_data['namespace'])
-            if prometheus_key == 'values':
-                for hosts_data in data_dic[prometheus_key]:
-                    if hosts_data[0]:
-                        eventinfo.append(hosts_data[0])
-                    if hosts_data[1]:
-                        eventinfo.append(hosts_data[1])
-
-            else:
-                eventinfo.append(data_dic[int(prometheus_key)])
-            """
 
             eventinfo.append(data_dic[prometheus_key])
 

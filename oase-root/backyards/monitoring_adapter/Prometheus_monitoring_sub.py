@@ -84,7 +84,7 @@ from web_app.models.models import RuleType
 from web_app.models.models import MonitoringType
 from web_app.models.models import AdapterType
 from web_app.models.Prometheus_monitoring_models import PrometheusAdapter
-from web_app.models.Prometheus_monitoring_models import PrometheusMonitoringHistory
+from web_app.models.Prometheus_monitoring_models import PrometheusMonitoringHistory, PrometheusMatchInfo
 from web_app.templatetags.common import get_message
 
 from libs.backyardlibs.monitoring_adapter.Prometheus.manage_trigger import ManageTrigger
@@ -197,7 +197,7 @@ class PrometheusAdapterSubModules:
         try:
             prometheus_api = PrometheusApi(prometheus_adapter)
             # TODO last_monitoring_timeを返却してもらう予定 現状(2020/01/10) 0で実施する
-            api_response = prometheus_api.get_active_triggers(from_dt, to_dt)
+            api_response = prometheus_api.get_active_triggers()
             #prometheus_api.logout()
 
         except TypeError as e:
@@ -215,6 +215,163 @@ class PrometheusAdapterSubModules:
         return result, api_response, last_monitoring_time
 
 
+    def _parser(self, idx, data_tmp, key_list, parse_list):
+
+        while idx < len(key_list):
+            k = key_list[idx]
+            l = len(k)
+
+            # 配列走査する場合
+            if l == 2 and k.startswith('[') and k.endswith(']'):
+                idx = idx + 1
+                for dt in data_tmp:
+                    result = self._parser(idx, dt, key_list, parse_list)
+                    if not result:
+                        return False
+
+                else:
+                    break
+
+            # 配列型の添え字の場合
+            elif l > 2 and k.startswith('[') and k.endswith(']'):
+                # 要素の値が数値ではない
+                if k[1 : l - 1].isdigit() == False:
+                    logger.system_log('LOSM30018', 'element:%s' % (k[1 : l - 1]))
+                    return False
+
+                i = int(k[1 : l - 1])
+
+                # 抽出データが配列型ではない、もしくは、要素数が不足
+                if isinstance(data_tmp, list) == False or i >= len(data_tmp):
+                    logger.system_log('LOSM30017', 'data_tmp:%s, index:%s, records:%s' % (data_tmp, i, len(data_tmp)))
+                    return False
+
+                data_tmp = data_tmp[i]
+                idx = idx + 1
+
+            # 辞書型のキーの場合
+            if not (k.startswith('[') and k.endswith(']')):
+
+                # 抽出データが辞書型ではない、もしくは、キーが存在しない
+                if isinstance(data_tmp,  dict) == False or k not in data_tmp:
+                    logger.system_log('LOSM30016', 'data_tmp:%s, key:%s' % (data_tmp, k))
+                    return False
+
+                data_tmp = data_tmp[k]
+                idx = idx + 1
+
+        if idx >= len(key_list):
+            parse_list.append(data_tmp)
+
+        return True
+
+
+    def message_parse(self, prom_data):
+        """
+        [概要]
+          PromQL取得データをパースして、インスタンスとイベント発生日時を取得
+        """
+
+        def convert_epoch_time(val):
+
+            ret_val = val
+
+            try:
+                ret_val = int(val)
+
+            except Exception as e:
+                val = val.replace('-', '/')
+                val = val.replace('T', ' ')
+                val = val.replace('Z', '')
+                val = (val.split('.'))[0]
+                dt_tmp = datetime.datetime.strptime(val, '%Y/%m/%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
+                ret_val = dt_tmp.timestamp()
+
+            return ret_val
+
+
+        logger.logic_log('LOSI00001', 'prometheus_adapter_id:%s, msg_count:%s' % (self.prometheus_adapter_id, len(prom_data)))
+
+        confirm_list = []
+
+        evtime_list   = []
+        instance_list = []
+
+        # イベント発生日時のパース
+        evtime_list_tmp = []
+        evtime_parse_list = self.prometheus_adapter.match_evtime.split('.')
+        result = self._parser(0, prom_data, evtime_parse_list, evtime_list_tmp)
+        if not result:
+            logger.system_log('LOSM30019')
+            return False, []
+
+        # イベント発生日時をエポックタイムに変換
+        for et in evtime_list_tmp:
+            val = convert_epoch_time(et)
+            evtime_list.append(val)
+
+        # インスタンスのパース
+        instance_parse_list = self.prometheus_adapter.match_instance.split('.')
+        result = self._parser(0, prom_data, instance_parse_list, instance_list)
+        if not result:
+            logger.system_log('LOSM30020')
+            return False, []
+
+        # インスタンスとイベント発生日時のタプルリストを生成
+        if len(evtime_list) > 0 and len(evtime_list) == len(instance_list):
+            confirm_list = list(zip(instance_list, evtime_list))
+
+        return True, confirm_list
+
+
+    def eventinfo_parse(self, prom_data):
+        """
+        [概要]
+          PromQL取得データをパースして、イベント情報を取得
+        """
+
+        logger.logic_log('LOSI00001', 'prometheus_adapter_id:%s, msg_count:%s' % (self.prometheus_adapter_id, len(prom_data)))
+
+        evinfo_list = []
+
+        evinfo_tmp_list = []
+        check_ev_len_list = []
+
+        # prometheus_response_key取得
+        key_list = list(PrometheusMatchInfo.objects.filter(prometheus_adapter_id=self.prometheus_adapter_id).order_by(
+            'prometheus_match_id').values_list('prometheus_response_key', flat=True))
+
+        # ルール条件ごとのイベント情報をパース
+        for k in key_list:
+            keys = k.split('.')
+            tmp_list = []
+            result = self._parser(0, prom_data, keys, tmp_list)
+            if not result:
+                logger.system_log('LOSM30021')
+                return False, []
+
+            check_ev_len_list.append(len(tmp_list))
+            evinfo_tmp_list.append(tmp_list)
+
+        # ルール条件数とパースされたイベント情報数が同一であること
+        ev_len = 0
+        for cel in check_ev_len_list:
+            ev_len = cel
+            if cel != check_ev_len_list[0]:
+                return False, []
+
+        # ルールごとのイベント情報に整列
+        for i in range(ev_len):
+            tmp_list = []
+            for et in evinfo_tmp_list:
+                tmp_list.append(et[i])
+
+            evinfo_list.append(tmp_list)
+
+
+        return True, evinfo_list
+
+
     def do_workflow(self):
         """
         [概要]
@@ -230,6 +387,7 @@ class PrometheusAdapterSubModules:
         # 事前情報取得
         try:
             prometheus_adapter = PrometheusAdapter.objects.get(pk=self.prometheus_adapter_id)
+            self.prometheus_adapter = prometheus_adapter
 
             latest_monitoring_history = PrometheusMonitoringHistory.objects.filter(
                 prometheus_adapter_id=self.prometheus_adapter_id, status=PROCESSED
@@ -274,57 +432,30 @@ class PrometheusAdapterSubModules:
             with transaction.atomic():
                 if runnable:
                     triggerManager = ManageTrigger(self.prometheus_adapter_id, self.user)
-                    confirm_list = []
-                    if  'data'   in result_data and 'result' in result_data['data']:
-                        for rd in result_data['data']['result']:
-                            trigger_str = ''
-                            if 'metric' in rd and 'instance' in rd['metric']:
-                                trigger_str = rd['metric']['instance']
 
-                            if 'metric' in rd and 'job' in rd['metric']:
-                                trigger_str = rd['metric']['job'] if not trigger_str else '%s:%s' % (trigger_str, rd['metric']['job'])
-
-                            if not trigger_str:
-                                continue
-
-                            if 'values' in rd:
-                                for r in rd['values']:
-                                    if len(r) >= 2:
-                                        confirm_list.append((trigger_str, r[0]))
+                    runnable, confirm_list = self.message_parse(result_data)
+                    if not runnable:
+                        raise Exception()
 
                     flag_array = triggerManager.main(confirm_list)
 
-                    index = 0
-                    for rd in result_data['data']['result']:
-                        if len(flag_array) <= index:
-                            break
+                    runnable, evinfo_list = self.eventinfo_parse(result_data)
+                    if not runnable:
+                        raise Exception()
 
-                        job_str = ''
-                        instance_str = ''
-                        if 'metric' in rd and 'instance' in rd['metric']:
-                            instance_str = rd['metric']['instance']
+                    if len(flag_array) == len(evinfo_list):
+                        index = 0
+                        for flg, ev in zip(flag_array, evinfo_list):
+                            if flg:
+                                difference.append(
+                                    {
+                                        'instance' : confirm_list[index][0],
+                                        'evtime'   : confirm_list[index][1],
+                                        'evinfo'   : ev,
+                                    }
+                                )
 
-                        if 'metric' in rd and 'job' in rd['metric']:
-                            job_str = rd['metric']['job']
-
-                        if not instance_str and not job_str:
-                            continue
-
-                        if 'values' in rd:
-                            for r in rd['values']:
-                                if len(r) < 2:
-                                    continue
-
-                                if flag_array[index]:
-                                    difference.append(
-                                        {
-                                            'instance' : instance_str,
-                                            'job'      : job_str,
-                                            'evtime'   : r[0],
-                                            'values'   : r[1],
-                                        }
-                                    )
-                                    index = index + 1
+                            index = index + 1
 
                     if len(difference) <= 0:
                         runnable = False

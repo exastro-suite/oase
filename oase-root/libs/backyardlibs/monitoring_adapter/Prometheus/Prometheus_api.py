@@ -82,12 +82,11 @@ class PrometheusApi(object):
         """
 
 
-    def _request(self, method, params):
+    def _request(self, params):
         """
         Prometheus API にリクエストを送信する
         id は現行特に必要ないため単純にインクリメントした数値を代入している。
         [引数]
-          method: Prometheus API のメソッド名
           params: Prometheus API のメソッドのパラメータ
           auth_token: Prometheus API の認証トークン
         [戻り値]
@@ -98,7 +97,12 @@ class PrometheusApi(object):
         data = params
 
         try:
-            response = requests.post(self.uri, data=data, headers=headers)
+            if data:
+                response = requests.post(self.uri, data=data, headers=headers)
+
+            else:
+                response = requests.get(self.uri, headers=headers)
+
             self.request_id += 1
 
         except requests.exceptions.ConnectTimeout:
@@ -124,7 +128,7 @@ class PrometheusApi(object):
 
         return resp
 
-    def get_active_triggers(self, last_change_since, now):
+    def get_active_triggers(self, last_change_since=None, now=None):
         """
         現在発生している障害を全て取得する。
         発生しているhostidとhost名も要求する。
@@ -132,16 +136,17 @@ class PrometheusApi(object):
         result: 発生中の障害情報
         """
 
-        method = 'trigger.get'
-        params = {
-            "query" : self.metric,
-            "start" : last_change_since,
-            "end"   : now,
-            "step"  : "10s",
-        }
+        params = {}
+        if self.metric:
+            params['query'] = self.metric
+
+        if now and last_change_since:
+            params['start'] = last_change_since
+            params['end']   = now
+            params['step']  = '10s'
 
         try:
-            response = self._request(method, params)
+            response = self._request(params)
         except Exception as e:
             raise
 

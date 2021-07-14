@@ -45,6 +45,8 @@ class PrometheusAdapter(models.Model):
     password              = models.CharField("接続パスワード", max_length=192)
     metric                = models.CharField("メトリック名", max_length=128)
     label                 = models.CharField("ラベル", max_length=32)
+    match_evtime          = models.CharField("突合情報(イベント発生日時)", max_length=128)
+    match_instance        = models.CharField("突合情報(メトリック名)", max_length=128)
     rule_type_id          = models.IntegerField("ルール種別ID")
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user      = models.CharField("最終更新者", max_length=64)
@@ -64,7 +66,7 @@ class PrometheusMatchInfo(models.Model):
     prometheus_match_id     = models.AutoField("Prometheus突合情報ID", primary_key=True)
     prometheus_adapter_id   = models.IntegerField("Prometheus監視マスタID")
     data_object_id          = models.IntegerField("データオブジェクトID")
-    prometheus_response_key = models.CharField("Prometheus応答情報key", max_length=32)
+    prometheus_response_key = models.CharField("Prometheus応答情報key", max_length=128)
     last_update_timestamp   = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user        = models.CharField("最終更新者", max_length=64)
 
