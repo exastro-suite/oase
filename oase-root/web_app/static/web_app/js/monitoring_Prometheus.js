@@ -114,11 +114,13 @@ function refleshRowsPrometheus(rule_type_id, mode){
 
     var noneSelector = '#' + mode + '-rule-none-prometheus';
     var detailSelector = '#' + mode + '-rule-detail-prometheus';
+    var detailSelector2 = '#' + mode + '-monitor-detail-prometheus';
     var tableIdStr = mode + 'Prometheustable';
 
     $(noneSelector).hide();
     $(noneSelector).children().remove();
     $(detailSelector).show();
+    $(detailSelector2).show();
 
     // すべての子要素を削除
     var table = document.getElementById(tableIdStr);
@@ -129,11 +131,12 @@ function refleshRowsPrometheus(rule_type_id, mode){
         $(noneSelector).show();
         $(noneSelector).append('<input type="hidden" value="" required>');
         $(detailSelector).hide();
+        $(detailSelector2).hide();
     } else {
         // 条件名変換用
         var do_dict = pro_rule_type_data_obj_dict[rule_type_id]['data_obj'];
 
-        var option = setpullDownPrometheus('add','');
+        //var option = setpullDownPrometheus('add','');
 
         // editの場合の保存済みPrometheus項目反映用
         var matchlist = {};
@@ -150,7 +153,8 @@ function refleshRowsPrometheus(rule_type_id, mode){
 
             // HTML文作成
             var th = '<th id="data-object-id-' + key + '"><div class="cell-inner">' + do_dict[key] + '<sup>*</sup><span class="help tooltip" title="' + getMessage("MOSJA26214", false) + '"><em class="owf owf-question"></em></span></div></th>';
-            var td = '<td><div class="cell-inner"><div class="select"><select id="' + mode + '-prometheus-' + key + '"  value="' + value + '" >' + option + '</select></div></div></td>';
+            //var td = '<td><div class="cell-inner"><div class="select"><select id="' + mode + '-prometheus-' + key + '"  value="' + value + '" >' + option + '</select></div></div></td>';
+            var td = '<td><div class="cell-inner"><input id="' + mode + '-prometheus-' + key + '" data-maxlength="128" data-type="text" class="validation-input" type="text" value="' + value + '" ></div></td>';
 
             tr.innerHTML = th + td;
         }
@@ -174,6 +178,8 @@ function setInfoInPrometheusDetailView(idName) {
     var name         = $(trId).data('name');
     var uri          = $(trId).data('uri');
     var query        = $(trId).data('query');
+    var evtime       = $(trId).data('evtime');
+    var instance     = $(trId).data('instance');
     var ruletypeid   = $(trId).data('ruletypeid');
     var ruletypename = $(trId).data('ruletypename');
     var matchlist    = $(trId).data('matchlist');
@@ -184,6 +190,8 @@ function setInfoInPrometheusDetailView(idName) {
     $('#viewPrometheusName').text(name);
     $('#viewPrometheusUri').text(uri);
     $('#viewPrometheusQuery').text(query);
+    $('#viewPrometheusEventTime').text(evtime);
+    $('#viewPrometheusInstance').text(instance);
     $('#viewPrometheusRuletype').text(ruletypename);
     $('#viewPrometheusUpdateuser').text(updateuser);
     $('#viewPrometheusTimestamp').text(timestamp);
@@ -212,6 +220,8 @@ function setInfoInPrometheusEditView() {
     var name         = $(trId).data('name');
     var uri          = $(trId).data('uri');
     var query        = $(trId).data('query');
+    var evtime       = $(trId).data('evtime');
+    var instance     = $(trId).data('instance');
     var ruletypeid   = $(trId).data('ruletypeid');
     var matchlist    = $(trId).data('matchlist');
     var updateuser   = $(trId).data('updateuser');
@@ -220,6 +230,8 @@ function setInfoInPrometheusEditView() {
     $('#editPrometheusName').val(name);
     $('#editPrometheusUri').val(uri);
     $('#editPrometheusQuery').val(query);
+    $('#editPrometheusEventTime').val(evtime);
+    $('#editPrometheusInstance').val(instance);
     $('#edit-prometheus-rule-select').val(ruletypeid);
     if(!ruletypeid || ruletypeid <= 0) {
         renderErrorMsg($('#edit-prometheus-rule-select'), getMessage("MOSJA26215", false));
@@ -250,12 +262,13 @@ function setMatchlistPrometheus(id, matchlist, ruletypeid) {
             // HTML文作成
             var th = '<th id="data-object-id-' + key + '"><div class="cell-inner">' + dataobj[key] + '</div></th>';
             var td = '<td></td>';
-            var option = setpullDownPrometheus('edit',value);
+            //var option = setpullDownPrometheus('edit',value);
 
             // 編集ならinputを有効化
             if (id == 'editPrometheustable'){
                 th = '<th id="data-object-id-' + key + '"><div class="cell-inner">' + dataobj[key] + '<sup>*</sup><span class="help tooltip" title="' + getMessage("MOSJA26214", false) + '"><em class="owf owf-question"></em></span></div></th>';
-                td = '<td><div class="cell-inner"><div class="select"><select id="edit-prometheus-' + key + '"  value="' + value + '" >' + option + '</select></div></div></td>';
+                //td = '<td><div class="cell-inner"><div class="select"><select id="edit-prometheus-' + key + '"  value="' + value + '" >' + option + '</select></div></div></td>';
+                td = '<td><div class="cell-inner"><input id="edit-prometheus-' + key + '" data-maxlength="128" data-type="text" class="validation-input" type="text" value="' + value + '" ></div></td>';
             }
 
             row.innerHTML = th + td;
@@ -283,12 +296,15 @@ function setPrometheusInfo(idInfo){
     adapterInfo["prometheus_disp_name"] = $(idInfo['prometheus_disp_name']).val();
     adapterInfo["uri"] = $(idInfo['uri']).val();
     adapterInfo["query"] = $(idInfo['query']).val();
+    adapterInfo["evtime"] = $(idInfo['evtime']).val();
+    adapterInfo["instance"] = $(idInfo['instance']).val();
     adapterInfo["rule_type_id"] = $(idInfo['rule_type_id']).val();
 
     var conditionalData = {}; // 条件名、Prometheus項目を辞書形式で格納
     $(idInfo['match_list']).each(function(index, element){
         var id          = $(element).find('th').attr("id"); // 条件名
-        var value       = $(element).find('select').val(); // 条件式
+        //var value       = $(element).find('select').val(); // 条件式
+        var value       = $(element).find('input').val(); // 条件式
 
         id = id.replace("data-object-id-", "");
         conditionalData[id] = value;
@@ -497,6 +513,8 @@ function getIdInfoPrometheus(mode){
         'prometheus_disp_name': "#" + mode + "PrometheusName",
         'uri'             : "#" + mode + "PrometheusUri",
         'query'           : "#" + mode + "PrometheusQuery",
+        'evtime'          : "#" + mode + "PrometheusEventTime",
+        'instance'        : "#" + mode + "PrometheusInstance",
         'rule_type_id'    : "#" + mode + "-prometheus-rule-select",
         'match_list'      : "#" + mode + "Prometheustable tr",
     };
@@ -523,6 +541,8 @@ var renderPrometheusErrorMsg = function(errorMsg, mode) {
     renderErrorMsg(idInfo['uri'], errorMsg['uri']);
     renderErrorMsg(idInfo['query'], errorMsg['query']);
     renderErrorMsg(idInfo['rule_type_id'], errorMsg['rule_type_id']);
+    renderErrorMsg(idInfo['evtime'], errorMsg['evtime']);
+    renderErrorMsg(idInfo['instance'], errorMsg['instance']);
 
     //--------------------------------------------
     // Prometheus項目へのエラー表示
