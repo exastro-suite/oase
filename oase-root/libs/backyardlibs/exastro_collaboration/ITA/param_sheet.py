@@ -119,7 +119,7 @@ class ITAParameterSheetMenuManager:
         self.ita_config['menuID'] = '2100160001'
         flg, menu_list = self.ita_core.select_create_menu_info_list(
             self.ita_config,
-            ['1', ]
+            ['1', '3',]
         )
 
         logger.logic_log('LOSI28004', 'create_menu_info', flg, self.drv_id, len(menu_list))
@@ -170,12 +170,18 @@ class ITAParameterSheetMenuManager:
         for menu in param_menu_list:
             menu_name = ''
             group_name = ''
-            hostgroup_flg = True if menu[Cstobj.FCMI_USE] in ['ホストグループ用', 'For HostGroup'] else False
+            hostgroup_flg = 0
             vertical_flg = False
             priority = 0
 
             if menu[Cstobj.FCMI_MENU_NAME]:
                 menu_name = menu[Cstobj.FCMI_MENU_NAME]
+
+            if menu[Cstobj.FCMI_USE] in ['ホストグループ用', 'For HostGroup']:
+                hostgroup_flg = 1
+
+            elif menu[Cstobj.FCMI_USE] == '':
+                hostgroup_flg = -1
 
             if menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
                 group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]
@@ -368,7 +374,7 @@ class ITAParameterSheetMenuManager:
             pkey = oase_data[u]
             group_name = ita_data[u]['group_name']
             menu_name = ita_data[u]['menu_name']
-            hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else False
+            hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else 0
             ItaMenuName.objects.filter(ita_menu_name_id=pkey).update(
                 menu_group_name = group_name,
                 menu_name = menu_name,
@@ -385,7 +391,7 @@ class ITAParameterSheetMenuManager:
         for r in reg_set:
             group_name = ita_data[r]['group_name']
             menu_name = ita_data[r]['menu_name']
-            hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else False
+            hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else 0
             reg_list.append(
                 ItaMenuName(
                     ita_driver_id = self.drv_id,

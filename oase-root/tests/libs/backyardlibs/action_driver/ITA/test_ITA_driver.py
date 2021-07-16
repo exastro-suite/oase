@@ -2540,3 +2540,193 @@ def test_act_with_menuid_ng_operation_err(monkeypatch):
     assert code == ACTION_HISTORY_STATUS.DETAIL_STS.NONE
 
 
+################################################################
+# オーケストレーター別の情報取得テスト
+################################################################
+# 代入値管理メニュー
+@pytest.mark.django_db
+class TestOrchestratorIdToMenuId(object):
+
+    def create_ita_manage(self):
+        """
+        ITA関連クラスのインスタンス生成
+        """
+
+        now = datetime.datetime.now(pytz.timezone('UTC'))
+        trace_id = EventsRequestCommon.generate_trace_id(now)
+        response_id = 1
+        last_update_user = 'pytest'
+
+        ITAManager = get_ita_manager()
+        testITA = ITAManager(trace_id, response_id, last_update_user)
+
+        return testITA
+
+
+    def test_ok_ans_legacy(self):
+        """
+        正常系
+          Ansible Legacy
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_id('3')  # 3 : Ansible Legacy
+
+        assert mid == '2100020109'
+
+
+    def test_ok_ans_pioneer(self):
+        """
+        正常系
+          Ansible Pioneer
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_id('4')  # 4 : Ansible Pioneer
+
+        assert mid == '2100020210'
+
+
+    def test_ok_ans_role(self):
+        """
+        正常系
+          Ansible LegacyRole
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_id('5')  # 5 : Ansible LegacyRole
+
+        assert mid == '2100020311'
+
+
+    def test_ok_terraform(self):
+        """
+        正常系
+          Terraform
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_id('10')  # 10 : Terraform
+
+        assert mid == '2100080008'
+
+
+    def test_ok_semi(self):
+        """
+        準正常系
+          該当なし
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_id('aaa')
+
+        assert mid == ''
+
+
+################################################################
+# Movement一覧メニュー
+@pytest.mark.django_db
+class TestOrchestratorIdToMenuMovement(object):
+
+    class Dummy():
+
+        version = ''
+
+
+    def create_ita_manage(self):
+        """
+        ITA関連クラスのインスタンス生成
+        """
+
+        now = datetime.datetime.now(pytz.timezone('UTC'))
+        trace_id = EventsRequestCommon.generate_trace_id(now)
+        response_id = 1
+        last_update_user = 'pytest'
+
+        ITAManager = get_ita_manager()
+        testITA = ITAManager(trace_id, response_id, last_update_user)
+        testITA.ita_driver = self.Dummy()
+
+        return testITA
+
+
+    def test_ok_ans_legacy(self):
+        """
+        正常系
+          Ansible Legacy
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_movement('3')  # 3 : Ansible Legacy
+
+        assert mid == '2100020103'
+
+
+    def test_ok_ans_pioneer(self):
+        """
+        正常系
+          Ansible Pioneer
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_movement('4')  # 4 : Ansible Pioneer
+
+        assert mid == '2100020203'
+
+
+    def test_ok_ans_role(self):
+        """
+        正常系
+          Ansible LegacyRole
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_movement('5')  # 5 : Ansible LegacyRole
+
+        assert mid == '2100020306'
+
+
+    def test_ok_terraform(self):
+        """
+        正常系
+          Terraform
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_movement('10')  # 10 : Terraform
+
+        assert mid == '2100080004'
+
+
+    def test_ok_semi(self):
+        """
+        準正常系
+          該当なし
+        """
+
+        testITA = self.create_ita_manage()
+
+        # テスト
+        mid, tbl, col = testITA.orchestrator_id_to_menu_movement('aaa')
+
+        assert mid == ''
+
+

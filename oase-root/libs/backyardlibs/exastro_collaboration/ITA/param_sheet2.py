@@ -123,12 +123,18 @@ class ITAParameterSheetMenuManager2(ITAParameterSheetMenuManager):
         for menu in param_menu_list:
             menu_name = ''
             group_name = ''
-            hostgroup_flg = True if menu[Cstobj.FCMI_USE] in ['ホストグループ用', 'For HostGroup'] else False
+            hostgroup_flg = 0
             vertical_flg = False
             priority = 0
 
             if menu[Cstobj.FCMI_MENU_NAME]:
                 menu_name = menu[Cstobj.FCMI_MENU_NAME]
+
+            if menu[Cstobj.FCMI_USE] in ['ホストグループ用', 'For HostGroup']:
+                hostgroup_flg = 1
+
+            elif menu[Cstobj.FCMI_USE] == '':
+                hostgroup_flg = -1
 
             if False:# menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
                 group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]
