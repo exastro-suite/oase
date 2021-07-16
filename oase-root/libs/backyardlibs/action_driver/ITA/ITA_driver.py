@@ -196,6 +196,7 @@ class ITAManager(AbstractManager):
         conductor_url = ''
         event_info_list = []
         instance_check = True
+        no_host_flg = False
 
         param_info = json.loads(rhdm_res_act.action_parameter_info)
 
@@ -295,6 +296,22 @@ class ITAManager(AbstractManager):
                 raise OASEError('', 'LOSE01137', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
                                 'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
 
+
+            hg_flg_info = {}
+            rset = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
+            rset = rset.values('menu_id', 'hostgroup_flag')
+            for r in rset:
+                hg_flg_info[r['menu_id']] = r['hostgroup_flag']
+
+            for menu_id in menu_id_list:
+                menu_id = int(menu_id)
+                if menu_id not in hg_flg_info:
+                    logger.system_log(
+                        'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+
             target_host_name = {}
 
             for menu_id in menu_id_list:
@@ -388,7 +405,9 @@ class ITAManager(AbstractManager):
                     if menu_id not in parameter_list:
                         parameter_list[menu_id] = {'host_name':'', 'param_list':[]}
 
-                    if i == 0:
+                    no_host_flg = True if hg_flg_info[menu_id] < 0 else False
+
+                    if i == 0 and no_host_flg == False:
                         parameter_list[menu_id]['host_name'] = event_info_list[0]
                     else:
                         parameter_list[menu_id]['param_list'].append(event_info_list[i])
@@ -415,7 +434,13 @@ class ITAManager(AbstractManager):
                         return ACTION_EXEC_ERROR, DetailStatus
 
 
+            # ホスト情報の有無をチェック
             for k, v in parameter_list.items():
+
+                # ホスト情報を必要としないパラメーターシートはチェック対象外
+                if hg_flg_info[k] < 0:
+                    continue
+
                 if not v['host_name']:
                     logger.system_log('LOSE01136', self.trace_id, traceback.format_exc())
                     return ACTION_EXEC_ERROR, DetailStatus
@@ -474,24 +499,12 @@ class ITAManager(AbstractManager):
                 operation_data[0][Cstobj.COL_OPERATION_NO_IDBH],
                 operation_data[0][Cstobj.COL_OPERATION_NAME])
 
-            hg_flg_info = {}
-            rset = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
-            rset = rset.values('menu_id', 'hostgroup_flag')
-            for r in rset:
-                hg_flg_info[r['menu_id']] = r['hostgroup_flag']
-
             for menu_id in menu_id_list:
                 menu_id = int(menu_id)
                 host_name = ''
                 param_list = []
 
-                if menu_id not in hg_flg_info:
-                    logger.system_log(
-                        'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
-                    )
-                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
-
-                if not parameter_list[menu_id]['host_name']:
+                if not parameter_list[menu_id]['host_name'] and hg_flg_info[menu_id] >= 0:
                     logger.system_log(
                         'LOSE01138', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
                     )
@@ -501,18 +514,22 @@ class ITAManager(AbstractManager):
                 target_id = str(menu_id)
                 if target_id in target_host_name.keys():
                     for h in target_host_name[target_id]['HG']:
-                        host_name_tmp = '[HG]%s' % (h) if hg_flg_info[menu_id] else h
+                        host_name_tmp = '[HG]%s' % (h) if hg_flg_info[menu_id] > 0 else h
 
                         set_host.append(host_name_tmp)
 
                     for h in target_host_name[target_id]['H']:
-                        host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] else h
+                        host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] > 0 else h
                         set_host.append(host_name_tmp)
 
                 if len(set_host) == 0 and menu_id in parameter_list and parameter_list[menu_id]['host_name']:
                     h = parameter_list[menu_id]['host_name']
-                    host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] else h
+                    host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] > 0 else h
                     set_host.append(host_name_tmp)
+
+                if len(set_host) == 0 and hg_flg_info[menu_id] < 0:
+                    set_host.append('')
+
 
                 param_list = parameter_list[menu_id]['param_list']
 
@@ -550,7 +567,7 @@ class ITAManager(AbstractManager):
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
 
             # 連携項目整形
-            parameter_item_info = self.make_parameter_item_info(menu_id_list, rhdm_res_act, target_host_name, event_info_list, convert_flg)
+            parameter_item_info = self.make_parameter_item_info(menu_id_list, rhdm_res_act, target_host_name, event_info_list, convert_flg, no_host_flg)
 
             # ITAアクション履歴登録
             ret = self.ita_action_history_insert(
@@ -624,7 +641,7 @@ class ITAManager(AbstractManager):
         logger.logic_log('LOSI00002', 'return: PROCESSED')
         return ACTION_HISTORY_STATUS.EXASTRO_REQUEST, DetailStatus
 
-    def make_parameter_item_info(self, menu_id_list, rhdm_res_act, target_host_name, event_info_list, convert_flg):
+    def make_parameter_item_info(self, menu_id_list, rhdm_res_act, target_host_name, event_info_list, convert_flg, no_host_flg):
         """
         [概要]
         """
@@ -707,7 +724,7 @@ class ITAManager(AbstractManager):
                 if i == 0:
                     parameter_item_info = str(mn['menu_id']) + ":" + mn['menu_name']
                 for j,pii in enumerate(param_item_info):
-                    if j == 0:
+                    if j == 0 and no_host_flg == False:
                         # TODO 多言語化対応
                         parameter_item_info = parameter_item_info + "[ホスト名:"
                         parameter_item_info = parameter_item_info + event_info_list[j]
@@ -715,6 +732,16 @@ class ITAManager(AbstractManager):
                         parameter_item_info = parameter_item_info + pii['item_name']
                         parameter_item_info = parameter_item_info + ":"
                         parameter_item_info = parameter_item_info + event_info_list[j+1]
+                    elif j == 0 and no_host_flg == True:
+                        parameter_item_info = parameter_item_info + "["
+                        parameter_item_info = parameter_item_info + pii['item_name']
+                        parameter_item_info = parameter_item_info + ":"
+                        parameter_item_info = parameter_item_info + event_info_list[j]
+                    elif no_host_flg == True:
+                        parameter_item_info = parameter_item_info + ", "
+                        parameter_item_info = parameter_item_info + pii['item_name']
+                        parameter_item_info = parameter_item_info + ":"
+                        parameter_item_info = parameter_item_info + event_info_list[j]
                     else:
                         parameter_item_info = parameter_item_info + ", "
                         parameter_item_info = parameter_item_info + pii['item_name']
@@ -829,13 +856,13 @@ class ITAManager(AbstractManager):
             if num <= 0 and self.ita_driver.version not in ['1.7.0', '1.7.1']:
                 continue
 
-            menu_id, target_table = self.orchestrator_id_to_menu_id(orch_id)
+            menu_id, target_table, target_col = self.orchestrator_id_to_menu_id(orch_id)
             if not menu_id or not target_table:
                 logger.logic_log('LOSI00002', 'orchestrator_id: %s, menu_id: %s, target_table: %s' % (orch_id, menu_id, target_table))
                 return ACTION_EXEC_ERROR, DetailStatus
 
             movement_names = [] if orch_id not in move_info else move_info[orch_id]
-            ret = self.ITAobj.select_substitution_value_mng(self.ary_ita_config, operation_id_name, movement_names, menu_id, target_table)
+            ret = self.ITAobj.select_substitution_value_mng(self.ary_ita_config, operation_id_name, movement_names, menu_id, target_table, target_col)
             if ret is None or (isinstance(ret, list) and len(ret) <= 0):
                 logger.logic_log('LOSI00002', 'orchestrator_id: %s, menu_id: %s, target_table: %s' % (orch_id, menu_id, target_table))
 
@@ -931,10 +958,14 @@ class ITAManager(AbstractManager):
                 menu_id = '2100020203'
                 target_table = 'E_ANSIBLE_PNS_PATTERN'
                 target_col = Cstobj.EAP_PIONEER_VAR_COUNT
-        else:
+        elif orchestra_id == '5':
                 menu_id = '2100020306'
                 target_table = 'E_ANSIBLE_LRL_PATTERN'
                 target_col = Cstobj.EAP_LEGACYROLE_VAR_COUNT
+        elif orchestra_id == '10':
+                menu_id = '2100080004'
+                target_table = 'E_TERRAFORM_PATTERN'
+                target_col = 0
 
         if self.ita_driver.version in ['1.7.0', '1.7.1']:
             target_col = 0
@@ -948,18 +979,26 @@ class ITAManager(AbstractManager):
         """
         menu_id = ""
         target_table = ""
+        target_col = 0
 
         if orchestra_id == '3':
                 menu_id = '2100020109'
                 target_table = 'B_ANSIBLE_LNS_VARS_ASSIGN_RIC'
+                target_col = 5
         elif orchestra_id == '4':
                 menu_id = '2100020210'
                 target_table = 'B_ANSIBLE_PNS_VARS_ASSIGN_RIC'
-        else:
+                target_col = 5
+        elif orchestra_id == '5':
                 menu_id = '2100020311'
                 target_table = 'B_ANSIBLE_LRL_VARS_ASSIGN_RIC'
+                target_col = 5
+        elif orchestra_id == '10':
+                menu_id = '2100080008'
+                target_table = 'B_TERRAFORM_VARS_ASSIGN_RIC'
+                target_col = 4
 
-        return menu_id, target_table
+        return menu_id, target_table, target_col
 
     def set_ary_ita_config(self):
         """

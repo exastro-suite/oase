@@ -1057,9 +1057,11 @@ class ITA1Core(DriverCore):
             elif movements[movement_id]['ORCHESTRATOR_ID'] == '4':
                 self.restobj.menu_id = '2100020209'
                 target_table = 'B_ANSIBLE_PNS_PHO_LINK'
-            else:
+            elif movements[movement_id]['ORCHESTRATOR_ID'] == '5':
                 self.restobj.menu_id = '2100020310'
                 target_table = 'B_ANSIBLE_LRL_PHO_LINK'
+            else:
+                continue
 
             movement_id_name = movements[movement_id]['MovementIDName']
             # {HOST_NAME: SYSTEM_ID:HOST?NAME
@@ -1149,16 +1151,25 @@ class ITA1Core(DriverCore):
         パラメーターシート登録メソッド
         """
         logger.logic_log('LOSI00001', 'trace_id: %s' % self.trace_id)
+
+        add_col_no = 0
+        if not host_name:
+            add_col_no = -1
+
         self.restobj.menu_id = menu_id
         row_data_000001 = {
             Cstobj.COL_FUNCTION_NAME: '登録',
-            Cstobj.COL_HOSTNAME: host_name,
-            Cstobj.COL_OPERATION_ID: operation_id,
-            Cstobj.COL_OPERATION_NAME_PARAM: operation_name,
-            Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME: exec_schedule_date,
         }
+
+        if host_name:
+            row_data_000001[Cstobj.COL_HOSTNAME] = host_name
+
+        row_data_000001[Cstobj.COL_OPERATION_ID               + add_col_no] = operation_id
+        row_data_000001[Cstobj.COL_OPERATION_NAME_PARAM       + add_col_no] = operation_name
+        row_data_000001[Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME + add_col_no] = exec_schedule_date
+
         for i, p in enumerate(parameter_list):
-            row_data_000001[Cstobj.COL_PARAMETER + i] = p
+            row_data_000001[Cstobj.COL_PARAMETER + add_col_no + i] = p
 
         result = {}
         ret = self.restobj.rest_insert(row_data_000001, result)
@@ -1179,6 +1190,10 @@ class ITA1Core(DriverCore):
         """
         logger.logic_log('LOSI00001', 'trace_id: %s' % self.trace_id)
 
+        add_col_no = 0
+        if not host_name:
+            add_col_no = -1
+
         config['menuID'] = menu_id
         self.restobj.rest_set_config(config)
 
@@ -1186,16 +1201,20 @@ class ITA1Core(DriverCore):
         update_data = {
             Cstobj.COL_FUNCTION_NAME: '更新',
             Cstobj.COL_PARAMETER_NO: select_data[0][Cstobj.COL_PARAMETER_NO],
-            Cstobj.COL_HOSTNAME: host_name,
-            Cstobj.COL_OPERATION_NAME_PARAM: operation_name,
-            Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME: exec_schedule_date
         }
+
+        if host_name:
+            update_data[Cstobj.COL_HOSTNAME] = host_name
+
+        update_data[Cstobj.COL_OPERATION_NAME_PARAM       + add_col_no] = operation_name
+        update_data[Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME + add_col_no] = exec_schedule_date
+
         for i, p in enumerate(parameter_list):
-            update_data[Cstobj.COL_PARAMETER + i] = p
+            update_data[Cstobj.COL_PARAMETER + add_col_no + i] = p
 
         # パラメータ項目の次は備考欄、最終更新日時、更新用の最終更新日時を設定(備考欄は空白)
-        update_data[Cstobj.COL_PARAMETER + i + col_revision + 0] = select_data[0][Cstobj.COL_PARAMETER + i + col_revision + 0]
-        update_data[Cstobj.COL_PARAMETER + i + col_revision + 1] = select_data[0][Cstobj.COL_PARAMETER + i + col_revision + 1]
+        update_data[Cstobj.COL_PARAMETER + add_col_no + i + col_revision + 0] = select_data[0][Cstobj.COL_PARAMETER + add_col_no + i + col_revision + 0]
+        update_data[Cstobj.COL_PARAMETER + add_col_no + i + col_revision + 1] = select_data[0][Cstobj.COL_PARAMETER + add_col_no + i + col_revision + 1]
 
         result = {}
         ret = self.restobj.rest_insert(update_data, result, 'update')
@@ -1218,9 +1237,14 @@ class ITA1Core(DriverCore):
         (self.trace_id, host_name, operation_name, menu_id))
         aryfilter = {
             Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
-            Cstobj.COL_HOSTNAME:{'NORMAL': host_name},
-            Cstobj.COL_OPERATION_NAME_PARAM:{'NORMAL': operation_name}
         }
+
+        if host_name:
+            aryfilter[Cstobj.COL_HOSTNAME] = {'NORMAL': host_name}
+            aryfilter[Cstobj.COL_OPERATION_NAME_PARAM] = {'NORMAL': operation_name}
+
+        else:
+            aryfilter[Cstobj.COL_OPERATION_NAME_PARAM - 1] = {'NORMAL': operation_name}
 
         config['menuID'] = menu_id
         self.restobj.rest_set_config(config)
@@ -1293,7 +1317,7 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: 0' % (self.trace_id))
         return 0
 
-    def select_substitution_value_mng(self, config, operation_name, movement_names, menu_id, target_table):
+    def select_substitution_value_mng(self, config, operation_name, movement_names, menu_id, target_table, target_col):
         """
         [概要]
           代入値管理検索メゾット
@@ -1314,7 +1338,7 @@ class ITA1Core(DriverCore):
         if ret:
             for row in ary_result['response']['resultdata']['CONTENTS']['BODY']:
                 for movement_name in movement_names:
-                    if row[5].startswith(movement_name):
+                    if row[target_col].startswith(movement_name):
                         row_count = row_count + 1
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
             return row_count
