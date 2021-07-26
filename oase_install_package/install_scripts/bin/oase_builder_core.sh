@@ -289,7 +289,7 @@ install_pypi() {
     LOOP_CNT=0
 
     if [ "${oase_os}" == "RHEL8" ]; then
-        PIP_INSTALL_CMD="pip3 install"
+        PIP_INSTALL_CMD="pip3 install --ignore-installed"
     fi
 
     #get name of pypi
@@ -436,7 +436,7 @@ configure_rabbitmq() {
         if [ "${oase_os}" == "RHEL8" ]; then
             curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
             yum makecache -y --disablerepo='*' --enablerepo='rabbitmq_rabbitmq-server' >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            yum -y install rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum -y install --nobest rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
             yum -y install rabbitmq-server --enablerepo=epel >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
@@ -484,7 +484,7 @@ configure_rabbitmq() {
 configure_mariadb() {
 
     # expect setting
-    yum list installed | grep "expect" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    yum list installed | grep "^expect" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     if [ $? -eq 1 ]; then
         yum -y install ${YUM_PACKAGE["expect"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
@@ -495,6 +495,13 @@ configure_mariadb() {
     # make log directory
     if [ ! -e /var/log/mariadb ]; then
         mkdir -p -m 777 /var/log/mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    which mysql_secure_installation >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ $? -eq 0 ]; then
+        SECURE_COMMAND="mysql_secure_installation"
+    else
+        SECURE_COMMAND="mariadb-secure-installation"
     fi
 
     #Confirm whether it is installed
@@ -509,13 +516,13 @@ configure_mariadb() {
         error_check
 
         #Confirm whether root password has been changed
-        mysql -uroot -p$db_root_password -e "show databases" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        env MYSQL_PWD="$db_root_password" mysql -uroot -e "show databases" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         if [ $? == 0 ]; then
             log "Root password of MariaDB is already setting."
         else
             expect -c "
                 set timeout -1
-                spawn mysql_secure_installation
+                spawn ${SECURE_COMMAND}
                 expect \"Enter current password for root \\(enter for none\\):\"
                 send \"\\r\"
                 expect -re \"Switch to unix_socket authentication.* $\"
@@ -571,7 +578,7 @@ configure_mariadb() {
 
         expect -c "
             set timeout -1
-            spawn mysql_secure_installation
+            spawn ${SECURE_COMMAND}
             expect \"Enter current password for root \\(enter for none\\):\"
             send \"\\r\"
             expect -re \"Switch to unix_socket authentication.* $\"
@@ -975,6 +982,7 @@ transaction-isolation=READ-COMMITTED
 innodb_buffer_pool_size = 512MB
 innodb_log_buffer_size=64M
 innodb_log_file_size=256M
+innodb_read_only_compressed=0
 min_examined_row_limit=100
 join_buffer_size=128M
 query_cache_size=512M
@@ -1019,9 +1027,19 @@ character-set-server = utf8
 # If you use the same .cnf file for MariaDB of different versions,
 # use this group for options that older servers don't understand
 [mariadb-10.5]
+#disable_unix_socket
+
+[mariadb-10.6]
+#disable_unix_socket
+EOS
+
+    if [ "${oase_os}" == "RHEL8" ]; then
+            cat << EOS >> "/etc/my.cnf.d/server.cnf"
+disable_unix_socket
 
 EOS
 
+    fi
 }
 
 #standalone.conf setting
@@ -1251,18 +1269,25 @@ make_oase_offline() {
         mkdir -p -m 777 /var/log/mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
+    which mysql_secure_installation >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ $? -eq 0 ]; then
+        SECURE_COMMAND="mysql_secure_installation"
+    else
+        SECURE_COMMAND="mariadb-secure-installation"
+    fi
+
     systemctl enable mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
     error_check
     systemctl start mariadb >> "$OASE_INSTALL_LOG_FILE" 2>&1
     error_check
 
-    mysql -uroot -p$db_root_password -e "show databases" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    env MYSQL_PWD="$db_root_password" mysql -uroot -e "show databases" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     if [ $? == 0 ]; then
         log "Root password of MariaDB is already setting."
     else
         expect -c "
             set timeout -1
-            spawn mysql_secure_installation
+            spawn ${SECURE_COMMAND}
             expect \"Enter current password for root \\(enter for none\\):\"
             send \"\\r\"
             expect -re \"Switch to unix_socket authentication.* $\"
@@ -1307,7 +1332,7 @@ make_oase_offline() {
     mkdir -p ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-    if [ "${rules_engine}" != "drools" ]; then
+    if [ "${rules_engine}" == "drools" ]; then
         cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/wildfly-14.0.1.Final.tar.gz . >> "$OASE_INSTALL_LOG_FILE" 2>&1
         tar -xzvf wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
         chown -R root:root wildfly-14.0.1.Final
@@ -1424,6 +1449,8 @@ download() {
     log "INFO : Download packages[${YUM_PACKAGE["erlang"]}]"
 
     if [ "${oase_os}" == "RHEL8" ]; then
+        curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum makecache -y --disablerepo='*' --enablerepo='rabbitmq-erlang' >> "$OASE_INSTALL_LOG_FILE" 2>&1
         dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     elif [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
@@ -1523,7 +1550,7 @@ download() {
     ln -s /bin/python3.6 /bin/python3 >> "$OASE_INSTALL_LOG_FILE" 2>&1
     ln -sf /bin/python3 /bin/python >> "$OASE_INSTALL_LOG_FILE" 2>&1
     if [ "${oase_os}" == "RHEL8" ]; then
-        python3.6 -m pip3 install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        python3.6 -m pip install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
         python3.6 -m pip install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi

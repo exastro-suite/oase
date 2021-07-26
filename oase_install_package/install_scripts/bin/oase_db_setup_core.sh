@@ -67,7 +67,7 @@ EOS
 ################################################################################
 log "INFO : Start DB existence check."
 ################################################################################
-result=$(echo "show databases" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+result=$(env MYSQL_PWD="$db_root_password" mysql -u root -e "show databases" 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
 
 db_exists=$(echo "$result" | grep -E ^${db_name}$ 2>> "$OASE_INSTALL_LOG_FILE")
@@ -88,7 +88,7 @@ else
     log "INFO : Start CREATE DATABASE."
     ################################################################################
 
-    result=$(echo "CREATE DATABASE ${db_name} CHARACTER SET utf8;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+    result=$(env MYSQL_PWD="$db_root_password" mysql -u root -e "CREATE DATABASE ${db_name} CHARACTER SET utf8;" 2>> "$OASE_INSTALL_LOG_FILE")
     check_result $? "$result"
 
     ################################################################################
@@ -96,7 +96,7 @@ else
     ################################################################################
 fi
 
-result=$(echo "SELECT User FROM mysql.user;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+result=$(env MYSQL_PWD="$db_root_password" mysql -u root -e "SELECT User FROM mysql.user;" 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
 user_exits=$(echo "$result" | grep -E ^${db_username}$ 2>> "$OASE_INSTALL_LOG_FILE")
 
@@ -112,7 +112,7 @@ if [ -z "$user_exits" ]; then
     #result=$(echo "SET GLOBAL validate_password.special_char_count=0;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
     #result=$(echo "SET GLOBAL validate_password.policy=LOW;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
 
-    result=$(echo "CREATE USER '"${db_username}"' IDENTIFIED BY '"${db_password}"';" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+    result=$(env MYSQL_PWD="$db_root_password" mysql -u root -e "CREATE USER '"${db_username}"' IDENTIFIED BY '"${db_password}"';" 2>> "$OASE_INSTALL_LOG_FILE")
     check_result $? "$result"
 
     ################################################################################
@@ -120,10 +120,10 @@ if [ -z "$user_exits" ]; then
     ################################################################################
 fi
 
-result=$(echo "GRANT ALL ON "${db_name}".* TO '"${db_username}"';" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+result=$(env MYSQL_PWD="$db_root_password" mysql -u root -e "GRANT ALL ON "${db_name}".* TO '"${db_username}"';" 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
 
-result=$(echo "grant all privileges on *.* to '"${db_username}"'@'localhost' identified by '"${db_password}"' with grant option;" | mysql -u root -p${db_root_password} 2>> "$OASE_INSTALL_LOG_FILE")
+result=$(env MYSQL_PWD="$db_root_password" mysql -u root -e "grant all privileges on *.* to '"${db_username}"'@'localhost' identified by '"${db_password}"' with grant option;" 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$result"
 
 ################################################################################
@@ -263,7 +263,7 @@ check_result $? "$migrate_log"
 log "INFO : $migrate_log."
 
 OASE_UNIQUE_DELETE_FILE=$OASE_INSTALL_PACKAGE_DIR/SQL/OASE1.2.0.sql
-migrate_log=$(echo "source $OASE_UNIQUE_DELETE_FILE" | mysql -u ${db_username} -p${db_password} ${db_name}  2>> "$OASE_INSTALL_LOG_FILE")
+migrate_log=$(env MYSQL_PWD=${db_password} mysql -u ${db_username} ${db_name} -e "source $OASE_UNIQUE_DELETE_FILE" 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? "$migrate_log"
 
 log "INFO : $migrate_log."
