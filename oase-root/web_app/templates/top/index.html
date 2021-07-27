@@ -15,8 +15,12 @@ Copyright 2019 NEC Corporation
  limitations under the License.
 
 {% endcomment %}
+{% load static %}
 {% load common %}
-
+{% block myheader %}
+    <script type="text/javascript" src="{% static 'web_app/js/dashboard.js' %}?ver=202107271321" charset="UTF-8"></script>
+    <link rel="stylesheet" href="{% static "web_app/css/dashboard.css" %}">
+{% endblock %}
 {% block maincontent %}
 
 <div id="oase-dashboard" class="oase-main">
@@ -32,81 +36,42 @@ Copyright 2019 NEC Corporation
           </div><!-- /.oase-main-title-inner -->
         </div><!-- /.oase-main-title -->
 
+        {% comment %}
+        <div class="oase-main-menu">
+          <div class="oase-main-menu-inner">
+            <ul class="oase-button-group db-view">
+              <li><button class="oase-button tooltip" data-button="edit" data-tooltip="Dashboardを編集します。"><em class="owf owf-gear"></em><span>Dashboard編集</span></button></li>
+            </ul>
+            <ul class="oase-button-group db-edit">
+              <li><button class="oase-button tooltip" data-button="add" data-tooltip="Widgetを追加します。"><em class="owf owf-plus"></em><span>追加</span></button></li>
+              <li><button class="oase-button tooltip" data-button="save" data-tooltip="変更内容を保存します。"><em class="owf owf-save"></em><span>保存</span></button></li>
+              <li><button class="oase-button tooltip" data-button="reset" data-tooltip="Dashboardを初期状態に戻します。"><em class="owf owf-reset"></em><span>リセット</span></button></li>
+              <li><button class="oase-button tooltip" data-button="cancel" data-tooltip="変更内容を取り消します。"><em class="owf owf-cross"></em><span>取消</span></button></li>
+            </ul>
+          </div><!-- /.oase-main-menu-inner -->
+        </div><!-- /.oase-main-menu -->
+        {% endcomment %}
+
       </div><!-- /.oase-main-header-inner -->
     </div><!-- /.oase-main-header -->
 
-  <div class="oase-main-body">
-    <div class="oase-main-body-inner">
+    <div class="oase-main-body full-table">
+      <div class="oase-main-body-inner">
 
-      <section>
-      
-        <h2 class="oase-dashboard-title"><span class="exastro"><em class="owf owf-exastro"></em>{% get_message 'MOSJA10023' request.user.get_lang_mode showMsgId=False %}</span>{% get_message 'MOSJA10024' request.user.get_lang_mode showMsgId=False %}</h2>
-        
-        <div class="oase-dashboard-login-user">
-          <p><em class="owf owf-user"></em>{% autoescape off %}{% get_message 'MOSJA10025' request.user.get_lang_mode user_name=user_name showMsgId=False %}{% endautoescape %}</p>
-          <ul class="oase-dashboard-menu">
-            <li><a href="{% url 'web_app:user:personal_config' %}">{% get_message 'MOSJA10026' request.user.get_lang_mode showMsgId=False %}</a></li>
-            {% for mm in mainmenu_list %}
-              {% if mm.default and mm.caption != 'Dashboard' %}
-              <li>
+        <section>
 
-                {% if mm.selected == "logout" %}
-                <a href="{{mm.link}}" onclick="logout()">{{mm.caption}}</a>
-                {% elif mm.selected == "contact" %}
-                  {% comment %}
-                <a href="mailto:abc@example.com;def@example.com">{{mm.caption}}</a>
-                  {% endcomment %}
-                {%endif%}
+          <div id="dashboard"></div>
+          <script>
+            const db = new dashBoard();
+            db.setup('#dashboard');
+          </script>
 
-              </li>
-              {% endif %}
-           {% endfor %}
-          </ul>
-        </div>
+        </section>
 
-        <ul class="oase-dashboard-list">
-          {% for mm in mainmenu_list %}
-            {% if mm.default == False %}
-            <li>
-              <dl>
-                <dt>
-                  <span><em class="{{mm.classname}}"></em><span>{{mm.caption}}</span></span>
-                </dt>
-                <dd>
-                  {% if mm.menu_items|length %}
-                  <ul class="oase-dashboard-menu">
-                  {% for mi in mm.menu_items %}
-                    <li><a href="{{mi.link}}">{{mi.name}}</a></li>
-                  {% endfor %}
-                  </ul>
-                  {% endif %}
-                </dd>
-              </dl>
-            </li>
-            {% endif %}
-          {% endfor %}
-        </ul>
 
-      </section>
-
-    </div><!-- /.oase-main-body-inner -->
-  </div><!-- /.oase-main-body -->
+      </div><!-- /.oase-main-body-inner -->
+    </div><!-- /.oase-main-body -->
 
   </main><!-- /.oase-main-inner -->
 </div><!-- /.oase-main -->
-
-{% comment %}
-<div class="tab">
-  <div class="sub_menu">◆OASE利用状況<br></div>
-  <div class="index_jnl">
-  <div class="added_logs2"></div>
-  <div class="added_logs"></div>
-    [10:30:00] このスペースには、ルールの適用状況、更新状況を通知します。<br>
-    [10:25:00] usernameがステージング環境へ「example5.xlsx」を適用しました。<br>
-    [10:23:42] usernameがプロダクション環境へ「example5.xlsx」を適用しました。<br>
-  </div>
-</div>
-<script>onload=function(){ index_log(); }</script>
-{% endcomment %}
-
 {% endblock %}
