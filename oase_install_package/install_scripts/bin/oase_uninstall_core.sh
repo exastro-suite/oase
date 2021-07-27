@@ -321,14 +321,14 @@ function drop_oase_db() {
     local _error_flag=false
 
     log "INFO : Start to drop database"
-    mysql -u root -p${db_root_password} -e "DROP DATABASE IF EXISTS ${db_name};"
+    env MYSQL_PWD=${db_root_password} mysql -u root -e "DROP DATABASE IF EXISTS ${db_name};"
     if [ $? -gt 0 ]; then
         log "ERROR : Failed to drop database"
         _error_flag=true    
     fi
 
     log "INFO : Start to drop user"
-    mysql -u root -p${db_root_password} -e "DROP USER IF EXISTS ${db_username}@'localhost';"
+    env MYSQL_PWD=${db_root_password} mysql -u root -e "DROP USER IF EXISTS ${db_username}@'localhost';"
     if [ $? -gt 0 ]; then
         log "ERROR : Failed to drop user"
         _error_flag=true

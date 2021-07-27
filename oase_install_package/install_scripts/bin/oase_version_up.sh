@@ -730,7 +730,7 @@ while read LIST_VERSION || [ -n "${LIST_VERSION}" ] ; do
 
     else
         OASE_UNIQUE_DELETE_FILE=$OASE_INSTALL_PACKAGE_DIR/SQL/OASE"${LIST_VERSION}".sql >> "$LOG_FILE" 2>&1
-        migrate_log=$(echo "source $OASE_UNIQUE_DELETE_FILE" | mysql -u ${db_username} -p${db_password} ${db_name}  2>> "$LOG_FILE")
+        migrate_log=$(env MYSQL_PWD=${db_password} mysql -u ${db_username} ${db_name} -e "source $OASE_UNIQUE_DELETE_FILE" 2>> "$LOG_FILE")
         check_result $? "$migrate_log" >> "$LOG_FILE" 2>&1
 
         log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
