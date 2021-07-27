@@ -23,7 +23,7 @@ Copyright 2019 NEC Corporation
 {% endblock %}
 {% block maincontent %}
 
-<div id="oase-dashboard" class="oase-main">
+<div id="oase-dashboard" class="oase-main" data-mode="view">
   <main class="oase-main-inner">
 
     <div class="oase-main-header">
@@ -32,7 +32,7 @@ Copyright 2019 NEC Corporation
         <div class="oase-main-title">
           <div class="oase-main-title-inner">
             <h1>{% get_message 'MOSJA10021' request.user.get_lang_mode showMsgId=False %}</h1> 
-            <p class="oase-main-description">{% get_message 'MOSJA10022' request.user.get_lang_mode showMsgId=False %}</p>
+            <p class="oase-main-description db-view">{% get_message 'MOSJA10022' request.user.get_lang_mode showMsgId=False %}</p>
           </div><!-- /.oase-main-title-inner -->
         </div><!-- /.oase-main-title -->
 
