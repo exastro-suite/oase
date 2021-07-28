@@ -1614,14 +1614,9 @@ dashBoard.prototype = {
       },
       '3': {
         'setup': function(){
-          setTimeout( function(){
-          db.pieChart( 3, 'Known/Unknown', {
-            '既知事象': ['known1',50],
-            '未知事象': ['unknown1',55]
-          });
-          }, 10 );
-          return db.loadingHTML();
-        }
+            db.request_widget_data(3);
+            return;
+         }
       },
       '21': {
         'setup': function(){
@@ -1688,7 +1683,11 @@ dashBoard.prototype = {
       .done(function(respdata) {
           setTimeout(
             function(){
-              db.stackedGraph( respdata.id, respdata.usage, respdata.data );
+              if(respdata.id == '21' || respdata.id == '22') {
+                db.stackedGraph( respdata.id, respdata.usage, respdata.data );
+              } else {
+                db.pieChart( respdata.id, respdata.usage, respdata.data );
+              }
             }, 10
           );
           db.loadingHTML();
