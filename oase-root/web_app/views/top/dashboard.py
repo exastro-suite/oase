@@ -33,10 +33,12 @@ import traceback
 
 from django.http import HttpResponse
 from django.db import connection
+from django.db.models import Q
 
 from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from web_app.templatetags.common import get_message
+from web_app.models.models import EventsRequest
 
 
 logger = OaseLogger.get_instance() # ロガー初期化
@@ -53,6 +55,7 @@ class WidgetData(object):
 
         # Widget別データ取得関数
         DATA_FUNC = {
+             3 : self.pie_graph_date_matching_data,        # 日時の既知/未知(円グラフ)
             21 : self.stacked_graph_hourly_matching_data,  # 時間帯別の既知/未知数(棒グラフ)
         }
 
@@ -64,6 +67,47 @@ class WidgetData(object):
 
         return data
 
+
+    def pie_graph_date_matching_data(self, widget_id, **kwargs):
+
+        lang = kwargs['language'] if 'language' in kwargs else 'EN'
+        rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else []
+        to_day = datetime.date.today()
+        previously_count = 0
+        unknown_count = 0
+
+        try:
+            # 既知事象情報取得
+            previously_count = EventsRequest.objects.filter(
+                Q(rule_type_id__in=rule_ids),
+                Q(request_type_id=1),
+                Q(status=3) | Q(status=4),
+                Q(event_to_time__gte=to_day),
+                ).count()
+
+            # 未知事象
+            unknown_count = EventsRequest.objects.filter(
+                rule_type_id__in=rule_ids,
+                request_type_id=1,
+                status=1000,
+                event_to_time__gte=to_day,
+                ).count()
+
+        except Exception as e:
+            logger.logic_log('LOSM00001', traceback.format_exc())
+
+        data = {
+            'id'     : widget_id,
+            'usage'  : 'Known/Unknown',
+            'data'   : [],
+        }
+
+        data['data'] = {
+            get_message('MOSJA10047', lang, showMsgId=False): ['known1', previously_count],
+            get_message('MOSJA10048', lang, showMsgId=False): ['unknown1', unknown_count]
+          }
+
+        return data
 
     def stacked_graph_hourly_matching_data(self, widget_id, **kwargs):
         """
