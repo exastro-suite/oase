@@ -2273,7 +2273,7 @@ class OASEMessageID:
     Ary['MOSEN10042'] = "Logout"
     Ary['MOSEN10043'] = "Log in as a different user"
     Ary['MOSEN10044'] = "Can't authenticate due to lack of information set. <br/> If you have permission, please check the SSO settings screen."
-    Ary['MOSEN10045'] = "%(hour)時"
+    Ary['MOSEN10045'] = "%(hour)s時"
     Ary['MOSEN10046'] = "時間"
     Ary['MOSEN10047'] = "既知事象"
     Ary['MOSEN10048'] = "未知事象"
