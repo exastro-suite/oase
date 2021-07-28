@@ -1625,45 +1625,8 @@ dashBoard.prototype = {
       },
       '21': {
         'setup': function(){
-          setTimeout( function(){
-          db.stackedGraph( 21,
-            // class名, 凡例名
-            [
-              ['time', '時間'], // 項目名詳細
-              ['time', '時間'], // 項目名
-              ['known', '既知事象'], // 値1
-              ['unknown', '未知事象'] // 値2
-            ],
-            // 項目名詳細,項目名,値1,値2
-            [
-              ['0時','0',0,0],
-              ['1時','1',1,1],
-              ['2時','2',2,1],
-              ['3時','3',3,2],
-              ['4時','4',4,2],
-              ['5時','5',5,3],
-              ['6時','6',6,3],
-              ['7時','7',7,4],
-              ['8時','8',8,4],
-              ['9時','9',9,5],
-              ['10時','10',10,5],
-              ['11時','11',11,5],
-              ['12時','12',15,7],
-              ['13時','13',11,6],
-              ['14時','14',10,5],
-              ['15時','15',9,5],
-              ['16時','16',8,4],
-              ['17時','17',7,4],
-              ['18時','18',6,3],
-              ['19時','19',5,3],
-              ['20時','20',4,2],
-              ['21時','21',3,2],
-              ['22時','22',2,1],
-              ['23時','23',1,1]
-            ]
-          );
-          }, 10 );
-          return db.loadingHTML();
+            db.request_widget_data(21);
+            return;
         }
       },
       '22': {
@@ -1714,9 +1677,24 @@ dashBoard.prototype = {
     } else {
       window.console.warn('Widget undefined.');
     }
+  },
+
+  'request_widget_data': function( widgetID ) {
+      $.ajax({
+          type : "GET",
+          url  : "/oase_web/top/dashboard/data/" + widgetID.toString() + "/",
+          dataType : "json",
+      })
+      .done(function(respdata) {
+          setTimeout(
+            function(){
+              db.stackedGraph( respdata.id, respdata.usage, respdata.data );
+            }, 10
+          );
+          db.loadingHTML();
+      });
   }
 };
-
 
 
 

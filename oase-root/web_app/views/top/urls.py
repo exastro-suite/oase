@@ -14,7 +14,7 @@
 #
 
 from django.urls import path, re_path
-from . import index, login, sso, pass_ch, onetime_pass, inquiry
+from . import index, login, sso, pass_ch, onetime_pass, inquiry, dashboard
 
 app_name = 'top'
 urlpatterns = [
@@ -37,5 +37,6 @@ urlpatterns = [
 
     re_path(r'^inquiry$',  inquiry.inquiry,   name='inquiry'),
 
+    path('dashboard/data/<int:widget_id>/', dashboard.data, name='dashboard_data'),
 ]
 
