@@ -31,6 +31,7 @@ import json
 import datetime
 import pytz
 import traceback
+import calendar
 
 from django.conf import settings
 from django.http import HttpResponse
@@ -99,6 +100,7 @@ class WidgetData(object):
         DATA_FUNC = {
              3 : self.pie_graph_date_matching_data,        # 日時の既知/未知(円グラフ)
             21 : self.stacked_graph_hourly_matching_data,  # 時間帯別の既知/未知数(棒グラフ)
+            22 : self.stacked_graph_monthly_matching_data, # 月別の既知/未知数(棒グラフ)
         }
 
         data = {}
@@ -313,6 +315,140 @@ class WidgetData(object):
 
 
         return data
+
+
+    def stacked_graph_monthly_matching_data(self, widget_id, **kwargs):
+        """
+        [メソッド概要]
+          月別の既知/未知データ取得(棒グラフ用)
+        """
+
+        lang = kwargs['language'] if 'language' in kwargs else 'EN'
+
+        # データの棒グラフ用フォーマットで初期化
+        data = {
+            'id'     : widget_id,
+            'usage'  : [],
+            'data'   : [],
+        }
+
+        data['usage'] = [
+            ['time', get_message('MOSJA10049', lang, showMsgId=False)],
+            ['time', get_message('MOSJA10049', lang, showMsgId=False)],
+            ['known', get_message('MOSJA10047', lang, showMsgId=False)],
+            ['unknown', get_message('MOSJA10048', lang, showMsgId=False)],
+        ]
+
+        data['data'] = [
+            [get_message('MOSJA10050', lang, showMsgId=False),  '1', 0, 0],
+            [get_message('MOSJA10051', lang, showMsgId=False),  '2', 0, 0],
+            [get_message('MOSJA10052', lang, showMsgId=False),  '3', 0, 0],
+            [get_message('MOSJA10053', lang, showMsgId=False),  '4', 0, 0],
+            [get_message('MOSJA10054', lang, showMsgId=False),  '5', 0, 0],
+            [get_message('MOSJA10055', lang, showMsgId=False),  '6', 0, 0],
+            [get_message('MOSJA10056', lang, showMsgId=False),  '7', 0, 0],
+            [get_message('MOSJA10057', lang, showMsgId=False),  '8', 0, 0],
+            [get_message('MOSJA10058', lang, showMsgId=False),  '9', 0, 0],
+            [get_message('MOSJA10059', lang, showMsgId=False), '10', 0, 0],
+            [get_message('MOSJA10060', lang, showMsgId=False), '11', 0, 0],
+            [get_message('MOSJA10061', lang, showMsgId=False), '12', 0, 0]
+        ]
+
+
+        # 棒グラフ用データをDBから取得
+        try:
+            rset = []
+            query = ""
+            param_list = []
+
+            # SQLのパラメーターを設定
+            # うるう年判定
+            if calendar.isleap(self.now.year):
+                date_range = 365
+            else:
+                date_range = 364
+            rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
+
+            year = str(self.now.year)
+            month = str(self.now.month)
+            period_to = year + '-' + month.zfill(2) + '-' + '01' + ' 00:00:00.000000'
+            period_to = datetime.datetime.strptime(period_to, '%Y-%m-%d %H:%M:%S.%f')
+            period_to = self.convert_datetime_to_date(period_to)
+            period_from = self.convert_datetime_to_date(period_to - datetime.timedelta(days=date_range))
+
+            param_list.append(defs.PROCESSED)
+            param_list.append(defs.FORCE_PROCESSED)
+            param_list.append(period_from)
+            param_list.append(period_to)
+            param_list.extend(rule_ids)
+            param_list.append(defs.PRODUCTION)
+
+            param_list.append(defs.RULE_UNMATCH)
+            param_list.append(period_from)
+            param_list.append(period_to)
+            param_list.extend(rule_ids)
+            param_list.append(defs.PRODUCTION)
+
+            # SQL文を作成
+            query = (
+                "SELECT t1.month, IFNULL(known.cnt, 0) cnt, IFNULL(unknown.cnt, 0) uncnt "
+                "FROM ("
+                "  SELECT 1 month "
+                "  UNION SELECT 2 "
+                "  UNION SELECT 3 "
+                "  UNION SELECT 4 "
+                "  UNION SELECT 5 "
+                "  UNION SELECT 6 "
+                "  UNION SELECT 7 "
+                "  UNION SELECT 8 "
+                "  UNION SELECT 9 "
+                "  UNION SELECT 10 "
+                "  UNION SELECT 11 "
+                "  UNION SELECT 12 "
+                ") t1 "
+                "LEFT OUTER JOIN ("
+                "  SELECT DATE_FORMAT(event_to_time, '%%m') month, COUNT(*) cnt "
+                "  FROM OASE_T_EVENTS_REQUEST "
+                "  WHERE status in (%s, %s) "
+                "  AND event_to_time>=%s AND event_to_time<%s "
+                "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
+                "  AND request_type_id=%s "
+                "  GROUP BY DATE_FORMAT(event_to_time, '%%m') "
+                ") known "
+                "ON t1.month=known.month "
+                "LEFT OUTER JOIN ("
+                "  SELECT DATE_FORMAT(event_to_time, '%%m') month, COUNT(*) cnt "
+                "  FROM OASE_T_EVENTS_REQUEST "
+                "  WHERE status=%s "
+                "  AND event_to_time>=%s AND event_to_time<%s "
+                "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
+                "  AND request_type_id=%s "
+                "  GROUP BY DATE_FORMAT(event_to_time, '%%m') "
+                ") unknown "
+                "ON t1.month=unknown.month "
+                "ORDER BY t1.month;"
+            )
+
+            # SQL発行
+            with connection.cursor() as cursor:
+                cursor.execute(query, param_list)
+                rset = cursor.fetchall()
+
+            # 取得したデータを棒グラフ用フォーマットに当て込む
+            for rs in rset:
+                if len(data['data']) <= rs[0]:
+                    continue
+
+                data['data'][rs[0]-1][2] = rs[1]
+                data['data'][rs[0]-1][3] = rs[2]
+
+
+        except Exception as e:
+            logger.logic_log('LOSM00001', traceback.format_exc())
+
+
+        return data
+
 
 
 ################################################################
