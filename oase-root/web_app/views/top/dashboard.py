@@ -436,7 +436,7 @@ class WidgetData(object):
 
             # 取得したデータを棒グラフ用フォーマットに当て込む
             for rs in rset:
-                if len(data['data']) <= rs[0]:
+                if len(data['data']) < rs[0]:
                     continue
 
                 data['data'][rs[0]-1][2] = rs[1]
