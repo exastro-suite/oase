@@ -139,6 +139,7 @@ let $oaseTable = $( this );
 let $oaseTableHead = $oaseTable.find('thead'),
     $oaseTableBody = $oaseTable.find('tbody'),
     $filter = $( this ).find('table');
+let filterColNo = 0;
 
 // IE11の場合固定用table作成
 if( ie11Check() ) {
@@ -260,9 +261,9 @@ let filterHtmlMenu = '<div class="oase-filter-menu">';
 filterHtmlMenu += '<ul class="oase-filter-tab-menu">';
 
 let filterHtmlSelectMenu = '<li><a href="#filter-select"><em class="owf owf-select"></em></a></li>'; 
-let filterHtmlSelect = '<div class="oase-filter-tab-body filter-select">';
-filterHtmlSelect += '<select size="4" multiple></select>';
-filterHtmlSelect += '</div>';
+let filterHtmlSelect1 = '<div class="oase-filter-tab-body filter-select">';
+filterHtmlSelect1 += '<select size="4" id="oaseFilterId';
+let filterHtmlSelect2 = '" multiple></select></div>';
 
 let filterHtmlTextMenu = '<li><a href="#filter-text"><em class="owf owf-loupe"></em></a></li>';
 let filterHtmlText = '<div class="oase-filter-tab-body filter-text">';
@@ -291,11 +292,12 @@ $oaseTableHead.find('.filter').each( function(){
   let filterType = $( this ).attr('filter-type');
   switch ( filterType ) {
     case 'text': filterHtml = filterHtmlMenu + filterHtmlTextMenu + '</ul>' + filterHtmlText; break;
-    case 'select': filterHtml = filterHtmlMenu + filterHtmlSelectMenu + '</ul>' + filterHtmlSelect; break;
+    case 'select': filterHtml = filterHtmlMenu + filterHtmlSelectMenu + '</ul>' + filterHtmlSelect1 + filterColNo + filterHtmlSelect2; break;
     case 'date': filterHtml = filterHtmlMenu + filterHtmlDateMenu + filterHtmlTextMenu + '</ul>' + filterHtmlDate + filterHtmlText; break;
-    case 'common': filterHtml = filterHtmlMenu + filterHtmlSelectMenu + filterHtmlTextMenu + '</ul>' + filterHtmlSelect + filterHtmlText; break;
+    case 'common': filterHtml = filterHtmlMenu + filterHtmlSelectMenu + filterHtmlTextMenu + '</ul>' + filterHtmlSelect1 + filterColNo + filterHtmlSelect2 + filterHtmlText; break;
   }
   filterHtml += '</div>';
+  filterColNo++;
   
   $( this ).children('.cell-inner').prepend('<div class="oase-filter-switch menu"><em class="owf owf-filter-on"></em></div><div class="oase-filter-switch clear"><em class="owf owf-filter-off"></em></div>');
   $( this ).append( filterHtml );

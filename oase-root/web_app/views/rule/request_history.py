@@ -64,6 +64,7 @@ def index(request):
     logger.logic_log('LOSI00001', 'none', request=request)
     msg = ''
     lang = request.user.get_lang_mode()
+    event_info_filter = ''
 
     try:
         # リクエスト履歴画面のルール別アクセス権限を取得
@@ -117,6 +118,9 @@ def index(request):
             }
             table_list.append(table_info)
 
+        # フィルター情報を取得
+        event_info_filter = request.GET.get('event_info')
+
     except Exception as e:
         msg = get_message('MOSJA36000', lang)
         logger.logic_log('LOSM24000', 'traceback: %s' % traceback.format_exc(), request=request)
@@ -126,6 +130,7 @@ def index(request):
         'table_list'           : table_list,
         'user_name'            : request.user.user_name,
         'can_update'           : rule_ids_admin,
+        'event_info_filter'    : event_info_filter,
     }
 
     data.update(request.user_config.get_templates_data(request))
