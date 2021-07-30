@@ -29,8 +29,10 @@
 
 import json
 import datetime
+import pytz
 import traceback
 
+from django.conf import settings
 from django.http import HttpResponse
 from django.db import connection
 from django.db.models import Q
@@ -46,6 +48,46 @@ logger = OaseLogger.get_instance() # ロガー初期化
 
 ################################################################
 class WidgetData(object):
+
+
+    def __init__(self, now=None, req=None):
+        """
+        [メソッド概要]
+          コンストラクタ
+        """
+
+        if not now:
+            now = datetime.datetime.now()
+
+        config_tz = getattr(settings, 'TIME_ZONE', 'UTC')
+        local_now = pytz.timezone(config_tz).localize(now)
+        utc_now   = pytz.timezone('UTC').localize(now)
+
+        self.now       = now
+        self.conf_tz   = config_tz
+        self.dt_diff   = local_now - utc_now
+        self.hour_diff = ((60*60*24) - self.dt_diff.seconds) % (60*60*24) // (60*60)
+
+        self.request = req
+
+
+    def convert_datetime_to_date(self, dt):
+        """
+        [メソッド概要]
+          指定の日時を日付に変換する
+        [引数]
+          dt : datetime : naiveなdatetime
+        """
+
+        # 日時から日付(0時0分の日時)に変換
+        dt = dt.date()
+        dt = datetime.datetime.combine(dt, datetime.time())
+
+        # UTCとの時差を加味した日時に変換
+        dt = dt + self.dt_diff
+
+        return dt
+
 
     def get_data(self, widget_id, **kwargs):
         """
@@ -69,10 +111,17 @@ class WidgetData(object):
 
 
     def pie_graph_date_matching_data(self, widget_id, **kwargs):
+        """
+        [メソッド概要]
+          日時の既知/未知データ取得(円グラフ用)
+        """
 
         lang = kwargs['language'] if 'language' in kwargs else 'EN'
         rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else []
-        to_day = datetime.date.today()
+        from_day = self.convert_datetime_to_date(self.now)
+        to_day = self.convert_datetime_to_date(self.now + datetime.timedelta(days=1))
+        from_day = pytz.timezone('UTC').localize(from_day)
+        to_day = pytz.timezone('UTC').localize(to_day)
         previously_count = 0
         unknown_count = 0
 
@@ -82,7 +131,8 @@ class WidgetData(object):
                 Q(rule_type_id__in=rule_ids),
                 Q(request_type_id=1),
                 Q(status=3) | Q(status=4),
-                Q(event_to_time__gte=to_day),
+                Q(event_to_time__gte=from_day),
+                Q(event_to_time__lt =to_day),
                 ).count()
 
             # 未知事象
@@ -90,7 +140,8 @@ class WidgetData(object):
                 rule_type_id__in=rule_ids,
                 request_type_id=1,
                 status=1000,
-                event_to_time__gte=to_day,
+                event_to_time__gte=from_day,
+                event_to_time__lt =to_day,
                 ).count()
 
         except Exception as e:
@@ -108,6 +159,7 @@ class WidgetData(object):
           }
 
         return data
+
 
     def stacked_graph_hourly_matching_data(self, widget_id, **kwargs):
         """
@@ -169,8 +221,9 @@ class WidgetData(object):
             date_range = kwargs['date_range']   if 'date_range'   in kwargs else 30
             rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
 
-            period_to = datetime.date.today()
-            period_from = period_to - datetime.timedelta(days=date_range)
+
+            period_to = self.convert_datetime_to_date(self.now)
+            period_from = self.convert_datetime_to_date(self.now - datetime.timedelta(days=date_range))
 
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
@@ -248,8 +301,11 @@ class WidgetData(object):
                 if len(data['data']) <= rs[0]:
                     continue
 
-                data['data'][rs[0]][2] = rs[1]
-                data['data'][rs[0]][3] = rs[2]
+                # utcとの時差分を加算
+                hour = (rs[0] + self.hour_diff) % 24
+
+                data['data'][hour][2] = rs[1]
+                data['data'][hour][3] = rs[2]
 
 
         except Exception as e:
