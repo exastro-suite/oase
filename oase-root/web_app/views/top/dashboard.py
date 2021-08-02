@@ -157,23 +157,10 @@ class WidgetData(object):
                 "ORDER BY count(*) DESC,event_info;"
             )
 
-            query2 = (
-                "SELECT count(*) "
-                "FROM OASE_T_EVENTS_REQUEST "
-                "WHERE status=%s "
-                "AND event_to_time>=%s AND event_to_time<%s "
-                "AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
-                "AND request_type_id=%s;"
-            )
-
             # SQL発行
             with connection.cursor() as cursor:
                 cursor.execute(query, param_list)
                 rset = cursor.fetchall()
-
-                cursor.execute(query2, param_list)
-                rset2 = cursor.fetchall()
-
 
             i = 0
             other_count = 0
