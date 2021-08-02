@@ -98,6 +98,7 @@ class WidgetData(object):
 
         # Widget別データ取得関数
         DATA_FUNC = {
+             2 : self.pie_graph_date_unmatch_data,         # 日次の未知ランキング(円グラフ)
              3 : self.pie_graph_date_matching_data,        # 日時の既知/未知(円グラフ)
             21 : self.stacked_graph_hourly_matching_data,  # 時間帯別の既知/未知数(棒グラフ)
             22 : self.stacked_graph_monthly_matching_data, # 月別の既知/未知数(棒グラフ)
@@ -108,6 +109,90 @@ class WidgetData(object):
         f = DATA_FUNC[widget_id] if widget_id in DATA_FUNC else None
         if f:
             data = f(widget_id, **kwargs)
+
+        return data
+
+
+    def pie_graph_date_unmatch_data(self, widget_id, **kwargs):
+        """
+        [メソッド概要]
+          日次の未知ランキングデータ取得(円グラフ用)
+        """
+
+        lang = kwargs['language'] if 'language' in kwargs else 'EN'
+
+        data = {
+            'id'     : widget_id,
+            'usage'  : 'Unknown',
+            'data'   : {},
+        }
+
+        # 円グラフ用データをDBから取得
+        try:
+            rset = []
+            query = ""
+            param_list = []
+
+            # SQLのパラメータを設定
+            rule_ids = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
+            count    = kwargs['count'] if 'count' in kwargs else 5
+            from_day = self.convert_datetime_to_date(self.now)
+            to_day   = self.convert_datetime_to_date(self.now + datetime.timedelta(days=1))
+
+            param_list.append(defs.RULE_UNMATCH)
+            param_list.append(from_day)
+            param_list.append(to_day)
+            param_list.extend(rule_ids)
+            param_list.append(defs.PRODUCTION)
+
+            # SQL文を作成
+            query = (
+                "SELECT count(*),event_info "
+                "FROM OASE_T_EVENTS_REQUEST "
+                "WHERE status=%s "
+                "AND event_to_time>=%s AND event_to_time<%s "
+                "AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
+                "AND request_type_id=%s "
+                "GROUP BY event_info "
+                "ORDER BY count(*) DESC,event_info;"
+            )
+
+            query2 = (
+                "SELECT count(*) "
+                "FROM OASE_T_EVENTS_REQUEST "
+                "WHERE status=%s "
+                "AND event_to_time>=%s AND event_to_time<%s "
+                "AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
+                "AND request_type_id=%s;"
+            )
+
+            # SQL発行
+            with connection.cursor() as cursor:
+                cursor.execute(query, param_list)
+                rset = cursor.fetchall()
+
+                cursor.execute(query2, param_list)
+                rset2 = cursor.fetchall()
+
+
+            i = 0
+            other_count = 0
+            for rs in rset:
+                if i >= count:
+                    other_count = other_count + rs[0]
+                else:
+                    i = i + 1
+                    unknown = 'unknown' + str(i)
+                    list = []
+                    list = [unknown, rs[0]]
+                    data['data'][rs[1]] = list
+
+            other = get_message('MOSJA10062', lang, showMsgId=False)
+            list = ['unknown6', other_count]
+            data['data'][other] = list
+
+        except Exception as e:
+            logger.logic_log('LOSM00001', traceback.format_exc())
 
         return data
 
@@ -467,6 +552,7 @@ def data(request, widget_id):
         'date_range'   : 30,
         'req_rule_ids' : request.user_config.get_rule_auth_type(2141001008)[defs.VIEW_ONLY] \
                        + request.user_config.get_rule_auth_type(2141001008)[defs.ALLOWED_MENTENANCE],
+        'count'        : 5,
     }
 
     wd = WidgetData()
