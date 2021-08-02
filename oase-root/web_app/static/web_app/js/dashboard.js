@@ -31,7 +31,7 @@ dashBoard.prototype = {
     '1': {
       'widget_id': '1',
       'name': 'known',
-      'display_name': '既知事象',
+      'display_name': 'Match ranking',
       'description': '既知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -40,7 +40,7 @@ dashBoard.prototype = {
     '2': {
       'widget_id': '2',
       'name': 'unknown',
-      'display_name': '未知事象',
+      'display_name': 'Unmatch ranking',
       'description': '未知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -49,7 +49,7 @@ dashBoard.prototype = {
     '3': {
       'widget_id': '3',
       'name': 'known-unknown',
-      'display_name': '既知・未知事象（日）',
+      'display_name': "Today's coverage",
       'description': '既知・未知事象(日)の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -1098,6 +1098,7 @@ dashBoard.prototype = {
     + '<div class="db-table-wrap">'
       + '<table class="db-table">'
         + '<tbody>';
+
     for ( let key in pieChartData ) {
       tableHTML += ''
           + '<tr class="db-row" data-type="' + pieChartData[key][0] + '">'
@@ -1110,7 +1111,10 @@ dashBoard.prototype = {
       switch( widgetID ) {
         case 1:
         case 2:
-          tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
+          event_info = key;
+          event_info = encodeURI(event_info);
+console.log(event_info);
+          tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition(\'' + event_info + '\');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
           break;
       }
       tableHTML += '</tr>'
@@ -1584,32 +1588,14 @@ dashBoard.prototype = {
       */
       '1': {
         'setup': function(){
-          setTimeout( function(){
-          db.pieChart( 1, 'Known', {
-            'rule1': ['known1',35],
-            'rule2': ['known2',30],
-            'rule3': ['known3',25],
-            'rule4': ['known4',20],
-            'rule5': ['known5',2],
-            'その他': ['known6',60],
-          });
-          }, 10 );
-          return db.loadingHTML();
+            db.request_widget_data(1);
+            return;
         }
       },
       '2': {
         'setup': function(){
-          setTimeout( function(){
-          db.pieChart( 2, 'Unknown', {
-            'rule1': ['unknown1',35],
-            'rule2': ['unknown2',30],
-            'rule3': ['unknown3',25],
-            'rule4': ['unknown4',20],
-            'rule5': ['unknown5',2],
-            'その他': ['unknown6',60],
-          });
-          }, 10 );
-          return db.loadingHTML();
+            db.request_widget_data(2);
+            return;
         }
       },
       '3': {
@@ -1626,43 +1612,8 @@ dashBoard.prototype = {
       },
       '22': {
         'setup': function(){
-          setTimeout( function(){
-          db.stackedGraph( 22,
-            [
-              ['time', '時間'],
-              ['time', '時間'],
-              ['known', '既知事象'],
-              ['unknown', '未知事象']
-            ],
-            [
-              ['0時','0',0,0],
-              ['1時','1',1,1],
-              ['2時','2',2,1],
-              ['3時','3',3,2],
-              ['4時','4',4,2],
-              ['5時','5',5,3],
-              ['6時','6',6,3],
-              ['7時','7',7,4],
-              ['8時','8',8,4],
-              ['9時','9',9,5],
-              ['10時','10',10,5],
-              ['11時','11',11,5],
-              ['12時','12',15,7],
-              ['13時','13',11,6],
-              ['14時','14',10,5],
-              ['15時','15',9,5],
-              ['16時','16',8,4],
-              ['17時','17',7,4],
-              ['18時','18',6,3],
-              ['19時','19',5,3],
-              ['20時','20',4,2],
-              ['21時','21',3,2],
-              ['22時','22',2,1],
-              ['23時','23',1,1]
-            ]
-          );
-          }, 10 );
-          return db.loadingHTML();
+            db.request_widget_data(22);
+            return;
         }
       }
     };
@@ -1685,24 +1636,24 @@ dashBoard.prototype = {
             function(){
               if(respdata.id == '21' || respdata.id == '22') {
                 db.stackedGraph( respdata.id, respdata.usage, respdata.data );
-              } else {
+              } else if(respdata.id == '1' || respdata.id == '2' || respdata.id == '3') {
                 db.pieChart( respdata.id, respdata.usage, respdata.data );
               }
             }, 10
           );
           db.loadingHTML();
+      })
+      .fail(function(respdata, stscode, resp) {
+          alert(getMessage("MOSJA00014", false));
+          if(stscode === "error") {
+              window.location.href = "/oase_web/top/logout";
+          }
       });
   }
 };
 
-
-
-
-
-
-
-
-
-
-
+function Screen_transition(URI){
+    console.log(event_info);
+    window.location.href = "/oase_web/rule/request_history?event_info=" + URI;
+}
 
