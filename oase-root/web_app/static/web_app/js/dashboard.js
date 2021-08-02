@@ -58,7 +58,7 @@ dashBoard.prototype = {
     '21': {
       'widget_id': '21',
       'name': 'known-unknown-date',
-      'display_name': '時間帯別',
+      'display_name': getMessage("MOSJA10063", false),
       'description': '既知・未知事象（時間帯別）の件数を棒グラフで表示します。',
       'colspan': '6',
       'rowspan': '1',
@@ -67,7 +67,7 @@ dashBoard.prototype = {
     '22': {
       'widget_id': '22',
       'name': 'known-unknown-day',
-      'display_name': '日別',
+      'display_name': getMessage("MOSJA10064", false),
       'description': '既知・未知事象（日別）の件数を棒グラフで表示します。',
       'colspan': '6',
       'rowspan': '1',
@@ -1099,6 +1099,7 @@ dashBoard.prototype = {
       + '<table class="db-table">'
         + '<tbody>';
 
+    var confirmMsg = getMessage("MOSJA10062", false);
     for ( let key in pieChartData ) {
       tableHTML += ''
           + '<tr class="db-row" data-type="' + pieChartData[key][0] + '">'
@@ -1111,11 +1112,14 @@ dashBoard.prototype = {
       switch( widgetID ) {
         case 1:
         case 2:
-          event_info = key;
-          event_info = encodeURI(event_info);
-console.log(event_info);
-          tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition(\'' + event_info + '\');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
-          break;
+          if ( confirmMsg != key ){
+            event_info = key;
+            event_info = encodeURI(event_info);
+            tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition(\'' + event_info + '\');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
+            break;
+          } else {
+            tableHTML += '<td class="db-cell"><em class="owf"></em></td></tr>';
+          }
       }
       tableHTML += '</tr>'
     }
@@ -1653,7 +1657,6 @@ console.log(event_info);
 };
 
 function Screen_transition(URI){
-    console.log(event_info);
     window.location.href = "/oase_web/rule/request_history?event_info=" + URI;
 }
 
