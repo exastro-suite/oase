@@ -254,7 +254,7 @@ class WidgetData(object):
 
         except Exception as e:
             logger.logic_log('LOSM00001', traceback.format_exc())
-            logger.logic_log('LOSM00040', traceback.format_exc())
+            logger.logic_log('LOSM00043', traceback.format_exc())
 
         return data
 
@@ -295,7 +295,7 @@ class WidgetData(object):
 
         except Exception as e:
             logger.logic_log('LOSM00001', traceback.format_exc())
-            logger.logic_log('LOSM00039', traceback.format_exc())
+            logger.logic_log('LOSM00042', traceback.format_exc())
 
         data = {
             'id'     : widget_id,
@@ -460,7 +460,7 @@ class WidgetData(object):
 
         except Exception as e:
             logger.logic_log('LOSM00001', traceback.format_exc())
-            logger.logic_log('LOSM00040', traceback.format_exc())
+            logger.logic_log('LOSM00043', traceback.format_exc())
 
 
         return data
@@ -594,7 +594,7 @@ class WidgetData(object):
 
         except Exception as e:
             logger.logic_log('LOSM00001', traceback.format_exc())
-            logger.logic_log('LOSM00040', traceback.format_exc())
+            logger.logic_log('LOSM00043', traceback.format_exc())
 
 
         return data
