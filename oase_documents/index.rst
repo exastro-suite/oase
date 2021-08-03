@@ -23,6 +23,7 @@ OASEをより深く知りたい場合は、ここにあるドキュメントを�
    adapter_install/index
    common/index
    login/index
+   dashboard/index
    decision_table/index
    token/index
    rule/index
