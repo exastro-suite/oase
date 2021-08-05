@@ -65,6 +65,8 @@ class MonitoringAdapterSupportTool():
             adapter_disp_info['monitoring_items'] = adapter.get_zabbix_items()
         elif adapter_cls_info['adp_id'] == 2:
             adapter_disp_info['monitoring_items'] = adapter.get_prometheus_items()
+        elif adapter_cls_info['adp_id'] == 3:
+            adapter_disp_info['monitoring_items'] = adapter.get_grafana_items()
 
         return adapter_disp_info
 

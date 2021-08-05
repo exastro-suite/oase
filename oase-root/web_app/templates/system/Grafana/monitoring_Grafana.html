@@ -1,0 +1,505 @@
+{% load tz %}
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load static %}
+{% load common %}
+{% block myheader %}
+    <script type="text/javascript" src="{% static 'web_app/js/monitoring_Grafana.js' %}?ver=202108031632" charset="UTF-8"></script>
+{% endblock %}
+
+{% block maincontent %}
+<input type="hidden" id="gra_rule_type_data_obj_dict" value="{{ rule_type_data_obj_dict|jsonify }}"/>
+<input type="hidden" id="grafana_v1_modal_add_id" value="modal-{{adapter_name|slugify}}-add"/>
+
+
+<!-- 監視先の詳細表示 -->
+<div id="modal-grafana-detail" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-details"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="modalClose('#modal-grafana-detail');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody id="viewGrafanaDetail" data-recordid=''>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26301' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewGrafanaName" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26302' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewGrafanaUri" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26309' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewGrafanaUsername" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26303' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewGrafanaRuletype" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26311' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <table class="table-in-table">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26318' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26313' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="viewMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26319' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td><div id="viewGrafanaEventTime" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26320' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td><div id="viewGrafanaInstance" class="cell-inner"></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <table class="table-in-table">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26312' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26313' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="viewGrafanatable"></tbody>
+                      </table>
+
+                    </div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewGrafanaUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div id="viewGrafanaTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="modalClose('#modal-grafana-detail');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button id="btnToEditModalGrafana" class="oase-button" onclick="setInfoInGrafanaEditView(); modalChange('#modal-grafana-detail', '#modal-grafana-edit');"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00017' request.user.get_lang_mode showMsgId=False %}</span>
+            </button></li>
+            <li><button id="btnDelGrafana" class="oase-button" onclick="deleteGrafanaAdapterInfo();"><em class="owf owf-trash"></em><span>{% get_message 'MOSJA00081' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の詳細表示 -->
+
+
+<!-- 監視先の詳細編集 -->
+<div id="modal-grafana-edit" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-edit"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="monitoringModalClose('#modal-grafana-edit','btnEditGrafana');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26301' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editGrafanaName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26302' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA26013' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editGrafanaUri" data-maxlength="512" data-type="text" type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26309' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="editGrafanaUsername" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26310' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="editGrafanaPassword" data-maxlength="64" class="validation-input" type="password" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26307' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="select">
+                          <select id="edit-grafana-rule-select">
+                            {% for rule_item in rule_type_list %}
+                              {% if rule_item.editable == True and rule_item.active == True %}
+                            <option value="{{ rule_item.rule_type_id }}" >{{ rule_item.rule_type_name }}</option>
+                              {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr id="edit-grafana-rule-condition">
+                    <th><div class="cell-inner">{% get_message 'MOSJA26311' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <!-- ルール種別選択前 -->
+                      <div id="edit-rule-none-grafana" class="unselected" style="display: none;">{% get_message 'MOSJA26308' request.user.get_lang_mode showMsgId=False %}</div>
+
+                      <!-- ルール種別選択後 -->
+                      <table id="edit-monitor-detail-grafana" class="table-in-table table-grafana">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26318' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26313' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="editMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26319' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="editGrafanaEventTime" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26320' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="editGrafanaInstance" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <table id="edit-rule-detail-grafana" class="table-in-table table-grafana">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26312' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26313' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="editGrafanatable"></tbody>
+                      </table>
+
+                    </div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th><td><div id="editGrafanaUpdateuser" class="cell-inner"></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th><td><div id="editGrafanaTimestamp" class="cell-inner"></div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="monitoringModalClose('#modal-grafana-edit','btnEditGrafana');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button id="btnEditGrafana" class="oase-button" onclick="updateGrafanaAdapterInfo()"><em class="owf owf-edit"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の詳細編集 -->
+
+
+<!-- 監視先の一覧 -->
+<section id="grafana-adapter-ver1">
+<div class="oase-section-title">
+  <div class="oase-section-title-inner">
+
+    <div class="oase-section-title-table">
+      <h2>{{adapter_name}}</h2>
+    </div>
+
+  </div>
+</div>
+
+<!-- プルダウン用にデータ属性を作成 -->
+<div hidden id="grafana-items" data-grafanaitems={{monitoring_items}}></div>
+
+{% if info_list|length %}
+<div class="oase-table">
+  <div class="oase-table-load loading">
+    <div class="oase-table-loader-inner">
+      <em class="owf owf-update"></em>
+    </div>
+  </div>
+
+  <div class="oase-table-inner">
+    <table>
+
+      <thead>
+        <tr>
+          <th class="operation-menu"><div class="cell-inner">{% get_message 'MOSJA00074' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="action-name sort filter" filter-type="common" filter-label="action-name"><div class="cell-inner">{% get_message 'MOSJA26301' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="uri sort filter" filter-type="common" filter-label="uri"><div class="cell-inner">{% get_message 'MOSJA26302' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="user-name sort filter" filter-type="common" filter-label="user-name"><div class="cell-inner">{% get_message 'MOSJA26309' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="rule-type sort filter" filter-type="common" filter-label="rule-type"><div class="cell-inner">{% get_message 'MOSJA26303' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
+          <th class="execution-date sort filter" filter-type="date" filter-label="execution-date"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
+        </tr>
+      </thead>
+
+      <tbody id="tbodyGrafanaAdapterInfo">
+        {% for i in info_list %}
+        <tr id="grafanaadapter-{{ i.grafana_adapter_id }}" data-grafana_id="{{ i.grafana_adapter_id }}" data-name="{{ i.grafana_disp_name }}" data-uri="{{ i.uri }}" data-username="{{ i.username }}" data-password="{{ i.password }}" data-evtime="{{ i.match_evtime }}" data-instance="{{ i.match_instance }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
+          <td class="operation-menu">
+            <div class="cell-inner">
+              <ul>
+                <li><button class="tooltip detail oase-mini-button" onClick="setInfoInGrafanaDetailView('grafanaadapter-{{ i.grafana_adapter_id }}'); modalOpen('#modal-grafana-detail');"><em class="owf owf-details"></em><span>{% get_message 'MOSJA00076' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+              </ul>
+            </div>
+          </td>
+
+          <td class="action-name">
+            <div class="cell-inner">{{ i.grafana_disp_name }}</div>
+          </td>
+
+          <td class="uri">
+            <div class="cell-inner">{{ i.uri }}</div>
+          </td>
+
+          <td class="user-name">
+            <div class="cell-inner">{{ i.username }}</div>
+          </td>
+
+          {% if i.active %}
+          <td class="rule-type">
+            <div class="cell-inner">{{ i.rule_type_name }}</div>
+          </td>
+          {% else %}
+          <td class="rule-type error">
+            <div class="cell-inner">
+              <ul class="error-list">
+                <li><em class="owf owf-cross"></em>{% get_message 'MOSJA26304' request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" data-tooltip="{% get_message 'MOSJA26305' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></li>
+              </ul>
+            </div>
+          </td>
+          {% endif %}
+
+          <td class="last-update-user">
+            <div class="cell-inner">{{ i.last_update_user }}</div>
+          </td>
+
+          <td class="execution-date">
+            <div class="cell-inner">
+              <time datetime="{{ i.last_update_timestamp|localtime|date:'Y-m-d\TH:i:s' }}">{{ i.last_update_timestamp|localtime|change_datestyle:request.user.get_lang_mode }}</time>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="oase-table-footer">
+    <ul class="button-group">
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd class="rowCount">4</dd>
+        </dl>
+      </li>
+
+      <li>
+        <dl>
+          <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+          <dd>
+            <select class="rowShowNum">
+              <option value="10" selected>10</option>
+              <option value="25">25</option>
+              <option value="50">50</option>
+              <option value="100">100</option>
+            </select>
+          </dd>
+        </dl>
+      </li>
+
+      <li>
+        <button class="pagingPrev button" disabled=""><em class="owf owf-minus"></em></button>
+        <input class="pagingNow" type="text"> / <span class="pagingMax">1</span>
+        <button class="pagingNext button" disabled=""><em class="owf owf-plus"></em></button>
+      </li>
+
+      <li>
+        <button class="scrollTop button tooltip"><em class="owf owf-up-on"></em><span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+      <li>
+        <button class="scrollBottom button tooltip"><em class="owf owf-down-on"></em><span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span></button>
+      </li>
+
+    </ul>
+  </div>
+
+</div>
+
+{% else %}
+<div class="oase-none">
+  <p>{% autoescape off %}{% get_message 'MOSJA26306' request.user.get_lang_mode showMsgId=False %}{% endautoescape %}</p>
+</div>
+{% endif %}
+</section>
+{% endblock%}
+
+<!-- 監視先の追加画面 -->
+<div id="modal-{{adapter_name|slugify}}-add" class="oase-modal">
+
+  <div class="oase-modal-main">
+    <div class="oase-modal-inner">
+      <div class="oase-modal-content">
+
+        <div class="oase-modal-header">
+          <div class="oase-modal-title"><h2><em class="owf owf-plus"></em><span>{{adapter_name}}</span></h2></div>
+          <button class="oase-modal-close" onclick="monitoringGrafanaAddModalClose('#modal-{{adapter_name|slugify}}-add','btnAddGrafana');"><em class="owf owf-cross"></em></button>
+        </div>
+
+        <div class="oase-modal-body">
+          <div class="oase-modal-block">
+
+            <div class="oase-modal-table">
+              <table>
+                <tbody>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26301' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00107' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addGrafanaName" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26302' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA26013' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addGrafanaUri" data-maxlength="512" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26309' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00110' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><input id="addGrafanaUsername" data-maxlength="64" data-type="text" class="validation-input" type="text" value="" required></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26310' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="help tooltip" title="{% get_message 'MOSJA00111' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                    <td><div class="cell-inner"><div class="password"><input id="addGrafanaPassword" data-maxlength="64" data-type="text" class="validation-input" type="password" value="" required><div class="password-show"></div></div></div></td>
+                  </tr>
+                  <tr>
+                    <th><div class="cell-inner">{% get_message 'MOSJA26307' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td>
+                      <div class="cell-inner">
+                        <div class="select" >
+                          <select id="add-grafana-rule-select" data-initial-value="">
+                            <option></option>
+                            {% for rule_item in rule_type_list %}
+                              {% if rule_item.editable == True and rule_item.active == True %}
+                            <option value="{{ rule_item.rule_type_id }}" >{{ rule_item.rule_type_name }}</option>
+                              {% endif %}
+                            {% endfor %}
+                          </select>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                  <tr id="add-grafana-rule-condition">
+                    <th><div class="cell-inner">{% get_message 'MOSJA26311' request.user.get_lang_mode showMsgId=False %}</div></th>
+                    <td><div class="cell-inner">
+
+                      <!-- ルール種別選択前 -->
+                      <div id="add-rule-none-grafana" class="unselected">
+                        {% get_message 'MOSJA26308' request.user.get_lang_mode showMsgId=False %}
+                        <input type="hidden" value="" required>
+                      </div>
+
+                      <!-- ルール種別選択後 -->
+                      <table id="add-monitor-detail-grafana" class="table-in-table table-grafana" hidden>
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26318' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26313' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="addMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26319' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="addGrafanaEventTime" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26320' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="addGrafanaInstance" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <table id="add-rule-detail-grafana" class="table-in-table table-grafana" hidden>
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26312' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26313' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="addGrafanatable">
+                        </tbody>
+                      </table>
+                    </div></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <div class="oase-modal-footer">
+          <ul class="oase-button-group">
+            <li><button class="oase-button cancel" onclick="monitoringGrafanaAddModalClose('#modal-{{adapter_name|slugify}}-add','btnAddGrafana');"><em class="owf owf-cross"></em><span>{% get_message 'MOSJA00018' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="monitoringGrafanaAddModalChange('#modal-{{adapter_name|slugify}}-add', '#modal-add-adapter','btnAddGrafana');"><em class="owf owf-prev"></em><span>{% get_message 'MOSJA26011' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+            <li><button class="oase-button" onclick="createGrafanaAdapterinfo();" id="btnAddGrafana"><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+          </ul>
+        </div>
+
+        <form id="toSaveDataGra" action="#" method="POST">
+          <input type="hidden" id="add_record_gra"  value="" name="add_record" />
+          {% csrf_token %}
+        </form>
+
+      </div>
+    </div>
+  </div>
+
+</div>
+<!-- 監視先の追加画面 -->
