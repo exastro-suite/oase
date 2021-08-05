@@ -60,7 +60,7 @@ def message_formatting(grafana_message, rule_type_id, grafana_adapter_id):
 
         # データの有無確認
         if len(grafana_message) <= 0 or rule_type_id is None or grafana_adapter_id is None:
-            logger.system_log('LOSM30004', len(grafana_message), rule_type_id, grafana_adapter_id)
+            logger.system_log('LOSM30027', 'Grafana', len(grafana_message), rule_type_id, grafana_adapter_id)
             result = False
             raise
 

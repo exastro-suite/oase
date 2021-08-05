@@ -145,6 +145,6 @@ class ManageTrigger:
         """
         for t in trigger_history_list:
             if not t.trigger_id in active_trigger_id_list:
-                logger.logic_log('LOSI30003', self.grafana_adapter_id, t.trigger_id)
+                logger.logic_log('LOSI30007', 'OASE_T_GRAFANA_TRIGGER_HISTORY', self.grafana_adapter_id, t.trigger_id)
                 t.delete()
 

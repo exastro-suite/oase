@@ -151,7 +151,7 @@ class GrafanaAdapterSubModules:
                 monitoring_history_id = monitoring_history.pk
 
         except Exception as e:
-            logger.system_log('LOSM30005')
+            logger.system_log('LOSM30023', 'OASE_T_GRAFANA_MONITORING_HISTORY')
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
             monitoring_history = None
 
@@ -202,12 +202,12 @@ class GrafanaAdapterSubModules:
 
         except TypeError as e:
             result = False
-            logger.system_log('LOSM30006')
+            logger.system_log('LOSM30024', 'Grafana')
             logger.logic_log('LOSM00001', 'e: %s' % (e))
 
         except Exception as e:
             result = False
-            logger.system_log('LOSM30006')
+            logger.system_log('LOSM30024', 'Grafana')
             logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
 
         logger.logic_log('LOSI00002', 'None')
@@ -395,7 +395,7 @@ class GrafanaAdapterSubModules:
             ).order_by('grafana_lastchange').reverse().first()
 
         except GrafanaAdapter.DoesNotExist:
-            logger.logic_log('LOSM30007', self.grafana_adapter_id)
+            logger.logic_log('LOSM30025', 'OASE_T_GRAFANA_ADAPTER', self.grafana_adapter_id)
             return False
 
         except Exception as e:
@@ -411,7 +411,7 @@ class GrafanaAdapterSubModules:
                 return False
 
         except Exception as e:
-            logger.system_log('LOSM30005')
+            logger.system_log('LOSM30023', 'OASE_T_GRAFANA_MONITORING_HISTORY')
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
             return False
 
@@ -483,7 +483,7 @@ class GrafanaAdapterSubModules:
 
         except Exception as e:
             error_occurred = True
-            logger.system_log('LOSM30006')
+            logger.system_log('LOSM30024', 'Grafana')
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
 
         # 結果により監視履歴更新
@@ -500,7 +500,7 @@ class GrafanaAdapterSubModules:
 
         except Exception as e:
             status = 'error'
-            logger.system_log('LOSM30002')
+            logger.system_log('LOSM30022', 'OASE_T_GRAFANA_MONITORING_HISTORY')
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
 
         logger.logic_log('LOSI00002', 'Monitoring status: %s.' % status)
@@ -527,14 +527,14 @@ if __name__ == '__main__':
         start_time = time.time()
         loadtest_logger.warn('処理開始 GrafanaAdapterID[%s]' % (grafana_adapter_id))
 
-    logger.logic_log('LOSI30001', str(grafana_adapter_id))
+    logger.logic_log('LOSI30005', 'Grafana', str(grafana_adapter_id))
     try:
         grafana_sub_module = GrafanaAdapterSubModules(grafana_adapter_id)
 
         grafana_sub_module.do_workflow()
 
     except Exception as e:
-        logger.system_log('LOSM30006')
+        logger.system_log('LOSM30024', 'Grafana')
         logger.logic_log(
             'LOSM00001', 'grafana_adapter_id: %s, Traceback: %s' %
             (str(grafana_adapter_id), traceback.format_exc()))
@@ -543,7 +543,7 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         loadtest_logger.warn('処理終了 所要時間[%s] GrafanaAdapterID[%s]' % (elapsed_time, grafana_adapter_id))
 
-    logger.logic_log('LOSI30002', str(grafana_adapter_id))
+    logger.logic_log('LOSI30006', 'Grafana', str(grafana_adapter_id))
 
     sys.exit(0)
 
