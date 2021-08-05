@@ -187,20 +187,19 @@ class GrafanaAdapterMainModules:
                     status_update_id = self.hostname,
                 )
 
-                if len(grafana_monitoring_history_list) > 0:
-                    for grafana_res in grafana_monitoring_history_list:
-                        grafana_adapter_id = grafana_res.grafana_adapter_id
+                for grafana_res in grafana_monitoring_history_list:
+                    grafana_adapter_id = grafana_res.grafana_adapter_id
 
-                        logger.logic_log('LOSI30000', grafana_adapter_id)
+                    logger.logic_log('LOSI30004', 'OASE_T_GRAFANA_MONITORING_HISTORY', grafana_adapter_id)
 
-                        # ステータスを強制処理済みに更新
-                        grafana_res.status = FORCE_PROCESSED
-                        grafana_res.last_update_user = self.last_update_user
-                        grafana_res.last_update_datetime = datetime.datetime.now(pytz.timezone('UTC'))
-                        grafana_res.save(force_update=True)
+                    # ステータスを強制処理済みに更新
+                    grafana_res.status = FORCE_PROCESSED
+                    grafana_res.last_update_user = self.last_update_user
+                    grafana_res.last_update_datetime = datetime.datetime.now(pytz.timezone('UTC'))
+                    grafana_res.save(force_update=True)
 
         except Exception as e:
-            logger.system_log('LOSM30002')
+            logger.system_log('LOSM30022', 'OASE_T_GRAFANA_MONITORING_HISTORY')
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
 
         logger.logic_log('LOSI00002', 'None')

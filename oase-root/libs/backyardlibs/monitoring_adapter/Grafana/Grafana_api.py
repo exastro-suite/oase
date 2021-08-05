@@ -105,11 +105,11 @@ class GrafanaApi(object):
 
         except requests.exceptions.ConnectTimeout:
             # "リトライについて検討すべき"
-            logger.system_log('LOSM30015', 'Grafana Timeout error.')
+            logger.system_log('LOSM30026', 'Grafana', 'Grafana Timeout error.')
             raise
 
         except requests.exceptions.RequestException:
-            logger.system_log('LOSM30015', 'RequestException error.')
+            logger.system_log('LOSM30026', 'Grafana', 'RequestException error.')
             raise
 
         if response.status_code != 200:
@@ -120,7 +120,7 @@ class GrafanaApi(object):
             resp = json.loads(response.text)
 
         except Exception as e:
-            logger.system_log('LOSM30015', 'JSON decode error. response=%s' % response)
+            logger.system_log('LOSM30026', 'Grafana', 'JSON decode error. response=%s' % response)
             logger.logic_log('LOSI00005', traceback.format_exc())
             raise
 
@@ -142,7 +142,7 @@ class GrafanaApi(object):
             raise
 
         if self._has_error(response):
-            logger.system_log('LOSM30015', 'GetResponse error.')
+            logger.system_log('LOSM30026', 'Grafana', 'GetResponse error.')
             raise Exception('response error')
 
 
