@@ -182,7 +182,7 @@ class WidgetData(object):
                     known = 'known' + str(i)
                     item = '[' + rs[1] + '] ' + rs[2]
                     list = []
-                    list = [known, rs[0]]
+                    list = [known, rs[0], rs[1], rs[2]]
                     data['data'][item] = list
 
             other = get_message('MOSJA10062', lang, showMsgId=False)

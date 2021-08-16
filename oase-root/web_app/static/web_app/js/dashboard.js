@@ -1111,7 +1111,20 @@ dashBoard.prototype = {
             + '</div></td>';
       switch( widgetID ) {
         case 1:
-
+          if ( confirmMsg != key ){
+            tbl_name = pieChartData[key][2];
+            tbl_name = encodeURI(tbl_name);
+            rule_name = pieChartData[key][3];
+            rule_name = encodeURI(rule_name);
+            tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Actionhistory_transition('
+                      +  '\'' + tbl_name + '\''
+                      + ',\'' + rule_name + '\''
+                      + ');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
+            break;
+          } else {
+            tableHTML += '<td class="db-cell"><em class="owf"></em></td></tr>';
+          }
+          break;
         case 2:
           if ( confirmMsg != key ){
             tbl_name = pieChartData[key][2];
@@ -1677,3 +1690,8 @@ function Screen_transition(tblname, evinfo, dt_from, dt_to){
                          + "&dt_to="   + dt_to;
 }
 
+function Actionhistory_transition(tblname, rule_name){
+    window.location.href = "/oase_web/rule/action_history"
+                         + "?tblname="  + tblname
+                         + "&rulename=" + rule_name;
+}

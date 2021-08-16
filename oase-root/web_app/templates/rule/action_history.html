@@ -792,7 +792,17 @@ function search_clear(){
                 });
 
                 $modalFilter.find('.filter-data').oaseDatePicker();
-                
+
+                {% if filter_info.tblname %}
+                  $("#oaseFilterId1").val('{{filter_info.tblname|safe}}');
+                  $("#oaseFilterId1").change();
+                {% endif %}
+
+                {% if filter_info.rulename %}
+                  $("#oaseFilterId2").val('{{filter_info.rulename|safe}}');
+                  $("#oaseFilterId2").change();
+                {% endif %}
+
               });
 
               // フィルターオープン

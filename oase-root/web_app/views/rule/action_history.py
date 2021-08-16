@@ -74,6 +74,10 @@ def action_history(request):
     ita_flg = False
     mail_flg = False
     servicenow_flg = False
+    filter_info = {
+        'tblname'  : None,
+        'rulename' : None,
+    }
 
     try:
         # アクション画面のルール別アクセス権限を取得
@@ -124,6 +128,10 @@ def action_history(request):
             else:
                 act.class_info = {'status':'attention','name':'owf-attention','description':'MOSJA13063'}
 
+        # フィルター情報を取得
+        filter_info['tblname']  = request.GET.get('tblname')
+        filter_info['rulename'] = request.GET.get('rulename')
+
     except Exception as e:
         msg = get_message('MOSJA13000', request.user.get_lang_mode())
         logger.logic_log('LOSM05000', 'traceback: %s' % traceback.format_exc(), request=request)
@@ -141,6 +149,7 @@ def action_history(request):
         'ita_flg'             : ita_flg,
         'mail_flg'            : mail_flg,
         'servicenow_flg'      : servicenow_flg,
+        'filter_info'         : filter_info,
     }
 
     data.update(request.user_config.get_templates_data(request))
