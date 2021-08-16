@@ -125,7 +125,7 @@ class WidgetData(object):
 
         data = {
             'id'     : widget_id,
-            'usage'  : 'Unknown',
+            'usage'  : 'Known',
             'data'   : {},
         }
 
@@ -147,17 +147,24 @@ class WidgetData(object):
             param_list.append(to_day)
             param_list.extend(rule_ids)
             param_list.append(defs.PRODUCTION)
+            param_list.append(str(defs.ENABLE))
 
             # SQL文を作成
             query = (
-                "SELECT count(*),event_info "
-                "FROM OASE_T_EVENTS_REQUEST "
-                "WHERE status in (%s, %s) "
-                "AND event_to_time>=%s AND event_to_time<%s "
-                "AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
-                "AND request_type_id=%s "
-                "GROUP BY event_info "
-                "ORDER BY count(*) DESC,event_info;"
+                "SELECT count(*), ah.rule_type_name, ah.rule_name "
+                "FROM OASE_T_EVENTS_REQUEST er "
+                "INNER JOIN OASE_T_ACTION_HISTORY ah "
+                "ON er.rule_type_id = ah.rule_type_id "
+                "AND er.trace_id = ah.trace_id "
+                "INNER JOIN OASE_T_RULE_TYPE rt "
+                "ON er.rule_type_id = rt.rule_type_id "
+                "WHERE er.status in (%s, %s) "
+                "AND er.event_to_time>=%s AND er.event_to_time<%s "
+                "AND er.rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
+                "AND er.request_type_id=%s "
+                "AND rt.disuse_flag=%s "
+                "GROUP BY er.event_info, er.rule_type_id "
+                "ORDER BY count(*) DESC, er.event_info, er.rule_type_id;"
             )
 
             # SQL発行
@@ -173,9 +180,10 @@ class WidgetData(object):
                 else:
                     i = i + 1
                     known = 'known' + str(i)
+                    item = '[' + rs[1] + '] ' + rs[2]
                     list = []
                     list = [known, rs[0]]
-                    data['data'][rs[1]] = list
+                    data['data'][item] = list
 
             other = get_message('MOSJA10062', lang, showMsgId=False)
             list = ['known6', other_count]
