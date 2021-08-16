@@ -212,9 +212,20 @@ Copyright 2019 NEC Corporation
         });
 
 
-          {% if event_info_filter %}
-            $("#oaseFilterId4").val('{{event_info_filter|safe}}');
+          {% if filter_info.tblname %}
+            $("#oaseFilterId2").val('{{filter_info.tblname|safe}}');
+            $("#oaseFilterId2").change();
+          {% endif %}
+
+          {% if filter_info.evinfo %}
+            $("#oaseFilterId4").val('{{filter_info.evinfo|safe}}');
             $("#oaseFilterId4").change();
+          {% endif %}
+
+          {% if filter_info.dt_from and filter_info.dt_to %}
+            $("#oaseFilterId5a").val('{{filter_info.dt_from|safe}}');
+            $("#oaseFilterId5b").val('{{filter_info.dt_to|safe}}');
+            $("#oaseFilterId5").click();
           {% endif %}
 
         });

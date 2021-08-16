@@ -64,7 +64,12 @@ def index(request):
     logger.logic_log('LOSI00001', 'none', request=request)
     msg = ''
     lang = request.user.get_lang_mode()
-    event_info_filter = ''
+    filter_info = {
+        'tblname' : None,
+        'evinfo'  : None,
+        'dt_from' : None,
+        'dt_to'   : None,
+    }
 
     try:
         # リクエスト履歴画面のルール別アクセス権限を取得
@@ -119,7 +124,10 @@ def index(request):
             table_list.append(table_info)
 
         # フィルター情報を取得
-        event_info_filter = request.GET.get('event_info')
+        filter_info['tblname'] = request.GET.get('tblname')
+        filter_info['evinfo']  = request.GET.get('evinfo')
+        filter_info['dt_from'] = request.GET.get('dt_from')
+        filter_info['dt_to']   = request.GET.get('dt_to')
 
     except Exception as e:
         msg = get_message('MOSJA36000', lang)
@@ -130,7 +138,7 @@ def index(request):
         'table_list'           : table_list,
         'user_name'            : request.user.user_name,
         'can_update'           : rule_ids_admin,
-        'event_info_filter'    : event_info_filter,
+        'filter_info'          : filter_info,
     }
 
     data.update(request.user_config.get_templates_data(request))

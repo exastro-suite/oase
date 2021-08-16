@@ -277,11 +277,14 @@ filterHtmlText += '</ul>';
 filterHtmlText += '</div>';
 
 let filterHtmlDateMenu = '<li><a href="#filter-date"><em class="owf owf-date"></em></a></li>';
-let filterHtmlDate = '<div class="oase-filter-tab-body filter-date">';
-filterHtmlDate += '<dl><dt>A</dt><dd><input type="input" class="date-a" placeholder="0000/00/00 00:00:00"></dd>';
-filterHtmlDate += '<dt>B</dt><dd><input type="input" class="date-b" placeholder="0000/00/00 00:00:00"></dd></dl>';
-filterHtmlDate += '<div class="select"><select class="date-select"><option value="date01" selected>' + getMessage("MOSJA00215", false) + '</option><option value="date02">' + getMessage("MOSJA00216", false) + '</option><option value="date03">' + getMessage("MOSJA00217", false) + '</option></select></div><button><em class="owf owf-update"></em></button>';
-filterHtmlDate += '</div>';
+let filterHtmlDate1 = '<div class="oase-filter-tab-body filter-date">';
+filterHtmlDate1 += '<dl><dt>A</dt><dd><input id="oaseFilterId';
+let filterHtmlDate2 = 'a" type="input" class="date-a" placeholder="0000/00/00 00:00:00"></dd>';
+filterHtmlDate2 += '<dt>B</dt><dd><input id="oaseFilterId';
+let filterHtmlDate3 = 'b" type="input" class="date-b" placeholder="0000/00/00 00:00:00"></dd></dl>';
+filterHtmlDate3 += '<div class="select"><select class="date-select"><option value="date01" selected>' + getMessage("MOSJA00215", false) + '</option><option value="date02">' + getMessage("MOSJA00216", false) + '</option><option value="date03">' + getMessage("MOSJA00217", false) + '</option></select></div><button id="oaseFilterId';
+let filterHtmlDate4 = '"><em class="owf owf-update"></em></button>';
+filterHtmlDate4 += '</div>';
 
 /* ************************************************** *
  * th.filter セルごとにフィルタの設定を行う */
@@ -293,7 +296,7 @@ $oaseTableHead.find('.filter').each( function(){
   switch ( filterType ) {
     case 'text': filterHtml = filterHtmlMenu + filterHtmlTextMenu + '</ul>' + filterHtmlText; break;
     case 'select': filterHtml = filterHtmlMenu + filterHtmlSelectMenu + '</ul>' + filterHtmlSelect1 + filterColNo + filterHtmlSelect2; break;
-    case 'date': filterHtml = filterHtmlMenu + filterHtmlDateMenu + filterHtmlTextMenu + '</ul>' + filterHtmlDate + filterHtmlText; break;
+    case 'date': filterHtml = filterHtmlMenu + filterHtmlDateMenu + filterHtmlTextMenu + '</ul>' + filterHtmlDate1 + filterColNo + filterHtmlDate2 + filterColNo + filterHtmlDate3 + filterColNo + filterHtmlDate4 + filterHtmlText; break;
     case 'common': filterHtml = filterHtmlMenu + filterHtmlSelectMenu + filterHtmlTextMenu + '</ul>' + filterHtmlSelect1 + filterColNo + filterHtmlSelect2 + filterHtmlText; break;
   }
   filterHtml += '</div>';
