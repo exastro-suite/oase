@@ -1111,15 +1111,28 @@ dashBoard.prototype = {
             + '</div></td>';
       switch( widgetID ) {
         case 1:
+
         case 2:
           if ( confirmMsg != key ){
-            event_info = key;
+            tbl_name = pieChartData[key][2];
+            tbl_name = encodeURI(tbl_name);
+            event_info = pieChartData[key][3];
             event_info = encodeURI(event_info);
-            tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition(\'' + event_info + '\');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
+            dt_from = pieChartData[key][4];
+            dt_from = encodeURI(dt_from);
+            dt_to = pieChartData[key][5];
+            dt_to = encodeURI(dt_to);
+            tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition('
+                      +  '\'' + tbl_name + '\''
+                      + ',\'' + event_info + '\''
+                      + ',\'' + dt_from + '\''
+                      + ',\'' + dt_to + '\''
+                      + ');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
             break;
           } else {
             tableHTML += '<td class="db-cell"><em class="owf"></em></td></tr>';
           }
+          break;
       }
       tableHTML += '</tr>'
     }
@@ -1656,7 +1669,11 @@ dashBoard.prototype = {
   }
 };
 
-function Screen_transition(URI){
-    window.location.href = "/oase_web/rule/request_history?event_info=" + URI;
+function Screen_transition(tblname, evinfo, dt_from, dt_to){
+    window.location.href = "/oase_web/rule/request_history"
+                         + "?tblname=" + tblname
+                         + "&evinfo="  + evinfo
+                         + "&dt_from=" + dt_from
+                         + "&dt_to="   + dt_to;
 }
 

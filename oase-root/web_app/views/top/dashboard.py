@@ -287,7 +287,10 @@ class WidgetData(object):
                     i = i + 1
                     unknown = 'unknown' + str(i)
                     list = []
-                    list = [unknown, rs[3]]
+                    list = [
+                        unknown, rs[3],
+                        rs[1], rs[2], from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S')
+                    ]
                     data['data'][data_name] = list
 
             other = get_message('MOSJA10062', lang, showMsgId=False)
