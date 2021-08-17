@@ -91,6 +91,22 @@ class WidgetData(object):
         return dt
 
 
+    @staticmethod
+    def get_nextmonth(dt):
+        """
+        [メソッド概要]
+          翌月の年月を取得
+        """
+
+        if dt.month < 12:
+            dt = datetime.datetime(dt.year, dt.month + 1, 1, 0, 0, 0, 0)
+
+        else:
+            dt = datetime.datetime(dt.year + 1, 1, 1, 0, 0, 0, 0)
+
+        return dt
+
+
     def get_data(self, widget_id, **kwargs):
         """
         [メソッド概要]
@@ -519,6 +535,9 @@ class WidgetData(object):
 
         lang = kwargs['language'] if 'language' in kwargs else 'EN'
 
+        period_from = datetime.datetime(self.now.year - 1, self.now.month, 1, 0, 0, 0, 0)
+        period_to   = datetime.datetime(self.now.year,     self.now.month, 1, 0, 0, 0, 0)
+
         # データの棒グラフ用フォーマットで初期化
         data = {
             'id'     : widget_id,
@@ -533,20 +552,13 @@ class WidgetData(object):
             ['unknown', get_message('MOSJA10048', lang, showMsgId=False)],
         ]
 
-        data['data'] = [
-            [get_message('MOSJA10050', lang, showMsgId=False),  '1', 0, 0],
-            [get_message('MOSJA10051', lang, showMsgId=False),  '2', 0, 0],
-            [get_message('MOSJA10052', lang, showMsgId=False),  '3', 0, 0],
-            [get_message('MOSJA10053', lang, showMsgId=False),  '4', 0, 0],
-            [get_message('MOSJA10054', lang, showMsgId=False),  '5', 0, 0],
-            [get_message('MOSJA10055', lang, showMsgId=False),  '6', 0, 0],
-            [get_message('MOSJA10056', lang, showMsgId=False),  '7', 0, 0],
-            [get_message('MOSJA10057', lang, showMsgId=False),  '8', 0, 0],
-            [get_message('MOSJA10058', lang, showMsgId=False),  '9', 0, 0],
-            [get_message('MOSJA10059', lang, showMsgId=False), '10', 0, 0],
-            [get_message('MOSJA10060', lang, showMsgId=False), '11', 0, 0],
-            [get_message('MOSJA10061', lang, showMsgId=False), '12', 0, 0]
-        ]
+        period_tmp = period_from
+        while period_tmp <  period_to:
+            data['data'].append(
+                [period_tmp.strftime('%Y/%m'), str(period_tmp.month), 0, 0]
+            )
+
+            period_tmp = self.get_nextmonth(period_tmp)
 
 
         # 棒グラフ用データをDBから取得
@@ -556,19 +568,7 @@ class WidgetData(object):
             param_list = []
 
             # SQLのパラメーターを設定
-            # うるう年判定
-            if calendar.isleap(self.now.year):
-                date_range = 365
-            else:
-                date_range = 364
             rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
-
-            year = str(self.now.year)
-            month = str(self.now.month)
-            period_to = year + '-' + month.zfill(2) + '-' + '01' + ' 00:00:00.000000'
-            period_to = datetime.datetime.strptime(period_to, '%Y-%m-%d %H:%M:%S.%f')
-            period_to = self.convert_datetime_to_date(period_to)
-            period_from = self.convert_datetime_to_date(period_to - datetime.timedelta(days=date_range))
 
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
@@ -578,6 +578,8 @@ class WidgetData(object):
             param_list.append(defs.PRODUCTION)
 
             param_list.append(defs.RULE_UNMATCH)
+            param_list.append(defs.RULE_IN_COOPERATION)
+            param_list.append(defs.RULE_ALREADY_LINKED)
             param_list.append(period_from)
             param_list.append(period_to)
             param_list.extend(rule_ids)
@@ -585,42 +587,42 @@ class WidgetData(object):
 
             # SQL文を作成
             query = (
-                "SELECT t1.month, IFNULL(known.cnt, 0) cnt, IFNULL(unknown.cnt, 0) uncnt "
+                "SELECT t1.yyyymm, IFNULL(known.cnt, 0) cnt, IFNULL(unknown.cnt, 0) uncnt "
                 "FROM ("
-                "  SELECT 1 month "
-                "  UNION SELECT 2 "
-                "  UNION SELECT 3 "
-                "  UNION SELECT 4 "
-                "  UNION SELECT 5 "
-                "  UNION SELECT 6 "
-                "  UNION SELECT 7 "
-                "  UNION SELECT 8 "
-                "  UNION SELECT 9 "
-                "  UNION SELECT 10 "
-                "  UNION SELECT 11 "
-                "  UNION SELECT 12 "
+                "  SELECT DATE_FORMAT(NOW() - INTERVAL 12 MONTH, '%%Y/%%m') yyyymm "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL 11 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL 10 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  9 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  8 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  7 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  6 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  5 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  4 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  3 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  2 MONTH, '%%Y/%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  1 MONTH, '%%Y/%%m') "
                 ") t1 "
                 "LEFT OUTER JOIN ("
-                "  SELECT DATE_FORMAT(event_to_time, '%%m') month, COUNT(*) cnt "
+                "  SELECT DATE_FORMAT(event_to_time, '%%Y/%%m') yyyymm, COUNT(*) cnt "
                 "  FROM OASE_T_EVENTS_REQUEST "
                 "  WHERE status in (%s, %s) "
                 "  AND event_to_time>=%s AND event_to_time<%s "
                 "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
                 "  AND request_type_id=%s "
-                "  GROUP BY DATE_FORMAT(event_to_time, '%%m') "
+                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y/%%m') "
                 ") known "
-                "ON t1.month=known.month "
+                "ON t1.yyyymm=known.yyyymm "
                 "LEFT OUTER JOIN ("
-                "  SELECT DATE_FORMAT(event_to_time, '%%m') month, COUNT(*) cnt "
+                "  SELECT DATE_FORMAT(event_to_time, '%%Y/%%m') yyyymm, COUNT(*) cnt "
                 "  FROM OASE_T_EVENTS_REQUEST "
-                "  WHERE status=%s "
+                "  WHERE status in (%s, %s, %s) "
                 "  AND event_to_time>=%s AND event_to_time<%s "
                 "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
                 "  AND request_type_id=%s "
-                "  GROUP BY DATE_FORMAT(event_to_time, '%%m') "
+                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y/%%m') "
                 ") unknown "
-                "ON t1.month=unknown.month "
-                "ORDER BY t1.month;"
+                "ON t1.yyyymm=unknown.yyyymm "
+                "ORDER BY t1.yyyymm;"
             )
 
             # SQL発行
@@ -629,12 +631,12 @@ class WidgetData(object):
                 rset = cursor.fetchall()
 
             # 取得したデータを棒グラフ用フォーマットに当て込む
-            for rs in rset:
-                if len(data['data']) < rs[0]:
+            for i, rs in enumerate(rset):
+                if len(data['data']) <= i:
                     continue
 
-                data['data'][rs[0]-1][2] = rs[1]
-                data['data'][rs[0]-1][3] = rs[2]
+                data['data'][i][2] = rs[1]
+                data['data'][i][3] = rs[2]
 
 
         except Exception as e:
