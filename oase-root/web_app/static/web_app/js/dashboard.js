@@ -1450,12 +1450,17 @@ dashBoard.prototype = {
       }
       if ( sgTotla[i] > sgMax ) sgMax = sgTotla[i];
     }
-    
+
     // グラフ縦軸
-    const digit = String( sgMax ).length, // 桁数
-          digitNumber = Math.pow( 5, digit - 1 ), // 縦軸の数
-          graphMaxNumber = Math.ceil( sgMax / digitNumber ) * digitNumber; // グラフ最大値
-    
+    if( sgMax > 9 ) {
+        digit = String( sgMax ).length; // 桁数
+        digitNumber = Math.pow( 10, digit) / 10; // 縦軸の数
+        graphMaxNumber = Math.ceil( sgMax / digitNumber ) * digitNumber; // グラフ最大値
+    } else {
+        digitNumber = 1 // 縦軸の数
+        graphMaxNumber = Math.ceil( sgMax / digitNumber ) * digitNumber; // グラフ最大値
+    }
+
     sgHTML += '<ol class="stacked-graph-vertical-axis">';
     const verticalAxisLength = graphMaxNumber / digitNumber;
     for( let i = 0; i <= verticalAxisLength; i++ ) {
