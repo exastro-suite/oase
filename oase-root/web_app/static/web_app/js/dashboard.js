@@ -31,7 +31,7 @@ dashBoard.prototype = {
     '1': {
       'widget_id': '1',
       'name': 'known',
-      'display_name': 'Match ranking',
+      'display_name': getMessage("MOSJA10067", false),
       'description': '既知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -40,7 +40,7 @@ dashBoard.prototype = {
     '2': {
       'widget_id': '2',
       'name': 'unknown',
-      'display_name': 'Unmatch ranking',
+      'display_name': getMessage("MOSJA10068", false),
       'description': '未知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -49,7 +49,7 @@ dashBoard.prototype = {
     '3': {
       'widget_id': '3',
       'name': 'known-unknown',
-      'display_name': "Today's coverage",
+      'display_name': getMessage("MOSJA10066", false),
       'description': '既知・未知事象(日)の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -1128,7 +1128,7 @@ dashBoard.prototype = {
                       + ',\'' + dt_from + '\''
                       + ',\'' + dt_to + '\''
                       + ',\'' + request_type + '\''
-                      + ');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
+                      + ');"><em class="owf owf-details"></em><span style="display: none;">' + getMessage("MOSJA10065", false) + '</span></button></td></tr>';
             break;
           } else {
             tableHTML += '<td class="db-cell"><em class="owf"></em></td></tr>';
