@@ -31,7 +31,7 @@ dashBoard.prototype = {
     '1': {
       'widget_id': '1',
       'name': 'known',
-      'display_name': getMessage("MOSJA10067", false),
+      'display_name': 'Match ranking',
       'description': '既知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -40,7 +40,7 @@ dashBoard.prototype = {
     '2': {
       'widget_id': '2',
       'name': 'unknown',
-      'display_name': getMessage("MOSJA10068", false),
+      'display_name': 'Unmatch ranking',
       'description': '未知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -49,7 +49,7 @@ dashBoard.prototype = {
     '3': {
       'widget_id': '3',
       'name': 'known-unknown',
-      'display_name': getMessage("MOSJA10066", false),
+      'display_name': "Today's coverage",
       'description': '既知・未知事象(日)の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -1111,20 +1111,6 @@ dashBoard.prototype = {
             + '</div></td>';
       switch( widgetID ) {
         case 1:
-          if ( confirmMsg != key ){
-            tbl_name = pieChartData[key][2];
-            tbl_name = encodeURI(tbl_name);
-            rule_name = pieChartData[key][3];
-            rule_name = encodeURI(rule_name);
-            tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Actionhistory_transition('
-                      +  '\'' + tbl_name + '\''
-                      + ',\'' + rule_name + '\''
-                      + ');"><em class="owf owf-details"></em><span style="display: none;">' + getMessage("MOSJA10065", false) + '</span></button></td></tr>';
-            break;
-          } else {
-            tableHTML += '<td class="db-cell"><em class="owf"></em></td></tr>';
-          }
-          break;
         case 2:
           if ( confirmMsg != key ){
             tbl_name = pieChartData[key][2];
@@ -1135,12 +1121,14 @@ dashBoard.prototype = {
             dt_from = encodeURI(dt_from);
             dt_to = pieChartData[key][5];
             dt_to = encodeURI(dt_to);
+            request_type = encodeURI(getMessage("MOSJA00094", false));
             tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition('
                       +  '\'' + tbl_name + '\''
                       + ',\'' + event_info + '\''
                       + ',\'' + dt_from + '\''
                       + ',\'' + dt_to + '\''
-                      + ');"><em class="owf owf-details"></em><span style="display: none;">' + getMessage("MOSJA10065", false) + '</span></button></td></tr>';
+                      + ',\'' + request_type + '\''
+                      + ');"><em class="owf owf-details"></em><span style="display: none;">詳細表示</span></button></td></tr>';
             break;
           } else {
             tableHTML += '<td class="db-cell"><em class="owf"></em></td></tr>';
@@ -1687,12 +1675,13 @@ dashBoard.prototype = {
   }
 };
 
-function Screen_transition(tblname, evinfo, dt_from, dt_to){
+function Screen_transition(tblname, evinfo, dt_from, dt_to, request_type){
     window.location.href = "/oase_web/rule/request_history"
                          + "?tblname=" + tblname
                          + "&evinfo="  + evinfo
                          + "&dt_from=" + dt_from
-                         + "&dt_to="   + dt_to;
+                         + "&dt_to="   + dt_to
+                         + "&reqtype=" + request_type;
 }
 
 function Actionhistory_transition(tblname, rule_name){

@@ -154,8 +154,8 @@ class WidgetData(object):
             # SQLのパラメータを設定
             rule_ids = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
             count    = kwargs['count'] if 'count' in kwargs else 5
-            from_day = self.convert_datetime_to_date(self.now)
-            to_day   = self.convert_datetime_to_date(self.now + datetime.timedelta(days=1))
+            from_day = self.now - datetime.timedelta(days=1)
+            to_day   = self.now
 
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
@@ -167,19 +167,16 @@ class WidgetData(object):
 
             # SQL文を作成
             query = (
-                "SELECT count(*), ah.rule_type_name, ah.rule_name "
+                "SELECT er.rule_type_id, rt.rule_type_name, er.event_info, count(*) "
                 "FROM OASE_T_EVENTS_REQUEST er "
-                "INNER JOIN OASE_T_ACTION_HISTORY ah "
-                "ON er.rule_type_id = ah.rule_type_id "
-                "AND er.trace_id = ah.trace_id "
                 "INNER JOIN OASE_T_RULE_TYPE rt "
-                "ON er.rule_type_id = rt.rule_type_id "
-                "WHERE er.status in (%s, %s) "
+                "ON er.rule_type_id=rt.rule_type_id "
+                "WHERE er.status in (%s,%s) "
                 "AND er.event_to_time>=%s AND er.event_to_time<%s "
                 "AND er.rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
                 "AND er.request_type_id=%s "
                 "AND rt.disuse_flag=%s "
-                "GROUP BY er.event_info, er.rule_type_id "
+                "GROUP BY er.rule_type_id, er.event_info "
                 "ORDER BY count(*) DESC, er.event_info, er.rule_type_id;"
             )
 
@@ -188,18 +185,46 @@ class WidgetData(object):
                 cursor.execute(query, param_list)
                 rset = cursor.fetchall()
 
+            # 条件名を取得
+            cond_info = {}
+
+            rule_ids = []
+            for rs in rset:
+                rule_ids.append(rs[0])
+
+            dto = DataObject.objects.filter(rule_type_id__in=rule_ids).values('rule_type_id', 'conditional_name')
+            dto = dto.order_by('data_object_id')
+            for d in dto:
+                if d['rule_type_id'] not in cond_info:
+                    cond_info[d['rule_type_id']] = []
+
+                cond_info[d['rule_type_id']].append(d['conditional_name'])
+
+            # 取得データを表示用に加工
             i = 0
             other_count = 0
             for rs in rset:
+                data_name = "[%s]" % (rs[1])
+
+                evinfo = ast.literal_eval(rs[2])
+                evinfo = evinfo['EVENT_INFO'] if 'EVENT_INFO' in evinfo else []
+
+                dto_list = cond_info[rs[0]] if rs[0] in cond_info else []
+                for d, ev in zip(dto_list, evinfo):
+                    data_name = '%s<br>%s:%s' % (data_name, d, ev)
+
                 if i >= count:
-                    other_count = other_count + rs[0]
+                    other_count = other_count + rs[3]
+
                 else:
                     i = i + 1
                     known = 'known' + str(i)
-                    item = '[' + rs[1] + '] ' + rs[2]
                     list = []
-                    list = [known, rs[0], rs[1], rs[2]]
-                    data['data'][item] = list
+                    list = [
+                        known, rs[3], rs[1], rs[2],
+                        from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S')
+                    ]
+                    data['data'][data_name] = list
 
             other = get_message('MOSJA10062', lang, showMsgId=False)
             list = ['known6', other_count]

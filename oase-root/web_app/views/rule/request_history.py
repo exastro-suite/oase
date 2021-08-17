@@ -69,6 +69,7 @@ def index(request):
         'evinfo'  : None,
         'dt_from' : None,
         'dt_to'   : None,
+        'reqtype' : None,
     }
 
     try:
@@ -128,6 +129,7 @@ def index(request):
         filter_info['evinfo']  = request.GET.get('evinfo')
         filter_info['dt_from'] = request.GET.get('dt_from')
         filter_info['dt_to']   = request.GET.get('dt_to')
+        filter_info['reqtype'] = request.GET.get('reqtype')
 
     except Exception as e:
         msg = get_message('MOSJA36000', lang)
