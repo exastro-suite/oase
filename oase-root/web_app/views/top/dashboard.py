@@ -73,6 +73,18 @@ class WidgetData(object):
         self.request = req
 
 
+    def stacked_graph_title_date(self, time, format):
+        """
+        [メソッド概要]
+          棒グラフの日付の形式を整える
+          [引数]
+          time   : 時間帯別と月別の棒グラフのメソッド内のperiod_from,period_to
+          format : 表示形式のフォーマット
+        """
+        title_time = time.strftime(format)
+
+        return title_time
+
     def convert_datetime_to_date(self, dt):
         """
         [メソッド概要]
@@ -415,6 +427,7 @@ class WidgetData(object):
             'id'     : widget_id,
             'usage'  : [],
             'data'   : [],
+            'date'   : [],
         }
 
         data['usage'] = [
@@ -465,6 +478,11 @@ class WidgetData(object):
 
             period_to = self.convert_datetime_to_date(self.now)
             period_from = self.convert_datetime_to_date(self.now - datetime.timedelta(days=date_range))
+
+
+            data['date'] = [
+                ' (' + self.stacked_graph_title_date(period_from - datetime.timedelta(days=1), '%Y-%m-%d') + ' 00:00 ~ ' + self.stacked_graph_title_date(period_to - datetime.timedelta(days=1), '%Y-%m-%d') + ' 23:59)',
+            ]
 
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
@@ -573,6 +591,7 @@ class WidgetData(object):
             'id'     : widget_id,
             'usage'  : [],
             'data'   : [],
+            'date'   : [],
         }
 
         data['usage'] = [
@@ -580,6 +599,10 @@ class WidgetData(object):
             ['time', get_message('MOSJA10049', lang, showMsgId=False)],
             ['known', get_message('MOSJA10047', lang, showMsgId=False)],
             ['unknown', get_message('MOSJA10048', lang, showMsgId=False)],
+        ]
+        
+        data['date'] = [
+            ' (' + self.stacked_graph_title_date(period_from, '%Y-%m') + " ~ " + self.stacked_graph_title_date(period_to - datetime.timedelta(seconds=1), '%Y-%m') + ')',
         ]
 
         period_tmp = period_from

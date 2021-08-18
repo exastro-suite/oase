@@ -275,7 +275,7 @@ dashBoard.prototype = {
       + '<div class="widget">'
         + '<div class="widget-header">'
           + '<div class="widget-move-knob"></div>'
-          + '<div class="widget-name"><span class="widget-name-inner">' + db.textEntities( widgetData['display_name'] ) + '</span>'
+          + '<div class="widget-name"><span class="widget-name-inner">' + db.textEntities( widgetData['display_name'] ) + '<span id="graph_time' + widgetData['widget_id'] + '"></span>' + '</span>'
             + '<div class="widget-edit-menu">'
               + '<ul class="widget-edit-menu-list">'
                 + '<li class="widget-edit-menu-item"><button class="widget-edit-button widget-edit" data-type="edit"><em class="owf owf-edit"></em></button></li>'
@@ -1662,6 +1662,7 @@ dashBoard.prototype = {
             function(){
               if(respdata.id == '21' || respdata.id == '22') {
                 db.stackedGraph( respdata.id, respdata.usage, respdata.data );
+                $("#graph_time" + widgetID).text(respdata.date);
               } else if(respdata.id == '1' || respdata.id == '2' || respdata.id == '3') {
                 db.pieChart( respdata.id, respdata.usage, respdata.data );
               }
