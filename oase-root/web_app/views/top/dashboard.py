@@ -42,7 +42,7 @@ from django.db.models import Q
 from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from web_app.templatetags.common import get_message
-from web_app.models.models import EventsRequest, DataObject
+from web_app.models.models import EventsRequest, DataObject, RuleType
 
 
 logger = OaseLogger.get_instance() # ロガー初期化
@@ -80,10 +80,6 @@ class WidgetData(object):
         [引数]
           dt : datetime : naiveなdatetime
         """
-
-        # 日時から日付(0時0分の日時)に変換
-        dt = dt.date()
-        dt = datetime.datetime.combine(dt, datetime.time())
 
         # UTCとの時差を加味した日時に変換
         dt = dt + self.dt_diff
@@ -141,7 +137,7 @@ class WidgetData(object):
 
         data = {
             'id'     : widget_id,
-            'usage'  : 'Known',
+            'usage'  : 'Match',
             'data'   : {},
         }
 
@@ -154,8 +150,8 @@ class WidgetData(object):
             # SQLのパラメータを設定
             rule_ids = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
             count    = kwargs['count'] if 'count' in kwargs else 5
-            from_day = self.now - datetime.timedelta(days=1)
-            to_day   = self.now
+            from_day = self.convert_datetime_to_date(self.now - datetime.timedelta(days=1))
+            to_day   = self.convert_datetime_to_date(self.now)
 
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
@@ -247,7 +243,7 @@ class WidgetData(object):
 
         data = {
             'id'     : widget_id,
-            'usage'  : 'Unknown',
+            'usage'  : 'Unmatch',
             'data'   : {},
         }
 
@@ -260,8 +256,8 @@ class WidgetData(object):
             # SQLのパラメータを設定
             rule_ids = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
             count    = kwargs['count'] if 'count' in kwargs else 5
-            from_day = self.now - datetime.timedelta(days=1)
-            to_day   = self.now
+            from_day = self.convert_datetime_to_date(self.now - datetime.timedelta(days=1))
+            to_day   = self.convert_datetime_to_date(self.now)
 
             param_list.append(defs.RULE_UNMATCH)
             param_list.append(defs.RULE_IN_COOPERATION)
@@ -353,17 +349,24 @@ class WidgetData(object):
 
         lang = kwargs['language'] if 'language' in kwargs else 'EN'
         rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else []
-        from_day = self.convert_datetime_to_date(self.now)
-        to_day = self.convert_datetime_to_date(self.now + datetime.timedelta(days=1))
+        from_day = self.convert_datetime_to_date(self.now - datetime.timedelta(days=1))
+        to_day   = self.convert_datetime_to_date(self.now)
         from_day = pytz.timezone('UTC').localize(from_day)
         to_day = pytz.timezone('UTC').localize(to_day)
         previously_count = 0
         unknown_count = 0
+        enable_rule_ids = []
 
         try:
+            enable_rule_ids = list(RuleType.objects.filter(
+                rule_type_id__in=rule_ids,
+                disuse_flag=defs.ENABLE
+                ).values_list('rule_type_id',flat=True)
+            )
+
             # 既知事象情報取得
             previously_count = EventsRequest.objects.filter(
-                Q(rule_type_id__in=rule_ids),
+                Q(rule_type_id__in=enable_rule_ids),
                 Q(request_type_id=1),
                 Q(status=3) | Q(status=4),
                 Q(event_to_time__gte=from_day),
@@ -372,7 +375,7 @@ class WidgetData(object):
 
             # 未知事象
             unknown_count = EventsRequest.objects.filter(
-                rule_type_id__in=rule_ids,
+                rule_type_id__in=enable_rule_ids,
                 request_type_id=1,
                 status=1000,
                 event_to_time__gte=from_day,
@@ -385,7 +388,7 @@ class WidgetData(object):
 
         data = {
             'id'     : widget_id,
-            'usage'  : 'Known/Unknown',
+            'usage'  : 'Match/Unmatch',
             'data'   : [],
         }
 
