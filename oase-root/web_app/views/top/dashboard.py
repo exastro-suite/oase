@@ -481,7 +481,7 @@ class WidgetData(object):
 
 
             data['date'] = [
-                ' (' + self.stacked_graph_title_date(period_from - datetime.timedelta(days=1), '%Y-%m-%d') + ' 00:00 ~ ' + self.stacked_graph_title_date(period_to - datetime.timedelta(days=1), '%Y-%m-%d') + ' 23:59)',
+                ' (' + self.stacked_graph_title_date(period_from, '%Y-%m-%d %H:%M') + ' ~ ' + self.stacked_graph_title_date(period_to - datetime.timedelta(seconds=1), '%Y-%m-%d %H:%M') + ')',
             ]
 
             param_list.append(defs.PROCESSED)
