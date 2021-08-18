@@ -70,6 +70,7 @@ def index(request):
         'dt_from' : None,
         'dt_to'   : None,
         'reqtype' : None,
+        'sts'     : [],
     }
 
     try:
@@ -130,6 +131,15 @@ def index(request):
         filter_info['dt_from'] = request.GET.get('dt_from')
         filter_info['dt_to']   = request.GET.get('dt_to')
         filter_info['reqtype'] = request.GET.get('reqtype')
+        sts_list               = request.GET.get('sts')
+
+        if sts_list:
+            sts_list = sts_list.split(',')
+            for sts in sts_list:
+                if int(sts) in defs.REQUEST_HISTORY_STATUS.ICON_INFO:
+                    desc = defs.REQUEST_HISTORY_STATUS.ICON_INFO[int(sts)]['description']
+                    desc = get_message(desc, lang, showMsgId=False)
+                    filter_info['sts'].append(desc)
 
     except Exception as e:
         msg = get_message('MOSJA36000', lang)
