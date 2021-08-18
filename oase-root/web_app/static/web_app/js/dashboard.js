@@ -1122,12 +1122,15 @@ dashBoard.prototype = {
             dt_to = pieChartData[key][5];
             dt_to = encodeURI(dt_to);
             request_type = encodeURI(getMessage("MOSJA00094", false));
+            sts = pieChartData[key][6];
+            sts = encodeURI(sts);
             tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition('
                       +  '\'' + tbl_name + '\''
                       + ',\'' + event_info + '\''
                       + ',\'' + dt_from + '\''
                       + ',\'' + dt_to + '\''
                       + ',\'' + request_type + '\''
+                      + ',\'' + sts + '\''
                       + ');"><em class="owf owf-details"></em><span style="display: none;">' + getMessage("MOSJA10065", false) + '</span></button></td></tr>';
             break;
           } else {
@@ -1675,13 +1678,14 @@ dashBoard.prototype = {
   }
 };
 
-function Screen_transition(tblname, evinfo, dt_from, dt_to, request_type){
+function Screen_transition(tblname, evinfo, dt_from, dt_to, request_type, sts){
     window.location.href = "/oase_web/rule/request_history"
                          + "?tblname=" + tblname
                          + "&evinfo="  + evinfo
                          + "&dt_from=" + dt_from
                          + "&dt_to="   + dt_to
-                         + "&reqtype=" + request_type;
+                         + "&reqtype=" + request_type
+                         + "&sts="     + sts;
 }
 
 function Actionhistory_transition(tblname, rule_name){

@@ -218,7 +218,8 @@ class WidgetData(object):
                     list = []
                     list = [
                         known, rs[3], rs[1], rs[2],
-                        from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S')
+                        from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S'),
+                        '%s,%s' % (defs.PROCESSED, defs.FORCE_PROCESSED),
                     ]
                     data['data'][data_name] = list
 
@@ -326,7 +327,8 @@ class WidgetData(object):
                     list = []
                     list = [
                         unknown, rs[3],
-                        rs[1], rs[2], from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S')
+                        rs[1], rs[2], from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S'),
+                        '%s,%s,%s' % (defs.RULE_UNMATCH, defs.RULE_IN_COOPERATION, defs.RULE_ALREADY_LINKED),
                     ]
                     data['data'][data_name] = list
 
@@ -583,7 +585,7 @@ class WidgetData(object):
         period_tmp = period_from
         while period_tmp <  period_to:
             data['data'].append(
-                [period_tmp.strftime('%Y/%m'), str(period_tmp.month), 0, 0]
+                [period_tmp.strftime('%Y-%m'), str(period_tmp.month), 0, 0]
             )
 
             period_tmp = self.get_nextmonth(period_tmp)
@@ -617,37 +619,37 @@ class WidgetData(object):
             query = (
                 "SELECT t1.yyyymm, IFNULL(known.cnt, 0) cnt, IFNULL(unknown.cnt, 0) uncnt "
                 "FROM ("
-                "  SELECT DATE_FORMAT(NOW() - INTERVAL 12 MONTH, '%%Y/%%m') yyyymm "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL 11 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL 10 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  9 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  8 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  7 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  6 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  5 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  4 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  3 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  2 MONTH, '%%Y/%%m') "
-                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  1 MONTH, '%%Y/%%m') "
+                "  SELECT DATE_FORMAT(NOW() - INTERVAL 12 MONTH, '%%Y-%%m') yyyymm "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL 11 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL 10 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  9 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  8 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  7 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  6 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  5 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  4 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  3 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  2 MONTH, '%%Y-%%m') "
+                "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  1 MONTH, '%%Y-%%m') "
                 ") t1 "
                 "LEFT OUTER JOIN ("
-                "  SELECT DATE_FORMAT(event_to_time, '%%Y/%%m') yyyymm, COUNT(*) cnt "
+                "  SELECT DATE_FORMAT(event_to_time, '%%Y-%%m') yyyymm, COUNT(*) cnt "
                 "  FROM OASE_T_EVENTS_REQUEST "
                 "  WHERE status in (%s, %s) "
                 "  AND event_to_time>=%s AND event_to_time<%s "
                 "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
                 "  AND request_type_id=%s "
-                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y/%%m') "
+                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y-%%m') "
                 ") known "
                 "ON t1.yyyymm=known.yyyymm "
                 "LEFT OUTER JOIN ("
-                "  SELECT DATE_FORMAT(event_to_time, '%%Y/%%m') yyyymm, COUNT(*) cnt "
+                "  SELECT DATE_FORMAT(event_to_time, '%%Y-%%m') yyyymm, COUNT(*) cnt "
                 "  FROM OASE_T_EVENTS_REQUEST "
                 "  WHERE status in (%s, %s, %s) "
                 "  AND event_to_time>=%s AND event_to_time<%s "
                 "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
                 "  AND request_type_id=%s "
-                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y/%%m') "
+                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y-%%m') "
                 ") unknown "
                 "ON t1.yyyymm=unknown.yyyymm "
                 "ORDER BY t1.yyyymm;"

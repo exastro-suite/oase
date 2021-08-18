@@ -211,6 +211,11 @@ Copyright 2019 NEC Corporation
           }
         });
 
+          {% if filter_info.sts|length %}
+            $("#oaseFilterId0").val({{filter_info.sts|safe}});
+            $("#oaseFilterId0").change();
+          {% endif %}
+
           {% if filter_info.reqtype %}
             $("#oaseFilterId1").val('{{filter_info.reqtype|safe}}');
             $("#oaseFilterId1").change();
