@@ -42,7 +42,7 @@ from django.db.models import Q
 from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from web_app.templatetags.common import get_message
-from web_app.models.models import EventsRequest, DataObject, RuleType
+from web_app.models.models import EventsRequest, DataObject
 
 
 logger = OaseLogger.get_instance() # ロガー初期化
@@ -162,13 +162,15 @@ class WidgetData(object):
             # SQLのパラメータを設定
             rule_ids = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
             count    = kwargs['count'] if 'count' in kwargs else 5
-            from_day = self.convert_datetime_to_date(self.now - datetime.timedelta(days=1))
-            to_day   = self.convert_datetime_to_date(self.now)
+            from_day = self.now - datetime.timedelta(days=1)
+            to_day   = self.now
+            where_from_day = self.convert_datetime_to_date(from_day)
+            where_to_day   = self.convert_datetime_to_date(to_day)
 
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
-            param_list.append(from_day)
-            param_list.append(to_day)
+            param_list.append(where_from_day)
+            param_list.append(where_to_day)
             param_list.extend(rule_ids)
             param_list.append(defs.PRODUCTION)
             param_list.append(str(defs.ENABLE))
@@ -269,14 +271,16 @@ class WidgetData(object):
             # SQLのパラメータを設定
             rule_ids = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
             count    = kwargs['count'] if 'count' in kwargs else 5
-            from_day = self.convert_datetime_to_date(self.now - datetime.timedelta(days=1))
-            to_day   = self.convert_datetime_to_date(self.now)
+            from_day = self.now - datetime.timedelta(days=1)
+            to_day   = self.now
+            where_from_day = self.convert_datetime_to_date(from_day)
+            where_to_day   = self.convert_datetime_to_date(to_day)
 
             param_list.append(defs.RULE_UNMATCH)
             param_list.append(defs.RULE_IN_COOPERATION)
             param_list.append(defs.RULE_ALREADY_LINKED)
-            param_list.append(from_day)
-            param_list.append(to_day)
+            param_list.append(where_from_day)
+            param_list.append(where_to_day)
             param_list.extend(rule_ids)
             param_list.append(defs.PRODUCTION)
             param_list.append(str(defs.ENABLE))
@@ -369,18 +373,11 @@ class WidgetData(object):
         to_day = pytz.timezone('UTC').localize(to_day)
         previously_count = 0
         unknown_count = 0
-        enable_rule_ids = []
 
         try:
-            enable_rule_ids = list(RuleType.objects.filter(
-                rule_type_id__in=rule_ids,
-                disuse_flag=defs.ENABLE
-                ).values_list('rule_type_id',flat=True)
-            )
-
             # 既知事象情報取得
             previously_count = EventsRequest.objects.filter(
-                Q(rule_type_id__in=enable_rule_ids),
+                Q(rule_type_id__in=rule_ids),
                 Q(request_type_id=1),
                 Q(status=3) | Q(status=4),
                 Q(event_to_time__gte=from_day),
@@ -389,7 +386,7 @@ class WidgetData(object):
 
             # 未知事象
             unknown_count = EventsRequest.objects.filter(
-                rule_type_id__in=enable_rule_ids,
+                rule_type_id__in=rule_ids,
                 request_type_id=1,
                 status=1000,
                 event_to_time__gte=from_day,
@@ -475,10 +472,10 @@ class WidgetData(object):
             date_range = kwargs['date_range']   if 'date_range'   in kwargs else 30
             rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
 
-
-            period_to = self.convert_datetime_to_date(self.now)
-            period_from = self.convert_datetime_to_date(self.now - datetime.timedelta(days=date_range))
-
+            period_to = datetime.datetime(self.now.year, self.now.month, self.now.day, 0, 0, 0, 0)
+            period_from = period_to - datetime.timedelta(days=date_range)
+            where_period_to = self.convert_datetime_to_date(period_to)
+            where_period_from = self.convert_datetime_to_date(period_from)
 
             data['date'] = [
                 ' (' + self.stacked_graph_title_date(period_from, '%Y-%m-%d %H:%M') + ' ~ ' + self.stacked_graph_title_date(period_to - datetime.timedelta(seconds=1), '%Y-%m-%d %H:%M') + ')',
@@ -486,14 +483,14 @@ class WidgetData(object):
 
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
-            param_list.append(period_from)
-            param_list.append(period_to)
+            param_list.append(where_period_from)
+            param_list.append(where_period_to)
             param_list.extend(rule_ids)
             param_list.append(defs.PRODUCTION)
 
             param_list.append(defs.RULE_UNMATCH)
-            param_list.append(period_from)
-            param_list.append(period_to)
+            param_list.append(where_period_from)
+            param_list.append(where_period_to)
             param_list.extend(rule_ids)
             param_list.append(defs.PRODUCTION)
 
@@ -585,6 +582,8 @@ class WidgetData(object):
 
         period_from = datetime.datetime(self.now.year - 1, self.now.month, 1, 0, 0, 0, 0)
         period_to   = datetime.datetime(self.now.year,     self.now.month, 1, 0, 0, 0, 0)
+        where_period_from = self.convert_datetime_to_date(period_from)
+        where_period_to   = self.convert_datetime_to_date(period_to)
 
         # データの棒グラフ用フォーマットで初期化
         data = {
@@ -623,18 +622,20 @@ class WidgetData(object):
             # SQLのパラメーターを設定
             rule_ids   = kwargs['req_rule_ids'] if 'req_rule_ids' in kwargs else [0,]
 
+            param_list.append(self.hour_diff)
             param_list.append(defs.PROCESSED)
             param_list.append(defs.FORCE_PROCESSED)
-            param_list.append(period_from)
-            param_list.append(period_to)
+            param_list.append(where_period_from)
+            param_list.append(where_period_to)
             param_list.extend(rule_ids)
             param_list.append(defs.PRODUCTION)
 
+            param_list.append(self.hour_diff)
             param_list.append(defs.RULE_UNMATCH)
             param_list.append(defs.RULE_IN_COOPERATION)
             param_list.append(defs.RULE_ALREADY_LINKED)
-            param_list.append(period_from)
-            param_list.append(period_to)
+            param_list.append(where_period_from)
+            param_list.append(where_period_to)
             param_list.extend(rule_ids)
             param_list.append(defs.PRODUCTION)
 
@@ -656,23 +657,23 @@ class WidgetData(object):
                 "  UNION SELECT DATE_FORMAT(NOW() - INTERVAL  1 MONTH, '%%Y-%%m') "
                 ") t1 "
                 "LEFT OUTER JOIN ("
-                "  SELECT DATE_FORMAT(event_to_time, '%%Y-%%m') yyyymm, COUNT(*) cnt "
+                "  SELECT DATE_FORMAT(event_to_time + INTERVAL %s HOUR, '%%Y-%%m') yyyymm, COUNT(*) cnt "
                 "  FROM OASE_T_EVENTS_REQUEST "
                 "  WHERE status in (%s, %s) "
                 "  AND event_to_time>=%s AND event_to_time<%s "
                 "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
                 "  AND request_type_id=%s "
-                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y-%%m') "
+                "  GROUP BY 1 "
                 ") known "
                 "ON t1.yyyymm=known.yyyymm "
                 "LEFT OUTER JOIN ("
-                "  SELECT DATE_FORMAT(event_to_time, '%%Y-%%m') yyyymm, COUNT(*) cnt "
+                "  SELECT DATE_FORMAT(event_to_time + INTERVAL %s HOUR, '%%Y-%%m') yyyymm, COUNT(*) cnt "
                 "  FROM OASE_T_EVENTS_REQUEST "
                 "  WHERE status in (%s, %s, %s) "
                 "  AND event_to_time>=%s AND event_to_time<%s "
                 "  AND rule_type_id in (" + ("%s," * len(rule_ids)).strip(',') + ") "
                 "  AND request_type_id=%s "
-                "  GROUP BY DATE_FORMAT(event_to_time, '%%Y-%%m') "
+                "  GROUP BY 1 "
                 ") unknown "
                 "ON t1.yyyymm=unknown.yyyymm "
                 "ORDER BY t1.yyyymm;"
@@ -715,8 +716,8 @@ def data(request, widget_id):
     param_info = {
         'language'     : request.user.get_lang_mode(),
         'date_range'   : 30,
-        'req_rule_ids' : request.user_config.get_rule_auth_type(2141001008)[defs.VIEW_ONLY] \
-                       + request.user_config.get_rule_auth_type(2141001008)[defs.ALLOWED_MENTENANCE],
+        'req_rule_ids' : request.user_config.get_activerule_auth_type(2141001008)[defs.VIEW_ONLY] \
+                       + request.user_config.get_activerule_auth_type(2141001008)[defs.ALLOWED_MENTENANCE],
         'count'        : 5,
     }
 
