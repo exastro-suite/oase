@@ -1124,7 +1124,7 @@ dashBoard.prototype = {
             request_type = encodeURI(getMessage("MOSJA00094", false));
             sts = pieChartData[key][6];
             sts = encodeURI(sts);
-            tableHTML += '<td class="db-cell db-cell-button"><button class="tooltip detail oase-mini-button" onClick="Screen_transition('
+            tableHTML += '<td class="db-cell db-cell-button"><button id="btn' + widgetID + '-' + pieChartData[key][0] + '" class="tooltip detail oase-mini-button" onClick="Screen_transition('
                       +  '\'' + tbl_name + '\''
                       + ',\'' + event_info + '\''
                       + ',\'' + dt_from + '\''
@@ -1176,7 +1176,7 @@ dashBoard.prototype = {
         'class': 'pie-chart-circle ' + className,
         'style': 'stroke-dasharray:0 0 0 '+ circumference,
         'data-style': strokeDasharray,
-        'data-type': pieChartData[key][0]
+        'data-type': pieChartData[key][0],
       });
       
       // 追加
@@ -1369,6 +1369,16 @@ dashBoard.prototype = {
                   if ( dataType !== undefined ) {
                     $leave.css('stroke-width', strokeWidth );
                     $leave.closest('.widget-body').find('.emphasis').removeClass('emphasis');
+                  }
+                },
+                'click': function(){
+                  const $targetData = $( this ),
+                        dataType = $targetData.attr('data-type');
+                  if ( dataType !== undefined ) {
+                    btnLinkToHistory = $('#btn' + widgetID + '-' + dataType);
+                    if ( btnLinkToHistory !== undefined ) {
+                      btnLinkToHistory.click();
+                    }
                   }
                 }
               });
