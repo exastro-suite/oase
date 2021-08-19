@@ -25,8 +25,53 @@ import datetime
 import pytz
 import json
 
-from web_app.models.models import EventsRequest
+from web_app.models.models import EventsRequest, DataObject, RuleType
 from web_app.views.top import dashboard 
+
+
+################################################################
+# テストデータ(共通)
+################################################################
+@pytest.fixture()
+def widget_data_common():
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    DataObject(
+        data_object_id            = 999,
+        rule_type_id              = 999,
+        conditional_name          = 'pytest',
+        label                     = 'pytest',
+        conditional_expression_id = 1,
+        last_update_timestamp     = now,
+        last_update_user          = 'pytest_user'
+    ).save(force_insert=True)
+
+    RuleType(
+        rule_type_id                 = 999,
+        rule_type_name               = 'pytest',
+        summary                      = 'pytest',
+        rule_table_name              = 'pytest',
+        generation_limit             = 1,
+        group_id                     = 999,
+        artifact_id                  = 'pytest',
+        container_id_prefix_staging  = 'pytest',
+        container_id_prefix_product  = 'pytest',
+        current_container_id_staging = 'pytest',
+        current_container_id_product = 'pytest',
+        label_count                  = 1,
+        unknown_event_notification   = '0',
+        mail_address                 = None,
+        servicenow_driver_id         = None,
+        disuse_flag                  = '0',
+        last_update_timestamp        = now,
+        last_update_user             = 'pytest_user'
+    ).save(force_insert=True)
+
+    yield
+
+    RuleType.objects.filter(last_update_user='pytest_user').delete()
+    DataObject.objects.filter(last_update_user='pytest_user').delete()
 
 
 ################################################################
@@ -48,7 +93,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -65,7 +110,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -82,7 +127,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -99,7 +144,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -118,7 +163,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'bbb',
+        event_info             = '{"EVENT_INFO":["bbb"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -135,7 +180,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'bbb',
+        event_info             = '{"EVENT_INFO":["bbb"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -152,7 +197,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'bbb',
+        event_info             = '{"EVENT_INFO":["bbb"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -171,7 +216,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'ccc',
+        event_info             = '{"EVENT_INFO":["ccc"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -188,7 +233,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'ccc',
+        event_info             = '{"EVENT_INFO":["ccc"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -207,7 +252,7 @@ def widget_data1():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'xyz',
+        event_info             = '{"EVENT_INFO":["xyz"]}',
         status                 = 3,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -226,7 +271,7 @@ def widget_data1():
 @pytest.mark.django_db
 class TestPieGraphDateMatchgData(object):
 
-    @pytest.mark.usefixtures('widget_data1')
+    @pytest.mark.usefixtures('widget_data_common', 'widget_data1')
     def test_ok(self):
         """
         正常系
@@ -236,9 +281,9 @@ class TestPieGraphDateMatchgData(object):
         data = cls_widget.pie_graph_date_match_data(3, **{'language':'JA', 'req_rule_ids':[999,], 'count':3})
 
         assert len(data['data']) == 4
-        assert 'aaa'    in data['data'] and data['data']['aaa'][0]    == 'known1'
-        assert 'bbb'    in data['data'] and data['data']['bbb'][0]    == 'known2'
-        assert 'ccc'    in data['data'] and data['data']['ccc'][0]    == 'known3'
+        assert '[pytest]<br>pytest:aaa' in data['data'] and data['data']['[pytest]<br>pytest:aaa'][0] == 'known1'
+        assert '[pytest]<br>pytest:bbb' in data['data'] and data['data']['[pytest]<br>pytest:bbb'][0] == 'known2'
+        assert '[pytest]<br>pytest:ccc' in data['data'] and data['data']['[pytest]<br>pytest:ccc'][0] == 'known3'
         assert 'その他' in data['data'] and data['data']['その他'][0] == 'known6'
 
 
@@ -261,7 +306,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -278,7 +323,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -295,7 +340,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -312,7 +357,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'aaa',
+        event_info             = '{"EVENT_INFO":["aaa"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -331,7 +376,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'bbb',
+        event_info             = '{"EVENT_INFO":["bbb"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -348,7 +393,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'bbb',
+        event_info             = '{"EVENT_INFO":["bbb"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -365,7 +410,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'bbb',
+        event_info             = '{"EVENT_INFO":["bbb"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -384,7 +429,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'ccc',
+        event_info             = '{"EVENT_INFO":["ccc"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -401,7 +446,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'ccc',
+        event_info             = '{"EVENT_INFO":["ccc"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -420,7 +465,7 @@ def widget_data2():
         request_user           = 'pytest_user',
         request_server         = 'pytest_server',
         event_to_time          = now,
-        event_info             = 'xyz',
+        event_info             = '{"EVENT_INFO":["xyz"]}',
         status                 = 1000,
         status_update_id       = 'pytest_user',
         retry_cnt              = 999,
@@ -439,7 +484,7 @@ def widget_data2():
 @pytest.mark.django_db
 class TestPieGraphDateUnmatchingData(object):
 
-    @pytest.mark.usefixtures('widget_data2')
+    @pytest.mark.usefixtures('widget_data_common', 'widget_data2')
     def test_ok(self):
         """
         正常系
@@ -449,9 +494,9 @@ class TestPieGraphDateUnmatchingData(object):
         data = cls_widget.pie_graph_date_unmatch_data(3, **{'language':'JA', 'req_rule_ids':[999,], 'count':3})
 
         assert len(data['data']) == 4
-        assert 'aaa'    in data['data'] and data['data']['aaa'][0]    == 'unknown1'
-        assert 'bbb'    in data['data'] and data['data']['bbb'][0]    == 'unknown2'
-        assert 'ccc'    in data['data'] and data['data']['ccc'][0]    == 'unknown3'
+        assert '[pytest]<br>pytest:aaa' in data['data'] and data['data']['[pytest]<br>pytest:aaa'][0] == 'unknown1'
+        assert '[pytest]<br>pytest:bbb' in data['data'] and data['data']['[pytest]<br>pytest:bbb'][0] == 'unknown2'
+        assert '[pytest]<br>pytest:ccc' in data['data'] and data['data']['[pytest]<br>pytest:ccc'][0] == 'unknown3'
         assert 'その他' in data['data'] and data['data']['その他'][0] == 'unknown6'
 
 
