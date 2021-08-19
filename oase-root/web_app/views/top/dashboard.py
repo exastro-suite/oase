@@ -478,7 +478,7 @@ class WidgetData(object):
             where_period_from = self.convert_datetime_to_date(period_from)
 
             data['date'] = [
-                ' (' + self.stacked_graph_title_date(period_from, '%Y-%m-%d %H:%M') + ' ~ ' + self.stacked_graph_title_date(period_to - datetime.timedelta(seconds=1), '%Y-%m-%d %H:%M') + ')',
+                ' (' + self.stacked_graph_title_date(period_from, '%Y-%m-%d %H:%M') + ' to ' + self.stacked_graph_title_date(period_to - datetime.timedelta(seconds=1), '%Y-%m-%d %H:%M') + ')',
             ]
 
             param_list.append(defs.PROCESSED)
@@ -601,7 +601,7 @@ class WidgetData(object):
         ]
         
         data['date'] = [
-            ' (' + self.stacked_graph_title_date(period_from, '%Y-%m') + " ~ " + self.stacked_graph_title_date(period_to - datetime.timedelta(seconds=1), '%Y-%m') + ')',
+            ' (' + self.stacked_graph_title_date(period_from, '%Y-%m') + " to " + self.stacked_graph_title_date(period_to - datetime.timedelta(seconds=1), '%Y-%m') + ')',
         ]
 
         period_tmp = period_from
