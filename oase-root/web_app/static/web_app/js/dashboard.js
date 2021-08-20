@@ -1681,9 +1681,11 @@ dashBoard.prototype = {
           db.loadingHTML();
       })
       .fail(function(respdata, stscode, resp) {
-          alert(getMessage("MOSJA00014", false));
-          if(stscode === "error") {
-              window.location.href = "/oase_web/top/logout";
+          if(widgetID == 21 || widgetID == 22) {
+              db.stackedGraph( widgetID, [[stscode, resp]], [[stscode, resp, 0, 0]]);
+              $("#graph_time" + widgetID).text(stscode + ':' + resp);
+          } else if(widgetID == 1 || widgetID == 2 || widgetID == 3) {
+              db.pieChart( widgetID, stscode + ':' + resp, [] );
           }
       });
   }
