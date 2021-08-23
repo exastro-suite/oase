@@ -227,6 +227,12 @@ class InstallAdapterInfo():
             'srv_path'  : 'backyards/monitoring_adapter/',
             'srv_file'  : 'oase-Prometheus-monitoring.service',
         },
+        'Grafana' : {
+            'conf_path' : 'confs/backyardconfs/services/',
+            'conf_file' : 'Grafana_monitoring_env',
+            'srv_path'  : 'backyards/monitoring_adapter/',
+            'srv_file'  : 'oase-Grafana-monitoring.service',
+        },
     }
 
 
