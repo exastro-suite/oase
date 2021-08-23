@@ -293,6 +293,60 @@ class TestGrafanaAdapterInfo(object):
 
     @pytest.mark.usefixtures(
         'grafana_table',
+        'set_ruletype_data',
+        'set_dataobject_data'
+    )
+    def test_create_ok(self):
+
+        request = DummyRequest()
+        request.user = User.objects.get(user_id=1)
+
+        json_str = {
+            'adapter_id'            : 999,
+            'grafana_disp_name'     : 'test_disp_name',
+            'uri'                   : 'aaa',
+            'username'              : 'test_user_name',
+            'password'              : 'test_passwd',
+            'evtime'                : 'evtime',
+            'instance'              : 'instance',
+            'rule_type_id'          : '999',
+            'match_list'            : {'1': 'instance'},
+            'grafana_adapter_id'    : '0'
+        }
+
+        result = self.target.create(json_str,request)
+        assert result['status'] == 'success'
+
+
+    @pytest.mark.usefixtures(
+        'grafana_table',
+        'set_ruletype_data',
+        'set_dataobject_data'
+    )
+    def test_create_ng(self):
+
+        request = DummyRequest()
+        request.user = User.objects.get(user_id=1)
+
+        json_str = {
+            'adapter_id'            : 999,
+            'grafana_disp_name'     : 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+            'uri'                   : 'aaa',
+            'username'              : 'test_user_name',
+            'password'              : 'test_passwd',
+            'evtime'                : 'evtime',
+            'instance'              : 'instance',
+            'rule_type_id'          : '999',
+            'match_list'            : {'1': 'instance'},
+            'grafana_adapter_id'    : '0'
+        }
+
+        result = self.target.create(json_str,request)
+        assert result['status'] == 'failure'
+
+
+    @pytest.mark.usefixtures(
+        'grafana_table',
         'set_grafanaadapter_data',
         'set_grafanamatchInfo_data',
         'set_ruletype_data',
