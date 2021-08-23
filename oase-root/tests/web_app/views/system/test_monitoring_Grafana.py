@@ -432,6 +432,64 @@ class TestGrafanaAdapterInfo(object):
         assert result['status'] == 'failure'
 
 
+    @pytest.mark.usefixtures(
+        'grafana_table',
+        'set_grafanaadapter_data',
+        'set_grafanamatchInfo_data',
+        'set_ruletype_data',
+        'set_dataobject_data'
+    )
+    def test_delete_ok(self):
+
+        request = DummyRequest()
+        request.user = User.objects.get(user_id=1)
+
+        json_str = {
+            'record_id' : 999,
+        }
+
+        result = self.target.delete(json_str,request)
+        assert result['status'] == 'success'
+
+
+    @pytest.mark.usefixtures(
+        'grafana_table',
+        'set_grafanaadapter_data',
+        'set_grafanamatchInfo_data',
+        'set_ruletype_data',
+        'set_dataobject_data'
+    )
+    def test_delete_none(self):
+
+        request = DummyRequest()
+        request.user = User.objects.get(user_id=1)
+
+        json_str = {
+            'record_id' : 998,
+        }
+
+        result = self.target.delete(json_str,request)
+        assert result['status'] == 'deleted'
+
+
+    @pytest.mark.usefixtures(
+        'grafana_table',
+        'set_grafanaadapter_data',
+        'set_grafanamatchInfo_data',
+        'set_ruletype_data',
+        'set_dataobject_data'
+    )
+    def test_delete_ng(self):
+
+        request = DummyRequest()
+        request.user = User.objects.get(user_id=1)
+
+        json_str = {
+            'record_id' : 'a',
+        }
+
+        result = self.target.delete(json_str,request)
+        assert result['status'] == 'failure'
 
 
     @pytest.mark.usefixtures(
