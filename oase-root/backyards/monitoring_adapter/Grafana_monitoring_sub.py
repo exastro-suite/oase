@@ -102,7 +102,7 @@ PROCESSING   = 1
 PROCESSED    = 2
 SERVER_ERROR = 3
 
-DB_OASE_USER = -2140000007
+DB_OASE_USER = -2140000009
 
 class GrafanaAdapterSubModules:
     """
