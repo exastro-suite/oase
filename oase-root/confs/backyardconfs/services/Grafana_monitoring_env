@@ -1,0 +1,9 @@
+# Service run interval.(sec)
+# (link file /etc/sysconfig/ActionDriverMainProcedure_env
+# e.g) RUN_INTERVAL=5  
+RUN_INTERVAL=10
+
+# Select OASE Log Level. ("NORMAL" or "DEBUG" or "TRACE")
+# e.g) LOG_LEVE=NORMAL
+LOG_LEVEL=NORMAL
+

@@ -146,11 +146,19 @@ function install_package() {
     fi
 
     # Prometheus Adapter
-    if [ ${servicenow_driver} = "yes" ]; then
+    if [ ${prometheus_adapter} = "yes" ]; then
         cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/Prometheus_Adapter.tar.gz ${oase_directory}
         tar -zxvf ${oase_directory}/Prometheus_Adapter.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
         rm -f ${oase_directory}/Prometheus_Adapter.tar.gz
         python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins -i 2 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
+
+    # Grafana Adapter
+    if [ ${grafana_adapter} = "yes" ]; then
+        cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/Grafana_Adapter.tar.gz ${oase_directory}
+        tar -zxvf ${oase_directory}/Grafana_Adapter.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f ${oase_directory}/Grafana_Adapter.tar.gz
+        python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins -i 3 >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
     log "INFO : Finished to Adapter install"
 }

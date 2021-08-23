@@ -292,6 +292,10 @@ function check_answer_vars() {
         log "ERROR : prometheus_adapter should be enter to value(yes or no)"
         _error_flag=true
     fi
+    if [ -z "${grafana_adapter}" ]; then
+        log "ERROR : grafana_adapter should be enter to value(yes or no)"
+        _error_flag=true
+    fi
 
     #################################
     ### oase_middleware_setup_core.sh 用
