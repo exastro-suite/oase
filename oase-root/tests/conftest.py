@@ -126,6 +126,30 @@ def zabbix_table(django_db_blocker):
 
 
 @pytest.fixture()
+def grafana_table(django_db_blocker):
+    """
+    セットアップ：
+        Grafana.confを使ってGrafanaアダプター関連のテーブルを追加する
+    ティアダウン：
+        Grafanaアダプター関連のレコードを全削除
+
+    """
+
+    oase_path = os.path.dirname(os.path.abspath(__file__)).split('oase-root')
+    conf_filepath = oase_path[0] + 'tool/conf/Grafana.conf'
+
+    create_tables(conf_filepath)
+
+    yield
+
+    module = import_module('web_app.models.Grafana_monitoring_models')
+    getattr(module, 'GrafanaAdapter').objects.all().delete()
+    getattr(module, 'GrafanaMatchInfo').objects.all().delete()
+    getattr(module, 'GrafanaMonitoringHistory').objects.all().delete()
+    getattr(module, 'GrafanaTriggerHistory').objects.all().delete()
+
+
+@pytest.fixture()
 def ita_table(django_db_blocker):
     """
     セットアップ：
