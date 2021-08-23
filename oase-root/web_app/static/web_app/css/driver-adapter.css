@@ -59,3 +59,16 @@
   content: "\e904";
   color: #81B5A1;
 }
+.oda-adapter-garafana:before {
+  content: "\e905";
+  color: #f05a28;
+}
+.driver-select .oda-adapter-garafana {
+  position: relative;
+}
+.driver-select .oda-adapter-garafana:before {
+  background: linear-gradient( #f05a28 60%, #fff100 );
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}

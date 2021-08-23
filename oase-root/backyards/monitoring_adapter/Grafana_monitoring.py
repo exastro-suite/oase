@@ -83,7 +83,7 @@ from libs.commonlibs.define import *
 #-------------------
 FORCE_PROCESSED = 4
 
-DB_OASE_USER = -2140000007
+DB_OASE_USER = -2140000009
 
 
 class GrafanaAdapterMainModules:
