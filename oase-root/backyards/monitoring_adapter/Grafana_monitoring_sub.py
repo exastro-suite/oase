@@ -276,17 +276,43 @@ class GrafanaAdapterSubModules:
 
             ret_val = val
 
+            # エポック秒の場合は、整数に型キャスト
             try:
                 ret_val = int(val)
+                return ret_val
 
             except Exception as e:
-                val = val.replace('-', '/')
-                val = val.replace('T', ' ')
-                val = val.replace('Z', '')
-                val = (val.split('+'))[0]
-                val = (val.split('.'))[0]
-                dt_tmp = datetime.datetime.strptime(val, '%Y/%m/%d %H:%M:%S').replace(tzinfo=pytz.timezone('UTC'))
-                ret_val = dt_tmp.timestamp()
+                pass
+
+
+            # 年月日がハイフン区切りの場合は、スラッシュ区切りに置換
+            if re.match(r'^[0-9]{4}-([1-9]|0[1-9]|1[0-2])-([1-9]|0[1-9]|[12][0-9]|3[01])', val):
+                val = val.replace('-', '/', 2)
+
+            # アルファベットを削除
+            val = val.replace('T', ' ')
+            val = val.replace('Z', '')
+
+            # タイムゾーンの補正値が含まれる場合は、時分の値を取得
+            hours   = 0
+            minutes = 0
+            if re.match(r'.*[+-]([0-1][0-9]|2[0-3])\:[0-5][0-9]$', val):
+                val_tmp = (re.split('[+-]', val))[1]
+                hours   = int(val_tmp.split(':')[0])
+                minutes = int(val_tmp.split(':')[1])
+
+                if '+' in val:
+                    hours   = hours   * -1
+                    minutes = minutes * -1
+
+            # 文字列型から日時型へキャストし、エポック秒を取得
+            val = (val.split('+'))[0]
+            val = (val.split('-'))[0]
+            val = (val.split('.'))[0]
+            dt_tmp = datetime.datetime.strptime(val, '%Y/%m/%d %H:%M:%S')
+            dt_tmp = dt_tmp + datetime.timedelta(hours=hours, minutes=minutes)
+            dt_tmp = dt_tmp.replace(tzinfo=pytz.timezone('UTC'))
+            ret_val = dt_tmp.timestamp()
 
             return ret_val
 
