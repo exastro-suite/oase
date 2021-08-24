@@ -161,9 +161,10 @@ OASEのインストール手順を下記に示します。
    30, servicenow_driver, no, ServiceNowドライバのインストール有無指定
    31, zabbix_adapter, yes, Zabbixアダプタのインストール有無指定
    32, prometheus_adapter, no, Prometheusアダプタのインストール有無指定
-   33, oase_domain, exastro-oase.local, OASEのドメイン名
-   34, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
-   35, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
+   33, grafana_adapter, no, Grafanaアダプタのインストール有無指定
+   34, oase_domain, exastro-oase.local, OASEのドメイン名
+   35, certificate_path, , ユーザ指定のSSLサーバ証明書に使用するファイルのファイルパス(ユーザ指定のSSL証明書使用時のみ入力。絶対パスで指定してください)
+   36, private_key_path, , ユーザ指定のSSL秘密鍵に使用するファイルのファイルパス(ユーザ指定のSSL秘密鍵使用時のみ入力。絶対パスで指定してください)
 
 
 .. note::
@@ -338,6 +339,7 @@ OASEのインストール手順を下記に示します。
  servicenow_driver:no
  zabbix_adapter:yes
  prometheus_adapter:no
+ grafana_adapter:no
 
 
  ##############################
@@ -525,4 +527,21 @@ OASEのインストール手順を下記に示します。
  | ※IPアドレスはルールエンジンをインストールしたサーバのアドレス
  |
  | ※ルールエンジンを変更した場合、変更前のルールは移行されず、アンインストール時に削除されます。
- 
+
+.. note::
+
+ | より多くのディシジョンテーブルの作成を実施したい場合はJBOSSヒープサイズのチューニングを行う必要があります。
+ | チューニング方法は下記の通りです。
+ | RHDMの場合
+ | # systemctl stop jboss-eap-rhel.service
+ | # vi {jboss_root_directory}/bin/standalone.conf
+ | 以下の行のサイズを修正する。
+ | JAVA_OPTS="-Xms64m -Xmx1024m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=1024m -Djava.net.preferIPv4Stack=true"
+ | # systemctl start jboss-eap-rhel.service
+ | droolsの場合
+ | # systemctl stop drools.service
+ | # vi {jboss_root_directory}/wildfly-14.0.1.Final/bin/standalone.conf
+ | 以下の行のサイズを修正する。
+ | JAVA_OPTS="-Xms64m -Xmx1024m -XX:MetaspaceSize=96M -XX:MaxMetaspaceSize=1024m -Djava.net.preferIPv4Stack=true"
+ | # systemctl start drools.service
+ | ※{jboss_root_directory}はoase_answers.txtのjboss_root_directory項目に記述したディレクトリパスに置換してください。
