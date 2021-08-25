@@ -31,7 +31,7 @@ dashBoard.prototype = {
     '1': {
       'widget_id': '1',
       'name': 'known',
-      'display_name': getMessage("MOSJA10067", false),
+      'display_name': "MOSJA10067",
       'description': '既知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -40,7 +40,7 @@ dashBoard.prototype = {
     '2': {
       'widget_id': '2',
       'name': 'unknown',
-      'display_name': getMessage("MOSJA10068", false),
+      'display_name': "MOSJA10068",
       'description': '未知事象の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -49,7 +49,7 @@ dashBoard.prototype = {
     '3': {
       'widget_id': '3',
       'name': 'known-unknown',
-      'display_name': getMessage("MOSJA10066", false),
+      'display_name': "MOSJA10066",
       'description': '既知・未知事象(日)の件数を円グラフで表示します。',
       'colspan': '2',
       'rowspan': '1',
@@ -58,7 +58,7 @@ dashBoard.prototype = {
     '21': {
       'widget_id': '21',
       'name': 'known-unknown-date',
-      'display_name': getMessage("MOSJA10063", false),
+      'display_name': "MOSJA10063",
       'description': '既知・未知事象（時間帯別）の件数を棒グラフで表示します。',
       'colspan': '6',
       'rowspan': '1',
@@ -67,7 +67,7 @@ dashBoard.prototype = {
     '22': {
       'widget_id': '22',
       'name': 'known-unknown-day',
-      'display_name': getMessage("MOSJA10064", false),
+      'display_name': "MOSJA10064",
       'description': '既知・未知事象（日別）の件数を棒グラフで表示します。',
       'colspan': '6',
       'rowspan': '1',
@@ -275,7 +275,7 @@ dashBoard.prototype = {
       + '<div class="widget">'
         + '<div class="widget-header">'
           + '<div class="widget-move-knob"></div>'
-          + '<div class="widget-name"><span class="widget-name-inner">' + db.textEntities( widgetData['display_name'] ) + '<span id="graph_time' + widgetData['widget_id'] + '"></span>' + '</span>'
+          + '<div class="widget-name"><span class="widget-name-inner">' + db.textEntities( getMessage(widgetData['display_name'], false) ) + '<span id="graph_time' + widgetData['widget_id'] + '"></span>' + '</span>'
             + '<div class="widget-edit-menu">'
               + '<ul class="widget-edit-menu-list">'
                 + '<li class="widget-edit-menu-item"><button class="widget-edit-button widget-edit" data-type="edit"><em class="owf owf-edit"></em></button></li>'
@@ -481,7 +481,7 @@ dashBoard.prototype = {
         widgetSelectHTML += ''
           + '<tr class="widget-select-row' + uniqueClass + '">'
             + '<th class="widget-select-name">'
-              + '<label class="widget-select-label"><input class="widget-select-radio" type="radio" name="widget-radio" value="' + widgetList[key]['widget_id'] + '"' + uniqueClass + '>' + widgetList[key]['display_name'] + '</label>'
+              + '<label class="widget-select-label"><input class="widget-select-radio" type="radio" name="widget-radio" value="' + widgetList[key]['widget_id'] + '"' + uniqueClass + '>' + getMessage(widgetList[key]['display_name'], false) + '</label>'
             + '</th>'
             +'<td class="widget-select-description">' + widgetList[key]['description'] + '</td>'
           + '</tr>'
