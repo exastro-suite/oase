@@ -32,15 +32,15 @@
 
 
 ################################
-# アクセス権限管理
+# 監視アダプタ種別管理
 ################################
-- model: web_app.AccessPermission
-  pk: -2140000009
+- model: web_app.AdapterType
+  pk: 3
   fields:
-    group_id: 1
-    menu_id: 2141002004
-    rule_type_id: 0
-    permission_type_id: 1
+    name: Grafana
+    version: 1.0.0
+    adapter_major_version: 1
+    icon_name: oda-adapter-garafana
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
