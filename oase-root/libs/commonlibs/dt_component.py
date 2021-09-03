@@ -942,7 +942,7 @@ class DecisionTableComponent(object):
         セルに入力された値が妥当かどうかチェックする
         """
         pattern = r'^(0|[1-9]\d*)$' if accept0 else r'^[1-9]\d*$'
-        pattern2 = r'^(0|[1-9]\d*|[1-9]\d*[.]{1}0+)$' if accept0 else r'^([1-9]\d*|[1-9]\d*[.]{1}0+)$'
+        pattern2 = r'^(0|[1-9]\d*|(0|[1-9]\d*)[.]{1}0+)$' if accept0 else r'^([1-9]\d*|[1-9]\d*[.]{1}0+)$'
 
         result = not ((cell_type in [self.CELL_TYPE_DATE, self.CELL_TYPE_EMPTY])
                       or (cell_type == self.CELL_TYPE_TEXT and not re.match(pattern, cell_val))
