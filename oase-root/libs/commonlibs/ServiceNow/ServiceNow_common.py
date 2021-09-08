@@ -32,6 +32,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     エラーメッセージのリストを返す。
     """
     message_list = []
+    count = 0
 
     for param in params:
         param = param.strip()
@@ -41,8 +42,22 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
 
     # SERVICENOW_NAME チェック
     message_list = servicenow_name_check(check_info, act_info, message_list)
+
     # INCIDENT_STATUS チェック
-    message_list = incident_status_check(check_info, act_info, message_list)
+    if check_info['INCIDENT_STATUS'] or check_info['INCIDENT_STATUS'] == '':
+        count = count + 1
+        incident_status = check_info['INCIDENT_STATUS']
+        message_list = incident_status_check(incident_status, check_info, message_list)
+
+    # WORKFLOW_ID チェック
+    if check_info['WORKFLOW_ID'] or check_info['WORKFLOW_ID'] == '':
+        count = count + 1
+        workflow_id = check_info['WORKFLOW_ID']
+        message_list = workflow_id_check(workflow_id, check_info, conditions, message_list)
+
+    # INCIDENT_STATUS,WORKFLOW_IDどちらも記述がない場合
+    if count == 0:
+        message_list.append({'id': 'MOSJA03164', 'param': None})
 
     return message_list
 
@@ -77,25 +92,19 @@ def servicenow_name_check(check_info, act_info, message_list):
     return message_list
 
 
-def incident_status_check(check_info, act_info, message_list):
+def incident_status_check(incident_status, check_info, message_list):
     """
     [概要]
     INCIDENT_STATUSのバリデーションチェックを行う
     [引数]
-    check_info   : チェック情報
-    act_info     : アクション情報
-    message_list : メッセージリスト
+    incident_status : INCIDENT_STATUS
+    check_info      : チェック情報
+    message_list    : メッセージリスト
     [戻り値]
-    message_list : メッセージリスト
+    message_list    : メッセージリスト
     """
 
-    incident_status = check_info['INCIDENT_STATUS']
-
-    if incident_status is None:
-        logger.logic_log('LOSM00039', check_info)
-        message_list.append({'id': 'MOSJA03113', 'param': 'INCIDENT_STATUS'})
-
-    elif incident_status == '':
+    if incident_status == '':
         logger.logic_log('LOSM00041', check_info)
         message_list.append({'id': 'MOSJA03161', 'param': None})
 
@@ -104,6 +113,30 @@ def incident_status_check(check_info, act_info, message_list):
         if incident_status not in ['OPEN', 'CLOSE']:
             logger.logic_log('LOSM00040', check_info)
             message_list.append({'id': 'MOSJA03162', 'param': None})
+
+    return message_list
+
+
+def workflow_id_check(workflow_id, check_info, conditions, message_list):
+    """
+    [概要]
+    WORKFLOW_IDのバリデーションチェックを行う
+    [引数]
+    workflow_id  : WORKFLOW_ID
+    check_info   : チェック情報
+    conditions   : 条件名
+    message_list : メッセージリスト
+    [戻り値]
+    message_list : メッセージリスト
+    """
+
+    if workflow_id == '':
+        logger.logic_log('LOSM00044', check_info)
+        message_list.append({'id': 'MOSJA03163', 'param': 'WORKFLOW_ID'})
+
+    elif workflow_id and not DriverCommon.has_right_reserved_value(conditions, workflow_id):
+        logger.logic_log('LOSM00023', workflow_id)
+        message_list.append({'id': 'MOSJA03137', 'param': 'WORKFLOW_ID'})
 
     return message_list
 

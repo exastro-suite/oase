@@ -70,12 +70,12 @@ class ServiceNowManager(AbstractManager):
     ACTIONPARAM_KEYS = [
         'SERVICENOW_NAME',
         'INCIDENT_STATUS',
+        'WORKFLOW_ID',
     ]
 
     # アクション情報の必須キーリスト
     ACTIONPARAM_KEYS_REQUIRE = [
         'SERVICENOW_NAME',
-        'INCIDENT_STATUS',
     ]
 
 
