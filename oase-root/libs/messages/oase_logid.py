@@ -157,6 +157,7 @@ class OASELogID:
     Ary['LOSM00041'] = "No value for INCIDENT_STATUS. (check_info: {})"
     Ary['LOSM00042'] = "Failed to get the value of EventsRequest. (TraceID:{})"
     Ary['LOSM00043'] = "Failed to issue SQL. (TraceID:{})"
+    Ary['LOSM00044'] = "No value for WORKFLOW_ID. (check_info: {})"
     Ary['LOSM00100'] = "RuleType does not exist. (rule_type_id: {}, {})"
     Ary['LOSM00101'] = "ConditionalExpression does not exist. (conditional_expression_id: {})"
     Ary['LOSM00102'] = "Failed to get data from the OASE_T_CONDITIONAL_EXPRESSION table. (conditional_expression_id: {}, {})"
