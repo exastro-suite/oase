@@ -25,6 +25,8 @@ import sys
 import json
 import django
 import traceback
+import datetime
+import pytz
 
 # OASE モジュール importパス追加
 my_path = os.path.dirname(os.path.abspath(__file__))
@@ -38,6 +40,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'confs.frameworkconfs.settings'
 django.setup()
 
 from django.db import transaction
+from datetime import timedelta
 
 # ロガー初期化
 from libs.commonlibs.oase_logger import OaseLogger
@@ -241,7 +244,7 @@ class ServiceNowManager(AbstractManager):
         for key, val in check_info.items():
 
             # 必須キーが記述されていない場合はデータ異常
-            if val is None:
+            if val is None and key in self.ACTIONPARAM_KEYS_REQUIRE:
                 ActionDriverCommonModules.SaveActionLog(
                     self.response_id, exe_order, self.trace_id, 'MOSJA01006', **{'key': key}
                 )
@@ -310,13 +313,17 @@ class ServiceNowManager(AbstractManager):
           アクション情報の値により呼び出す関数を取得する
         """
 
-        if 'INCIDENT_STATUS' not in self.aryActionParameter:
+        if 'INCIDENT_STATUS' not in self.aryActionParameter and 'WORKFLOW_ID' not in self.aryActionParameter:
 
             return None
 
         if self.aryActionParameter['INCIDENT_STATUS'] == 'OPEN':
 
             return self.act_open_incident
+
+        if self.aryActionParameter['WORKFLOW_ID'] is not None:
+
+            return self.act_update_workflow
 
         if self.aryActionParameter['INCIDENT_STATUS'] == 'CLOSE':
 
@@ -479,6 +486,71 @@ class ServiceNowManager(AbstractManager):
         }
 
         result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
+        if not result:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+        logger.logic_log(
+            'LOSI00002', 
+            'self.trace_id:%s, sts:%s, detail:%s' % (self.trace_id, status, detail)
+        )
+
+        return status, detail
+
+
+    def act_update_workflow(self, rhdm_res_act, retry, pre_flag):
+        """
+        [概要]
+            ServiceNowアクションを実行
+            ワークフロースケジュール更新
+        """
+
+        logger.logic_log(
+            'LOSI00001', 
+            'self.trace_id: %s, aryActionParameter: %s' % (self.trace_id, self.aryActionParameter)
+        )
+
+        status = PROCESSED
+        detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        # sys_id取得
+        sys_id = self.aryActionParameter['WORKFLOW_ID']
+
+        now = datetime.datetime.now(pytz.timezone('UTC'))
+        now = now + datetime.timedelta(seconds=30)
+        now = now.strftime("%Y-%m-%d %H:%M:%S")
+
+        # ワークフロースケジュール
+        data = {
+            'run_type'  : 'once',
+            'run_start' : now,
+        }
+
+        self.core.set_target_table('wf_workflow_schedule')
+        result = self.core.modify_workflow(self.servicenow_driver, sys_id, data)
+
+        # 初回実行の場合は履歴情報を登録
+        if not retry:
+            # ServiceNowアクション履歴登録
+            logger.logic_log(
+                'LOSI01125',
+                str(rhdm_res_act.execution_order), self.trace_id
+            )
+
+            self.servicenow_action_history_insert(
+                self.servicenow_driver.servicenow_disp_name,
+                sys_id,
+                'workflow execution',
+                rhdm_res_act.execution_order,
+                self.action_history.pk,
+            )
+
         if not result:
             status = SERVER_ERROR
             detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE

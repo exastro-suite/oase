@@ -136,6 +136,36 @@ class ServiceNow1Core(DriverCore):
         return True
 
 
+    def send_patch_request(self, url, user, passwd, data, headers=None, proxies=None):
+        """
+        [メソッド概要]
+            PATCHリクエスト送信
+        """
+
+        logger.logic_log('LOSI00001', 'trace_id=%s, url=%s' % (self.TraceID, url))
+
+        try:
+            resp = requests.patch(
+                url, auth=(user, passwd), data=data,
+                headers=headers, proxies=proxies,
+                timeout=30, verify=False
+            )
+
+            if resp.status_code not in [200]:
+                logger.logic_log(
+                    'LOSI00002',
+                    'Error. trace_id=%s, code=%s' % (self.TraceID, resp.status_code)
+                )
+                return False
+
+        except Exception as ex:
+            logger.logic_log('LOSM01502', 'PUT', self.TraceID, traceback.format_exc())
+            return False
+
+        logger.logic_log('LOSI00002', 'Success. trace_id=%s' % (self.TraceID))
+        return True
+
+
     def create_incident(self, drv):
 
         """
@@ -273,4 +303,61 @@ class ServiceNow1Core(DriverCore):
         logger.logic_log('LOSI00002', 'result=%s, trace_id=%s, sys_id=%s' % (result, self.TraceID, sys_id))
         return result
 
+
+    def modify_workflow(self, drv, sys_id, ary_data):
+
+        """
+        [メソッド概要]
+            ワークフロースケジュール更新リクエスト送信
+        """
+
+        logger.logic_log(
+            'LOSI00001',
+            'trace_id=%s, driver_id=%s, sys_id=%s, data=%s' % (self.TraceID, drv.servicenow_driver_id, sys_id, ary_data)
+        )
+
+        result = False
+
+        try:
+            cipher = AESCipher(settings.AES_KEY)
+
+            # リクエスト送信先
+            url = "{}://{}:{}/api/now/table/{}/{}".format(
+                drv.protocol, drv.hostname, drv.port, self.target_table, sys_id
+            )
+
+            # ヘッダー情報
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            }
+
+            # プロクシ設定
+            if drv.proxy:
+                proxies = {
+                    'http' : drv.proxy,
+                    'https': drv.proxy,
+                }
+
+            # 認証情報
+            user = drv.username
+            password = cipher.decrypt(drv.password)
+
+            # リクエストボディ
+            str_para_json_encoded = json.dumps(ary_data, default=str)
+
+            # リクエスト送信
+            result = self.send_patch_request(
+                url,
+                user, password,
+                str_para_json_encoded.encode('utf-8'),
+                headers=headers, proxies=proxies
+            )
+
+        except Exception as ex:
+            logger.logic_log('LOSM01502', 'PATCH', self.TraceID, traceback.format_exc())
+            return False
+
+        logger.logic_log('LOSI00002', 'result=%s, trace_id=%s, sys_id=%s' % (result, self.TraceID, sys_id))
+        return result
 
