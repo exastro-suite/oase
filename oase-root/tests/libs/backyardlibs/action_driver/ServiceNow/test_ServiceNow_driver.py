@@ -207,8 +207,8 @@ def test_set_information():
     testServiceNow.aryActionParameter['SERVICENOW_NAME'] = 'ServiceNow176'
 
     status, detail = testServiceNow.set_information(rhdm_res_act, pre_action_history)
-    assert status == 2002
-    assert detail == 3
+    assert status == 0
+    assert detail == 0
 
     # テストデータ削除
     delete_data_param_information()
@@ -369,3 +369,71 @@ def test_act_ng(monkeypatch):
     assert status == ACTION_EXEC_ERROR
 
     delete_data_param_information()
+
+
+@pytest.mark.django_db
+def test_act_update_workflow_ok(monkeypatch):
+    """
+    ServiceNow Workflowアクションを実行メソッドのテスト
+    正常系
+    """
+
+    ServiceNowDriver = get_servicenow_driver()
+    ServiceNowManager = get_servicenow_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testServiceNow = ServiceNowManager(trace_id, response_id, last_update_user)
+
+    servicenow_disp_name = 'ServiceNow176'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVICENOW_NAME=ServiceNow176", "WORKFLOW_ID=0123456789abcdef"]}'
+    rhdm_res_act, pre_action_history = set_data_for_information(
+        1, servicenow_disp_name, trace_id, parm_info)
+
+    testServiceNow.aryActionParameter['SERVICENOW_NAME'] = 'ServiceNow176'
+    testServiceNow.set_information(rhdm_res_act, pre_action_history)
+    testServiceNow.servicenow_driver = ServiceNowDriver.objects.get(servicenow_disp_name=servicenow_disp_name)
+
+    monkeypatch.setattr(testServiceNow, 'servicenow_action_history_insert', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ServiceNow1Core, 'modify_workflow', lambda a, b, c, d: True)
+    status, detai = testServiceNow.act_update_workflow(rhdm_res_act, True, False)
+
+    assert status == PROCESSED
+
+    delete_data_param_information()
+
+@pytest.mark.django_db
+def test_act_update_workflow_ng(monkeypatch):
+    """
+    ServiceNow Workflowアクションを実行メソッドのテスト
+    異常系
+    """
+
+    ServiceNowDriver = get_servicenow_driver()
+    ServiceNowManager = get_servicenow_manager()
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    trace_id = EventsRequestCommon.generate_trace_id(now)
+    response_id = 1
+    last_update_user = 'pytest'
+    testServiceNow = ServiceNowManager(trace_id, response_id, last_update_user)
+
+    servicenow_disp_name = 'ServiceNow176'
+    parm_info = '{"ACTION_PARAMETER_INFO": ["SERVICENOW_NAME=ServiceNow176", "WORKFLOW_ID=0123456789abcdef"]}'
+    rhdm_res_act, pre_action_history = set_data_for_information(
+        1, servicenow_disp_name, trace_id, parm_info)
+
+    testServiceNow.aryActionParameter['SERVICENOW_NAME'] = 'ServiceNow176'
+    testServiceNow.set_information(rhdm_res_act, pre_action_history)
+    testServiceNow.servicenow_driver = ServiceNowDriver.objects.get(servicenow_disp_name=servicenow_disp_name)
+
+    monkeypatch.setattr(testServiceNow, 'servicenow_action_history_insert', lambda a, b, c, d, e: (0))
+    monkeypatch.setattr(ServiceNow1Core, 'modify_workflow', lambda a, b, c, d: False)
+    status, detai = testServiceNow.act_update_workflow(rhdm_res_act, False, False)
+
+    assert status == SERVER_ERROR
+
+    delete_data_param_information()
+
