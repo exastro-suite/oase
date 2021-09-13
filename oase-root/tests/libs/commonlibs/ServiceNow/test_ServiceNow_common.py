@@ -57,7 +57,7 @@ def set_data_servicenow_driver(servicenow_disp_name):
     try:
         with transaction.atomic():
 
-            # ITAアクションマスタ
+            # ServiceNowアクションマスタ
             ServiceNowDriver(
                 servicenow_disp_name=servicenow_disp_name,
                 protocol='https',
@@ -237,4 +237,182 @@ def test_get_history_data_ng_notexists(servicenow_table):
     result = get_history_data(action_his_id)
 
     assert len(result) == 0
+
+
+@pytest.mark.django_db
+def test_incident_status_check_ok_open(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    INCIDENT_STATUS(OPEN)の正常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    incident_status = 'OPEN'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':'OPEN'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    incident_status_check(incident_status, check_info, message_list)
+    assert len(message_list) == 0
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+
+
+@pytest.mark.django_db
+def test_incident_status_check_ok_close(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    INCIDENT_STATUS(CLOSE)の正常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    incident_status = 'CLOSE'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':'CLOSE'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    incident_status_check(incident_status, check_info, message_list)
+    assert len(message_list) == 0
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+
+
+@pytest.mark.django_db
+def test_incident_status_check_ng_no_value(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    INCIDENT_STATUSの異常系(値なし)
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    incident_status = ''
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':''}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    incident_status_check(incident_status, check_info, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03161'
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+
+
+@pytest.mark.django_db
+def test_incident_status_check_ng_notexists(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    INCIDENT_STATUSの異常系(値間違え)
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    incident_status = 'STOP'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':'STOP'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    incident_status_check(incident_status, check_info, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03162'
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+
+
+@pytest.mark.django_db
+def test_workflow_id_check_ok(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    WORKFLOW_IDの正常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    workflow_id = '1234567890abcdef'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'WORKFLOW_ID':'1234567890abcdef'}
+    conditions = {'条件1', '条件2'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    workflow_id_check(workflow_id, check_info, conditions, message_list)
+    assert len(message_list) == 0
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+
+
+@pytest.mark.django_db
+def test_workflow_id_check_ng_no_value(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    WORKFLOW_IDの異常系(値なし)
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    workflow_id = ''
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'WORKFLOW_ID':''}
+    conditions = {'条件1', '条件2'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    workflow_id_check(workflow_id, check_info, conditions, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03163'
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+
+
+@pytest.mark.django_db
+def test_workflow_id_check_ng_reserved(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    WORKFLOW_IDの異常系(存在しない予約変数)
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    workflow_id = '{{ VAR_条件0 }}'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'WORKFLOW_ID':'{{ VAR_条件0 }}'}
+    conditions = {'条件1', '条件2'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    workflow_id_check(workflow_id, check_info, conditions, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03137'
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
 
