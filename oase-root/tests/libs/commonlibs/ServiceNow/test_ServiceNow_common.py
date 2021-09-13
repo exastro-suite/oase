@@ -343,7 +343,7 @@ def test_incident_status_check_ng_notexists(servicenow_table):
 def test_workflow_id_check_ok(servicenow_table):
     """
     アクションパラメータのバリデーションチェック処理テスト
-    WORKFLOW_IDの異常系(値間違え)
+    WORKFLOW_IDの正常系
     """
 
     # テストデータ初期化
@@ -369,7 +369,7 @@ def test_workflow_id_check_ok(servicenow_table):
 def test_workflow_id_check_ng_no_value(servicenow_table):
     """
     アクションパラメータのバリデーションチェック処理テスト
-    WORKFLOW_IDの異常系(値間違え)
+    WORKFLOW_IDの異常系(値なし)
     """
 
     # テストデータ初期化
