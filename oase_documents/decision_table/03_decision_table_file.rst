@@ -458,7 +458,8 @@ ServiceNowドライバ
 | **アクションパラメータ情報（必須）※ダブルクオーテーションは使用不可**
 
 * SERVICENOW_NAMEは必須です。OASE画面のシステム-アクション設定-ServiceNow_driverの名前と紐づけます。
-* INCIDENT_STATUSは必須です。ServiceNowインシデント管理のレコードを新規登録する「OPEN」、またはインシデントを閉じる「CLOSE」を記述します。
+* INCIDENT_STATUSはインシデント管理の際に必要です。ServiceNowインシデント管理のレコードを新規登録する「OPEN」、インシデント対処中となる「IN PROGRESS」、インシデント解決済みとなる「RESOLVED」またはインシデントを閉じる「CLOSE」を記述します。
+* WORKFLOW_IDはワークフローの実行に必要です。ServiceNowのワークフロースケジュール編集画面から、sys_idを取得してください。
 
 
 **記述例**
@@ -466,6 +467,10 @@ ServiceNowドライバ
 ::
 
  SERVICENOW_NAME=ServiceNowTest,INCIDENT_STATUS=OPEN
+
+::
+
+ SERVICENOW_NAME=ServiceNowTest,WORKFLOW_ID=abcdef1234567890
 
 
 (5)アクション条件部
