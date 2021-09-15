@@ -321,9 +321,17 @@ class ServiceNowManager(AbstractManager):
 
             return self.act_open_incident
 
+        if self.aryActionParameter['INCIDENT_STATUS'] == 'IN PROGRESS':
+
+            return self.act_progress_incident
+
         if self.aryActionParameter['WORKFLOW_ID'] is not None:
 
             return self.act_update_workflow
+
+        if self.aryActionParameter['INCIDENT_STATUS'] == 'RESOLVED':
+
+            return self.act_resolved_incident
 
         if self.aryActionParameter['INCIDENT_STATUS'] == 'CLOSE':
 
@@ -424,6 +432,200 @@ class ServiceNowManager(AbstractManager):
         return status, detail
 
 
+    def act_progress_incident(self, rhdm_res_act, retry, pre_flag):
+        """
+        [概要]
+          インシデント更新処理(In Progress)
+        """
+
+        logger.logic_log(
+            'LOSI00001', 
+            'self.trace_id:%s, aryActionParameter:%s' % (self.trace_id, self.aryActionParameter)
+        )
+
+        status = PROCESSED
+        detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        # sys_id取得
+        sys_id = None
+        try:
+            act_his = ActionHistory.objects.filter(
+                trace_id             = self.trace_id,
+                action_type_id       = ACTION_TYPE_ID.SERVICENOW,
+                execution_order__lt  = rhdm_res_act.execution_order
+            ).order_by('-execution_order')[0]
+
+            # これを保存することにより以降のアクションを実行させる
+            sys_id = ServiceNowActionHistory.objects.get(action_his_id=act_his.action_history_id).sys_id
+
+        except ServiceNowActionHistory.DoesNotExist:
+            logger.logic_log('LOSM01501', self.trace_id, act_his.action_history_id)
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01106'
+            )
+
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        except Exception as e:
+            logger.logic_log('LOSM01501', self.trace_id, None)
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01106'
+            )
+
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        if not sys_id:
+            logger.logic_log('LOSI01126', self.trace_id, self.action_history.pk)
+            return status, detail
+
+
+        # インシデントインプログレス
+        data = {
+            'state'       : '2',  # 2:In progress
+        }
+
+        result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
+
+
+        # 初回実行の場合は履歴情報を登録
+        if not retry:
+            # ServiceNowアクション履歴登録
+            logger.logic_log(
+                'LOSI01125',
+                str(rhdm_res_act.execution_order), self.trace_id
+            )
+
+            self.servicenow_action_history_insert(
+                self.servicenow_driver.servicenow_disp_name,
+                sys_id,
+                'OASE Event Notify',
+                rhdm_res_act.execution_order,
+                self.action_history.pk,
+            )
+        
+        if not result:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+        logger.logic_log(
+            'LOSI00002', 
+            'self.trace_id:%s, sts:%s, detail:%s' % (self.trace_id, status, detail)
+        )
+
+        return status, detail
+
+
+    def act_resolved_incident(self, rhdm_res_act, retry, pre_flag):
+        """
+        [概要]
+          インシデント更新処理(Resolved)
+        """
+
+        logger.logic_log(
+            'LOSI00001', 
+            'self.trace_id:%s, aryActionParameter:%s' % (self.trace_id, self.aryActionParameter)
+        )
+
+        status = PROCESSED
+        detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        # sys_id取得
+        sys_id = None
+        try:
+            act_his = ActionHistory.objects.filter(
+                trace_id             = self.trace_id,
+                action_type_id       = ACTION_TYPE_ID.SERVICENOW,
+                execution_order__lt  = rhdm_res_act.execution_order
+            ).order_by('-execution_order')[0]
+
+            sys_id = ServiceNowActionHistory.objects.get(action_his_id=act_his.action_history_id).sys_id
+
+        except ServiceNowActionHistory.DoesNotExist:
+            logger.logic_log('LOSM01501', self.trace_id, act_his.action_history_id)
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01106'
+            )
+
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        except Exception as e:
+            logger.logic_log('LOSM01501', self.trace_id, None)
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01106'
+            )
+
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        if not sys_id:
+            logger.logic_log('LOSI01126', self.trace_id, self.action_history.pk)
+            return status, detail
+
+
+        # インシデントリゾルブド
+        data = {
+            'state'       : '6',  # 6:Resolved
+            'close_code'  : 'AC',
+            'close_notes' : 'Automatic resolution by OASE', # Resolved時のコメント
+        }
+
+        result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
+
+        # 初回実行の場合は履歴情報を登録
+        if not retry:
+            # ServiceNowアクション履歴登録
+            logger.logic_log(
+                'LOSI01125',
+                str(rhdm_res_act.execution_order), self.trace_id
+            )
+
+            self.servicenow_action_history_insert(
+                self.servicenow_driver.servicenow_disp_name,
+                sys_id,
+                'OASE Event Notify',
+                rhdm_res_act.execution_order,
+                self.action_history.pk,
+            )
+
+        if not result:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+        logger.logic_log(
+            'LOSI00002', 
+            'self.trace_id:%s, sts:%s, detail:%s' % (self.trace_id, status, detail)
+        )
+
+        return status, detail
+
+
     def act_close_incident(self, rhdm_res_act, retry, pre_flag):
         """
         [概要]
@@ -482,10 +684,28 @@ class ServiceNowManager(AbstractManager):
         data = {
             'state'       : '7',  # 7:Close
             'close_notes' : 'Closed by %s' % (self.last_update_user),
-            'close_code'  : 'Closed/Resolved by Caller',
+            'close_code'  : 'AC',
         }
 
         result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
+
+
+        # 初回実行の場合は履歴情報を登録
+        if not retry:
+            # ServiceNowアクション履歴登録
+            logger.logic_log(
+                'LOSI01125',
+                str(rhdm_res_act.execution_order), self.trace_id
+            )
+
+            self.servicenow_action_history_insert(
+                self.servicenow_driver.servicenow_disp_name,
+                sys_id,
+                'OASE Event Notify',
+                rhdm_res_act.execution_order,
+                self.action_history.pk,
+            )
+
         if not result:
             status = SERVER_ERROR
             detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
