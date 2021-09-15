@@ -474,7 +474,7 @@ class ActionDriverSubModules:
             return ACTION_DATA_ERROR
 
         # 実行順に処理
-        for rhdm_res_act in rhdm_res_act_list:
+        for idx, rhdm_res_act in enumerate(rhdm_res_act_list):
             try:
                 # 処理再開の場合(承認 or リトライ or 待機中)、実行ログを出力
                 if self.resume_order == rhdm_res_act.execution_order:
@@ -599,6 +599,12 @@ class ActionDriverSubModules:
                     self.update_resume_data(rhdm_res_act.execution_order, rhdm_res_act.action_retry_interval)
                     ActCommon.SaveActionLog(self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01057', interval=rhdm_res_act.action_retry_interval, ret_count=self.action_history.action_retry_count)
                     return ACTION_HISTORY_STATUS.RETRY
+
+                # 後続アクションあり、かつ、ITA実行結果待ちの場合は、後続のアクションは実行しない
+                wait_sts_list = ACTION_HISTORY_STATUS.EXASTRO_CHECK_LIST + ACTION_HISTORY_STATUS.EXASTRO_REGIST_LIST
+                if  idx + 1 < len(rhdm_res_act_list) and ActionStatus in wait_sts_list:
+                    return ActionStatus
+
 
             except Exception as e:
                 logger.system_log('LOSE01119', traceback.format_exc())
@@ -1124,6 +1130,26 @@ class ActionDriverSubModules:
                     showMsgId=False
                 )
             )
+
+            # リトライではない、かつ、実行結果が出た場合
+            if retry_flag == False and status not in ACTION_HISTORY_STATUS.EXASTRO_CHECK_LIST:
+
+                # 後続アクションの有無を確認
+                rcnt = RhdmResponseAction.objects.filter(
+                    response_id=act_his.response_id,
+                    execution_order__gt=act_his.execution_order,
+                ).count()
+
+                # 後続アクションがあれば状態遷移させる
+                if rcnt > 0:
+                    act_sts = ACTION_EXEC_ERROR
+
+                    # 正常の場合は、後続の処理を再開するよう状態遷移
+                    if status == ACTION_HISTORY_STATUS.PROCESSED:
+                        act_sts = UNPROCESS
+                        self.save_resume = act_his.execution_order + 1
+
+                    self.update_status(act_sts)
 
         except RhdmResponseAction.DoesNotExist:
             logger.system_log('LOSE01121', act_his.response_id, act_his.execution_order)
