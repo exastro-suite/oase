@@ -41,6 +41,134 @@ os.environ['LOG_DIR']       = oase_root_dir + "/logs/backyardlogs/oase_action"
 
 
 from backyards.action_driver.oase_action_sub import ActionDriverSubModules
+from backyards.action_driver import oase_action_sub as chld_proc
+
+################################################
+# テスト用DB操作(exastro_request用)
+################################################
+def set_data_exastro_request():
+    """
+    Exastroシリーズの実行ステータス取得のテストに必要なデータをDBに登録
+    """
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    try:
+        with transaction.atomic():
+
+            # アクション履歴
+            ActionHistory(
+                action_history_id=999,
+                response_id=999,
+                trace_id='TOS_pytest999',
+                rule_type_id=999,
+                rule_type_name='pytest_ruletable',
+                rule_name='pytest',
+                execution_order=1,
+                action_start_time=now,
+                action_type_id=1,
+                status=2005,
+                status_detail=0,
+                status_update_id='pytest_id',
+                retry_flag=False,
+                retry_status=None,
+                retry_status_detail=None,
+                action_retry_count=0,
+                last_act_user='administrator',
+                last_update_timestamp=now,
+                last_update_user='pytest_user',
+            ).save(force_insert=True)
+
+            # ルールマッチング情報
+            RhdmResponseAction(
+                response_detail_id = 999,
+                response_id = 999,
+                rule_name = 'pytest_rule_name',
+                execution_order = 1,
+                action_type_id = 1,
+                action_parameter_info = '',
+                action_pre_info = '',
+                action_retry_interval = 1,
+                action_retry_count = 1,
+                action_stop_interval = 0,
+                action_stop_count = 0,
+                last_update_timestamp = now,
+                last_update_user = 'pytest_user'
+            ).save(force_insert=True)
+
+            RhdmResponseAction(
+                response_detail_id = 998,
+                response_id = 999,
+                rule_name = 'pytest_rule_name',
+                execution_order = 2,
+                action_type_id = 1,
+                action_parameter_info = '',
+                action_pre_info = '',
+                action_retry_interval = 1,
+                action_retry_count = 1,
+                action_stop_interval = 0,
+                action_stop_count = 0,
+                last_update_timestamp = now,
+                last_update_user = 'pytest_user'
+            ).save(force_insert=True)
+
+
+    except Exception as e:
+        print(e)
+
+def set_data_exastro_request_ng():
+    """
+    Exastroシリーズの実行ステータス取得のテストに必要なデータをDBに登録
+    異常系データ
+    """
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    try:
+        with transaction.atomic():
+
+            # アクション履歴
+            ActionHistory(
+                action_history_id=999,
+                response_id=998,
+                trace_id='TOS_pytest999',
+                rule_type_id=999,
+                rule_type_name='pytest_ruletable',
+                rule_name='pytest',
+                execution_order=1,
+                action_start_time=now,
+                action_type_id=1,
+                status=2005,
+                status_detail=0,
+                status_update_id='pytest_id',
+                retry_flag=False,
+                retry_status=None,
+                retry_status_detail=None,
+                action_retry_count=0,
+                last_act_user='administrator',
+                last_update_timestamp=now,
+                last_update_user='pytest_user',
+            ).save(force_insert=True)
+
+            # ルールマッチング情報
+            RhdmResponseAction(
+                response_detail_id = 999,
+                response_id = 999,
+                rule_name = 'pytest_rule_name',
+                execution_order = 1,
+                action_type_id = 1,
+                action_parameter_info = '',
+                action_pre_info = '',
+                action_retry_interval = 1,
+                action_retry_count = 1,
+                action_stop_interval = 0,
+                action_stop_count = 0,
+                last_update_timestamp = now,
+                last_update_user = 'pytest_user'
+            ).save(force_insert=True)
+
+    except Exception as e:
+        print(e)
 
 
 ################################################
@@ -229,3 +357,144 @@ def test_regist_exastro(ita_table, setup_data_action, monkeypatch):
     # 異常系 第2引数に不正な値を渡す
     result = act_sub.regist_exastro(trace_id, 'a')
     assert result == False
+
+
+################################################################
+# check_exastro_requestテスト
+################################################################
+@pytest.mark.django_db
+def test_exastro_request_ok(ita_table, setup_data_action, monkeypatch):
+    """
+    exastro_request()テスト
+    正常系
+    """
+
+    # テストデータ作成
+    set_data_exastro_request()
+    act_sub = ActionDriverSubModules(999, 'TOS_pytest999', 0)
+
+    act_sub.driver_type_info = {
+        1 : {
+            'exastro' : '1',
+            'name'    : 'ITA',
+        },
+    }
+
+    ITAManager = getattr(import_module('libs.backyardlibs.action_driver.ITA.ITA_driver'), 'ITAManager')
+    monkeypatch.setattr(ITAManager, 'set_information', lambda a, b, c:True)
+    monkeypatch.setattr(ITAManager, 'get_last_info',   lambda a, b, c:(3,0))
+    monkeypatch.setattr(chld_proc,  'update_action_history', lambda a, b, c, d, retry:True)
+
+    # 正常系
+    result = act_sub.check_exastro_request('TOS_pytest999', 999)
+
+    assert result == True
+
+
+@pytest.mark.django_db
+def test_exastro_request_ng_acthistory_not_exists(ita_table, setup_data_action):
+    """
+    exastro_request()テスト
+    アクション履歴なし
+    """
+
+    # テストデータ作成
+    set_data_exastro_request()
+    act_sub = ActionDriverSubModules(999, 'TOS_pytest999', 0)
+
+    act_sub.driver_type_info = {
+        1 : {
+            'exastro' : '1',
+            'name'    : 'ITA',
+        },
+    }
+
+    ITAManager = getattr(import_module('libs.backyardlibs.action_driver.ITA.ITA_driver'), 'ITAManager')
+
+    # テスト
+    result = act_sub.check_exastro_request('TOS_pytest999', 998)
+
+    assert result == False
+
+
+@pytest.mark.django_db
+def test_exastro_request_ng_not_exastro(ita_table, setup_data_action):
+    """
+    exastro_request()テスト
+    exastroシリーズ外
+    """
+
+    # テストデータ作成
+    set_data_exastro_request()
+    act_sub = ActionDriverSubModules(999, 'TOS_pytest999', 0)
+
+    act_sub.driver_type_info = {
+        1 : {
+            'exastro' : 'X',
+            'name'    : 'ITA',
+        },
+    }
+
+    ITAManager = getattr(import_module('libs.backyardlibs.action_driver.ITA.ITA_driver'), 'ITAManager')
+
+    # テスト
+    result = act_sub.check_exastro_request('TOS_pytest999', 999)
+
+    assert result == False
+
+
+@pytest.mark.django_db
+def test_exastro_request_ng_ita_result_is_none(ita_table, setup_data_action, monkeypatch):
+    """
+    exastro_request()テスト
+    ITA実行結果取得エラー
+    """
+
+    # テストデータ作成
+    set_data_exastro_request()
+    act_sub = ActionDriverSubModules(999, 'TOS_pytest999', 0)
+
+    act_sub.driver_type_info = {
+        1 : {
+            'exastro' : '1',
+            'name'    : 'ITA',
+        },
+    }
+
+    ITAManager = getattr(import_module('libs.backyardlibs.action_driver.ITA.ITA_driver'), 'ITAManager')
+    monkeypatch.setattr(ITAManager, 'set_information', lambda a, b, c:True)
+    monkeypatch.setattr(ITAManager, 'get_last_info',   lambda a, b, c:(None,None))
+
+    # テスト
+    result = act_sub.check_exastro_request('TOS_pytest999', 999)
+
+    assert result == False
+
+
+@pytest.mark.django_db
+def test_exastro_request_ng_respact_not_exists(ita_table, setup_data_action, monkeypatch):
+    """
+    exastro_request()テスト
+    ITA実行結果取得エラー
+    """
+
+    # テストデータ作成
+    set_data_exastro_request_ng()
+    act_sub = ActionDriverSubModules(999, 'TOS_pytest999', 0)
+
+    act_sub.driver_type_info = {
+        1 : {
+            'exastro' : '1',
+            'name'    : 'ITA',
+        },
+    }
+
+    ITAManager = getattr(import_module('libs.backyardlibs.action_driver.ITA.ITA_driver'), 'ITAManager')
+
+    # テスト
+    result = act_sub.check_exastro_request('TOS_pytest999', 999)
+
+    assert result == False
+
+
+
