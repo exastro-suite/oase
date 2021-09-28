@@ -27,7 +27,6 @@ import django
 import traceback
 import datetime
 import pytz
-import ast
 
 # OASE モジュール importパス追加
 my_path = os.path.dirname(os.path.abspath(__file__))
