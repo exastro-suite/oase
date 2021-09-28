@@ -57,7 +57,6 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
 
     # WORK_NOTES チェック
     if check_info['WORK_NOTES'] or check_info['WORK_NOTES'] == '':
-        count = count + 1
         work_notes = check_info['WORK_NOTES']
         message_list = work_notes_check(work_notes, check_info, conditions, message_list)
 
