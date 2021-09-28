@@ -241,12 +241,8 @@ class ServiceNow1Core(DriverCore):
             # リクエストボディ
             ary_data = {}
             ary_data['short_description'] = 'OASE Event Notify'
-            ary_data['description'] = {
-                'trace_id'      : self.TraceID,
-                'decisiontable' : dname,
-                'eventdatetime' : er.event_to_time,
-                'eventinfo'     : er.event_info
-            }
+            ary_data['description'] = "trace_id=" + self.TraceID + "\r\n" + "decisiontable=" + dname + "\r\n" \
+                + "eventdatetime=" + str(er.event_to_time) + "\r\n" + "eventinfo=" + er.event_info
             str_para_json_encoded = json.dumps(ary_data, default=str)
 
             # リクエスト送信
