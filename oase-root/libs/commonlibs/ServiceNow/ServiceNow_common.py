@@ -55,6 +55,12 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         workflow_id = check_info['WORKFLOW_ID']
         message_list = workflow_id_check(workflow_id, check_info, conditions, message_list)
 
+    # WORK_NOTES チェック
+    if check_info['WORK_NOTES'] or check_info['WORK_NOTES'] == '':
+        count = count + 1
+        work_notes = check_info['WORK_NOTES']
+        message_list = work_notes_check(work_notes, check_info, conditions, message_list)
+
     # INCIDENT_STATUS,WORKFLOW_IDどちらも記述がない場合
     if count == 0:
         message_list.append({'id': 'MOSJA03164', 'param': None})
@@ -137,6 +143,30 @@ def workflow_id_check(workflow_id, check_info, conditions, message_list):
     elif workflow_id and not DriverCommon.has_right_reserved_value(conditions, workflow_id):
         logger.logic_log('LOSM00023', workflow_id)
         message_list.append({'id': 'MOSJA03137', 'param': 'WORKFLOW_ID'})
+
+    return message_list
+
+
+def work_notes_check(work_notes, check_info, conditions, message_list):
+    """
+    [概要]
+    WORK_NOTESのバリデーションチェックを行う
+    [引数]
+    work_notes   : WORK_NOTES
+    check_info   : チェック情報
+    conditions   : 条件名
+    message_list : メッセージリスト
+    [戻り値]
+    message_list : メッセージリスト
+    """
+
+    if work_notes == '':
+        logger.logic_log('LOSM00045', check_info)
+        message_list.append({'id': 'MOSJA03165', 'param': 'WORK_NOTES'})
+
+    elif work_notes and not DriverCommon.has_right_reserved_value(conditions, work_notes):
+        logger.logic_log('LOSM00023', work_notes)
+        message_list.append({'id': 'MOSJA03137', 'param': 'WORK_NOTES'})
 
     return message_list
 
