@@ -27,6 +27,7 @@ import django
 import traceback
 import datetime
 import pytz
+import ast
 
 # OASE モジュール importパス追加
 my_path = os.path.dirname(os.path.abspath(__file__))
@@ -318,6 +319,15 @@ class ServiceNowManager(AbstractManager):
 
             return None
 
+        status = None
+        act_history = ActionHistory.objects.get(action_history_id=self.action_history.pk)
+
+        if self.aryActionParameter['WORK_NOTES'] is not None and \
+           (act_history.status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING] or \
+           act_history.retry_status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING]):
+
+            return self.act_approval_confirmation
+
         if self.aryActionParameter['INCIDENT_STATUS'] == 'OPEN':
 
             return self.act_open_incident
@@ -360,7 +370,10 @@ class ServiceNowManager(AbstractManager):
         act_func = self.get_act_ptrn()
         if act_func:
             status, detail = act_func(rhdm_res_act, retry, pre_flag)
-
+            if status in [ACTION_HISTORY_STATUS.SNOW_APPROVED]:
+                self.aryActionParameter['WORK_NOTES'] = None
+                act_func = self.get_act_ptrn()
+                status, detail = act_func(rhdm_res_act, retry, pre_flag)
 
         logger.logic_log('LOSI00002', 'sts:%s, detail:%s' % (status, detail))
 
@@ -790,6 +803,82 @@ class ServiceNowManager(AbstractManager):
         return status, detail
 
 
+    def act_approval_confirmation(self, rhdm_res_act, retry, pre_flag):
+        """
+        [概要]
+          インシデント管理承認確認
+        """
+
+        logger.logic_log(
+            'LOSI00001', 
+            'self.trace_id:%s, aryActionParameter:%s' % (self.trace_id, self.aryActionParameter)
+        )
+
+        status = ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING
+        detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        # sys_id取得
+        sys_id = None
+        try:
+            act_his = ActionHistory.objects.filter(
+                trace_id             = self.trace_id,
+                action_type_id       = ACTION_TYPE_ID.SERVICENOW,
+                execution_order__lt  = rhdm_res_act.execution_order
+            ).order_by('-execution_order')[0]
+
+            sys_id = ServiceNowActionHistory.objects.get(action_his_id=act_his.action_history_id).sys_id
+
+        except ServiceNowActionHistory.DoesNotExist:
+            logger.logic_log('LOSM01501', self.trace_id, act_his.action_history_id)
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01106'
+            )
+
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        except Exception as e:
+            logger.logic_log('LOSM01501', self.trace_id, None)
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01106'
+            )
+
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+
+        if not sys_id:
+            logger.logic_log('LOSI01126', self.trace_id, self.action_history.pk)
+            return status, detail
+
+        result = self.core.get_incident(self.servicenow_driver, sys_id)
+
+        if not result:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+        work_notes = self.aryActionParameter['WORK_NOTES']
+        status = self.work_notes_analysis(result, work_notes)
+
+        logger.logic_log(
+            'LOSI00002', 
+            'self.trace_id:%s, sts:%s, detail:%s' % (self.trace_id, status, detail)
+        )
+
+        return status, detail
+
+
     @classmethod
     def has_action_master(cls):
         """
@@ -802,4 +891,25 @@ class ServiceNowManager(AbstractManager):
 
         return False
 
+
+    def work_notes_analysis(self, result, work_notes):
+        """
+        [概要]
+          インシデント承認確認の作業ノート解析
+        """
+
+        resp = json.loads(result.text)
+
+        if resp and 'result' in resp and 'work_notes' in resp['result']:
+            display_value = resp['result']['work_notes']['display_value']
+            display_value = display_value.splitlines()
+
+            if work_notes in display_value:
+                return ACTION_HISTORY_STATUS.SNOW_APPROVED
+
+            else:
+                return ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING
+
+        else:
+            return SERVER_ERROR
 

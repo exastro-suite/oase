@@ -166,6 +166,36 @@ class ServiceNow1Core(DriverCore):
         return True
 
 
+    def send_get_request(self, url, user, passwd, headers=None, proxies=None):
+        """
+        [メソッド概要]
+            GETリクエスト送信
+        """
+
+        logger.logic_log('LOSI00001', 'trace_id=%s, url=%s' % (self.TraceID, url))
+
+        try:
+            resp = requests.get(
+                url, auth=(user, passwd),
+                headers=headers, proxies=proxies,
+                timeout=30, verify=False
+            )
+
+            if resp.status_code not in [200]:
+                logger.logic_log(
+                    'LOSI00002',
+                    'Error. trace_id=%s, code=%s' % (self.TraceID, resp.status_code)
+                )
+                return False
+
+        except Exception as ex:
+            logger.logic_log('LOSM01502', 'GET', self.TraceID, traceback.format_exc())
+            return False
+
+        logger.logic_log('LOSI00002', 'Success. trace_id=%s' % (self.TraceID))
+        return resp
+
+
     def create_incident(self, drv):
 
         """
@@ -297,6 +327,61 @@ class ServiceNow1Core(DriverCore):
 
         except Exception as ex:
             logger.logic_log('LOSM01502', 'PUT', self.TraceID, traceback.format_exc())
+            return False
+
+
+        logger.logic_log('LOSI00002', 'result=%s, trace_id=%s, sys_id=%s' % (result, self.TraceID, sys_id))
+        return result
+
+
+    def get_incident(self, drv, sys_id):
+
+        """
+        [メソッド概要]
+            インシデント取得リクエスト送信
+        """
+
+        logger.logic_log(
+            'LOSI00001',
+            'trace_id=%s, driver_id=%s, sys_id=%s' % (self.TraceID, drv.servicenow_driver_id, sys_id)
+        )
+
+        result = False
+
+        try:
+            cipher = AESCipher(settings.AES_KEY)
+
+            # リクエスト送信先
+            url = "{}://{}:{}/api/now/table/{}/{}?sysparm_display_value=all".format(
+                drv.protocol, drv.hostname, drv.port, self.target_table, sys_id
+            )
+
+            # ヘッダー情報
+            headers = {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            }
+
+            # プロクシ設定
+            if drv.proxy:
+                proxies = {
+                    'http' : drv.proxy,
+                    'https': drv.proxy,
+                }
+
+            # 認証情報
+            user = drv.username
+            password = cipher.decrypt(drv.password)
+
+            # リクエスト送信
+            result = self.send_get_request(
+                url,
+                user, password,
+                headers=headers, proxies=proxies
+            )
+
+        except Exception as ex:
+            logger.logic_log('LOSM01502', 'GET', self.TraceID, traceback.format_exc())
             return False
 
 
