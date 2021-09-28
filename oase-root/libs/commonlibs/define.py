@@ -119,6 +119,10 @@ class ACTION_HISTORY_STATUS():
     ITA_FAIL       = 2105  # 状態取得失敗
     ITA_REGISTERING_SUBSTITUTION_VALUE = 2106  # 代入値管理登録中
 
+    # ServiceNowアクション固有ステータス
+    SNOW_APPROVAL_PENDING = 2301 # 承認待ち
+    SNOW_APPROVED         = 2302 # 承認済み
+
     STATUS_DESCRIPTION = {
         UNPROCESS        : 'MOSJA13064',
         PROCESSING       : 'MOSJA13065',
@@ -140,6 +144,8 @@ class ACTION_HISTORY_STATUS():
         PREVENT          : 'MOSJA13081',
         ACTION_POST_DATA_ERROR : 'MOSJA13127',
         ITA_REGISTERING_SUBSTITUTION_VALUE : 'MOSJA13083',
+        SNOW_APPROVAL_PENDING : 'MOSJA13128',
+        SNOW_APPROVED : 'MOSJA13129',
     }
 
     DISABLE_RETRY_LIST = [
@@ -155,6 +161,14 @@ class ACTION_HISTORY_STATUS():
     ]
     EXASTRO_REGIST_LIST = [
         ITA_REGISTERING_SUBSTITUTION_VALUE,
+    ]
+
+    WAIT_STATUS_LIST = [
+        SNOW_APPROVAL_PENDING,
+    ]
+
+    CONTINUE_STATUS_LIST = [
+        SNOW_APPROVED,
     ]
 
     ICON_INFO = {
@@ -228,7 +242,16 @@ class ACTION_HISTORY_STATUS():
             'name':'owf-gear',
             'description':'MOSJA13083'
         },
-        
+        SNOW_APPROVAL_PENDING:{
+                  'status':'running',
+                  'name':'owf-gear',
+                  'description':'MOSJA13128'
+        },
+        SNOW_APPROVED:{
+                  'status':'running',
+                  'name':'owf-gear',
+                  'description':'MOSJA13129'
+        },
     }
 
 

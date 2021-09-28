@@ -605,6 +605,12 @@ class ActionDriverSubModules:
                 if  idx + 1 < len(rhdm_res_act_list) and ActionStatus in wait_sts_list:
                     return ActionStatus
 
+                # アクション実行待ちの場合は、後続のアクションは実行しない
+                wait_sts_list = ACTION_HISTORY_STATUS.WAIT_STATUS_LIST + ACTION_HISTORY_STATUS.CONTINUE_STATUS_LIST
+                if ActionStatus in wait_sts_list:
+                    self.save_resume = rhdm_res_act.execution_order
+                    return ActionStatus
+
 
             except Exception as e:
                 logger.system_log('LOSE01119', traceback.format_exc())

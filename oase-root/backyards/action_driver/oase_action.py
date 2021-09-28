@@ -203,6 +203,8 @@ class ActionDriverMainModules:
         rhdm_response_list = RhdmResponse.objects.filter(request_type_id=PRODUCTION).filter(
             Q(status=UNPROCESS)
             | Q(status=WAITING)
+            | Q(status=ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING)
+            | Q(status=ACTION_HISTORY_STATUS.SNOW_APPROVED)
             | Q(status=ACTION_HISTORY_STATUS.RETRY, resume_timestamp__isnull=False, resume_timestamp__lte=now)
         ).order_by('request_reception_time')
 
