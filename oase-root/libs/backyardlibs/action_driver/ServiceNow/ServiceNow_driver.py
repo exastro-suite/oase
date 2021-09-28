@@ -74,6 +74,7 @@ class ServiceNowManager(AbstractManager):
         'SERVICENOW_NAME',
         'INCIDENT_STATUS',
         'WORKFLOW_ID',
+        'WORK_NOTES',
     ]
 
     # アクション情報の必須キーリスト
