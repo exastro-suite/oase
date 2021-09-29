@@ -416,3 +416,80 @@ def test_workflow_id_check_ng_reserved(servicenow_table):
     # テストデータ削除
     delete_data_for_servicenow_driver()
 
+
+@pytest.mark.django_db
+def test_work_notes_check_ok(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    WORK_NOTESの正常系
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    work_notes = 'APPROVED'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'WORK_NOTES':'APPROVED'}
+    conditions = {'条件1', '条件2'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    work_notes_check(work_notes, check_info, conditions, message_list)
+    assert len(message_list) == 0
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+    
+    
+@pytest.mark.django_db
+def test_work_notes_check_ng_no_value(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    WORK_NOTESの異常系(値なし)
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    work_notes = ''
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'WORK_NOTES':''}
+    conditions = {'条件1', '条件2'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    work_notes_check(work_notes, check_info, conditions, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03165'
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
+    
+    
+@pytest.mark.django_db
+def test_work_notes_check_ng_reserved(servicenow_table):
+    """
+    アクションパラメータのバリデーションチェック処理テスト
+    WORK_NOTESの異常系(存在しない予約変数)
+    """
+
+    # テストデータ初期化
+    delete_data_for_servicenow_driver()
+    servicenow_disp_name = 'test_servicenow'
+
+    # テストデータ設定
+    work_notes = '{{ VAR_条件0 }}'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'WORK_NOTES':'{{ VAR_条件0 }}'}
+    conditions = {'条件1', '条件2'}
+    set_data_servicenow_driver(servicenow_disp_name)
+
+    # テスト実施
+    message_list = []
+    work_notes_check(work_notes, check_info, conditions, message_list)
+    assert len(message_list) == 1 and message_list[0]['id'] == 'MOSJA03137'
+
+    # テストデータ削除
+    delete_data_for_servicenow_driver()
