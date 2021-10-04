@@ -114,8 +114,8 @@ def incident_status_check(incident_status, check_info, message_list):
         message_list.append({'id': 'MOSJA03161', 'param': None})
 
     else:
-        # INCIDENT_STATUS の値が「OPEN」または「CLOSE」であるかチェック
-        if incident_status not in ['OPEN', 'CLOSE', 'IN PROGRESS', 'RESOLVED']:
+        # INCIDENT_STATUS の値が「NEW」、「CLOSED」「IN_PROGRESS」または「RESOLVED」であるかチェック
+        if incident_status not in ['NEW', 'CLOSED', 'IN_PROGRESS', 'RESOLVED']:
             logger.logic_log('LOSM00040', check_info)
             message_list.append({'id': 'MOSJA03162', 'param': None})
 
