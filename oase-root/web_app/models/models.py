@@ -69,8 +69,7 @@ class Group(models.Model):
     DOSL01001:グループ管理
     """
     group_id = models.AutoField("グループID", primary_key=True)
-    group_name = models.
-    CharField("グループ名", max_length=64, unique=True)
+    group_name = models.CharField("グループ名", max_length=64, unique=True)
     summary = models.CharField("概要", max_length=4000, null=True, blank=True)
     ad_data_flag = models.CharField("AD連携対象フラグ", max_length=1, default='0')
     last_update_timestamp = models.DateTimeField("最終更新日時pp", default=timezone.now)
@@ -268,8 +267,8 @@ class RhdmResponseAction(models.Model):
     response_id = models.IntegerField("レスポンスID")
     rule_name = models.CharField("ルール名", max_length=64)
     execution_order = models.IntegerField("アクション実行順")
-    incident_happened = models.CharField("発生事象", max_length=128)
-    handling_summary = models.CharField("対処概要", max_length=128)
+    incident_happened = models.CharField("発生事象", max_length=128, null=True)
+    handling_summary = models.CharField("対処概要", max_length=128, null=True)
     action_type_id = models.IntegerField("アクション種別")
     action_parameter_info = models.CharField("アクションパラメータ情報", max_length=1024)
     action_pre_info = models.CharField("事前アクション情報", max_length=1024)
