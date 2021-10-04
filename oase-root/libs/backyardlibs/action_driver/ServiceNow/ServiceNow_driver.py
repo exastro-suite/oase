@@ -599,7 +599,7 @@ class ServiceNowManager(AbstractManager):
         # インシデントリゾルブド
         data = {
             'state'       : '6',  # 6:Resolved
-            'close_code'  : 'AC',
+            'close_code'  : 'Solved Remotely (Work Around)',
             'close_notes' : 'Automatic resolution by OASE', # Resolved時のコメント
         }
 
@@ -697,7 +697,7 @@ class ServiceNowManager(AbstractManager):
         data = {
             'state'       : '7',  # 7:Close
             'close_notes' : 'Closed by %s' % (self.last_update_user),
-            'close_code'  : 'AC',
+            'close_code'  : 'Closed/Resolved by Caller',
         }
 
         result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
