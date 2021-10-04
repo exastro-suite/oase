@@ -243,7 +243,7 @@ def test_get_history_data_ng_notexists(servicenow_table):
 def test_incident_status_check_ok_open(servicenow_table):
     """
     アクションパラメータのバリデーションチェック処理テスト
-    INCIDENT_STATUS(OPEN)の正常系
+    INCIDENT_STATUS(NEW)の正常系
     """
 
     # テストデータ初期化
@@ -251,8 +251,8 @@ def test_incident_status_check_ok_open(servicenow_table):
     servicenow_disp_name = 'test_servicenow'
 
     # テストデータ設定
-    incident_status = 'OPEN'
-    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':'OPEN'}
+    incident_status = 'NEW'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':'NEW'}
     set_data_servicenow_driver(servicenow_disp_name)
 
     # テスト実施
@@ -268,7 +268,7 @@ def test_incident_status_check_ok_open(servicenow_table):
 def test_incident_status_check_ok_close(servicenow_table):
     """
     アクションパラメータのバリデーションチェック処理テスト
-    INCIDENT_STATUS(CLOSE)の正常系
+    INCIDENT_STATUS(CLOSED)の正常系
     """
 
     # テストデータ初期化
@@ -276,8 +276,8 @@ def test_incident_status_check_ok_close(servicenow_table):
     servicenow_disp_name = 'test_servicenow'
 
     # テストデータ設定
-    incident_status = 'CLOSE'
-    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':'CLOSE'}
+    incident_status = 'CLOSED'
+    check_info = {'SERVICENOW_NAME':servicenow_disp_name, 'INCIDENT_STATUS':'CLOSED'}
     set_data_servicenow_driver(servicenow_disp_name)
 
     # テスト実施

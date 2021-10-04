@@ -327,11 +327,11 @@ class ServiceNowManager(AbstractManager):
 
             return self.act_approval_confirmation
 
-        if self.aryActionParameter['INCIDENT_STATUS'] == 'OPEN':
+        if self.aryActionParameter['INCIDENT_STATUS'] == 'NEW':
 
             return self.act_open_incident
 
-        if self.aryActionParameter['INCIDENT_STATUS'] == 'IN PROGRESS':
+        if self.aryActionParameter['INCIDENT_STATUS'] == 'IN_PROGRESS':
 
             return self.act_progress_incident
 
@@ -343,7 +343,7 @@ class ServiceNowManager(AbstractManager):
 
             return self.act_resolved_incident
 
-        if self.aryActionParameter['INCIDENT_STATUS'] == 'CLOSE':
+        if self.aryActionParameter['INCIDENT_STATUS'] == 'CLOSED':
 
             return self.act_close_incident
 

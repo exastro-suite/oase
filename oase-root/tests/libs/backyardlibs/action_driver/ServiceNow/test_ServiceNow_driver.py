@@ -260,8 +260,8 @@ def test_set_action_parameters():
     ############################################
     # 正常終了パターン
     ############################################
-    # テストデータ作成　Operation_id用
-    ACTION_PARAMETER_INFO = ['SERVICENOW_NAME=ServiceNow176', 'INCIDENT_STATUS=OPEN']
+    # テストデータ作成 Operation_id用
+    ACTION_PARAMETER_INFO = ['SERVICENOW_NAME=ServiceNow176', 'INCIDENT_STATUS=NEW']
     testServiceNow = ServiceNowManager(trace_id, response_id, last_update_user)
     testServiceNow.aryActionParameter['ACTION_PARAMETER_INFO'] = ACTION_PARAMETER_INFO
     testServiceNow.set_action_parameters(
