@@ -267,6 +267,8 @@ class RhdmResponseAction(models.Model):
     response_id = models.IntegerField("レスポンスID")
     rule_name = models.CharField("ルール名", max_length=64)
     execution_order = models.IntegerField("アクション実行順")
+    incident_happened = models.CharField("発生事象", max_length=128, null=True)
+    handling_summary = models.CharField("対処概要", max_length=128, null=True)
     action_type_id = models.IntegerField("アクション種別")
     action_parameter_info = models.CharField("アクションパラメータ情報", max_length=1024)
     action_pre_info = models.CharField("事前アクション情報", max_length=1024)
