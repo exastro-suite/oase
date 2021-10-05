@@ -139,6 +139,8 @@ class ActUtil:
     cond_large_priority = 'condPriority1'
     cond_small_group = 'condGroup2'
     cond_small_priority = 'condPriority2'
+    incident_happened = 'incidentHappened'
+    handling_summary = 'handlingSummary'
 
 
 class Driver:
@@ -615,11 +617,23 @@ class Agent:
                     preinfo['ACTION_PARAMETER_INFO'] = acts[ActUtil.pre_info][i].split(',')
                     pre_param = json.dumps(preinfo, ensure_ascii=False) #事前アクション情報
 
+                # 発生事象情報取得
+                inc_param = acts[ActUtil.incident_happened][i]
+                if not inc_param or inc_param==["X"] or inc_param==["x"]:
+                    inc_param = ''
+
+                # 対処概要取得
+                hand_param = acts[ActUtil.handling_summary][i]
+                if not hand_param or hand_param==["X"] or hand_param==["x"]:
+                    hand_param = ''
+
                 res_act_list.append(
                     RhdmResponseAction(
                         response_id           = responseid,                        # レスポンスID
                         rule_name             = acts[ActUtil.rule_name][i],        # ルール名
                         execution_order       = i+1,                               # アクション実行順
+                        handling_summary      = hand_param,                        # 対処概要
+                        incident_happened     = inc_param,                         # 発生事象
                         action_type_id        = act_type,                          # アクション種別
                         action_parameter_info = act_param,                         # アクションパラメータ情報
                         action_pre_info       = pre_param,                         # 事前アクション情報取得
@@ -628,7 +642,7 @@ class Agent:
                         action_stop_interval  = acts[ActUtil.stop_interval][i],    # アクション中断間隔
                         action_stop_count     = acts[ActUtil.stop_count][i],       # アクション中断回数
                         last_update_timestamp = self.now,                          # 最終更新日時
-                        last_update_user   = self.user.user_name                   # 最終更新者
+                        last_update_user      = self.user.user_name                # 最終更新者
                     )
                 )
 
