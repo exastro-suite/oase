@@ -167,7 +167,6 @@ class DecisionTableFactory:
             'D25' : ['MOSJA11106',],
             'E25' : ['MOSJA11157',],
             'F25' : ['MOSJA11158',],
-
             'G25' : ['MOSJA11107',],
             'H25' : ['MOSJA11108',],
             'H26' : ['MOSJA11116',],
