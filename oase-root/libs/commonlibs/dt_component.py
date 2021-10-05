@@ -58,21 +58,24 @@ class DecisionTableComponent(object):
     COL_INDEX_RULE_START = 2
 
     # アクション部のカラム
-    ACTION_COLUMN_COUNT               = 14  # アクション部のカラム数(必須項目)
+    ACTION_COLUMN_COUNT               = 16  # アクション部のカラム数(必須項目)
     ACTION_COLUMN_COUNT_FULL          = ACTION_COLUMN_COUNT + 2  # アクション部のカラム数(有効日無効日含む)
-    REVISION_COL_INDEX_ACTION_TYPE    = 1   # アクション種別のカラム補正値
-    REVISION_COL_INDEX_ACTION_PARAMS  = 2   # アクションパラメーターのカラム補正値
-    REVISION_COL_INDEX_PREACT_INFO    = 3   # 事前アクション情報のカラム補正値
-    REVISION_COL_INDEX_RETRY_INTERVAL = 4   # リトライ間隔のカラム補正値
-    REVISION_COL_INDEX_RETRY_MAX      = 5   # リトライ回数のカラム補正値
-    REVISION_COL_INDEX_BREAK_INTERVAL = 6   # 抑止間隔のカラム補正値
-    REVISION_COL_INDEX_BREAK_MAX      = 7   # 抑止回数のカラム補正値
-    REVISION_COL_INDEX_COND_COUNT     = 8   # アクション条件回数のカラム補正値
-    REVISION_COL_INDEX_COND_TERM      = 9   # アクション条件期間のカラム補正値
-    REVISION_COL_INDEX_COND_GROUP1    = 10  # アクション条件グループのカラム補正値
-    REVISION_COL_INDEX_COND_PRIORITY1 = 11  # アクション条件グループ優先順位のカラム補正値
-    REVISION_COL_INDEX_COND_GROUP2    = 12  # アクション条件グループのカラム補正値
-    REVISION_COL_INDEX_COND_PRIORITY2 = 13  # アクション条件グループ優先順位のカラム補正値
+    REVISION_COL_INDEX_RULE_NAME      = 0   # ルール名
+    REVISION_COL_INDEX_DESC1          = 1   # 記述1(発生事象)
+    REVISION_COL_INDEX_DESC2          = 2   # 記述2(対処内容)
+    REVISION_COL_INDEX_ACTION_TYPE    = 3   # アクション種別のカラム補正値
+    REVISION_COL_INDEX_ACTION_PARAMS  = 4   # アクションパラメーターのカラム補正値
+    REVISION_COL_INDEX_PREACT_INFO    = 5   # 事前アクション情報のカラム補正値
+    REVISION_COL_INDEX_RETRY_INTERVAL = 6   # リトライ間隔のカラム補正値
+    REVISION_COL_INDEX_RETRY_MAX      = 7   # リトライ回数のカラム補正値
+    REVISION_COL_INDEX_BREAK_INTERVAL = 8   # 抑止間隔のカラム補正値
+    REVISION_COL_INDEX_BREAK_MAX      = 9   # 抑止回数のカラム補正値
+    REVISION_COL_INDEX_COND_COUNT     = 10  # アクション条件回数のカラム補正値
+    REVISION_COL_INDEX_COND_TERM      = 11  # アクション条件期間のカラム補正値
+    REVISION_COL_INDEX_COND_GROUP1    = 12  # アクション条件グループのカラム補正値
+    REVISION_COL_INDEX_COND_PRIORITY1 = 13  # アクション条件グループ優先順位のカラム補正値
+    REVISION_COL_INDEX_COND_GROUP2    = 14  # アクション条件グループのカラム補正値
+    REVISION_COL_INDEX_COND_PRIORITY2 = 15  # アクション条件グループ優先順位のカラム補正値
 
     # Excelのセル種別
     CELL_TYPE_EMPTY  = 0
@@ -775,6 +778,7 @@ class DecisionTableComponent(object):
             self.check_retry_part(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_break_part(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_rule_name(wsheet, row_index, col_index_act, row_max, message_list, lang)
+            self.check_rule_description(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_action_type_and_param(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_pre_action(wsheet, row_index, col_index_act, row_max, message_list, lang)
             self.check_action_condition(wsheet, row_index, col_index_act, row_max, message_list, lang)
@@ -1054,6 +1058,29 @@ class DecisionTableComponent(object):
                 cellname = self.convert_rowcol_to_cellno(row, col_index_act)
                 message_list.append(get_message('MOSJA03125', lang, cellname=cellname))
                 continue
+
+    def check_rule_description(self, wsheet, row_index, col_index_act, row_max, message_list, lang):
+        """
+        [メソッド概要]
+          発生事象/対処概要のパラメーターチェック
+        """
+
+        check_info = [
+            [self.REVISION_COL_INDEX_DESC1, 128, 'MOSJA11149'],
+            [self.REVISION_COL_INDEX_DESC2, 128, 'MOSJA11150'],
+        ]
+
+        for row in range(row_index, row_max):
+            for col_rev, max_length, msg_id in check_info:
+                col        = col_index_act + col_rev
+                col_name   = get_message(msg_id, lang, showMsgId=False)
+                cell_value = str(wsheet.cell(row, col).value)
+
+                if len(cell_value) > max_length:
+                    cellname = self.convert_rowcol_to_cellno(row, col)
+                    message_list.append(
+                        get_message('MOSJA03166', lang, colname=col_name, maxlength=max_length, cellname=cellname)
+                    )
 
     def check_action_type_and_param(self, wsheet, row_index, col_index, row_max, message_list, lang):
         """
