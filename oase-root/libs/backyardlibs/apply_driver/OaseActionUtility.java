@@ -40,6 +40,8 @@ public class OaseActionUtility implements java.io.Serializable {
     private java.util.List<java.lang.String> condPriority1 = new ArrayList<>();
     private java.util.List<java.lang.String> condGroup2 = new ArrayList<>();
     private java.util.List<java.lang.String> condPriority2 = new ArrayList<>();
+    private java.util.List<java.lang.String> incidentHappened = new ArrayList<>();
+    private java.util.List<java.lang.String> handlingSummary = new ArrayList<>();
 
 
     public OaseActionUtility() {
@@ -157,6 +159,22 @@ public class OaseActionUtility implements java.io.Serializable {
         this.condPriority2 = condPriority2;
     }
 
+    public java.util.List<java.lang.String> getIncidentHappened() {
+        return this.incidentHappened;
+    }
+
+    public void setIncidentHappened(java.util.List<java.lang.String> incidentHappened) {
+        this.incidentHappened = incidentHappened;
+    }
+
+    public java.util.List<java.lang.String> getHandlingSummary() {
+        return this.handlingSummary;
+    }
+
+    public void setHandlingSummary(java.util.List<java.lang.String> handlingSummary) {
+        this.handlingSummary = handlingSummary;
+    }
+
     public void addRuleName(String ruleName) {
         this.ruleName.add(ruleName);
     }
@@ -213,6 +231,14 @@ public class OaseActionUtility implements java.io.Serializable {
         this.condPriority2.add(condPriority2);
     }
 
+    public void addIncidentHappened(String incidentHappened) {
+        this.incidentHappened.add(incidentHappened);
+    }
+
+    public void addHandlingSummary(String handlingSummary) {
+        this.handlingSummary.add(handlingSummary);
+    }
+
     public OaseActionUtility(java.util.List<java.lang.String> id,
             java.util.List<java.lang.String> parameterInfo,
             java.util.List<java.lang.String> retryCount,
@@ -226,7 +252,9 @@ public class OaseActionUtility implements java.io.Serializable {
             java.util.List<java.lang.String> condGroup1,
             java.util.List<java.lang.String> condPriority1,
             java.util.List<java.lang.String> condGroup2,
-            java.util.List<java.lang.String> condPriority2) {
+            java.util.List<java.lang.String> condPriority2,
+            java.util.List<java.lang.String> incidentHappened,
+            java.util.List<java.lang.String> handlingSummary) {
         this.id = id;
         this.parameterInfo = parameterInfo;
         this.retryCount = retryCount;
@@ -241,6 +269,8 @@ public class OaseActionUtility implements java.io.Serializable {
         this.condPriority1 = condPriority1;
         this.condGroup2 = condGroup2;
         this.condPriority2 = condPriority2;
+        this.incidentHappened = incidentHappened;
+        this.handlingSummary = handlingSummary;
     }
 
 }
