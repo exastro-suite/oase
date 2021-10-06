@@ -122,30 +122,32 @@ class ACTION_HISTORY_STATUS():
     # ServiceNowアクション固有ステータス
     SNOW_APPROVAL_PENDING = 2301 # 承認待ち
     SNOW_APPROVED         = 2302 # 承認済み
+    SNOW_REJECTED         = 2303 # 承認却下
 
     STATUS_DESCRIPTION = {
-        UNPROCESS        : 'MOSJA13064',
-        PROCESSING       : 'MOSJA13065',
-        PROCESSED        : 'MOSJA13066',
-        FORCE_PROCESSED  : 'MOSJA13067',
-        SERVER_ERROR     : 'MOSJA13068',
-        PENDING          : 'MOSJA13056',
-        STOP             : 'MOSJA13057',
-        EXASTRO_REQUEST  : 'MOSJA13074',
-        RETRY            : 'MOSJA13075',
-        BREAK_ACTION     : 'MOSJA13072',
-        ACTION_DATA_ERROR: 'MOSJA13073',
-        ACTION_EXEC_ERROR: 'MOSJA13063',
-        ITA_UNPROCESS    : 'MOSJA13076',
-        ITA_PROCESSING   : 'MOSJA13077',
-        ITA_ERROR        : 'MOSJA13078',
-        ITA_CANCEL       : 'MOSJA13079',
-        ITA_FAIL         : 'MOSJA13080',
-        PREVENT          : 'MOSJA13081',
-        ACTION_POST_DATA_ERROR : 'MOSJA13127',
+        UNPROCESS                          : 'MOSJA13064',
+        PROCESSING                         : 'MOSJA13065',
+        PROCESSED                          : 'MOSJA13066',
+        FORCE_PROCESSED                    : 'MOSJA13067',
+        SERVER_ERROR                       : 'MOSJA13068',
+        PENDING                            : 'MOSJA13056',
+        STOP                               : 'MOSJA13057',
+        EXASTRO_REQUEST                    : 'MOSJA13074',
+        RETRY                              : 'MOSJA13075',
+        BREAK_ACTION                       : 'MOSJA13072',
+        ACTION_DATA_ERROR                  : 'MOSJA13073',
+        ACTION_EXEC_ERROR                  : 'MOSJA13063',
+        ITA_UNPROCESS                      : 'MOSJA13076',
+        ITA_PROCESSING                     : 'MOSJA13077',
+        ITA_ERROR                          : 'MOSJA13078',
+        ITA_CANCEL                         : 'MOSJA13079',
+        ITA_FAIL                           : 'MOSJA13080',
+        PREVENT                            : 'MOSJA13081',
+        ACTION_POST_DATA_ERROR             : 'MOSJA13127',
         ITA_REGISTERING_SUBSTITUTION_VALUE : 'MOSJA13083',
-        SNOW_APPROVAL_PENDING : 'MOSJA13128',
-        SNOW_APPROVED : 'MOSJA13129',
+        SNOW_APPROVAL_PENDING              : 'MOSJA13128',
+        SNOW_APPROVED                      : 'MOSJA13129',
+        SNOW_REJECTED                      : 'MOSJA13133',
     }
 
     DISABLE_RETRY_LIST = [
@@ -251,6 +253,11 @@ class ACTION_HISTORY_STATUS():
                   'status':'running',
                   'name':'owf-gear',
                   'description':'MOSJA13129'
+        },
+        SNOW_REJECTED:{
+                  'status':'addressed',
+                  'name':'owf-square',
+                  'description':'MOSJA13133'
         },
     }
 

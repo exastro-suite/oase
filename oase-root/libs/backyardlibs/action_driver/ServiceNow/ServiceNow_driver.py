@@ -74,7 +74,8 @@ class ServiceNowManager(AbstractManager):
         'SERVICENOW_NAME',
         'INCIDENT_STATUS',
         'WORKFLOW_ID',
-        'WORK_NOTES',
+        'WORK_NOTES_APPROVAL',
+        'WORK_NOTES_REJECTED',
     ]
 
     # アクション情報の必須キーリスト
@@ -318,12 +319,10 @@ class ServiceNowManager(AbstractManager):
 
             return None
 
-        status = None
-        act_history = ActionHistory.objects.get(action_history_id=self.action_history.pk)
-
-        if self.aryActionParameter['WORK_NOTES'] is not None and \
-           (act_history.status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING] or \
-           act_history.retry_status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING]):
+        if self.aryActionParameter['WORK_NOTES_APPROVAL'] is not None and \
+           self.aryActionParameter['WORK_NOTES_REJECTED'] is not None and \
+           (self.action_history.status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING] or \
+           self.action_history.retry_status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING]):
 
             return self.act_approval_confirmation
 
@@ -370,7 +369,8 @@ class ServiceNowManager(AbstractManager):
         if act_func:
             status, detail = act_func(rhdm_res_act, retry, pre_flag)
             if status in [ACTION_HISTORY_STATUS.SNOW_APPROVED]:
-                self.aryActionParameter['WORK_NOTES'] = None
+                self.aryActionParameter['WORK_NOTES_APPROVAL'] = None
+                self.aryActionParameter['WORK_NOTES_REJECTED'] = None
                 act_func = self.get_act_ptrn()
                 status, detail = act_func(rhdm_res_act, retry, pre_flag)
 
@@ -867,8 +867,9 @@ class ServiceNowManager(AbstractManager):
                 'MOSJA01087'
             )
 
-        work_notes = self.aryActionParameter['WORK_NOTES']
-        status = self.work_notes_analysis(result, work_notes)
+        work_notes_approval = self.aryActionParameter['WORK_NOTES_APPROVAL']
+        work_notes_rejected = self.aryActionParameter['WORK_NOTES_REJECTED']
+        status = self.work_notes_analysis(result, work_notes_approval, work_notes_rejected)
 
         logger.logic_log(
             'LOSI00002', 
@@ -891,7 +892,7 @@ class ServiceNowManager(AbstractManager):
         return False
 
 
-    def work_notes_analysis(self, result, work_notes):
+    def work_notes_analysis(self, result, work_notes_approval, work_notes_rejected):
         """
         [概要]
           インシデント承認確認の作業ノート解析
@@ -903,8 +904,11 @@ class ServiceNowManager(AbstractManager):
             display_value = resp['result']['work_notes']['display_value']
             display_value = display_value.splitlines()
 
-            if work_notes in display_value:
+            if work_notes_approval in display_value:
                 return ACTION_HISTORY_STATUS.SNOW_APPROVED
+
+            elif work_notes_rejected in display_value:
+                return ACTION_HISTORY_STATUS.SNOW_REJECTED
 
             else:
                 return ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING
