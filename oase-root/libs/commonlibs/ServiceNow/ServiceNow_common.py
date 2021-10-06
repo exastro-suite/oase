@@ -33,6 +33,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     """
     message_list = []
     count = 0
+    work_notes_count = 0
 
     for param in params:
         param = param.strip()
@@ -55,14 +56,25 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         workflow_id = check_info['WORKFLOW_ID']
         message_list = workflow_id_check(workflow_id, check_info, conditions, message_list)
 
-    # WORK_NOTES チェック
-    if check_info['WORK_NOTES'] or check_info['WORK_NOTES'] == '':
-        work_notes = check_info['WORK_NOTES']
-        message_list = work_notes_check(work_notes, check_info, conditions, message_list)
+    # WORK_NOTES_APPROVAL チェック
+    if check_info['WORK_NOTES_APPROVAL'] or check_info['WORK_NOTES_APPROVAL'] == '':
+        work_notes_count = work_notes_count + 1
+        work_notes_approval = check_info['WORK_NOTES_APPROVAL']
+        message_list = work_notes_approval_check(work_notes_approval, check_info, conditions, message_list)
+
+    # WORK_NOTES_REJECTED チェック
+    if check_info['WORK_NOTES_REJECTED'] or check_info['WORK_NOTES_REJECTED'] == '':
+        work_notes_count = work_notes_count + 1
+        work_notes_rejected = check_info['WORK_NOTES_REJECTED']
+        message_list = work_notes_rejected_check(work_notes_rejected, check_info, conditions, message_list)
 
     # INCIDENT_STATUS,WORKFLOW_IDどちらも記述がない場合
     if count == 0:
         message_list.append({'id': 'MOSJA03164', 'param': None})
+
+    # WORK_NOTES_APPROVAL,WORK_NOTES_REJECTEDどちらか片方の記述がある場合
+    if work_notes_count == 1:
+        message_list.append({'id': 'MOSJA03167', 'param': None})
 
     return message_list
 
@@ -146,26 +158,50 @@ def workflow_id_check(workflow_id, check_info, conditions, message_list):
     return message_list
 
 
-def work_notes_check(work_notes, check_info, conditions, message_list):
+def work_notes_approval_check(work_notes_approval, check_info, conditions, message_list):
     """
     [概要]
-    WORK_NOTESのバリデーションチェックを行う
+    WORK_NOTES_APPROVALのバリデーションチェックを行う
     [引数]
-    work_notes   : WORK_NOTES
-    check_info   : チェック情報
-    conditions   : 条件名
-    message_list : メッセージリスト
+    work_notes_approval : WORK_NOTES_APPROVAL
+    check_info          : チェック情報
+    conditions          : 条件名
+    message_list        : メッセージリスト
     [戻り値]
-    message_list : メッセージリスト
+    message_list        : メッセージリスト
     """
 
-    if work_notes == '':
+    if work_notes_approval == '':
         logger.logic_log('LOSM00045', check_info)
-        message_list.append({'id': 'MOSJA03165', 'param': 'WORK_NOTES'})
+        message_list.append({'id': 'MOSJA03165', 'param': 'WORK_NOTES_APPROVAL'})
 
-    elif work_notes and not DriverCommon.has_right_reserved_value(conditions, work_notes):
-        logger.logic_log('LOSM00023', work_notes)
-        message_list.append({'id': 'MOSJA03137', 'param': 'WORK_NOTES'})
+    elif work_notes_approval and not DriverCommon.has_right_reserved_value(conditions, work_notes_approval):
+        logger.logic_log('LOSM00023', work_notes_approval)
+        message_list.append({'id': 'MOSJA03137', 'param': 'WORK_NOTES_APPROVAL'})
+
+    return message_list
+
+
+def work_notes_rejected_check(work_notes_rejected, check_info, conditions, message_list):
+    """
+    [概要]
+    WORK_NOTES_REJECTEDのバリデーションチェックを行う
+    [引数]
+    work_notes_rejected : WORK_NOTES_REJECTED
+    check_info          : チェック情報
+    conditions          : 条件名
+    message_list        : メッセージリスト
+    [戻り値]
+    message_list        : メッセージリスト
+    """
+
+    if work_notes_rejected == '':
+        logger.logic_log('LOSM00046', check_info)
+        message_list.append({'id': 'MOSJA03168', 'param': 'WORK_NOTES_REJECTED'})
+
+    elif work_notes_rejected and not DriverCommon.has_right_reserved_value(conditions, work_notes_rejected):
+        logger.logic_log('LOSM00023', work_notes_rejected)
+        message_list.append({'id': 'MOSJA03137', 'param': 'WORK_NOTES_REJECTED'})
 
     return message_list
 

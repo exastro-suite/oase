@@ -600,6 +600,11 @@ class ActionDriverSubModules:
                     ActCommon.SaveActionLog(self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01057', interval=rhdm_res_act.action_retry_interval, ret_count=self.action_history.action_retry_count)
                     return ACTION_HISTORY_STATUS.RETRY
 
+                # ServiceNowインシデントで却下された場合は、後続のアクションは実行しない
+                elif ActionStatus == ACTION_HISTORY_STATUS.SNOW_REJECTED:
+                    ActCommon.SaveActionLog(self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01112')
+                    return ACTION_HISTORY_STATUS.PROCESSED
+
                 # 後続アクションあり、かつ、ITA実行結果待ちの場合は、後続のアクションは実行しない
                 wait_sts_list = ACTION_HISTORY_STATUS.EXASTRO_CHECK_LIST + ACTION_HISTORY_STATUS.EXASTRO_REGIST_LIST
                 if  idx + 1 < len(rhdm_res_act_list) and ActionStatus in wait_sts_list:
