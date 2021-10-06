@@ -616,6 +616,7 @@ class ActionDriverSubModules:
                     self.save_resume = rhdm_res_act.execution_order
                     return ActionStatus
 
+
             except Exception as e:
                 logger.system_log('LOSE01119', traceback.format_exc())
                 self.insert_action_history(rhdm_res_act, SERVER_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.NONE)
