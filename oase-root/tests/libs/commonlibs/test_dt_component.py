@@ -423,3 +423,59 @@ def test_check_group_priority_ng_invalid():
 
     assert len(message_list) == 2
 
+
+@pytest.mark.django_db
+def test_check_rule_description_ok():
+    """
+    発生事象/対処概要のパラメーターチェック処理
+    正常系
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+
+    wsheet = MagicMock()
+    lang = 'JA'
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'X' * 128
+
+    # テスト
+    dtcomp.check_rule_description(
+        wsheet, row_index, col_index, row_index + 1, message_list, lang
+    )
+
+    assert len(message_list) == 0
+
+@pytest.mark.django_db
+def test_check_rule_description_ng_length():
+    """
+    発生事象/対処概要のパラメーターチェック処理
+    異常系(文字数制限超過)
+    """
+
+    dtcomp = DecisionTableComponent('testrule')
+
+    wsheet = MagicMock()
+    lang = 'JA'
+    row_index = dtcomp.ROW_INDEX_RULE_START
+    col_index = dtcomp.COL_INDEX_RULE_START + 1
+    message_list = []
+
+    # テストデータ作成
+    wsheet.cell_type.return_value = dtcomp.CELL_TYPE_TEXT
+    wsheet.cell().value = 'X' * 129
+
+    # テスト
+    dtcomp.check_rule_description(
+        wsheet, row_index, col_index, row_index + 1, message_list, lang
+    )
+
+    assert len(message_list) == 2
+    for msg in message_list:
+        assert 'MOSJA03166' in msg
+
+
