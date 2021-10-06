@@ -1162,6 +1162,8 @@ def rule_polling(request, rule_manage_id, trace_id):
 
                         target_rule = r.rule_name
                         target_execution = r.execution_order
+                        target_incident = r.incident_happened if r.incident_happened else 'X'
+                        target_summary = r.handling_summary if r.handling_summary else 'X'
                         target_drivertype = name
                         target_actparainfo = actparainfo
                         target_actpreinfo = actpreinfo
@@ -1187,43 +1189,34 @@ def rule_polling(request, rule_manage_id, trace_id):
 
                         if add_msg:
                             add_msg += '\n\n'
-                            add_msg = add_msg + get_message('MOSJA12122', request.user.get_lang_mode(), showMsgId=False) + target_rule + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12123', request.user.get_lang_mode(), showMsgId=False) + str(target_execution) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12124', request.user.get_lang_mode(), showMsgId=False) + target_drivertype + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12125', request.user.get_lang_mode(), showMsgId=False) + target_actparainfo + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12126', request.user.get_lang_mode(), showMsgId=False) + target_actpreinfo  + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12181', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_interval) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12182', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_count) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12183', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_interval) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12184', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_count) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12185', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_count) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12186', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_term) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12187', request.user.get_lang_mode(), showMsgId=False) + target_large_group + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12188', request.user.get_lang_mode(), showMsgId=False) + str(target_large_group_priority) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12189', request.user.get_lang_mode(), showMsgId=False) + target_small_group + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12190', request.user.get_lang_mode(), showMsgId=False) + str(target_small_group_priority) + ' \n'
+
                         else:
                             add_msg = get_message('MOSJA12127', request.user.get_lang_mode(), showMsgId=False, match_rulename=match_rulename)  + '\n\n'
                             add_msg = add_msg + get_message('MOSJA12141', request.user.get_lang_mode(), showMsgId=False) + '\n'
-                            add_msg = add_msg + get_message('MOSJA12122', request.user.get_lang_mode(), showMsgId=False) + target_rule  + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12123', request.user.get_lang_mode(), showMsgId=False) + str(target_execution) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12124', request.user.get_lang_mode(), showMsgId=False) + target_drivertype + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12125', request.user.get_lang_mode(), showMsgId=False) + target_actparainfo + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12126', request.user.get_lang_mode(), showMsgId=False) + target_actpreinfo + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12181', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_interval) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12182', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_count) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12183', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_interval) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12184', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_count) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12185', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_count) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12186', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_term) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12187', request.user.get_lang_mode(), showMsgId=False) + target_large_group + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12188', request.user.get_lang_mode(), showMsgId=False) + str(target_large_group_priority) + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12189', request.user.get_lang_mode(), showMsgId=False) + target_small_group + ' \n'
-                            add_msg = add_msg + get_message('MOSJA12190', request.user.get_lang_mode(), showMsgId=False) + str(target_small_group_priority) + ' \n'
+
+                        add_msg = add_msg + get_message('MOSJA12122', request.user.get_lang_mode(), showMsgId=False) + target_rule + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12123', request.user.get_lang_mode(), showMsgId=False) + str(target_execution) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12203', request.user.get_lang_mode(), showMsgId=False) + target_incident + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12204', request.user.get_lang_mode(), showMsgId=False) + target_summary + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12124', request.user.get_lang_mode(), showMsgId=False) + target_drivertype + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12125', request.user.get_lang_mode(), showMsgId=False) + target_actparainfo + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12126', request.user.get_lang_mode(), showMsgId=False) + target_actpreinfo + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12181', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_interval) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12182', request.user.get_lang_mode(), showMsgId=False) + str(target_retry_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12183', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_interval) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12184', request.user.get_lang_mode(), showMsgId=False) + str(target_stop_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12185', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_count) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12186', request.user.get_lang_mode(), showMsgId=False) + str(target_cond_term) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12187', request.user.get_lang_mode(), showMsgId=False) + target_large_group + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12188', request.user.get_lang_mode(), showMsgId=False) + str(target_large_group_priority) + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12189', request.user.get_lang_mode(), showMsgId=False) + target_small_group + ' \n'
+                        add_msg = add_msg + get_message('MOSJA12190', request.user.get_lang_mode(), showMsgId=False) + str(target_small_group_priority) + ' \n'
 
                 else:
                     target_rule = 'X'
                     target_execution = 'X'
+                    target_incident = 'X'
+                    target_summary = 'X'
                     target_drivertype = 'X'
                     target_actparainfo = 'X'
                     target_actpreinfo = 'X'
@@ -1242,6 +1235,8 @@ def rule_polling(request, rule_manage_id, trace_id):
                     add_msg = add_msg + get_message('MOSJA12141', request.user.get_lang_mode(), showMsgId=False) + '\n'
                     add_msg = add_msg + get_message('MOSJA12122', request.user.get_lang_mode(), showMsgId=False) + target_rule  + ' \n'
                     add_msg = add_msg + get_message('MOSJA12123', request.user.get_lang_mode(), showMsgId=False) + str(target_execution) + ' \n'
+                    add_msg = add_msg + get_message('MOSJA12203', request.user.get_lang_mode(), showMsgId=False) + target_incident + ' \n'
+                    add_msg = add_msg + get_message('MOSJA12204', request.user.get_lang_mode(), showMsgId=False) + target_summary + ' \n'
                     add_msg = add_msg + get_message('MOSJA12124', request.user.get_lang_mode(), showMsgId=False) + target_drivertype + ' \n'
                     add_msg = add_msg + get_message('MOSJA12125', request.user.get_lang_mode(), showMsgId=False) + target_actparainfo + ' \n'
                     add_msg = add_msg + get_message('MOSJA12126', request.user.get_lang_mode(), showMsgId=False) + target_actpreinfo + ' \n'
@@ -2155,7 +2150,7 @@ def rule_polling_bulk(request, rule_manage_id):
             rset = RhdmResponseAction.objects.filter(response_id__in=resp_ids).values(
                 'response_id', 'rule_name', 'execution_order', 'action_type_id', 'action_parameter_info',
                 'action_pre_info', 'action_retry_interval', 'action_retry_count', 'action_stop_interval',
-                'action_stop_count')
+                'action_stop_count', 'incident_happened', 'handling_summary')
             for rs in rset:
                 if rs['response_id'] not in resp_act_info:
                     resp_act_info[rs['response_id']] = []
@@ -2177,6 +2172,8 @@ def rule_polling_bulk(request, rule_manage_id):
                 resp_act_info_tmp = {}
                 resp_act_info_tmp['rulename']             = rs['rule_name']
                 resp_act_info_tmp['exeorder']             = rs['execution_order']
+                resp_act_info_tmp['incident']             = rs['incident_happened'] if rs['incident_happened'] else 'X'
+                resp_act_info_tmp['summary']              = rs['handling_summary'] if rs['handling_summary'] else 'X'
                 resp_act_info_tmp['acttype']              = act_types[rs['action_type_id']] if rs['action_type_id'] in act_types else get_message('MOSJA12156', request.user.get_lang_mode(), showMsgId=False)
                 resp_act_info_tmp['actparam']             = str_actparams
                 resp_act_info_tmp['actpreinfo']           = str_actpreinfo
@@ -2226,6 +2223,8 @@ def rule_polling_bulk(request, rule_manage_id):
                     msg = msg + get_message('MOSJA12144', request.user.get_lang_mode(), showMsgId=False, count=str(i + 1)) + '\n'
                     msg = msg + get_message('MOSJA12145', request.user.get_lang_mode(), showMsgId=False) + res_act['rulename'] + '\n'
                     msg = msg + get_message('MOSJA12146', request.user.get_lang_mode(), showMsgId=False) + str(res_act['exeorder']) + '\n'
+                    msg = msg + get_message('MOSJA12205', request.user.get_lang_mode(), showMsgId=False) + res_act['incident'] + '\n'
+                    msg = msg + get_message('MOSJA12206', request.user.get_lang_mode(), showMsgId=False) + res_act['summary'] + '\n'
                     msg = msg + get_message('MOSJA12147', request.user.get_lang_mode(), showMsgId=False) + res_act['acttype'] + '\n'
                     msg = msg + get_message('MOSJA12148', request.user.get_lang_mode(), showMsgId=False) + res_act['actparam'] + '\n'
                     msg = msg + get_message('MOSJA12149', request.user.get_lang_mode(), showMsgId=False) + res_act['actpreinfo'] + '\n'
