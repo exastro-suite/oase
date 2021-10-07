@@ -44,7 +44,6 @@ logger = OaseLogger.get_instance()
 from libs.commonlibs.define import *
 from libs.commonlibs.aes_cipher import AESCipher
 from libs.backyardlibs.action_driver.common.driver_core import DriverCore
-from web_app.models.models import EventsRequest, RuleType
 
 
 class ServiceNow1Core(DriverCore):
@@ -196,7 +195,7 @@ class ServiceNow1Core(DriverCore):
         return resp
 
 
-    def create_incident(self, drv):
+    def create_incident(self, drv, ary_data):
 
         """
         [メソッド概要]
@@ -213,8 +212,6 @@ class ServiceNow1Core(DriverCore):
 
         try:
             cipher = AESCipher(settings.AES_KEY)
-            er = EventsRequest.objects.get(trace_id=self.TraceID)
-            dname = RuleType.objects.get(rule_type_id=er.rule_type_id).rule_type_name
 
             # リクエスト送信先
             url = "{}://{}:{}/api/now/table/{}".format(
@@ -237,12 +234,6 @@ class ServiceNow1Core(DriverCore):
             # 認証情報
             user = drv.username
             password = cipher.decrypt(drv.password)
-
-            # リクエストボディ
-            ary_data = {}
-            ary_data['short_description'] = 'OASE Event Notify'
-            ary_data['description'] = "trace_id=" + self.TraceID + "\r\n" + "decisiontable=" + dname + "\r\n" \
-                + "eventdatetime=" + str(er.event_to_time) + "\r\n" + "eventinfo=" + er.event_info
             str_para_json_encoded = json.dumps(ary_data, default=str)
 
             # リクエスト送信

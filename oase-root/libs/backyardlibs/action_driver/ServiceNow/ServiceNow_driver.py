@@ -40,6 +40,7 @@ os.environ['DJANGO_SETTINGS_MODULE'] = 'confs.frameworkconfs.settings'
 django.setup()
 
 from django.db import transaction
+from django.conf import settings
 from datetime import timedelta
 
 # ロガー初期化
@@ -51,10 +52,12 @@ from libs.backyardlibs.action_driver.common.action_abstract import AbstractManag
 from libs.webcommonlibs.oase_exception import OASEError
 from libs.backyardlibs.action_driver.ServiceNow.ServiceNow_core import ServiceNow1Core
 from libs.backyardlibs.oase_action_common_libs import ActionDriverCommonModules
+from libs.backyardlibs.oase_action_common_libs import ConstantModules as Cstobj
 from libs.commonlibs.define import *
 from libs.commonlibs.aes_cipher import AESCipher
-from web_app.models.models import ActionHistory
+from web_app.models.models import ActionHistory, User, EventsRequest, RuleType
 from web_app.models.ServiceNow_models import *
+from web_app.templatetags.common import get_message
 
 
 Comobj = ActionDriverCommonModules()
@@ -99,6 +102,17 @@ class ServiceNowManager(AbstractManager):
         self.aryActionParameter = {}
 
         self.core = ServiceNow1Core(trace_id)
+
+        self.approval_flg = False
+
+
+    def conv_tz(self, dt, tzname):
+        """
+        [概要]
+            タイムゾーン変換
+        """
+
+        return dt.astimezone(pytz.timezone(tzname)).strftime('%Y-%m-%d %H:%M:%S')
 
 
     def servicenow_action_history_insert(self, servicenow_name, sys_id, short_desc, exe_order, action_history_id):
@@ -319,7 +333,8 @@ class ServiceNowManager(AbstractManager):
 
             return None
 
-        if self.aryActionParameter['WORK_NOTES_APPROVAL'] is not None and \
+        if not self.approval_flg and \
+           self.aryActionParameter['WORK_NOTES_APPROVAL'] is not None and \
            self.aryActionParameter['WORK_NOTES_REJECTED'] is not None and \
            (self.action_history.status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING] or \
            self.action_history.retry_status in [PROCESSING, ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING]):
@@ -369,8 +384,7 @@ class ServiceNowManager(AbstractManager):
         if act_func:
             status, detail = act_func(rhdm_res_act, retry, pre_flag)
             if status in [ACTION_HISTORY_STATUS.SNOW_APPROVED]:
-                self.aryActionParameter['WORK_NOTES_APPROVAL'] = None
-                self.aryActionParameter['WORK_NOTES_REJECTED'] = None
+                self.approval_flg = True
                 act_func = self.get_act_ptrn()
                 status, detail = act_func(rhdm_res_act, retry, pre_flag)
 
@@ -391,9 +405,15 @@ class ServiceNowManager(AbstractManager):
             'self.trace_id: %s, aryActionParameter: %s' % (self.trace_id, self.aryActionParameter)
         )
 
+        description = self.description_join(rhdm_res_act, 'NEW', '')
+
+        data = {
+            'short_description' : 'OASE Event Notify',
+            'description'       : description,
+        }
 
         # リクエスト送信
-        result, sys_id = self.core.create_incident(self.servicenow_driver)
+        result, sys_id = self.core.create_incident(self.servicenow_driver, data)
 
         # リクエスト結果判定
         status = PROCESSED if result else ACTION_EXEC_ERROR
@@ -499,14 +519,56 @@ class ServiceNowManager(AbstractManager):
             logger.logic_log('LOSI01126', self.trace_id, self.action_history.pk)
             return status, detail
 
+        result = self.core.get_incident(self.servicenow_driver, sys_id)
 
-        # インシデントインプログレス
-        data = {
-            'state'       : '2',  # 2:In progress
-        }
+        if not result:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+            return status, detail
+
+        resp = json.loads(result.text)
+
+        if resp and 'result' in resp and 'description' in resp['result'] and \
+           'display_value' in resp['result']['description']:
+            resp_description = resp['result']['description']['display_value']
+
+        else:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+            return status, detail
+
+        if self.aryActionParameter['WORK_NOTES_APPROVAL'] is not None and \
+           self.aryActionParameter['WORK_NOTES_REJECTED'] is not None:
+
+            # インシデントインプログレス
+            data = {
+                'state'       : '2',  # 2:In progress
+            }
+        else:
+            description = self.description_join(rhdm_res_act,
+                self.aryActionParameter['INCIDENT_STATUS'], resp_description)
+
+            # インシデントインプログレス
+            data = {
+                'state'       : '2',  # 2:In progress
+                'description' : description,
+            }
 
         result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
-
 
         # 初回実行の場合は履歴情報を登録
         if not retry:
@@ -523,7 +585,7 @@ class ServiceNowManager(AbstractManager):
                 rhdm_res_act.execution_order,
                 self.action_history.pk,
             )
-        
+
         if not result:
             status = SERVER_ERROR
             detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
@@ -595,13 +657,58 @@ class ServiceNowManager(AbstractManager):
             logger.logic_log('LOSI01126', self.trace_id, self.action_history.pk)
             return status, detail
 
+        result = self.core.get_incident(self.servicenow_driver, sys_id)
 
-        # インシデントリゾルブド
-        data = {
-            'state'       : '6',  # 6:Resolved
-            'close_code'  : 'Solved Remotely (Work Around)',
-            'close_notes' : 'Automatic resolution by OASE', # Resolved時のコメント
-        }
+        if not result:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+            return status, detail
+
+        resp = json.loads(result.text)
+
+        if resp and 'result' in resp and 'description' in resp['result'] and \
+           'display_value' in resp['result']['description']:
+            resp_description = resp['result']['description']['display_value']
+
+        else:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+            return status, detail
+
+        if self.aryActionParameter['WORK_NOTES_APPROVAL'] is not None and \
+           self.aryActionParameter['WORK_NOTES_REJECTED'] is not None:
+
+            # インシデントリゾルブド
+            data = {
+                'state'       : '6',  # 6:Resolved
+                'close_code'  : 'Solved Remotely (Work Around)',
+                'close_notes' : 'Automatic resolution by OASE', # Resolved時のコメント
+            }
+        else:
+            description = self.description_join(rhdm_res_act,
+                self.aryActionParameter['INCIDENT_STATUS'], resp_description)
+
+            # インシデントリゾルブド
+            data = {
+                'state'       : '6',  # 6:Resolved
+                'description' : description,
+                'close_code'  : 'Solved Remotely (Work Around)',
+                'close_notes' : 'Automatic resolution by OASE', # Resolved時のコメント
+            }
 
         result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
 
@@ -692,13 +799,58 @@ class ServiceNowManager(AbstractManager):
             logger.logic_log('LOSI01126', self.trace_id, self.action_history.pk)
             return status, detail
 
+        result = self.core.get_incident(self.servicenow_driver, sys_id)
 
-        # インシデントクローズ
-        data = {
-            'state'       : '7',  # 7:Close
-            'close_notes' : 'Closed by %s' % (self.last_update_user),
-            'close_code'  : 'Closed/Resolved by Caller',
-        }
+        if not result:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+            return status, detail
+
+        resp = json.loads(result.text)
+
+        if resp and 'result' in resp and 'description' in resp['result'] and \
+           'display_value' in resp['result']['description']:
+            resp_description = resp['result']['description']['display_value']
+
+        else:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+            return status, detail
+
+        if self.aryActionParameter['WORK_NOTES_APPROVAL'] is not None and \
+           self.aryActionParameter['WORK_NOTES_REJECTED'] is not None:
+
+            # インシデントクローズ
+            data = {
+                'state'       : '7',  # 7:Close
+                'close_notes' : 'Closed by %s' % (self.last_update_user),
+                'close_code'  : 'Closed/Resolved by Caller',
+            }
+        else:
+            description = self.description_join(rhdm_res_act,
+                self.aryActionParameter['INCIDENT_STATUS'], resp_description)
+
+            # インシデントクローズ
+            data = {
+                'state'       : '7',  # 7:Close
+                'description' : description,
+                'close_notes' : 'Closed by %s' % (self.last_update_user),
+                'close_code'  : 'Closed/Resolved by Caller',
+            }
 
         result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
 
@@ -867,9 +1019,46 @@ class ServiceNowManager(AbstractManager):
                 'MOSJA01087'
             )
 
+            return status, detail
+
+        resp = json.loads(result.text)
+
+        if resp and 'result' in resp and 'description' in resp['result'] and \
+           'display_value' in resp['result']['description']:
+            resp_description = resp['result']['description']['display_value']
+
+        else:
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                rhdm_res_act.execution_order,
+                self.trace_id,
+                'MOSJA01087'
+            )
+
+            return status, detail
+
+        equal = '=================================================='
+        count = resp_description.count(equal)
+
+        if (self.aryActionParameter['INCIDENT_STATUS'] == 'IN_PROGRESS' and count == 0) or \
+           (self.aryActionParameter['INCIDENT_STATUS'] == 'RESOLVED' and count == 1) or \
+           (self.aryActionParameter['INCIDENT_STATUS'] == 'CLOSED' and count == 2):
+
+            description = self.description_join(rhdm_res_act,
+                self.aryActionParameter['INCIDENT_STATUS'], resp_description)
+
+            # 作業メモのみ更新
+            data = {
+                'description' : description,
+            }
+
+            result = self.core.modify_incident(self.servicenow_driver, sys_id, data)
+
         work_notes_approval = self.aryActionParameter['WORK_NOTES_APPROVAL']
         work_notes_rejected = self.aryActionParameter['WORK_NOTES_REJECTED']
-        status = self.work_notes_analysis(result, work_notes_approval, work_notes_rejected)
+        status = self.work_notes_analysis(resp, work_notes_approval, work_notes_rejected)
 
         logger.logic_log(
             'LOSI00002', 
@@ -892,13 +1081,13 @@ class ServiceNowManager(AbstractManager):
         return False
 
 
-    def work_notes_analysis(self, result, work_notes_approval, work_notes_rejected):
+    def work_notes_analysis(self, resp, work_notes_approval, work_notes_rejected):
         """
         [概要]
           インシデント承認確認の作業ノート解析
         """
 
-        resp = json.loads(result.text)
+        #resp = json.loads(result.text)
 
         if resp and 'result' in resp and 'work_notes' in resp['result']:
             display_value = resp['result']['work_notes']['display_value']
@@ -915,4 +1104,53 @@ class ServiceNowManager(AbstractManager):
 
         else:
             return SERVER_ERROR
+
+
+    def description_join(self, rhdm_res_act, status, resp_description):
+        """
+        [概要]
+          Description文字列結合
+        """
+
+        user_objects = User.objects.get(user_id=Cstobj.DB_OASE_USER)
+        lang = user_objects.get_lang_mode()
+
+        if status == 'NEW':
+            er = EventsRequest.objects.get(trace_id=self.trace_id)
+            dname = RuleType.objects.get(rule_type_id=er.rule_type_id).rule_type_name
+            event_serial_number = get_message('MOSJA01101', lang, showMsgId=False)
+
+        incident_happened = get_message('MOSJA01113', lang, showMsgId=False)
+        handling_summary = get_message('MOSJA01114', lang, showMsgId=False)
+        rule_name = get_message('MOSJA01090', lang, showMsgId=False)
+
+        now = datetime.datetime.now(pytz.timezone('UTC'))
+        time_zone = settings.TIME_ZONE
+        now_tz = self.conv_tz(now, time_zone)
+
+        description = str(now_tz) + "\r\n"
+        description = description + rule_name + ' : ' + rhdm_res_act.rule_name + "\r\n"
+
+        if rhdm_res_act.incident_happened != '' and \
+           rhdm_res_act.incident_happened != "X" and \
+           rhdm_res_act.incident_happened != "x":
+            description = description + incident_happened + ' : ' + rhdm_res_act.incident_happened + "\r\n"
+
+        if rhdm_res_act.handling_summary != '' and \
+           rhdm_res_act.handling_summary != "X" and \
+           rhdm_res_act.handling_summary != "x":
+            description = description + handling_summary + ' : ' + rhdm_res_act.handling_summary + "\r\n"
+
+        if status == 'NEW':
+            description = description + event_serial_number + ' : ' + self.trace_id + "\r\n"
+            description = description + "decisiontable : " + dname + "\r\n"
+            description = description + "eventdatetime : " + str(er.event_to_time) + "\r\n"
+            description = description + "eventinfo : " + er.event_info
+
+        else:
+            equal = '=================================================='
+            description = description + equal + "\r\n"
+            description = description + resp_description
+
+        return description
 
