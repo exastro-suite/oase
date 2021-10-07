@@ -62,6 +62,16 @@ def set_data_replace_reserv_var():
     try:
         with transaction.atomic():
 
+            # アクション種別
+            action_type = ActionType(
+                action_type_id=1,
+                driver_type_id=2,
+                disuse_flag='0',
+                last_update_timestamp=now,
+                last_update_user='administrator'
+            )
+            action_type.save(force_insert=True)
+
             # イベントリクエスト
             events_request = EventsRequest(
                 trace_id               = trace_id,
@@ -145,6 +155,7 @@ def del_test_data():
     RuleType.objects.filter(last_update_user='pytest').delete()
     System.objects.filter(last_update_user='pytest').delete()
     RhdmResponseCorrelation.objects.filter(last_update_user='pytest').delete()
+    ActionType.objects.filter(last_update_user='administrator').delete()
 
 
 class DummyDriver:
@@ -637,3 +648,78 @@ def test_check_rhdm_response_correlation_ok(django_db_setup_with_system_dmsettin
     assert result
 
     del_test_data()
+
+
+################################################
+# テスト(データ作成)
+################################################
+@pytest.mark.django_db
+def test_make_rhdm_response_action_data_ok(django_db_setup_with_system_dmsettings, monkeypatch):
+    """
+    ルールマッチング結果管理テーブルに登録するためのデータを作る
+    正常系
+    """
+    from backyards.agent_driver import oase_agent as ag
+    classAgent = ag.Agent()
+    classDrv = DummyDriver()
+    classDMCtrl = DummyDMController()
+
+    # テストデータ作成
+    action_events_request  = set_data_replace_reserv_var()
+    set_data_smtp()
+    classDrv.ruletype = set_data_ruletype()
+    classDMCtrl.driver = classDrv
+    classAgent.dmctl = classDMCtrl
+    
+    paraminfo = {}
+    preinfo = {}
+    res_act_list = []
+    cond_large_group = 'group01',
+    type_id = '1'
+    act_type_dic = {}
+    act_type_dic = []
+    noact_type_list= []
+    parameter_info = {'Taction_parameter_info':1}
+    pre_info = '1'
+    incident_happend = '異常検知'
+    handling_summary = '通知'
+    
+    rulename = 'test_name'
+    cond_count = '1'
+    cond_term = '100'
+    cond_group1 = 'X'
+    cond_priority1 = '1'
+    cond_group2 = 'X'
+    cond_priority2 = '1'
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    responseid = 1
+    
+    rhdm_dummy()
+
+    acts = {'ruleName' : ['test'],
+            'preInfo': ['X'],
+            'condCount' : ['X'],
+            'condTerm' : ['X'],
+            'condPriority1' : ['X'],
+            'condGroup2' : ['X'],
+            'condPriority2' : ['X'],
+            'retryInterval':['1'],
+            'stopCount' : ['0'],
+            'retryCount':['1'],
+            'stopInterval' : ['0'],
+            'parameterInfo':['MAIL_NAME=n-test-mail,MAIL_TO=nakajima.kouson@ncontr.com,MAIL_CC=,MAIL_BCC=,MAIL_TEMPLATE=test_template'],
+            'id': ['mail(ver1)'],
+            'condGroup1':['X'],
+            'incidentHappened':['異常検知'],
+            'handlingSummary':['通知']}
+            
+    length = len(acts['id'])
+
+    # テスト
+
+    ret = classAgent.make_rhdm_response_action_data(acts, responseid)
+
+    assert len(ret) == 1
+
+    del_test_data()
+
