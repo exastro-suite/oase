@@ -245,6 +245,8 @@ function action_search(){
     actionSharedInfo["action_decision_table"] = $("#action-decision-table").val();
     actionSharedInfo["action_rule"] = $("#action-rule").val();
     actionSharedInfo["action_parameter"] = $("#action-parameter").val();
+    actionSharedInfo["incident_happened"] = $("#incident-happened").val();
+    actionSharedInfo["handling_summary"] = $("#handling-summary").val();
 
     // アクション種別
     actionType["action_type"] = $("#filter-action-select").val();
@@ -293,6 +295,8 @@ function search_clear(){
     document.getElementById('action-decision-table').value = "";
     document.getElementById('action-rule').value = "";
     document.getElementById('action-parameter').value = "";
+    document.getElementById('incident-happened').value = "";
+    document.getElementById('handling-summary').value = "";
 
     document.getElementById('filter-action-select').value = "";
 
@@ -376,6 +380,12 @@ function search_clear(){
                 </th>
                 <th class="rule-name sort filter" filter-type="common" filter-label="rule-name">
                   <div class="cell-inner">{% get_message 'MOSJA13008' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="incident-happened sort filter" filter-type="common" filter-label="incident-happened">
+                  <div class="cell-inner">{% get_message 'MOSJA13134' request.user.get_lang_mode showMsgId=False %}</div>
+                </th>
+                <th class="handling-summary sort filter" filter-type="common" filter-label="handling-summary">
+                  <div class="cell-inner">{% get_message 'MOSJA13135' request.user.get_lang_mode showMsgId=False %}</div>
                 </th>
                 <th class="action-type sort filter" filter-type="common" filter-label="action-type">
                   <div class="cell-inner">{% get_message 'MOSJA13033' request.user.get_lang_mode showMsgId=False %}</div>
@@ -463,6 +473,16 @@ function search_clear(){
                 <!-- ルール名 -->
                 <td class="rule-name">
                   <div class="cell-inner">{{ history.rule_name }}</div>
+                </td>
+                
+                <!-- 発生事象 -->
+                <td class="incident-happened">
+                  <div class="cell-inner" {% if history.incident_happened == None %}hidden{% endif %}>{{ history.incident_happened }}</div>
+                </td>
+
+                <!-- 対処概要 -->
+                <td class="handling-summary">
+                  <div class="cell-inner" {% if history.handling_summary == None %}hidden{% endif %}>{{ history.handling_summary }}</div>
                 </td>
 
                 <!-- アクション種別 -->
@@ -627,6 +647,20 @@ function search_clear(){
                             <th><div class="cell-inner">{% get_message 'MOSJA13101' request.user.get_lang_mode showMsgId=False %}</div></th>
                             <td>
                               <div class="cell-inner"><input id="action-rule" type="text" placeholder="{% get_message 'MOSJA13101' request.user.get_lang_mode showMsgId=False %}" name="action-rule"></div>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA13134' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td>
+                              <div class="cell-inner"><input id="incident-happened" type="text" placeholder="{% get_message 'MOSJA13134' request.user.get_lang_mode showMsgId=False %}" name="incident-happened"></div>
+                            </td>
+                          </tr>
+
+                          <tr>
+                            <th><div class="cell-inner">{% get_message 'MOSJA13135' request.user.get_lang_mode showMsgId=False %}</div></th>
+                            <td>
+                              <div class="cell-inner"><input id="handling-summary" type="text" placeholder="{% get_message 'MOSJA13135' request.user.get_lang_mode showMsgId=False %}" name="handling-summary"></div>
                             </td>
                           </tr>
 

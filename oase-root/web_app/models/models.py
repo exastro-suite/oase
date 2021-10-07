@@ -326,6 +326,8 @@ class ActionHistory(models.Model):
     rule_type_id = models.IntegerField("ルール種別ID")
     rule_type_name = models.CharField("ルール種別名", max_length=64)
     rule_name = models.CharField("ルール名", max_length=64)
+    incident_happened = models.CharField("発生事象", max_length=128, null=True)
+    handling_summary = models.CharField("対処概要", max_length=128, null=True)
     execution_order = models.IntegerField("アクション実行順")
     action_start_time = models.DateTimeField("アクション開始日時")
     action_type_id = models.IntegerField("アクション種別")

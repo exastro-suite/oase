@@ -181,6 +181,8 @@ def search_history(request):
     history_serial_number          = ''
     rule_type_name                 = ''
     rule_name                      = ''
+    incident_happened              = ''
+    handling_summary               = ''
     ita_disp_name                  = ''
     symphony_instance_no           = ''
     symphony_class_id              = ''
@@ -198,6 +200,10 @@ def search_history(request):
     mail_flg                       = False
     servicenow_flg                 = False
     time_zone = settings.TIME_ZONE
+    filter_info = {
+        'tblname'  : None,
+        'rulename' : None,
+    }
 
     try:
         # アクション画面のルール別アクセス権限を取得
@@ -263,6 +269,8 @@ def search_history(request):
         rule_type_name = action_info['action_decision_table']
         rule_name = action_info['action_rule']
         action_parameter_info = action_info['action_parameter']
+        incident_happened = action_info['incident_happened']
+        handling_summary = action_info['handling_summary']
 
         # リクエスト管理
         evn_req_list = EventsRequest.objects.filter(
@@ -290,7 +298,6 @@ def search_history(request):
             restapi_error_info = action_ita_info['action_ita_restapi_info']
             parameter_item_info = action_ita_info['action_ita_cooperation']
 
-            print(ita_disp_name)
             module = import_module('web_app.models.ITA_models')
             ItaActionHistory = getattr(module, 'ItaActionHistory')
             ita_act_his_list = ItaActionHistory.objects.filter(
@@ -382,14 +389,27 @@ def search_history(request):
 
         else:
             # アクション履歴
-            action_history_list = ActionHistory.objects.filter(
-                trace_id__in=evn_req_list,
-                action_start_time__gte=action_start_time_start,
-                action_start_time__lte=action_start_time_end,
-                trace_id__contains=history_serial_number,
-                rule_type_name__contains=rule_type_name,
-                rule_name__contains=rule_name,
-                response_id__in=act_par_info_list).order_by('-pk') if len(rule_ids_all) > 0 else []
+            if incident_happened == '' and handling_summary == '':
+                action_history_list = ActionHistory.objects.filter(
+                    trace_id__in=evn_req_list,
+                    action_start_time__gte=action_start_time_start,
+                    action_start_time__lte=action_start_time_end,
+                    trace_id__contains=history_serial_number,
+                    rule_type_name__contains=rule_type_name,
+                    rule_name__contains=rule_name,
+                    response_id__in=act_par_info_list).order_by('-pk') if len(rule_ids_all) > 0 else []
+            else:
+                action_history_list = ActionHistory.objects.filter(
+                    trace_id__in=evn_req_list,
+                    action_start_time__gte=action_start_time_start,
+                    action_start_time__lte=action_start_time_end,
+                    trace_id__contains=history_serial_number,
+                    rule_type_name__contains=rule_type_name,
+                    rule_name__contains=rule_name,
+                    response_id__in=act_par_info_list,
+                    incident_happened__contains=incident_happened,
+                    handling_summary__contains=handling_summary).order_by('-pk') if len(rule_ids_all) > 0 else []
+
 
         # 表示用データ整備
         for act in action_history_list:
@@ -427,6 +447,7 @@ def search_history(request):
         'ita_flg'             : ita_flg,
         'mail_flg'            : mail_flg,
         'servicenow_flg'      : servicenow_flg,
+        'filter_info'         : filter_info,
     }
 
     data.update(request.user_config.get_templates_data(request))
@@ -481,6 +502,8 @@ def dataobject(request, response_id, execution_order ):
         act_shape_dic[get_message('MOSJA13003', lang, showMsgId=False)] = act_dic['act_trace_id']
         act_shape_dic[get_message('MOSJA13007', lang, showMsgId=False)] = act_dic['rule_type_name']
         act_shape_dic[get_message('MOSJA13008', lang, showMsgId=False)] = act_dic['rule_name']
+        act_shape_dic[get_message('MOSJA13134', lang, showMsgId=False)] = act_dic['incident_happened']
+        act_shape_dic[get_message('MOSJA13135', lang, showMsgId=False)] = act_dic['handling_summary']
         act_shape_dic[get_message('MOSJA13010', lang, showMsgId=False)] = act_dic['action_parameter_info']
 
         # 各ドライバーのアクションの詳細を取得
@@ -582,6 +605,8 @@ def download(request, response_id, execution_order):
                     + get_message('MOSJA13003', lang, showMsgId=False) + ':' + act_dic['act_trace_id'] + '\n'  \
                     + get_message('MOSJA13007', lang, showMsgId=False) + ':' + act_dic['rule_type_name'] + '\n'  \
                     + get_message('MOSJA13008', lang, showMsgId=False) + ':' + act_dic['rule_name'] + '\n'  \
+                    + get_message('MOSJA13134', lang, showMsgId=False) + ':' + act_dic['incident_happened'] + '\n'  \
+                    + get_message('MOSJA13135', lang, showMsgId=False) + ':' + act_dic['handling_summary'] + '\n'  \
                     + get_message('MOSJA13010', lang, showMsgId=False) + ':' + act_dic['action_parameter_info'] + '\n'  \
 
         # 各ドライバーのアクションの詳細を取得
@@ -687,6 +712,8 @@ def get_logdata(request, response_id, execution_order, act_history_info=None):
         act_dic['action_type_id']        = act_history_info.action_type_id
         act_dic['rule_name']             = act_info.rule_name
         act_dic['action_parameter_info'] = act_info.action_parameter_info
+        act_dic['incident_happened']     = act_history_info.incident_happened
+        act_dic['handling_summary']      = act_history_info.handling_summary
 
         # アクションログ取得
         action_history_log_list = list(ActionLog.objects.filter(response_id=response_id, execution_order=execution_order).order_by('action_log_id'))
