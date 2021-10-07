@@ -1087,8 +1087,6 @@ class ServiceNowManager(AbstractManager):
           インシデント承認確認の作業ノート解析
         """
 
-        #resp = json.loads(result.text)
-
         if resp and 'result' in resp and 'work_notes' in resp['result']:
             display_value = resp['result']['work_notes']['display_value']
             display_value = display_value.splitlines()
