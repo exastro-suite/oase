@@ -619,12 +619,12 @@ class Agent:
 
                 # 発生事象情報取得
                 inc_param = acts[ActUtil.incident_happened][i]
-                if not inc_param or inc_param==["X"] or inc_param==["x"]:
+                if not inc_param or inc_param=="X" or inc_param=="x":
                     inc_param = ''
 
                 # 対処概要取得
                 hand_param = acts[ActUtil.handling_summary][i]
-                if not hand_param or hand_param==["X"] or hand_param==["x"]:
+                if not hand_param or hand_param=="X" or hand_param=="x":
                     hand_param = ''
 
                 res_act_list.append(
