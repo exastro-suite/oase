@@ -344,6 +344,8 @@ class ActionDriverSubModules:
                         last_act_user         = self.user,
                         last_update_timestamp = now,
                         last_update_user      = self.user,
+                        handling_summary      = rhdm_res_act.handling_summary,
+                        incident_happened     = rhdm_res_act.incident_happened,
                     )
                     action_history.save(force_insert=True)
 
