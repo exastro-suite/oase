@@ -712,8 +712,6 @@ def test_make_rhdm_response_action_data_ok(django_db_setup_with_system_dmsetting
             'condGroup1':['X'],
             'incidentHappened':['異常検知'],
             'handlingSummary':['通知']}
-            
-    length = len(acts['id'])
 
     # テスト
 
