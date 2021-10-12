@@ -109,6 +109,28 @@
   rule1
 
 
+| **発生事象（必須）※不要の場合は「X」を定義**
+
+* 発生した事象を記入してください。
+
+**記述例**
+
+::
+  
+ ハードウェアの故障
+
+
+| **対処概要（必須）※不要の場合は「X」を定義**
+
+* 対処概要を記入してください。
+
+**記述例**
+
+::
+  
+ ITAによる対処
+
+
 | **アクション種別（必須）**
 
 * 実行したいアクション種別をプルダウンで選択してください。
@@ -458,9 +480,9 @@ ServiceNowドライバ
 | **アクションパラメータ情報（必須）※ダブルクオーテーションは使用不可**
 
 * SERVICENOW_NAMEは必須です。OASE画面のシステム-アクション設定-ServiceNow_driverの名前と紐づけます。
-* INCIDENT_STATUSはインシデント管理の際に必要です。ServiceNowインシデント管理のレコードを新規登録する「OPEN」、インシデント対処中となる「IN PROGRESS」、インシデント解決済みとなる「RESOLVED」またはインシデントを閉じる「CLOSE」を記述します。
+* INCIDENT_STATUSはインシデント管理の際に必要です。ServiceNowインシデント管理のレコードを新規登録する「NEW」、インシデント対処中となる「IN PROGRESS」、インシデント解決済みとなる「RESOLVED」またはインシデントを閉じる「CLOSED」を記述します。
 * WORKFLOW_IDはワークフローの実行に必要です。ServiceNowのワークフロースケジュール編集画面から、sys_idを取得してください。
-
+* WORK_NOTES_APPROVAL、WORK_NOTES_REJECTEDはそれぞれ、ServiceNow側で承認・却下を必要とするインシデント管理の際に必要です。承認・却下時にServiceNowの作業メモに書き込まれる文言を記述してください。
 
 **記述例**
 
@@ -471,6 +493,10 @@ ServiceNowドライバ
 ::
 
  SERVICENOW_NAME=ServiceNowTest,WORKFLOW_ID=abcdef1234567890
+
+::
+
+ SERVICENOW_NAME=ServiceNowTest,INCIDENT_STATUS=IN_PROGRESS,WORK_NOTES_APPROVAL=APPROVED,WORK_NOTES_REJECTED=REJECTED
 
 
 (5)アクション条件部
