@@ -2,14 +2,6 @@
 # Exastro Operation Autonomy Support Engine &#x1f3dd;
 
 
-<img src="https://img.shields.io/badge/-Python-F9DC3E.svg?logo=python&style=flat">
-<img src="https://img.shields.io/badge/Javascript-276DC3.svg?logo=javascript&style=flat">
-<img src="https://img.shields.io/badge/-CSS3-1572B6.svg?logo=css3&style=flat">
-<img src="https://img.shields.io/badge/-HTML5-333.svg?logo=html5&style=flat">
-
-<img src="https://img.shields.io/badge/-Django-092E20.svg?logo=django&style=flat">
-
-<img src="https://img.shields.io/badge/-Linux-6C6694.svg?logo=linux&style=flat">
 
 [![download](https://img.shields.io/github/downloads/exastro-suite/oase/total.svg)](https://github.com/exastro-suite/oase/releases)
 [![stars](https://img.shields.io/github/stars/exastro-suite/oase)](https://github.com/exastro-suite/oase)
@@ -17,10 +9,12 @@
 [![Closed issue](https://img.shields.io/github/issues-closed/exastro-suite/oase)](https://github.com/exastro-suite/oase/issues)
 [![LICENSE](https://img.shields.io/github/license/exastro-suite/oase.svg)](https://github.com/exastro-suite/oase/blob/master/LICENSE)
 
-## Exastro **O**peration **A**utonomy **S**upport **E**ngine (Exastro **OASE**)は、以下を目指しています。
+---
 
-- ルールにしたがって対処を実行する
-- 作業自動化ソフトウェアとリンクし、トラブルシューティングを自動的に実行します。
+Exastro **O**peration **A**utonomy **S**upport **E**ngine (Exastro **OASE**)は、システム運用、特に、システムにおける障害発生時の監視オペレーター業務を支援するためのオープンソースです。
+あなたが有意義でクリエイティブな時間を過ごせますように🏄
+
+---
 
 ## 特徴
 - 📈**インターフェース** 美しいグラフ、ルールの管理にはスプレッドシートが利用できます。
@@ -44,6 +38,12 @@
 
 ## インストール
 
+## ドキュメント
 
 ### 言語系
+
+[<img src="https://img.shields.io/badge/-Python-F9DC3E.svg?logo=python&style=flat">](https://www.python.org/)
+[<img src="https://img.shields.io/badge/-Django-092E20.svg?logo=django&style=flat">](https://www.djangoproject.com/)
+
+
 
