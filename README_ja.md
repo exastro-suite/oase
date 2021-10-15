@@ -1,4 +1,7 @@
+![Exastro-OASE-logo2-rgb](https://user-images.githubusercontent.com/83527822/137485693-20c8eb39-4588-4fce-ad0c-4a6f96cacd86.png)
 # Exastro Operation Autonomy Support Engine &#x1f3dd;
+
+
 <img src="https://img.shields.io/badge/-Python-F9DC3E.svg?logo=python&style=flat">
 <img src="https://img.shields.io/badge/Javascript-276DC3.svg?logo=javascript&style=flat">
 <img src="https://img.shields.io/badge/-CSS3-1572B6.svg?logo=css3&style=flat">
