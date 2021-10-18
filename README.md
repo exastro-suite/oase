@@ -40,22 +40,16 @@ Pull type can be used only with pre-defined monitoring adapters, but it can be u
 ### Automation software that can be integrated
 
 - [**Exastro IT Automation**](https://github.com/exastro-suite/it-automation)
-<!--
 - [**ServiceNow Workflow**](https://www.servicenow.com/)
--->
 
 ### Incident Management
 
-By linking with ITSM of [ServiceNow](https://www.servicenow.com/), you can perform incident management such as creating incident and closing.
-
-<!--
 By linking with [ServiceNow](https://www.servicenow.com/)'s ITSM, it is possible to manage a series of incidents from incident origination, processing, processing completion, and closing.
--->
 
-<!--
 ### Authentication Management
+
 By linking with [ServiceNow](https://www.servicenow.com/)'s ITSM, it is possible to link with approval flows such as permission and rejection of actions.
--->
+
 ## Installation
 
 Installation instructions can be found below, but if you want to know more, check out the [community site](https://exastro-suite.github.io/oase-docs/learn_ja.html#introduction).
