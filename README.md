@@ -33,6 +33,7 @@ Pull type can be used only with pre-defined monitoring adapters, but it can be u
 - [**Zabbix**](https://github.com/zabbix/zabbix)
 - [**Grafana**](https://github.com/grafana/grafana)
 - [**Prometheus**](https://github.com/prometheus/prometheus)
+
 #### **Push** type (without adapter)
 
 - [**RESTful API**](https://exastro-suite.github.io/oase-docs/OASE_documents_ja/html/api/01_events_request.html)
@@ -40,22 +41,16 @@ Pull type can be used only with pre-defined monitoring adapters, but it can be u
 ### Automation software that can be integrated
 
 - [**Exastro IT Automation**](https://github.com/exastro-suite/it-automation)
-<!--
 - [**ServiceNow Workflow**](https://www.servicenow.com/)
--->
 
 ### Incident Management
 
-By linking with ITSM of [ServiceNow](https://www.servicenow.com/), you can perform incident management such as creating incident and closing.
-
-<!--
 By linking with [ServiceNow](https://www.servicenow.com/)'s ITSM, it is possible to manage a series of incidents from incident origination, processing, processing completion, and closing.
--->
 
-<!--
 ### Authentication Management
+
 By linking with [ServiceNow](https://www.servicenow.com/)'s ITSM, it is possible to link with approval flows such as permission and rejection of actions.
--->
+
 ## Installation
 
 Installation instructions can be found below, but if you want to know more, check out the [community site](https://exastro-suite.github.io/oase-docs/learn_ja.html#introduction).
@@ -134,6 +129,7 @@ Choose this option if you need customization or if you cannot use a container en
 5. Access Exastro OASE.
 
     http://oase.exasmple.com
+
 ## Learn more
 
 For more information, you can find learning materials and instructions for use on the community site.

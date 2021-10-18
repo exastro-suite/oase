@@ -1,7 +1,6 @@
 ![Exastro-OASE-logo2-rgb](https://user-images.githubusercontent.com/83527822/137485693-20c8eb39-4588-4fce-ad0c-4a6f96cacd86.png)
+
 # Exastro Operation Autonomy Support Engine 🏝
-
-
 
 [![download](https://img.shields.io/github/downloads/exastro-suite/oase/total.svg)](https://github.com/exastro-suite/oase/releases)
 [![stars](https://img.shields.io/github/stars/exastro-suite/oase)](https://github.com/exastro-suite/oase)
@@ -20,38 +19,38 @@ Exastro **O**peration **A**utonomy **S**upport **E**ngine (Exastro **OASE**)は�
 ---
 
 ## 特徴
+
 - ⚙**オペレーションの自動化** 監視イベントの仕分けを自動で行い対処します。
 - 👫**連携機能** 様々な、監視アプリケーション、対処ソフトウェアとの連携が可能です。
 - 📈**インターフェース** 美しいグラフ、ルールの管理にはスプレッドシートが利用できます。
 
 ### 連携可能な監視アプリケーション
+
 Pull型とPush型のどちらかの方法でアラートメッセージを受け取る事ができます。
 Pull型は予め用意された監視アダプタのみ利用可能ですが、RESTfull API を利用することで更に多くの監視アプリケーションとの連携が可能になります。
 
 #### Pull型(アダプタ使用)
+
 - [**Zabbix**](https://github.com/zabbix/zabbix)
 - [**Grafana**](https://github.com/grafana/grafana)
 - [**Prometheus**](https://github.com/prometheus/prometheus)
+
 #### Push型(アダプタ不使用)
+
 - [**RESTful API**](https://exastro-suite.github.io/oase-docs/OASE_documents_ja/html/api/01_events_request.html)
 
 ### 連携可能な対処ソフトウェア
+
 - [**Exastro IT Automation**](https://github.com/exastro-suite/it-automation)
-<!--
 - [**ServiceNowワークフロー**](https://www.servicenow.com/)
--->
 
 ### インシデント管理
-[ServiceNow](https://www.servicenow.com/)のITSMと連携することで、インシデント起票とクローズといったインシデント管理ができます。
-<!--
+
 [ServiceNow](https://www.servicenow.com/)のITSMと連携することで、インシデント起票・処理中・処理完了・クローズまでの一連のインシデント管理ができます。
--->
 
-<!--
 ### 認証管理
-[ServiceNow](https://www.servicenow.com/)のITSMと連携することで、対処の許可や却下といった承認フローと連携できます。
--->
 
+[ServiceNow](https://www.servicenow.com/)のITSMと連携することで、対処の許可や却下といった承認フローと連携できます。
 
 ## インストール
 
@@ -82,7 +81,6 @@ Docker 版は OASE を使用するの最も簡単な方法です。
 ### 🗿 伝統的な方法 🐶
 
 カスタマイズが必要な場合や、コンテナ環境が使えない場合はこちらを選択してください。
-
 
 1. インストールに必要なパッケージをインストールします。
 
