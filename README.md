@@ -140,7 +140,7 @@ For more information, you can find learning materials and instructions for use o
 
 ## Development
 
-## Languages and Frameworks
+### Languages and Frameworks
 
 |[<img src="https://img.shields.io/badge/-Python-F9DC3E.svg?logo=python&style=flat">](https://www.python.org/) | [<img src="https://img.shields.io/badge/-Django-092E20.svg?logo=django&style=flat">](https://www.djangoproject.com/)| [<img src="https://img.shields.io/badge/-OpenJDK-007396.svg?logo=Java&style=flat">](https://www.djangoproject.com/)| [<img src="https://img.shields.io/badge/Maven-C71A36.svg?logo=apachemaven&style=flat">](https://www.djangoproject.com/)|
 |----|----|----|----|
