@@ -9,6 +9,8 @@
 [![Closed issue](https://img.shields.io/github/issues-closed/exastro-suite/oase)](https://github.com/exastro-suite/oase/issues)
 [![LICENSE](https://img.shields.io/github/license/exastro-suite/oase.svg)](https://github.com/exastro-suite/oase/blob/master/LICENSE)
 
+[[English](./README.md)]
+
 ---
 
 Exastro **O**peration **A**utonomy **S**upport **E**ngine (Exastro **OASE**)は、システム運用、特に、システムにおける障害発生時の監視オペレーター業務を支援するためのオープンソースです。

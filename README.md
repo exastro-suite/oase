@@ -7,6 +7,8 @@
 [![Closed issue](https://img.shields.io/github/issues-closed/exastro-suite/oase)](https://github.com/exastro-suite/oase/issues)
 [![LICENSE](https://img.shields.io/github/license/exastro-suite/oase.svg)](https://github.com/exastro-suite/oase/blob/master/LICENSE )
 
+[[日本語](./README_ja.md)]
+
 ---
 
 Exastro **O**peration **A**utonomy **S**upport **E**ngine (Exastro **OASE**) is an open source to support system operation, especially monitoring operator work in case of failure in the system.
