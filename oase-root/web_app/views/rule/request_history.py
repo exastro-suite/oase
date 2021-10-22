@@ -73,6 +73,19 @@ def index(request):
         'sts'     : [],
     }
 
+    target_type = request.GET.get('target', None)
+    interval = request.GET.get('reload', None)
+
+
+    if not hasattr(request.session, 'user_config'):
+        request.session['user_config'] = {}
+
+    if not hasattr(request.session['user_config'], 'request_history_interval'):
+        request.session['user_config']['reuqest_history_interval'] = 0
+
+    if interval is not None:
+        request.session['user_config']['request_history_interval'] = interval
+
     try:
         # リクエスト履歴画面のルール別アクセス権限を取得
         permission_info = request.user_config.get_rule_auth_type(MENU_ID)
@@ -156,4 +169,8 @@ def index(request):
     data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'none', request=request)
-    return render(request, 'rule/request_history.html', data)
+
+    if target_type != 'table':
+        return render(request, 'rule/request_history.html', data)
+    else:
+        return render(request, 'rule/request_history_table.html', data)

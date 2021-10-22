@@ -1,0 +1,391 @@
+{% comment %}
+Copyright 2019 NEC Corporation
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+     http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+
+{% endcomment %}
+{% load tz %}
+{% load common %}
+
+<script type="text/javascript">
+<!--
+
+//変数宣言
+let autoReloadRequest = null;
+let pollingFlag = true;
+
+//リロード
+function Reload(interval){
+
+    pageNum = $('#divRequestHistoryTableFooter').find('.pagingNow').val();
+    pageNum = parseInt(pageNum);
+
+    $.ajax({
+        type : "GET",
+        url  : "/oase_web/rule/request_history?target=table&reload=" + interval.toString(),
+    })
+    .done(function(respdata, stscode, res) {
+        let out_html = $($.parseHTML(respdata));
+
+        $("#oase-request-history-table").html(out_html);
+
+        //ページングリセット
+        if(Number.isInteger(pageNum) == false)  pageNum = 1;
+        pagingTable(pageNum);
+
+        // 読み込みマークを消す
+        $('.oase-table-load').removeClass('loading');
+
+    })
+    .fail(function(respdata, stscode, res) {
+        alert(getMessage("MOSJA36020",false));
+        window.location.href = "/oase_web/top/logout";
+    })
+    .always(function(respdata) {
+    });
+
+}
+
+// ページング
+function pagingTable(pageNum) {
+
+  let oaseTable = $('#tbl-oase-request-history');
+  let oaseFooter = $('#divRequestHistoryTableFooter');
+  let pagingPageCount = oaseTable.find('tbody tr:not([class*="filter-hide-"])').length;
+  let pagingEnd = oaseFooter.find('.rowShowNum').val();
+  // select.val()が取得できない場合がある
+  if ( pagingEnd === undefined ) pagingEnd = 50;
+
+  // 最大ページ数
+  let pagingMax = Math.ceil( pagingPageCount / pagingEnd );
+  // 表示されたページと最大ページ数の比較
+  if ( pageNum >= pagingMax ) {
+    pageNum = pagingMax;
+    oaseFooter.find('.pagingNext').prop('disabled', true );
+  } else {
+    oaseFooter.find('.pagingNext').prop('disabled', false );
+  }
+
+  // 表示ページが１以下の場合
+  if ( pageNum <= 1 ) {
+    pageNum = 1;
+    oaseFooter.find('.pagingPrev').prop('disabled', true );
+  } else {
+    oaseFooter.find('.pagingPrev').prop('disabled', false );
+  }
+
+  let pagingStart = ( pageNum - 1 ) * pagingEnd - 1;
+  oaseFooter.find('.pagingNow').val( pageNum );
+  oaseFooter.find('.pagingMax').text( pagingMax );
+
+  if ( pagingStart === -1 ) {
+      oaseTable.find('tr:not([class*="filter-hide-"]):lt(' + pagingEnd + ')').removeClass('paging-hide');
+  } else {
+      oaseTable.find('tr:not([class*="filter-hide-"]):gt(' + pagingStart + '):lt(' + pagingEnd + ')').removeClass('paging-hide');
+  }
+
+  tableRowCount();
+
+}
+
+// 行数カウントの更新
+function tableRowCount() {
+  $('#tbl-oase-request-history').each( function(){
+    let rowCount = $('#tbl-oase-request-history').find('tbody tr:not([class*="filter-hide-"])').length;
+    $('#divRequestHistoryTableFooter').find('.rowCount').text( rowCount );
+  });
+}
+
+//オートリロードストップ
+function stopAutoReload(){
+    clearInterval(autoReloadRequest);
+    footerPollingTimerStop();
+}
+
+//オートリロードスタート
+function startAutoReload(){
+    var value = document.getElementById("oasePollingSelect").value;
+    var interval = value * 1000;
+    autoReloadRequest = setInterval(function(){Reload(interval)}, interval);
+    footerPollingTimerStart();
+}
+
+//ボタンとその動き
+$(function() {
+    //ボタン表示
+    footerPollingTimer();
+    footerPollingSelect();
+    //clickイベントの追加(ONかOFF)
+    $('.oase-polling-switch .oase-button').on('click', function(){
+        if ( $( this ).is('.on') ) {
+            stopAutoReload();
+            pollingFlag = false;
+        } else {
+            startAutoReload();
+            pollingFlag = true;
+        }
+    });
+    stopAutoReload();
+    pollingFlag = true;
+});
+
+function selectChange(){
+    stopAutoReload();
+    startAutoReload();
+    pollingFlag = true;
+}
+
+-->
+</script>
+
+      <section>
+
+        {% if table_list %}
+        <div class="oase-table">
+          <div class="oase-table-load loading">
+            <div class="oase-table-loader-inner">
+              <em class="owf owf-update"></em>
+            </div>
+          </div>
+          
+          <div class="oase-table-inner">
+            <table id="tbl-oase-request-history" class="oase-filter oase-sort">
+              <thead><!-- カラムタイトル ここから -->
+                <tr>
+                  <th class="status filter sort" filter-label="status" filter-type="select">
+                    <!-- <div class="cell-inner">状態</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36003' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="request-type filter sort" filter-label="request-type" filter-type="common">
+                     <!-- <div class="cell-inner">リクエスト種別</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36004' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="rule-type filter sort" filter-label="rule-type" filter-type="common">
+                     <!-- <div class="cell-inner">ルール種別</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36005' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="request-reception-date filter sort" filter-label="request-reception-date" filter-type="date">
+                    <!-- <div class="cell-inner">リクエスト受信日時</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36006' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="event-information filter sort" filter-label="event-information" filter-type="common">
+                    <!-- <div class="cell-inner">イベント情報</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36007' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="event-date filter sort" filter-label="event-date" filter-type="date">
+                    <!-- <div class="cell-inner">イベント発生日時</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36008' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                  <th class="trace-id filter sort" filter-label="trace-id" filter-type="common">
+                    <!-- <div class="cell-inner">トレースID</div> -->
+                    <div class="cell-inner">{% get_message 'MOSJA36009' request.user.get_lang_mode showMsgId=False %}</div>
+                  </th>
+                </tr>
+              </thead><!-- カラムタイトル ここまで -->
+
+              <tbody><!-- テーブルデータ表示 ここから -->
+              {% for history in table_list %}
+              <tr class="{{ history.class_info.status }}">
+                <th class="status">
+                  <div class="cell-inner">
+                      <span class="tooltip">
+                        <em class="owf {{ history.class_info.name }}"></em>
+                        <span>{% get_message history.class_info.description request.user.get_lang_mode showMsgId=False %}</span>
+                      </span>
+                  </div>
+                </th>
+                <td class="request-type">
+                  <div class="cell-inner">{{ history.request_name }}</div>
+                </td>
+                <td class="rule-type">
+                  <div class="cell-inner">{{ history.rule_name }}</div>
+                </td>
+                <td class="request-reception-date">
+                  <div class="cell-inner">
+                    <time datetime="{{ history.request_reception_time|localtime|date:'Y-m-d\TH:i:s' }}">{{ history.request_reception_time|localtime }}</time>
+                  </div>
+                </td>
+                <td class="event-information">
+                  <div class="cell-inner">{{ history.event_info }}</div>
+                </td>
+                <td class="event-date">
+                  <div class="cell-inner">
+                    <time datetime="{{ history.event_to_time|localtime|date:'Y-m-d\TH:i:s' }}">{{ history.event_to_time|localtime }}</time>
+                  </div>
+                </td>
+                <td class="trace-id">
+                  <div class="cell-inner">{{ history.trace_id }}</div>
+                </td>
+              {% endfor %}
+              </tbody><!-- テーブルデータ表示 ここまで -->
+            </table>
+          </div><!-- /.oase-table-inner -->
+
+
+          <div id="divRequestHistoryTableFooter" class="oase-table-footer">
+            <ul class="button-group">
+              <li>
+                <dl>
+                  <!-- <dt>件数</dt> -->
+                  <dt>{% get_message 'MOSJA00022' request.user.get_lang_mode showMsgId=False %}</dt>
+                  <dd class="rowCount">0</dd>
+                </dl>
+              </li>
+              <li>
+                <dl>
+                  <dt>{% get_message 'MOSJA00023' request.user.get_lang_mode showMsgId=False %}</dt>
+                  <dd>
+                    <select class="rowShowNum">
+                      <option value="10">10</option>
+                      <option value="25">25</option>
+                      <option value="50" selected>50</option>
+                      <option value="100">100</option>
+                      
+                    </select>
+                  </dd>
+                </dl>
+              </li>
+
+              <li>
+                <button class="pagingPrev button"><em class="owf owf-minus"></em></button>
+                <input class="pagingNow" type="text"> / <span class="pagingMax">0</span>
+                <button class="pagingNext button"><em class="owf owf-plus"></em></button>
+              </li>
+
+              <li>
+                <button class="scrollTop button tooltip">
+                  <em class="owf owf-up-on"></em>
+                  <!-- <span>最上部へ移動</span> -->
+                  <span>{% get_message 'MOSJA00024' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="scrollBottom button tooltip">
+                  <em class="owf owf-down-on"></em>
+                  <!-- <span>最下部へ移動</span> -->
+                  <span>{% get_message 'MOSJA00025' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+              </li>
+
+              <li>
+                <button class="colToggle button tooltip">
+                  <em class="owf owf-square"></em>
+                  <!-- <span>列表示・非表示</span> -->
+                  <span>{% get_message 'MOSJA36010' request.user.get_lang_mode showMsgId=False %}</span>
+                </button>
+                <div class="collToggleList"></div>
+                <style class="collToggleStyle"></style>
+              </li>
+            </ul>
+          </div><!-- /."oase-table-footer -->
+        </div><!-- /.oase-table -->
+        <script>
+        $(function(){
+
+
+        $('.colToggle').on('click', function(){
+
+          if( $(this).is('.on') ) {
+        $( this ).removeClass('on');
+
+        $('.collToggleList').html('');
+        $('.collToggleStyle').html('');
+
+          } else {
+
+          $( this ).addClass('on');
+
+          let colListHTML = '<ul>';
+          $( this ).closest('.oase-table').find('.oase-table-inner thead').eq(0).find(' .cell-inner').each( function( i ){
+            colListHTML += '<li><input class="ignore-change-value" type="checkbox" name="colList' + i + '" value="' + $( this ).closest('th').attr('filter-label') + '" checked>' + $( this ).text() + '</li>';
+          });
+          colListHTML += '</ul>';
+          $('.collToggleList').html( colListHTML );
+          $('.collToggleList').find('input').on('change', function(){
+            let collToggleStyle = '';
+            $('.collToggleList').find('input').each(function(){
+              if( !$( this ).prop('checked') ) {
+                collToggleStyle += '.' + $( this ).val() + '{display:none;}';
+              }
+            });
+            $('.collToggleStyle').html( collToggleStyle );
+            $( window ).resize();
+          });
+          }
+        });
+
+          {% if filter_info.sts|length %}
+            $("#oaseFilterId0").val({{filter_info.sts|safe}});
+            $("#oaseFilterId0").change();
+          {% endif %}
+
+          {% if filter_info.reqtype %}
+            $("#oaseFilterId1").val('{{filter_info.reqtype|safe}}');
+            $("#oaseFilterId1").change();
+          {% endif %}
+
+          {% if filter_info.tblname %}
+            $("#oaseFilterId2").val('{{filter_info.tblname|safe}}');
+            $("#oaseFilterId2").change();
+          {% endif %}
+
+          {% if filter_info.evinfo %}
+            $("#oaseFilterId4").val('{{filter_info.evinfo|safe}}');
+            $("#oaseFilterId4").change();
+          {% endif %}
+
+          {% if filter_info.dt_from and filter_info.dt_to %}
+            $("#oaseFilterId5a").val('{{filter_info.dt_from|safe}}');
+            $("#oaseFilterId5b").val('{{filter_info.dt_to|safe}}');
+            $("#oaseFilterId5").click();
+          {% endif %}
+
+        });
+        </script>
+        <style>
+
+        .collToggleList ul {
+        position: fixed;
+        height: auto!important;
+        z-index: 99999999999;
+        top: 0;
+        left: 0;
+        }
+        .collToggleList ul li {
+        display: block!important;
+        }
+        
+        
+         .ond .oase-footer-switch .oase-polling-switch div {
+         display: inline-block;
+         height: 24px;
+         border: 1px solid #666;
+         letter-spacing: normal;
+         vertical-align: middle;
+         line-height: 24px;
+         padding: 0 8px;
+         background-color: #666;
+         color: #CCC;
+         }
+
+        </style>
+
+        {% else %}
+        <div class="oase-none">
+          <!-- <p>リクエスト履歴はありません。</p> -->
+          <p>{% get_message 'MOSJA36002' request.user.get_lang_mode showMsgId=False %}</p>
+        </div><!-- /.oase-none -->
+        {% endif %}
+      </section>
+      <div class="oase-confirm-overlay"></div>

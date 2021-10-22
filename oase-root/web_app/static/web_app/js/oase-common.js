@@ -701,7 +701,7 @@ function saveButtonJudgment( $checkElm ) {
  * ************************************************** */
 function footerPollingTimer() {
   let pollingTimerHTML = heredocHTML ( function(){/*
-  <div class="oase-polling-switch">
+  <div class="oase-polling-switch" id="oasePollingSwitch">
     <button class="tooltip oase-button switch" title="{0}">
       <em class="owf owf-update"></em><span>{0}</span><span class="on-off"></span>
     </button>
@@ -714,4 +714,37 @@ function footerPollingTimerStart() {
 }
 function footerPollingTimerStop() {
   $('.oase-polling-switch .oase-button').removeClass('on');
+}
+function footerPollingSelect() {
+  // 選択項目データ用配列
+  var item = new  Array( "5", "10", "30", "60", "120", "300", "600", "1800", "3600" );
+  var oasePolling = document.getElementById("oasePollingSwitch");
+  var message = getMessage("MOSJA00304", false);
+  var title = document.createTextNode(message);
+  var div = document.createElement("div");
+  div.setAttribute("id","oasePollingText");
+  oasePolling.appendChild(div);
+  var pollingText = document.getElementById("oasePollingText");
+  pollingText.appendChild(title);
+
+  var select = document.createElement("select");
+  select.setAttribute("id","oasePollingSelect");
+  select.setAttribute("class","rowShowNum");
+  select.setAttribute("onchange","selectChange();");
+  oasePolling.appendChild(select);
+  var pollingSelect = document.getElementById("oasePollingSelect");
+
+  for( i=0; i<item.length; i++ ){
+    var option = document.createElement("option");
+    option.value = item[i];
+    if (item[i] == 3600) {
+        var text = document.createTextNode(item[i]/3600 + 'h');
+    } else if (item[i] >= 60) {
+        var text = document.createTextNode(item[i]/60 + 'm');
+    } else {
+        var text = document.createTextNode(item[i] + 's');
+    }
+    option.appendChild(text);
+    select.appendChild(option);
+  }
 }

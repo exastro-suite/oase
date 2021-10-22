@@ -79,6 +79,18 @@ def action_history(request):
         'rulename' : None,
     }
 
+    target_type = request.GET.get('target', None)
+    interval = request.GET.get('reload', None)
+
+    if not hasattr(request.session, 'user_config'):
+        request.session['user_config'] = {}
+
+    if not hasattr(request.session['user_config'], 'action_history_interval'):
+        request.session['user_config']['action_history_interval'] = 0
+
+    if interval is not None:
+        request.session['user_config']['action_history_interval'] = interval
+
     try:
         # アクション画面のルール別アクセス権限を取得
         permission_info = request.user_config.get_rule_auth_type(MENU_ID)
@@ -155,7 +167,12 @@ def action_history(request):
     data.update(request.user_config.get_templates_data(request))
 
     logger.logic_log('LOSI00002', 'none', request=request)
-    return render(request, 'rule/action_history.html', data)
+
+    if target_type != 'table':
+        return render(request, 'rule/action_history.html', data)
+
+    else:
+        return render(request, 'rule/action_history_table.html', data)
 
 
 ################################################
