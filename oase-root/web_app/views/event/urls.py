@@ -19,6 +19,6 @@ from . import event, evtimer
 app_name = 'event'
 urlpatterns = [
     path('event/eventsrequest', event.eventsrequest, name='eventsrequest'),
-    path('event/bulk_eventsrequest', event.bulk_eventsrequest, name='bulk_eventsrequest'),
+    #path('event/bulk_eventsrequest', event.bulk_eventsrequest, name='bulk_eventsrequest'),
     re_path(r'^evtimer/(?P<ettype>\w+)/(?P<config_id>\w+)/(?P<query>\w+)/$', evtimer.evtimer, name='evtimer'),
 ]
