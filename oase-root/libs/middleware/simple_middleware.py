@@ -266,7 +266,7 @@ class SimpleMiddleware:
         allowed_path.append(reverse('web_app:top:onetime_pass_exec'))
         allowed_path.append(reverse('web_app:user:user_determ_mailaddr'))
         allowed_path.append(reverse('web_app:restapi:historyrequest'))
-        allowed_path.append(reverse('web_app:event:bulk_eventsrequest'))
+        #allowed_path.append(reverse('web_app:event:bulk_eventsrequest'))
 
         if request.path in allowed_path:
             return None
