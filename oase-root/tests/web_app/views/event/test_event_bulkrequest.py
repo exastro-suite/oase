@@ -127,6 +127,10 @@ class TestEvent_BulkEventsRequest:
         self.del_test_data()
         self.set_test_data()
 
+        # 一括リクエスト廃止に伴い、テストも廃止
+        assert True
+
+        """
         json_data = {
             "request" : [
                 {
@@ -151,6 +155,7 @@ class TestEvent_BulkEventsRequest:
 
         assert response.status_code == 200
         assert resp_content['result'] == True
+        """
 
         self.del_test_data()
 
@@ -166,6 +171,10 @@ class TestEvent_BulkEventsRequest:
         self.del_test_data()
         self.set_test_data()
 
+        # 一括リクエスト廃止に伴い、テストも廃止
+        assert True
+
+        """
         json_data = {
             "request" : [
                 {
@@ -188,6 +197,7 @@ class TestEvent_BulkEventsRequest:
 
         assert response.status_code == 200
         assert resp_content['result'] == False
+        """
 
         self.del_test_data()
 
