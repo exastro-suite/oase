@@ -79,16 +79,17 @@ class EventsRequestCommon():
 
         trace_id_list = []
         cnt = None
-        # debug
-        # print('method start')
+
 
         try:
             with transaction.atomic():
                 # カウント
                 count = Count.objects.select_for_update().get(pk=1)
+
                 # cntに現在の値を保持
-                # 1000000000超えたらリセット
                 cnt = count.count_number
+
+                # 1000000000超えたらリセット
                 count.count_number = (count.count_number + req) % 1000000000
 
 
