@@ -71,40 +71,51 @@ class EventsRequestCommon():
     # メソッド
     ############################################
     @staticmethod
-    def generate_trace_id(now=None):
+    def generate_trace_id(now=None,req=1):
         """
         [メソッド概要]
           トレースIDを生成する
         """
 
-        trace_id = ''
+        trace_id_list = []
+        cnt = None
+
 
         try:
-            # トレースID接頭辞
-            prefix = 'TOS'
-
-            # トレースID生成日時
-            if not now:
-                now = datetime.datetime.now(pytz.timezone('UTC'))
-
             with transaction.atomic():
                 # カウント
                 count = Count.objects.select_for_update().get(pk=1)
-                cnt = count.count_number + 1
-                cnt = str(cnt).zfill(10)
 
-                # トレースID生成
-                trace_id = '%s%s%s%s%s' % ('TOS', '_', now.strftime('%Y%m%d%H%M%S%f'), '_', cnt)
+                # cntに現在の値を保持
+                cnt = count.count_number
 
-                count.count_number = count.count_number + 1
+                # 1000000000超えたらリセット
+                count.count_number = (count.count_number + req) % 1000000000
+
+
                 count.save()
-
-                return trace_id
 
         except Exception as e:
             logger.system_log('LOSM00038', traceback.format_exc())
+            return trace_id_list
 
-            return trace_id
+        # トレースID接頭辞
+        prefix = 'TOS'
+
+        # トレースID生成日時
+        if not now:
+           now = datetime.datetime.now(pytz.timezone('UTC'))
+
+        for i in range(req):
+            cnt = cnt % 1000000000
+            cnt = str(cnt).zfill(10)
+
+            # トレースID生成
+            trace_id_list.append('%s%s%s%s%s' % ('TOS', '_', now.strftime('%Y%m%d%H%M%S%f'), '_', cnt))
+            
+            cnt = int(cnt) + 1
+
+        return trace_id_list
 
 
     @classmethod

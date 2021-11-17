@@ -28,16 +28,31 @@ import traceback
 import requests
 import urllib3
 import ssl
+import pika
+import multiprocessing
 from urllib3.exceptions import InsecureRequestWarning
 
 from django.conf import settings
 from django.urls import reverse
 
 from libs.commonlibs.oase_logger import OaseLogger
+from libs.backyardlibs.monitoring_adapter.oase_monitoring_adapter_common_libs import _produce
+from libs.backyardlibs.monitoring_adapter.oase_monitoring_adapter_common_libs import _rabbitMQ_conf
+from libs.webcommonlibs.events_request import EventsRequestCommon
 
 urllib3.disable_warnings(InsecureRequestWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
 logger = OaseLogger.get_instance()
+
+# 設定情報読み込み
+_mq_settings = None
+
+# RabbitMQ接続
+_channel    = None
+_connection = None
+_properties = None
+
+mq_lock = multiprocessing.Lock()
 
 
 def send_request(request_data_dic):
@@ -50,41 +65,37 @@ def send_request(request_data_dic):
 
     result = True
     msg = ''
+    trace_id_list = []
+    data_count = 0
 
     try:
 
+        data_count = len(request_data_dic['request'])
+
         # リクエストデータの有無確認
-        if len(request_data_dic) <= 0:
+        if data_count <= 0:
             result = False
             logger.system_log('LOSM30011')
             raise
 
-        # jsonの文字列形式ヘ
-        json_str = json.dumps(request_data_dic)
-
-        # リクエストを投げる
-        url = settings.HOST_NAME + reverse('web_app:event:bulk_eventsrequest')
-
-        r = requests.post(
-            url,
-            headers={'content-type': 'application/json'},
-            data=json_str.encode('utf-8'),
-            verify=False
-        )
-
-        # レスポンスからデータを取得
-        try:
-            r_content = json.loads(r.content.decode('utf-8'))
-        except json.JSONDecodeError:
+        trace_id_list = EventsRequestCommon.generate_trace_id(req=data_count)
+        if data_count != len(trace_id_list):
             result = False
-            logger.system_log('LOSM30008', traceback.format_exc())
+            logger.system_log('LOSM30028')
             raise
 
-        # リクエストの実行中に失敗した場合
-        if not r_content["result"]:
-            result = False
-            msg = r_content["msg"]
-            logger.system_log('LOSM30009', 'result: %s, msg: %s' % (result, msg))
+        for i, data in enumerate(request_data_dic['request']):
+
+            data['traceid'] = trace_id_list[i]
+            data = json.dumps(data)
+
+            _rabbitMQ_conf()
+
+            # RabbitMQへ送信
+            mq_lock.acquire()
+            _produce(data)
+            mq_lock.release()
+
 
     except Exception as e:
         if result:
