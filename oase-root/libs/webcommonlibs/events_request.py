@@ -33,9 +33,8 @@ import uuid
 import pytz
 import datetime
 import traceback
-import time
 
-from django.db import transaction, connection
+from django.db import transaction
 from libs.commonlibs.oase_logger import OaseLogger
 from web_app.models.models import Count
 
@@ -87,13 +86,9 @@ class EventsRequestCommon():
             with transaction.atomic():
                 # カウント
                 count = Count.objects.select_for_update().get(pk=1)
-                # updateで値を固定
                 # cntに現在の値を保持
                 # 1000000000超えたらリセット
                 cnt = count.count_number
-                # Test: DBロックの確認
-                # print('into sleep')
-                # time.sleep(10)
                 count.count_number = (count.count_number + req) % 1000000000
 
 
