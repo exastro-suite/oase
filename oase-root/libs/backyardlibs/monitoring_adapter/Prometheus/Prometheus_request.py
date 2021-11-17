@@ -81,7 +81,7 @@ def send_request(request_data_dic):
         trace_id_list = EventsRequestCommon.generate_trace_id(req=data_count)
         if data_count != len(trace_id_list):
             result = False
-            logger.system_log('LOSMxxxxx')
+            logger.system_log('LOSM30028')
             raise
 
         for i, data in enumerate(request_data_dic['request']):
