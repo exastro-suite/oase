@@ -221,7 +221,7 @@ def data_list(body, user, rule_type_id_list, label_count_list):
         # イベント情報のチェック
         check_evinfo_error(trace_id, json_str, ruletypeid, evinfo_length)
 
-        # DB登録用に整形 evinfo_str ⇒ バリデーションチェック  evinfo_str_db ⇒ DB登録用
+        # DB登録用に整形
         time_zone = settings.TIME_ZONE
         evinfo_str = json.dumps(json_str[EventsRequestCommon.KEY_EVENTINFO])
         evinfo_str = '{"EVENT_INFO":%s}' % (evinfo_str)
