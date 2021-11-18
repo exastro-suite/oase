@@ -135,7 +135,7 @@ function refleshRowsGrafana(rule_type_id, mode){
         $(detailSelector2).hide();
     } else {
         // 条件名変換用
-        var do_dict = pro_rule_type_data_obj_dict[rule_type_id]['data_obj'];
+        var do_dict = gra_rule_type_data_obj_dict[rule_type_id]['data_obj'];
 
         //var option = setpullDownGrafana('add','');
 
