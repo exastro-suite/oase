@@ -78,6 +78,7 @@ from web_app.models.models import TokenInfo
 from web_app.models.models import TokenPermission
 from web_app.templatetags.common import get_message
 from web_app.serializers.unicode_check import UnicodeCheck
+from web_app.serializers.events_request import EventsRequestSerializer
 
 MENU_ID_STG = 2141001004
 MENU_ID_PRD = 2141001005
@@ -667,6 +668,7 @@ def rule_pseudo_request(request, rule_type_id):
     now = datetime.datetime.now(pytz.timezone('UTC'))
     reception_dt = TimeConversion.get_time_conversion(now, time_zone, request=request)
     trace_id = ''
+    trace_id_list = []
     event_dt = '----/--/-- --:--:--'
     req_list = []
 
@@ -702,34 +704,81 @@ def rule_pseudo_request(request, rule_type_id):
                 logger.system_log('LOSM12064', 'post_data:%s' % (post_data))
                 raise Exception()
 
-            # RestApiにリクエストを投げる
-            tkn = _get_token(now)
-            scheme = urlsplit(request.build_absolute_uri(None)).scheme
-            url = scheme + '://127.0.0.1:' + request.META['SERVER_PORT'] + reverse('web_app:event:eventsrequest')
-            r = requests.post(
-                url,
-                headers={
-                    'content-type'  : 'application/json',
-                    'Authorization' : 'Bearer %s' % (tkn),
-                },
-                data=json_str.encode('utf-8'),
-                verify=False
-            )
-            # レスポンスからデータを取得
-            try:
-                r_content = json.loads(r.content.decode('utf-8'))
-            except json.JSONDecodeError:
-                msg = get_message('MOSJA12012', request.user.get_lang_mode())
-                logger.user_log('LOSM12052')
-                raise
+            #########################################
+            # リクエストをDBに保存
+            #########################################
+            # DB登録用に成形
+            evinfo_str = ''
+            rset = DataObject.objects.filter(rule_type_id=rule_type_id).order_by('data_object_id')
 
-            # テストリクエストの実行中に失敗した場合
-            if not r_content["result"]:
-                msg = r_content["msg"]
-                logger.user_log('LOSM12001', traceback.format_exc())
-                raise
+            label_list                     = []
+            conditional_expression_id_list = []
 
-            trace_id = r_content["trace_id"]
+            for a in rset:
+                if a.label not in label_list:
+                    label_list.append(a.label)
+                    conditional_expression_id_list.append(a.conditional_expression_id)
+
+            for rs, v in zip(conditional_expression_id_list, eventinfo):
+                if evinfo_str:
+                    evinfo_str += ','
+
+                # 条件式がリストの場合
+                if rs in (13, 14):
+                    if not isinstance(v, list):
+                        evinfo_str += '%s' % (v)
+
+                    else:
+                        temp_val = '['
+                        for i, val in enumerate(v):
+                            if i > 0:
+                                temp_val += ','
+
+                            temp_val += '"%s"' % (val)
+
+                        temp_val += ']'
+                        evinfo_str += '%s' % (temp_val)
+
+                # 条件式がリスト以外の場合
+                else:
+                    evinfo_str += '"%s"' % (v)
+
+            evinfo_str    = json.dumps(evinfo_str)
+            evinfo_str    = '{"EVENT_INFO":[%s]}' % (evinfo_str)
+            event_dt      = TimeConversion.get_time_conversion_utc(eventdatetime, time_zone, request=request)
+            trace_id_list = EventsRequestCommon.generate_trace_id()
+            trace_id      = trace_id_list[0]
+            reqtypeid     = post_data[EventsRequestCommon.KEY_REQTYPE]
+
+            json_data = {
+                'trace_id'               : trace_id,
+                'request_type_id'        : reqtypeid,
+                'rule_type_id'           : rule_type_id,
+                'request_reception_time' : now,
+                'request_user'           : 'OASE Web User',
+                'request_server'         : 'OASE Web',
+                'event_to_time'          : event_dt,
+                'event_info'             : evinfo_str,
+                'status'                 : defs.UNPROCESS,
+                'status_update_id'       : '',
+                'retry_cnt'              : 0,
+                'last_update_timestamp'  : now,
+                'last_update_user'       : request.user.user_name,
+            }
+
+            # バリデーションチェック
+            oters = EventsRequestSerializer(data=json_data)
+            result_valid = oters.is_valid()
+
+            # バリデーションエラー
+            if result_valid == False:
+                msg = '%s' % oters.errors
+                logger.user_log('LOSM12072', trace_id, msg)
+                raise Exception()
+
+            # 正常の場合はDB保存
+            else:
+                oters.save()
 
             # 該当ルール種別をロック
             data_obj_list = DataObject.objects.filter(rule_type_id=rt.pk).order_by('data_object_id')
@@ -747,7 +796,6 @@ def rule_pseudo_request(request, rule_type_id):
                 {'conditional_name':conditional_name_list[i], 'value':v}
                 for i, v in enumerate(eventinfo)
             ]
-            event_dt = TimeConversion.get_time_conversion_utc(eventdatetime, time_zone, request=request)
             event_dt = TimeConversion.get_time_conversion(event_dt, time_zone, request=request)
             err_flg = 0
 
@@ -1070,7 +1118,7 @@ def rule_polling(request, rule_manage_id, trace_id):
                 raise OASEError('MOSJA12031', 'LOSI12012', msg_params={'opename':get_message('MOSJA12035', request.user.get_lang_mode(), showMsgId=False), 'rule_type_name':ruletypename}, log_params=['Polling', events_request.rule_type_id, rule_ids])
 
             # テストリクエスト情報を取得
-            evinfo = ast.literal_eval(events_request.event_info)
+            evinfo = json.loads(events_request.event_info)
             evinfo = evinfo['EVENT_INFO'] if 'EVENT_INFO' in evinfo else []
             rset = DataObject.objects.filter(rule_type_id=events_request.rule_type_id).order_by('data_object_id')
 
@@ -1920,84 +1968,144 @@ def bulkpseudocall(request, rule_type_id):
     rule_data_list = []
     message_list   = []
     trace_id_list  = []
+    res_trace_id_list = []
+    data_object_list = []
 
     time_zone = settings.TIME_ZONE
-    reception_dt = datetime.datetime.now(pytz.timezone('UTC'))
-    reception_dt = TimeConversion.get_time_conversion(reception_dt, time_zone, request=request)
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+    reception_dt = TimeConversion.get_time_conversion(now, time_zone, request=request)
 
     logger.logic_log('LOSI00001', 'rule_type_id: %s' % rule_type_id, request=request)
 
     try:
-        # データの取得
-        rule_data_list, errmsg, message_list = _testrequest_upload(request, rule_type_id)
+        with transaction.atomic():
+            # データの取得
+            rule_data_list, errmsg, message_list = _testrequest_upload(request, rule_type_id)
 
-        if errmsg:
-            logger.system_log('LOSM12003', 'rule_data_list:%s' % rule_data_list, request=request)
-            raise Exception
+            if errmsg:
+                logger.system_log('LOSM12003', 'rule_data_list:%s' % rule_data_list, request=request)
+                raise Exception
 
-        # ルール別アクセス権限チェック
-        rule_ids = []
-        for chk_auth in defs.MENU_CATEGORY.ALLOW_EVERY:
-            rule_ids.extend(request.user_config.get_activerule_auth_type(MENU_ID_STG, chk_auth))
+            # ルール別アクセス権限チェック
+            rule_ids = []
+            for chk_auth in defs.MENU_CATEGORY.ALLOW_EVERY:
+                rule_ids.extend(request.user_config.get_activerule_auth_type(MENU_ID_STG, chk_auth))
 
-        rt = RuleType.objects.get(rule_type_id=rule_type_id)
-        if rt.rule_type_id not in rule_ids:
-            raise OASEError('MOSJA12031', 'LOSI12012', msg_params={'opename':get_message('MOSJA12035', request.user.get_lang_mode(), showMsgId=False), 'rule_type_name':rt.rule_type_name}, log_params=['Bulk Request', rt.rule_type_id, rule_ids])
+            rt = RuleType.objects.get(rule_type_id=rule_type_id)
+            if rt.rule_type_id not in rule_ids:
+                raise OASEError('MOSJA12031', 'LOSI12012', msg_params={'opename':get_message('MOSJA12035', request.user.get_lang_mode(), showMsgId=False), 'rule_type_name':rt.rule_type_name}, log_params=['Bulk Request', rt.rule_type_id, rule_ids])
 
-        ####################################################
-        # リクエスト送信
-        ####################################################
-        scheme = urlsplit(request.build_absolute_uri(None)).scheme
-        tkn = _get_token()
-        url = scheme + '://127.0.0.1:' + request.META['SERVER_PORT'] + reverse('web_app:event:eventsrequest')
-        for rule_dic in rule_data_list:
-            row = ''
-            event_time = ''
-            event_info = []
+            #########################################
+            # リクエストをDBに保存
+            #########################################
+            rset = DataObject.objects.filter(rule_type_id=rule_type_id).order_by('data_object_id')
+            label_list                     = []
+            conditional_expression_id_list = []
 
-            for k, v in rule_dic.items():
-                if k == 'eventtime':
-                    event_time = str(v)
-                    continue
-                if k == 'row':
-                    row = str(v)
-                    continue
-                event_info.append(v)
+            for a in rset:
+                if a.label not in label_list:
+                    label_list.append(a.label)
+                    conditional_expression_id_list.append(a.conditional_expression_id)
 
-            # リクエストをJSON形式に変換
-            json_str = {}
-            json_str[EventsRequestCommon.KEY_RULETYPE]  = rt.rule_type_name
-            json_str[EventsRequestCommon.KEY_REQTYPE]   = defs.STAGING
-            json_str[EventsRequestCommon.KEY_EVENTTIME] = event_time
-            json_str[EventsRequestCommon.KEY_EVENTINFO] = event_info
-            json_str = json.dumps(json_str)
+            rule_count = len(rule_data_list)
+            trace_id_list = EventsRequestCommon.generate_trace_id(req=rule_count)
 
-            r_content = None
-            r = requests.post(
-                url,
-                headers={'content-type': 'application/json', 'Authorization' : 'Bearer %s' % (tkn),},
-                data=json_str.encode('utf-8'),
-                verify=False
-            )
+            for i, rule_dic in enumerate(rule_data_list):
+                row = ''
+                event_time = ''
+                event_info = []
+                evinfo_str = ''
 
-            # レスポンスからデータを取得
-            r_content = json.loads(r.content.decode('utf-8'))
+                for k, v in rule_dic.items():
+                    if k == 'eventtime':
+                        event_time = str(v)
+                        continue
+                    if k == 'row':
+                        row = str(v)
+                        continue
+                    event_info.append(v)
 
-            # テストリクエストの実行中に失敗した場合
-            if not r_content["result"]:
-                errmsg = r_content["msg"]
-                logger.user_log('LOSM12060', traceback.format_exc())
-                raise
+                for rs, v in zip(conditional_expression_id_list, event_info):
+                    if evinfo_str:
+                        evinfo_str += ','
 
-            if r_content is not None and r_content['trace_id']:
-                trace_id_list.append({'id':r_content['trace_id'], 'row':row})
+                    # 条件式がリストの場合
+                    if rs in (13, 14):
+                        if not isinstance(v, list):
+                            evinfo_str += '%s' % (v)
 
-        response_data['result'] = 'OK'
-        response_data['msg'] = get_message('MOSJA03015', request.user.get_lang_mode(), showMsgId=False)
-        response_data['trace'] = trace_id_list
-        response_data['recept'] = reception_dt
-        response_data['filename'] = request.FILES['testreqfile'].name
-        response_data['log_msg']  = makePseudoCallMessage_Bulk('', reception_dt, request.FILES['testreqfile'].name, 0, len(trace_id_list),request.user.get_lang_mode())
+                        else:
+                            temp_val = '['
+                            for i, val in enumerate(v):
+                                if i > 0:
+                                    temp_val += ','
+
+                                temp_val += '"%s"' % (val)
+
+                            temp_val += ']'
+                            evinfo_str += '%s' % (temp_val)
+
+                    # 条件式がリスト以外の場合
+                    else:
+                        evinfo_str += '"%s"' % (v)
+
+                evinfo_str = json.dumps(evinfo_str)
+                evinfo_str = '{"EVENT_INFO":[%s]}' % (evinfo_str)
+                event_dt   = TimeConversion.get_time_conversion_utc(event_time, time_zone, request=request)
+
+                json_data = {
+                    'trace_id'               : trace_id_list[i],
+                    'request_type_id'        : defs.STAGING,
+                    'rule_type_id'           : rule_type_id,
+                    'request_reception_time' : now,
+                    'request_user'           : 'OASE Web User',
+                    'request_server'         : 'OASE Web',
+                    'event_to_time'          : event_dt,
+                    'event_info'             : evinfo_str,
+                    'status'                 : defs.UNPROCESS,
+                    'status_update_id'       : '',
+                    'retry_cnt'              : 0,
+                    'last_update_timestamp'  : now,
+                    'last_update_user'       : request.user.user_name,
+                }
+
+                # バリデーションチェック
+                oters = EventsRequestSerializer(data=json_data)
+                result_valid = oters.is_valid()
+
+                # バリデーションエラー
+                if result_valid == False:
+                    msg = '%s' % oters.errors
+                    logger.user_log('LOSM12072', trace_id_list[i], msg)
+                    raise Exception()
+
+                else:
+                    data_object = EventsRequest(
+                        trace_id=trace_id_list[i],
+                        request_type_id=defs.STAGING,
+                        rule_type_id=rule_type_id,
+                        request_reception_time=now,
+                        request_user='OASE Web User',
+                        request_server='OASE Web',
+                        event_to_time=event_dt,
+                        event_info=evinfo_str,
+                        status=defs.UNPROCESS,
+                        status_update_id='',
+                        retry_cnt=0,
+                        last_update_timestamp=now,
+                        last_update_user=request.user.user_name
+                    )
+                    data_object_list.append(data_object)
+                    res_trace_id_list.append({'id':trace_id_list[i], 'row':row})
+
+            EventsRequest.objects.bulk_create(data_object_list)
+
+            response_data['result'] = 'OK'
+            response_data['msg'] = get_message('MOSJA03015', request.user.get_lang_mode(), showMsgId=False)
+            response_data['trace'] = res_trace_id_list
+            response_data['recept'] = reception_dt
+            response_data['filename'] = request.FILES['testreqfile'].name
+            response_data['log_msg']  = makePseudoCallMessage_Bulk('', reception_dt, request.FILES['testreqfile'].name, 0, len(trace_id_list),request.user.get_lang_mode())
 
     except json.JSONDecodeError:
         response_data['result'] = 'NG'

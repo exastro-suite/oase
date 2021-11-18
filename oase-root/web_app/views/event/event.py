@@ -83,7 +83,9 @@ def eventsrequest(request):
     """
 
     now       = datetime.datetime.now(pytz.timezone('UTC'))
-    trace_id  = EventsRequestCommon.generate_trace_id()
+    trace_id_list = []
+    trace_id_list = EventsRequestCommon.generate_trace_id()
+    trace_id  = trace_id_list[0]
     stscode   = 200
     resp_json = {}
     result    = False
@@ -224,6 +226,7 @@ def eventsrequest(request):
                 else:
                     evinfo_str += '"%s"' % (v)
 
+            evinfo_str = json.dumps(evinfo_str)
             evinfo_str = '{"EVENT_INFO":[%s]}' % (evinfo_str)
             event_dt   = json_str[EventsRequestCommon.KEY_EVENTTIME]
             event_dt   = TimeConversion.get_time_conversion_utc(event_dt, getattr(settings, 'TIME_ZONE'))
