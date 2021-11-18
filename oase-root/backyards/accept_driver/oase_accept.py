@@ -145,7 +145,6 @@ def make_evinfo_str(json_str):
     [メソッド概要]
       DB登録用にイベント情報を文字列に整形
     """
-
     evinfo_str = ''
 
     for v in json_str[EventsRequestCommon.KEY_EVENTINFO]:
@@ -171,7 +170,7 @@ def make_evinfo_str(json_str):
 
 ################################################
 def data_list(body, user, rule_type_id_list, label_count_list):
-    """
+    """ 
     [メソッド概要]
       DB登録するデータをリストにする。
     """
@@ -224,8 +223,8 @@ def data_list(body, user, rule_type_id_list, label_count_list):
 
         # DB登録用に整形
         time_zone = settings.TIME_ZONE
-        evinfo_str = make_evinfo_str(json_str)
-        evinfo_str = '{"EVENT_INFO":[%s]}' % (evinfo_str)
+        evinfo_str = json.dumps(json_str[EventsRequestCommon.KEY_EVENTINFO])
+        evinfo_str = '{"EVENT_INFO":%s}' % (evinfo_str)
         event_dt = json_str[EventsRequestCommon.KEY_EVENTTIME]
         event_dt = TimeConversion.get_time_conversion_utc(
             event_dt, time_zone)
