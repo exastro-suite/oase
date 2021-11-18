@@ -667,7 +667,6 @@ class Agent:
 
         paraminfo    = {}
         preinfo      = {}
-        
 
         # アクション種別を取得
         act_type_dic = {}
@@ -740,7 +739,7 @@ class Agent:
                     tmp = acts[ActUtil.pre_info][i].split(',')
                     if not tmp or tmp==["X"] or tmp==["x"]:
                         pre_param = ''
-                        
+
                     else:
                         preinfo['ACTION_PARAMETER_INFO'] = acts[ActUtil.pre_info][i].split(',')
                         pre_param = json.dumps(preinfo, ensure_ascii=False) #事前アクション情報
