@@ -719,32 +719,19 @@ def rule_pseudo_request(request, rule_type_id):
                     label_list.append(a.label)
                     conditional_expression_id_list.append(a.conditional_expression_id)
 
+            i = -1
             for rs, v in zip(conditional_expression_id_list, eventinfo):
-                if evinfo_str:
-                    evinfo_str += ','
+                i = i + 1
+                if rs not in (13, 14):
+                    continue
 
-                # 条件式がリストの場合
-                if rs in (13, 14):
-                    if not isinstance(v, list):
-                        evinfo_str += '%s' % (v)
+                eventinfo[i] = ast.literal_eval(v)
 
-                    else:
-                        temp_val = '['
-                        for i, val in enumerate(v):
-                            if i > 0:
-                                temp_val += ','
+            evinfo_str = {
+                'EVENT_INFO' : eventinfo,
+            }
 
-                            temp_val += '"%s"' % (val)
-
-                        temp_val += ']'
-                        evinfo_str += '%s' % (temp_val)
-
-                # 条件式がリスト以外の場合
-                else:
-                    evinfo_str += '"%s"' % (v)
-
-            evinfo_str    = json.dumps(evinfo_str)
-            evinfo_str    = '{"EVENT_INFO":[%s]}' % (evinfo_str)
+            evinfo_str    = json.dumps(evinfo_str, ensure_ascii=False)
             event_dt      = TimeConversion.get_time_conversion_utc(eventdatetime, time_zone, request=request)
             trace_id_list = EventsRequestCommon.generate_trace_id()
             trace_id      = trace_id_list[0]
@@ -2025,32 +2012,19 @@ def bulkpseudocall(request, rule_type_id):
                         continue
                     event_info.append(v)
 
+                r = -1
                 for rs, v in zip(conditional_expression_id_list, event_info):
-                    if evinfo_str:
-                        evinfo_str += ','
+                    r = r + 1
+                    if rs not in (13, 14):
+                        continue
 
-                    # 条件式がリストの場合
-                    if rs in (13, 14):
-                        if not isinstance(v, list):
-                            evinfo_str += '%s' % (v)
+                    event_info[r] = ast.literal_eval(v)
 
-                        else:
-                            temp_val = '['
-                            for i, val in enumerate(v):
-                                if i > 0:
-                                    temp_val += ','
+                evinfo_str = {
+                    'EVENT_INFO' : event_info,
+                }
 
-                                temp_val += '"%s"' % (val)
-
-                            temp_val += ']'
-                            evinfo_str += '%s' % (temp_val)
-
-                    # 条件式がリスト以外の場合
-                    else:
-                        evinfo_str += '"%s"' % (v)
-
-                evinfo_str = json.dumps(evinfo_str)
-                evinfo_str = '{"EVENT_INFO":[%s]}' % (evinfo_str)
+                evinfo_str = json.dumps(evinfo_str, ensure_ascii=False)
                 event_dt   = TimeConversion.get_time_conversion_utc(event_time, time_zone, request=request)
 
                 json_data = {
