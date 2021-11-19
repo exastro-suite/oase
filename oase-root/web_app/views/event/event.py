@@ -170,6 +170,7 @@ def eventsrequest(request):
             ruletablename = json_str[EventsRequestCommon.KEY_RULETYPE]
             ruletypeid    = RuleType.objects.get(rule_type_name=ruletablename).rule_type_id
             evinfo_length = DataObject.objects.filter(rule_type_id=ruletypeid).values('label').distinct().count()
+            eventinfo     = json_str[EventsRequestCommon.KEY_EVENTINFO]
 
             # イベント情報のチェック
             err_code = EventsRequestCommon.check_events_request_len(json_str, evinfo_length)
@@ -194,40 +195,11 @@ def eventsrequest(request):
             evinfo_str = ''
             rset = DataObject.objects.filter(rule_type_id=ruletypeid).order_by('data_object_id')
 
-            label_list                     = []
-            conditional_expression_id_list = []
+            evinfo_str = {
+                'EVENT_INFO' : eventinfo,
+            }
 
-            for a in rset:
-                if a.label not in label_list:
-                    label_list.append(a.label)
-                    conditional_expression_id_list.append(a.conditional_expression_id)
-
-            for rs, v in zip(conditional_expression_id_list, json_str[EventsRequestCommon.KEY_EVENTINFO]):
-                if evinfo_str:
-                    evinfo_str += ','
-
-                # 条件式がリストの場合
-                if rs in (13, 14):
-                    if not isinstance(v, list):
-                        evinfo_str += '%s' % (v)
-
-                    else:
-                        temp_val = '['
-                        for i, val in enumerate(v):
-                            if i > 0:
-                                temp_val += ','
-
-                            temp_val += '"%s"' % (val)
-
-                        temp_val += ']'
-                        evinfo_str += '%s' % (temp_val)
-
-                # 条件式がリスト以外の場合
-                else:
-                    evinfo_str += '"%s"' % (v)
-
-            evinfo_str = json.dumps(evinfo_str)
-            evinfo_str = '{"EVENT_INFO":[%s]}' % (evinfo_str)
+            evinfo_str = json.dumps(evinfo_str, ensure_ascii=False)
             event_dt   = json_str[EventsRequestCommon.KEY_EVENTTIME]
             event_dt   = TimeConversion.get_time_conversion_utc(event_dt, getattr(settings, 'TIME_ZONE'))
 
