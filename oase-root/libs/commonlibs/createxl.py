@@ -322,6 +322,8 @@ class DecisionTableFactory:
         al_cc = Alignment(horizontal='center', vertical='center', wrap_text=True)
         al_lb = Alignment(horizontal='left', vertical='bottom', wrap_text=True)
         al_c7 = Alignment(horizontal='left', vertical='bottom', wrap_text=False)
+        al_lt = Alignment(horizontal='left', vertical='top', wrap_text=True)
+        al_ct = Alignment(horizontal='center', vertical='top', wrap_text=True)
 
         #----------------
         # header部 塗りつぶし
@@ -357,9 +359,9 @@ class DecisionTableFactory:
                 if 8 <= r < 11:
                     self.tables_ws.cell(row=r, column=c).fill = fill_orange
 
-                elif 11 <= r < 19:
+                elif 12 <= r < 19:
                     self.tables_ws.cell(row=r, column=c).font = font_bold
-                    self.tables_ws.cell(row=r, column=c).alignment = al_cc
+                    self.tables_ws.cell(row=r, column=c).alignment = al_lt
                     # 条件部に水色を塗る
                     if c < 3 + self.len_condition:
                         self.tables_ws.cell(row=r, column=c).fill = fill_lightblue
@@ -367,15 +369,34 @@ class DecisionTableFactory:
                         self.tables_ws.cell(row=r, column=c).number_format = openpyxl.styles.numbers.FORMAT_TEXT
 
         #----------------
-        # アクション部 左揃え
+        # アクション部・条件部 セル内位置
         #----------------
-        action_start = 3 + self.len_condition + 4
-        action_end = self.len_condition + self.len_act + 1
+        
+        #D列からS列まで上左右中央揃え
+        action_start = 3 + self.len_condition
+        action_end = self.len_condition + self.len_act + 10
+        for c in range(action_start, action_end):
+            for r in range(12, 19):
+                    self.tables_ws.cell(row=r, column=c).alignment = al_ct
+        
+        #D列からF列まで上左揃え
+        action_start = 3 + self.len_condition
+        action_end = 3 + self.len_condition + 3
         for c in range(action_start, action_end):
             strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
             if not self._get_action_count_info(strs):
                 for r in range(12, 19):
-                    self.tables_ws.cell(row=r, column=c).alignment = al_lb
+                    self.tables_ws.cell(row=r, column=c).alignment = al_lt
+        
+        #H列・I列の上左揃え
+        action_start = 3 + self.len_condition + 4
+        action_end = self.len_condition + self.len_act - 9
+        for c in range(action_start, action_end):
+            strs = self.tables_ws.cell(row=11, column=c).value.splitlines()
+            if not self._get_action_count_info(strs):
+                for r in range(12, 19):
+                    self.tables_ws.cell(row=r, column=c).alignment = al_lt
+
 
     def _set_width(self):
         """
