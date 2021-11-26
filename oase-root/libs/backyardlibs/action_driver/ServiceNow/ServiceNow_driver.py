@@ -484,7 +484,7 @@ class ServiceNowManager(AbstractManager):
         try:
             act_his = ActionHistory.objects.filter(
                 trace_id             = self.trace_id,
-                action_type_id       = ACTION_TYPE_ID.SERVICENOW,
+                action_type_id       = rhdm_res_act.action_type_id,
                 execution_order__lt  = rhdm_res_act.execution_order
             ).order_by('-execution_order')[0]
 
@@ -623,7 +623,7 @@ class ServiceNowManager(AbstractManager):
         try:
             act_his = ActionHistory.objects.filter(
                 trace_id             = self.trace_id,
-                action_type_id       = ACTION_TYPE_ID.SERVICENOW,
+                action_type_id       = rhdm_res_act.action_type_id,
                 execution_order__lt  = rhdm_res_act.execution_order
             ).order_by('-execution_order')[0]
 
@@ -765,7 +765,7 @@ class ServiceNowManager(AbstractManager):
         try:
             act_his = ActionHistory.objects.filter(
                 trace_id             = self.trace_id,
-                action_type_id       = ACTION_TYPE_ID.SERVICENOW,
+                action_type_id       = rhdm_res_act.action_type_id,
                 execution_order__lt  = rhdm_res_act.execution_order
             ).order_by('-execution_order')[0]
 
@@ -973,7 +973,7 @@ class ServiceNowManager(AbstractManager):
         try:
             act_his = ActionHistory.objects.filter(
                 trace_id             = self.trace_id,
-                action_type_id       = ACTION_TYPE_ID.SERVICENOW,
+                action_type_id       = rhdm_res_act.action_type_id,
                 execution_order__lt  = rhdm_res_act.execution_order
             ).order_by('-execution_order')[0]
 
