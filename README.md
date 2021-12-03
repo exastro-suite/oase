@@ -97,8 +97,8 @@ Choose this option if you need customization or if you cannot use a container en
     # Put the version to be downloaded into a variable.
     # OASE_VER=X.X.X
     #X.X.X
-    # Example: 1.4.0
-    OASE_VER=1.4.0
+    # Example: 1.5.0
+    OASE_VER=1.5.0
 
     # Download the materials
     wget "https://github.com/exastro-suite/oase/releases/download/v${OASE_VER}/exastro-oase-${OASE_VER}.tar.gz"
@@ -128,7 +128,7 @@ Choose this option if you need customization or if you cannot use a container en
 
 5. Access Exastro OASE.
 
-    http://oase.exasmple.com
+    http://oase.example.com
 
 ## Learn more
 
