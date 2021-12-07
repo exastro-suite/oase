@@ -188,23 +188,3 @@ class ZabbixApi(object):
             return True
 
 
-if __name__ == '__main__':
-    ZabbixAdapter = ZabbixAdapter(
-                zabbix_disp_name = 'a',
-                hostname         = '10.197.19.177',
-                username         = 'api',
-                password         = 'w8oZUoMRfD0FSzDY9fmnnomkMbPC4QuzmveJm9QGI0lHZDCfVtqaguIjx+4BO7VilON5N7ove2ogpiOq/VPt++mq28hGi9a4hslB2oIZAaY=',
-                protocol         = 'http',
-                port             = '80',
-                rule_type_id     = '1',
-                last_update_user = 'admin',
-            )
-
-    api = ZabbixApi(ZabbixAdapter)
-    his_lastchange = 0
-    response = api.get_active_triggers(his_lastchange)
-
-    pprint.pprint(response)
-
-    # ログアウト
-    result = api.logout()
