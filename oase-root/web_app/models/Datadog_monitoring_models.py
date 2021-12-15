@@ -96,7 +96,7 @@ class DatadogMonitoringHistory(models.Model):
 class DatadogTriggerHistory(models.Model):
     datadog_trigger_his_id    = models.AutoField("Datadog障害取得履歴ID", primary_key=True)
     datadog_adapter_id        = models.IntegerField("Datadog監視マスタID")
-    trigger_id                = models.IntegerField("トリガーID")
+    trigger_id                = models.CharField("トリガーID", max_length=11)
     lastchange                = models.IntegerField("トリガー最終更新日時")
     last_update_timestamp     = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user          = models.CharField("最終更新者", max_length=64)
