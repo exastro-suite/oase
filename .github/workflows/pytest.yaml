@@ -1,4 +1,4 @@
-me: Pytest
+name: Pytest
 
 on: [push]
 
@@ -51,7 +51,5 @@ jobs:
         run: |
           cd oase-root
           cp -p confs/frameworkconfs/settings.py.sample confs/frameworkconfs/settings.py
-          sed -i -e '/^        '\''NAME'\''     :/s/OASE_DB/OASE_DB/g' confs/frameworkconfs/settings.py
-          sed -i -e '/^        '\''USER'\''     :/s/OASE_USER/root/g' confs/frameworkconfs/settings.py
-          sed -i -e '/^        '\''PASSWORD'\'' :/s/OASE_PASSWD/root_password/g' confs/frameworkconfs/settings.py
+          mysql -u root -p root_password OASE_DB -e'GRANT ALL OASE_DB.* TO 'OASE_USER';'
           python -m pytest -vv -s
