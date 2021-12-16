@@ -1,0 +1,57 @@
+me: Pytest
+
+on: [push]
+
+jobs:
+  test:
+    services:
+      db:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: root_password
+          MYSQL_DATABASE: OASE_DB
+          MYSQL_USER: OASE_USER
+          MYSQL_PASSWORD: OASE_PASSWD
+        options: >-
+          --health-cmd "mysqladmin ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    runs-on: ubuntu-latest
+    # strategy:
+    #   matrix:
+    #     db: [mysql]
+    #     include:
+    #       - db: mysql
+    #         db_user: root
+    #         db_password: abcd
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.6'
+          architecture: x64
+      - name: Start MySQL
+        if: matrix.db == 'mysql'
+        run: sudo systemctl start mysql.service
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Test with pytest
+        env:
+          DB_HOST: 127.0.0.1
+          DB: OASE_DB
+          DB_USER: root
+          DB_PASSWORD: root_password
+          PYTHONPATH: "/home/runner/work/oase/oase/oase-root/libs:$PYTHONPATH"
+        run: |
+          cd oase-root
+          cp -p confs/frameworkconfs/settings.py.sample confs/frameworkconfs/settings.py
+          sed -i -e '/^        '\''NAME'\''     :/s/OASE_DB/OASE_DB/g' confs/frameworkconfs/settings.py
+          sed -i -e '/^        '\''USER'\''     :/s/OASE_USER/root/g' confs/frameworkconfs/settings.py
+          sed -i -e '/^        '\''PASSWORD'\'' :/s/OASE_PASSWD/root_password/g' confs/frameworkconfs/settings.py
+          python -m pytest -vv -s
