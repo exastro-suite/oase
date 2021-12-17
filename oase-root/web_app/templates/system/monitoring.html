@@ -33,7 +33,11 @@ function monitoringModalClear(selector)
     var $elements = $targetModal.find('input:not([name^=csrf], #add_record)');
 
     $elements.each(function(index, element) {
-        element.value = "";
+        if(element != addDatadogUri) {
+            element.value = "";
+        } else {
+            element.value = "https://api.datadoghq.com/api/v1/events";
+        }
     });
 
     var $selectObj = $targetModal.find('select');
