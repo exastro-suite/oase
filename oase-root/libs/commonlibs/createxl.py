@@ -359,9 +359,9 @@ class DecisionTableFactory:
                 if 8 <= r < 11:
                     self.tables_ws.cell(row=r, column=c).fill = fill_orange
 
-                elif 12 <= r < 19:
+                elif 11 <= r < 19:
                     self.tables_ws.cell(row=r, column=c).font = font_bold
-                    self.tables_ws.cell(row=r, column=c).alignment = al_lt
+                    self.tables_ws.cell(row=r, column=c).alignment = al_cc if r == 11 else al_lt
                     # 条件部に水色を塗る
                     if c < 3 + self.len_condition:
                         self.tables_ws.cell(row=r, column=c).fill = fill_lightblue
