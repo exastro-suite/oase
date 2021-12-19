@@ -513,14 +513,6 @@ class DatadogAdapterInfo():
                     error_msg[id_name] += get_message('MOSJA26431', lang) + '\n'
                     logger.user_log('LOSM39005', rq['datadog_disp_name'], request=request)
 
-                # 使用可能名チェック
-                """
-                if grafana_response_key not in Grafana_ITEMS:
-                    error_flag = True
-                    error_msg[id_name] += get_message('MOSJA26432', lang) + '\n'
-                    logger.user_log('LOSM39006', rq['grafana_disp_name'], request=request)
-                """
-
         # datadog_disp_name重複チェック
         if not emo_flag_datadog_disp_name:
             duplication = DatadogAdapter.objects.filter(datadog_disp_name=rq['datadog_disp_name'])
