@@ -12,9 +12,11 @@
 
 .. code-block:: rst
 
- # docker run --privileged --add-host=exastro-oase:127.0.0.1 -d -p 10443:443 --name exastro02 exastro/oase:x.x.x
+ # docker run --hostname="exastro-oase" --privileged --add-host=exastro-oase:127.0.0.1 -d -p 8080:80 -p 10443:443 --name exastro01 exastro/oase:x.x.x-ja
 
-.. note:: ポート番号(10443)とバージョン(x.x.x)は適宜変更してください。
+.. note:: 
+   | ポート番号(8080,10443)とバージョン(x.x.x)は適宜変更してください。
+   | 英語版をご利用になる場合は、バージョンに-enを付与してください。(x.x.x-en)
 
 コンテナ起動後に下記のURLにアクセスしてください。
 

@@ -16,6 +16,8 @@
  cd oase/oase_install_package/OASE/oase-contents
  tar zxf ZABBIX_Adapter.tar.gz
  tar zxf Prometheus_Adapter.tar.gz
+ tar zxf Grafana_Adapter.tar.gz
+ tar zxf Datadog_Adapter.tar.gz
 
 
 1.2 インストールコマンドの形式
@@ -64,4 +66,6 @@ OASE本体をインストールされた際のoase-root直下で実施します�
 
    1, 1, zabbixアダプタをインストールします。
    2, 2, Prometheusアダプタをインストールします。
+   3, 3, Grafanaアダプタをインストールします。
+   4, 4, Datadogアダプタをインストールします。
 
