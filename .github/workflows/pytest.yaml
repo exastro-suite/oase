@@ -51,5 +51,4 @@ jobs:
         run: |
           cd oase-root
           cp -p confs/frameworkconfs/settings.py.sample confs/frameworkconfs/settings.py
-          mysql -u root -p root_password OASE_DB -e'GRANT ALL OASE_DB.* TO 'OASE_USER';'
           python -m pytest -vv -s
