@@ -70,6 +70,9 @@ var groupListRow = heredocHTML( function(){/*
         <div class="oase-config-menu">
           <ul>
             <li><a href="#oase-config-log">{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</a></li>
+            {% if system_evreq_list|length %}
+            <li><a href="#oase-config-evreq">{% get_message 'MOSJA00305' request.user.get_lang_mode showMsgId=False %}</a></li>
+            {% endif %}
             <li><a href="#oase-config-authentication">{% get_message 'MOSJA22046' request.user.get_lang_mode showMsgId=False %}</a></li>
             {% if pass_flag == 0 %}
             <li><a href="#oase-config-password">{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</a></li>
@@ -115,6 +118,36 @@ var groupListRow = heredocHTML( function(){/*
           
           </section>
 
+
+          {% comment %} MOSJA00305 : イベントリクエスト設定 {% endcomment %}
+          {% if system_evreq_list|length %}
+          <section id="oase-config-evreq">
+            <div class="oase-config-header">
+              <h3>{% get_message 'MOSJA00305' request.user.get_lang_mode showMsgId=False %}</h3>
+            </div>
+
+            <div class="oase-config-body">
+              <div class="oase-config-item">
+                <h4>{% get_message 'MOSJA22084' request.user.get_lang_mode showMsgId=False %}</h4>
+                <table>
+                  <tbody>
+                    {% for s in system_evreq_list %}
+                      {% if s.config_id == "MAX_ACTION_PROCESS" %}
+                      <tr>
+                        <th><div class="cell-inner">{% get_message s.config_name request.user.get_lang_mode showMsgId=False %}</div></th>
+                        <td><div class="cell-inner"><span>{{s.value}}</span></div></td>
+                      </tr>
+                      {% endif %}
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div><!-- /.oase-config-item -->
+            </div><!-- /.oase-config-body -->
+
+            <div class="oase-config-footer">
+            </div>
+          </section>
+          {% endif %}
 
 
           <section id="oase-config-authentication">

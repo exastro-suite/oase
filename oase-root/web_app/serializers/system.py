@@ -45,6 +45,8 @@ class SystemSerializer(serializers.ModelSerializer):
     TARGET_GROUP_LIST_MAX      = 30
     IPADDR_LOGIN_RETRY_MIN     = 0
     IPADDR_LOGIN_RETRY_MAX     = 1000
+    ACTION_PROCESS_MIN         = 0
+    ACTION_PROCESS_MAX         = 1000
     EMO_CHK                    = UnicodeCheck()
     EMAIL_PATTERN   = r'^([\w!#$%&\'*+\-\/=?^`{|}~]+(\.[\w!#$%&\'*+\-\/=?^`{|}~]+)*|"([\w!#$%&\'*+\-\/=?^`{|}~. ()<>\[\]:;@,]|\\[\\"])+")@(([a-zA-Z\d\-]+\.)+[a-zA-Z]+|\[(\d{1,3}(\.\d{1,3}){3}|IPv6:[\da-fA-F]{0,4}(:[\da-fA-F]{0,4}){1,5}(:\d{1,3}(\.\d{1,3}){3}|(:[\da-fA-F]{0,4}){0,2}))\])$'
     HOUR_PATTERN = r'([0-2]?[0-9])'
@@ -76,6 +78,23 @@ class SystemSerializer(serializers.ModelSerializer):
             val_tmp = int(data['value'])
             if val_tmp < self.LOG_STORAGE_PERIOD_MIN or val_tmp > self.LOG_STORAGE_PERIOD_MAX:
                 raise serializers.ValidationError("無効なログ保存日数 val=%s" % (val_tmp))
+
+
+        if data['category'] == 'EVREQSETTINGS':
+            if data['config_id'] == 'MAX_ACTION_PROCESS':
+                if isinstance(data['value'], int):
+                    data['value'] = str(data['value'])
+
+                if not isinstance(data['value'], str):
+                    raise serializers.ValidationError("予期せぬ型(アクションプロセス数の上限) type=%s, val=%s" % (type(data['value']), data['value']))
+
+                if not data['value'].isdigit():
+                    raise serializers.ValidationError("数値以外の値(アクションプロセス数の上限) val=%s" % (data['value']))
+
+                val_tmp = int(data['value'])
+                if val_tmp < self.ACTION_PROCESS_MIN or val_tmp > self.ACTION_PROCESS_MAX:
+                    raise serializers.ValidationError("無効なアクションプロセス数の上限 val=%s" % (val_tmp))
+
 
         if data['category'] == 'SESSION_TIMEOUT':
             if isinstance(data['value'], int):

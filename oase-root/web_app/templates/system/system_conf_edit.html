@@ -71,6 +71,53 @@ function submitSystemLog(){
     submitAction("#system");
 }
 
+
+// イベントリクエスト設定
+function submitEventRequest(){
+
+    $("#evreq").prop("disabled", true);
+    if(!confirm(getMessage("MOSJA22000", false))) {
+        $("#evreq").prop("disabled", false);
+        return;
+    }
+
+    var a_dicSystemList = new Array();
+
+    var strItemId  = "";
+    var strConName = "";
+    var strValue   = "";
+
+    {% for system in system_evreq_list %}
+        {% if system.config_id == "MAX_ACTION_PROCESS" %}
+            strItemId  = {{system.item_id}};
+            strConName = "{{system.config_name}}";
+            strValue   = document.getElementsByName("{{system.config_id}}");
+
+            dicSystemInfo                     = {};
+            dicSystemInfo["item_id"]          = strItemId;
+            dicSystemInfo["config_name"]      = strConName;
+            dicSystemInfo["category"]         = "{{system.category}}";
+            dicSystemInfo["config_id"]        = "{{system.config_id}}";
+            dicSystemInfo["value"]            = strValue[0].value;
+            dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+            a_dicSystemList.push(dicSystemInfo);
+        {% endif %}
+    {% endfor %}
+
+    if ( a_dicSystemList.length <= 0 ){
+        alert(getMessage("MOSJA22013", true));
+        $("#evreq").prop("disabled", false);
+        return;
+    }
+
+    var jstr = JSON.stringify({"json_str":a_dicSystemList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    submitAction("#evreq");
+}
+
+
 // セッション設定
 function submitSystemSession(){
 
@@ -524,6 +571,9 @@ function submitRedirect(){
           <div class="oase-config-menu">
             <ul>
               <li><a href="#oase-config-log">{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</a></li>
+              {% if system_evreq_list|length %}
+              <li><a href="#oase-config-evreq">{% get_message 'MOSJA00305' request.user.get_lang_mode showMsgId=False %}</a></li>
+              {% endif %}
               <li><a href="#oase-config-authentication">{% get_message 'MOSJA22046' request.user.get_lang_mode showMsgId=False %}</a></li>
               {% if pass_flag == 0 %}
               <li><a href="#oase-config-password">{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</a></li>
@@ -571,6 +621,43 @@ function submitRedirect(){
                 </ul>
               </div>
             </section>
+
+
+            {% comment %} MOSJA00305 : イベントリクエスト設定 {% endcomment %}
+            {% if system_evreq_list|length %}
+            <section id="oase-config-evreq">
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA00305' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+
+              <div class="oase-config-body">
+                <div class="oase-config-item">
+                  <h4>{% get_message 'MOSJA22084' request.user.get_lang_mode showMsgId=False %}</h4>
+                  <table>
+                    <tbody>
+                    {% for system in system_evreq_list %}
+                      {% if system.config_id == "MAX_ACTION_PROCESS" %}
+                      <tr>
+                        <th><div class="cell-inner">{% get_message system.config_name request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" title="{% get_message 'MOSJA00134' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                        <td class="input-number"><div class="cell-inner"><label><input class="actproc-input validation-input" type="number" name="{{system.config_id}}" value="{{system.value}}" min="0" max="1000" maxlength="4" required ></label></div></td>
+                        <td class="input-range"><div class="cell-inner"><div class="range"><input type="range" min="0" max="1000" value="{{system.value}}"></div></div></td>
+                      </tr>
+                      {% endif %}
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- /.oase-config-item -->
+              </div><!-- /.oase-config-body -->
+
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button reset" disabled><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button save" id="evreq" onClick="submitEventRequest();" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+            </section>
+            {% endif %}
+
 
             <section id="oase-config-authentication">
 
