@@ -76,6 +76,7 @@ def index(request):
     system_password_list = []
     system_actdir_list   = []
     system_targro_list   = []
+    system_evreq_list    = []
     output_flag          = 0
     pass_flag            = 0
 
@@ -107,6 +108,9 @@ def index(request):
             elif s.category == "PASSWORD":
                 system_password_list.append(system_info)
 
+            elif s.category == "EVREQSETTINGS" and getattr(settings, 'MAX_ACTION_PROC', 0) < 0:
+                system_evreq_list.append(system_info)
+
             elif s.category == "ACTIVE_DIRECTORY":
                 system_actdir_list.append(system_info)
                 if s.config_id == "TARGET_GROUP_LIST" and s.value:
@@ -130,6 +134,7 @@ def index(request):
         'system_password_list' : system_password_list,
         'system_actdir_list'   : system_actdir_list,
         'system_targro_list'   : system_targro_list,
+        'system_evreq_list'    : system_evreq_list,
         'output_flag'          : output_flag,
         'pass_flag'            : pass_flag,
         'disabled_flag'        : settings.DISABLE_WHITE_BLACK_LIST,
@@ -158,6 +163,7 @@ def edit(request):
     system_password_list = []
     system_actdir_list   = []
     system_targro_list   = []
+    system_evreq_list    = []
     output_flag          = 0
     pass_flag            = 0
 
@@ -188,6 +194,9 @@ def edit(request):
 
             elif s.category == "PASSWORD":
                 system_password_list.append(system_info)
+
+            elif s.category == "EVREQSETTINGS" and getattr(settings, 'MAX_ACTION_PROC', 0) < 0:
+                system_evreq_list.append(system_info)
 
             elif s.category == "ACTIVE_DIRECTORY":
 
@@ -222,6 +231,7 @@ def edit(request):
         'system_password_list' : system_password_list,
         'system_actdir_list'   : system_actdir_list,
         'system_targro_list'   : system_targro_list,
+        'system_evreq_list'    : system_evreq_list,
         'output_flag'          : output_flag,
         'pass_flag'            : pass_flag,
         'disabled_flag'        : settings.DISABLE_WHITE_BLACK_LIST,

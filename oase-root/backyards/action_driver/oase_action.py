@@ -71,6 +71,7 @@ from web_app.models.models import User
 from web_app.models.models import RhdmResponse
 from web_app.models.models import RhdmResponseAction
 from web_app.models.models import ActionHistory
+from web_app.models.models import System
 from libs.commonlibs.common import Common
 from libs.commonlibs.define import *
 from libs.backyardlibs.oase_action_common_libs import ActionDriverCommonModules as ActCommon
@@ -315,12 +316,171 @@ class ActionDriverMainModules:
 
         return True
 
+
+    def do_all(self, aryPCB, max_proc):
+        """
+        [概要]
+          アクション通常実行/再実行/Exastro実行中/ITA代入値登録状態から古い順に指定数だけアクションする
+        """
+
+        def get_act_kind(flg, sts, rsts):
+
+            if flg:
+                return 'retry'
+
+            if sts  in ACTION_HISTORY_STATUS.EXASTRO_CHECK_LIST \
+            or rsts in ACTION_HISTORY_STATUS.EXASTRO_CHECK_LIST:
+                return 'exastro'
+
+            if sts  in ACTION_HISTORY_STATUS.EXASTRO_REGIST_LIST \
+            or rsts in ACTION_HISTORY_STATUS.EXASTRO_REGIST_LIST:
+                return 'regist_exastro'
+
+
+            return ''
+
+
+        logger.logic_log('LOSI00001', 'max_proc: %s' % max_proc)
+
+        if max_proc <= 0:
+            return True
+
+
+        act_list = []
+
+        # 通常実行のアクション情報取得
+        now = ActCommon.getStringNowDateTime()
+        rset = RhdmResponse.objects.filter(request_type_id=PRODUCTION).filter(
+            Q(status=UNPROCESS)
+            | Q(status=WAITING)
+            | Q(status=ACTION_HISTORY_STATUS.SNOW_APPROVAL_PENDING)
+            | Q(status=ACTION_HISTORY_STATUS.SNOW_APPROVED)
+            | Q(status=ACTION_HISTORY_STATUS.RETRY, resume_timestamp__isnull=False, resume_timestamp__lte=now)
+        ).values('trace_id', 'response_id', 'resume_order', 'status')
+
+        resp_ids = []
+        wait_ids = []
+        for rs in rset:
+            if rs['status'] == WAITING:
+                wait_ids.append(rs['response_id'])
+
+            else:
+                resp_ids.append(rs['response_id'])
+
+            act_list.append(
+                {
+                    'action'       : 'normal',
+                    'trace_id'     : rs['trace_id'],
+                    'response_id'  : rs['response_id'],
+                    'resume_order' : rs['resume_order'],
+                    'history_id'   : 0,
+                }
+            )
+
+        # 再実行/Exastro実行中/ITA代入値登録のアクション情報取得
+        rset = ActionHistory.objects.filter(
+            Q(retry_flag=True)
+            | Q(status__in       = ACTION_HISTORY_STATUS.EXASTRO_CHECK_LIST)
+            | Q(retry_status__in = ACTION_HISTORY_STATUS.EXASTRO_CHECK_LIST)
+            | Q(status__in       = ACTION_HISTORY_STATUS.EXASTRO_REGIST_LIST)
+            | Q(retry_status__in = ACTION_HISTORY_STATUS.EXASTRO_REGIST_LIST)
+        ).values('action_history_id', 'trace_id', 'response_id', 'execution_order', 'retry_flag', 'status', 'retry_status')
+
+        act_ids = []
+        for rs in rset:
+            act_kind = get_act_kind(rs['retry_flag'], rs['status'], rs['retry_status'])
+            if not act_kind:
+                continue
+
+            if act_kind == 'retry':
+                act_ids.append(rs['action_history_id'])
+
+            act_list.append(
+                {
+                    'action'       : act_kind,
+                    'trace_id'     : rs['trace_id'],
+                    'response_id'  : rs['response_id'],
+                    'resume_order' : rs['execution_order'],
+                    'history_id'   : rs['action_history_id'],
+                }
+            )
+
+        # アクション情報の古い順にソート
+        act_list = sorted(act_list, key=lambda x: x['response_id'])
+        act_list = act_list[:max_proc]
+
+        # アクション状態遷移
+        update_resp_ids = []
+        update_wait_ids = []
+        update_hist_ids = []
+        for a in act_list:
+            if a['action'] == 'normal' and a['response_id'] in resp_ids:
+                update_resp_ids.append(a['response_id'])
+
+            elif a['action'] == 'normal' and a['response_id'] in wait_ids:
+                update_wait_ids.append(a['response_id'])
+
+            elif a['action'] == 'retry' and a['history_id'] in act_ids:
+                update_hist_ids.append(a['history_id'])
+
+        if len(update_resp_ids) > 0:
+            RhdmResponse.objects.filter(response_id__in=update_resp_ids).update(
+                status                = PROCESSING,
+                status_update_id      = self.hostname,
+                last_update_user      = self.last_update_user,
+                last_update_timestamp = now
+            )
+
+        if len(update_wait_ids) > 0:
+            RhdmResponse.objects.filter(response_id__in=update_wait_ids).update(
+                status_update_id      = self.hostname,
+                last_update_user      = self.last_update_user,
+                last_update_timestamp = now
+            )
+
+        if len(update_hist_ids) > 0:
+            ActionHistory.objects.filter(action_history_id__in=update_hist_ids).update(
+                retry_status          = PROCESSING,
+                retry_flag            = False,
+                status_update_id      = gethostname(),
+                last_update_user      = self.last_update_user,
+                last_update_timestamp = now
+            )
+
+        # 子プロセス起動
+        for a in act_list:
+            ret = self.ExecuteSubProcess(
+                aryPCB, a['action'], a['response_id'], a['trace_id'], a['resume_order'], a['history_id']
+            )
+            if not ret:
+                logger.logic_log('LOSM01006', trace_id)
+                return False
+
+
+        return True
+
+
     def MainLoop(self, aryPCB):
         """
         [概要]
           ルールマッチング結果管理から未処理アクション情報を取得し子プロセスを起動するメゾット
         """
         logger.logic_log('LOSI00001', 'aryPCB: %s' % aryPCB)
+
+        # アクション数の実行制限あり
+        if getattr(settings, 'MAX_ACTION_PROC', None) is not None:
+            max_proc = settings.MAX_ACTION_PROC
+            if max_proc < 0:
+                max_proc = int(System.objects.get(config_id='MAX_ACTION_PROCESS').value)
+
+            result = self.do_all(aryPCB, max_proc)
+            if not result:
+                logger.logic_log('LOSM01018')
+                return False
+
+            logger.logic_log('LOSI00002', 'None')
+            return True
+
 
         # 通常実行
         result = self.do_normal(aryPCB)

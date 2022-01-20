@@ -1286,6 +1286,28 @@
     last_update_timestamp: 2019-07-01T00:00:00+0900
     last_update_user: システム管理者
 
+- model: web_app.System
+  pk: 58
+  fields:
+    config_name: MOSJA00307
+    category: EVREQSETTINGS
+    config_id: MAX_ACTION_PROCESS
+    value: 20
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 59
+  fields:
+    config_name: MOSJA00306
+    category: EVREQSETTINGS
+    config_id: EXPIRE_EVREQ
+    value: 60
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
 
 ################################
 # メニューグループ管理

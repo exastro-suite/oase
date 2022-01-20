@@ -616,6 +616,7 @@ class SYSTEM_SETTINGS():
         'ACTIVE_DIRECTORY',
         'PASSWORD',
         'ACCESS_RESTRICT',
+        'EVREQSETTINGS',
     ]
 
     LOG_PERIOD = {

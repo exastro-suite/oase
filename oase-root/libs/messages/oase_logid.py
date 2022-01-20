@@ -182,6 +182,7 @@ class OASELogID:
     Ary['LOSM01015'] = "Failed do_exastro()"
     Ary['LOSM01016'] = "ActionHistory does not exist. (TraceID:{}, ResponseID:{}, ExeOrder:{})"
     Ary['LOSM01017'] = "Failed regist_exastro()"
+    Ary['LOSM01018'] = "Failed do_all()"
     Ary['LOSM01100'] = "Invalid type, preaction info. TraceID:{}, ResponseID:{}, ExecOrder:{}, Type:{}, Info:{}"
     Ary['LOSM01101'] = "Menu ID does not exists in ITA. (TraceID:{}, ResponseID:{}, ExecOrder:{}, MenuID:{})"
     Ary['LOSM01102'] = "Invalid type, postaction info. TraceID:{}, ResponseID:{}, ExecOrder:{}, Type:{}, Info:{}"
