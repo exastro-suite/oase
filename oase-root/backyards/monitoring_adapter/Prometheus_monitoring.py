@@ -27,6 +27,7 @@ import traceback
 import django
 import datetime
 import pytz
+import fcntl
 from time import sleep
 from subprocess import Popen
 from socket import gethostname
@@ -36,6 +37,9 @@ my_path       = os.path.dirname(os.path.abspath(__file__))
 tmp_path      = my_path.split('oase-root')
 root_dir_path = tmp_path[0] + 'oase-root'
 sys.path.append(root_dir_path)
+
+# 排他制御ファイル名
+exclusive_file = tmp_path[0] + 'oase-root/temp/exclusive/prometheus_monitoring.lock'
 
 # OASE モジュール import
 # #LOCAL_PATCH#
@@ -208,28 +212,40 @@ class PrometheusAdapterMainModules:
 
 if __name__ == '__main__':
 
-    aryPCB = {}
-    try:
-        prometheus_main_module = PrometheusAdapterMainModules()
+    with open(exclusive_file, "w") as f:
 
-        ret = prometheus_main_module.do_normal(aryPCB)
+        # 排他ロックを獲得する。
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB )
 
-        while(True):
-            # 子プロセス起動状況確認
-            ret = prometheus_main_module.observe_subprocess(aryPCB)
+        except IOError:
+            sys.exit(0)
 
-            # 処理中プロセスの数を確認
-            if len(aryPCB) == 0:
-                break
+        aryPCB = {}
+        try:
+            prometheus_main_module = PrometheusAdapterMainModules()
 
-            # 処理中プロセスがある場合はsleep
-            sleep(int(run_interval))
+            ret = prometheus_main_module.do_normal(aryPCB)
 
-        prometheus_main_module.set_force_terminate_status()
+            while(True):
+                # 子プロセス起動状況確認
+                ret = prometheus_main_module.observe_subprocess(aryPCB)
 
-    except Exception as e:
-        logger.system_log('LOSM30003')
-        logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
-        sys.exit(2)
+                # 処理中プロセスの数を確認
+                if len(aryPCB) == 0:
+                    break
+
+                # 処理中プロセスがある場合はsleep
+                sleep(int(run_interval))
+
+            prometheus_main_module.set_force_terminate_status()
+
+        except Exception as e:
+            logger.system_log('LOSM30003')
+            logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
+            fcntl.flock(f, fcntl.LOCK_UN)
+            sys.exit(2)
+
+        fcntl.flock(f, fcntl.LOCK_UN)
 
     sys.exit(0)

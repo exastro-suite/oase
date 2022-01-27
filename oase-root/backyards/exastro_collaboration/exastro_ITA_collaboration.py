@@ -24,6 +24,7 @@ import sys
 import traceback
 import django
 import datetime
+import fcntl
 
 
 # OASE モジュール importパス追加
@@ -31,6 +32,9 @@ my_path       = os.path.dirname(os.path.abspath(__file__))
 tmp_path      = my_path.split('oase-root')
 root_dir_path = tmp_path[0] + 'oase-root'
 sys.path.append(root_dir_path)
+
+# 排他制御ファイル名
+exclusive_file = tmp_path[0] + 'oase-root/temp/exclusive/ita_collaboration.lock'
 
 # OASE モジュール import
 # #LOCAL_PATCH#
@@ -81,29 +85,41 @@ DB_OASE_USER = -2140000006
 #-------------------
 if __name__ == '__main__':
 
-    try:
-        logger.logic_log('LOSI00001', 'Start ITA collaboration.')
+    with open(exclusive_file, "w") as f:
 
-        now = datetime.datetime.now()
-        user_name = User.objects.get(user_id=DB_OASE_USER).user_name
+        # 排他ロックを獲得する。
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB )
 
-        # ドライバー設定情報取得
-        rset = ItaDriver.objects.all().values('ita_driver_id', 'version', 'hostname', 'username', 'password', 'protocol', 'port')
-        logger.logic_log('LOSI28001', [rs['ita_driver_id'] for rs in rset])
+        except IOError:
+            sys.exit(0)
 
-        # アクション先ごとに情報を取得
-        for rs in rset:
-            # パラメーターシート用メニュー情報を取得
-            cls = ITAParameterSheetFactory.create(rs['version'])
-            if cls:
-                cls = cls(rs, user_name, now)
-                cls.execute()
+        try:
+            logger.logic_log('LOSI00001', 'Start ITA collaboration.')
 
-        logger.logic_log('LOSI00002', 'End ITA collaboration.')
+            now = datetime.datetime.now()
+            user_name = User.objects.get(user_id=DB_OASE_USER).user_name
 
-    except Exception as e:
-        logger.system_log('LOSM28001', 'main')
-        logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
-        sys.exit(2)
+            # ドライバー設定情報取得
+            rset = ItaDriver.objects.all().values('ita_driver_id', 'version', 'hostname', 'username', 'password', 'protocol', 'port')
+            logger.logic_log('LOSI28001', [rs['ita_driver_id'] for rs in rset])
+
+            # アクション先ごとに情報を取得
+            for rs in rset:
+                # パラメーターシート用メニュー情報を取得
+                cls = ITAParameterSheetFactory.create(rs['version'])
+                if cls:
+                    cls = cls(rs, user_name, now)
+                    cls.execute()
+
+            logger.logic_log('LOSI00002', 'End ITA collaboration.')
+
+        except Exception as e:
+            logger.system_log('LOSM28001', 'main')
+            logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
+            fcntl.flock(f, fcntl.LOCK_UN)
+            sys.exit(2)
+
+        fcntl.flock(f, fcntl.LOCK_UN)
 
     sys.exit(0)

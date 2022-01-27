@@ -24,12 +24,16 @@ from subprocess import Popen
 import traceback
 import django
 from socket import gethostname
+import fcntl
 
 # OASE モジュール importパス追加
 my_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = my_path.split('oase-root')
 root_dir_path = tmp_path[0] + 'oase-root'
 sys.path.append(root_dir_path)
+
+# 排他制御ファイル名
+exclusive_file = tmp_path[0] + 'oase-root/temp/exclusive/oase_action.lock'
 
 # OASE モジュール import
 os.environ['DJANGO_SETTINGS_MODULE'] = 'confs.frameworkconfs.settings'
@@ -548,35 +552,46 @@ class ActionDriverMainModules:
 
 if __name__ == '__main__':
 
-    # 実行ファイル名取得
-    filename, ext = os.path.splitext(os.path.basename(__file__))
-    # ログファイルのパスを生成
-    log_file_path = log_dir + '/' + filename + '_err.log'
+    with open(exclusive_file, "w") as f:
 
-    ADobj = ActionDriverMainModules(log_file_path)
-    aryPCB = {}
+        # 排他ロックを獲得する。
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
-    logger.logic_log('LOSI01003', Cstobj.UnsetTraceID)
+        except IOError:
+            sys.exit(0)
 
-    # ルールマッチング結果管理からアクションを取得し子プロセス起動
-    ret = ADobj.MainLoop(aryPCB)
+        # 実行ファイル名取得
+        filename, ext = os.path.splitext(os.path.basename(__file__))
+        # ログファイルのパスを生成
+        log_file_path = log_dir + '/' + filename + '_err.log'
 
-    while(True):
-        # 子プロセス起動状況確認
-        ret = ADobj.chkSubProcessTerminate(aryPCB)
+        ADobj = ActionDriverMainModules(log_file_path)
+        aryPCB = {}
 
-        # 処理中プロセスの数を確認
-        if len(aryPCB) == 0:
-            logger.logic_log('LOSI01004', Cstobj.UnsetTraceID)
-            break
+        logger.logic_log('LOSI01003', Cstobj.UnsetTraceID)
 
-        # 処理中プロセスがある場合はsleep
-        sleep(int(run_interval))
+        # ルールマッチング結果管理からアクションを取得し子プロセス起動
+        ret = ADobj.MainLoop(aryPCB)
 
-    logger.logic_log('LOSI01005', Cstobj.UnsetTraceID)
+        while(True):
+            # 子プロセス起動状況確認
+            ret = ADobj.chkSubProcessTerminate(aryPCB)
 
-    ADobj.chkAbnomalEndChildProcs()
+            # 処理中プロセスの数を確認
+            if len(aryPCB) == 0:
+                logger.logic_log('LOSI01004', Cstobj.UnsetTraceID)
+                break
 
-    logger.logic_log('LOSI01006', Cstobj.UnsetTraceID)
+            # 処理中プロセスがある場合はsleep
+            sleep(int(run_interval))
+
+        logger.logic_log('LOSI01005', Cstobj.UnsetTraceID)
+
+        ADobj.chkAbnomalEndChildProcs()
+
+        logger.logic_log('LOSI01006', Cstobj.UnsetTraceID)
+
+        fcntl.flock(f, fcntl.LOCK_UN)
 
     sys.exit(0)

@@ -28,11 +28,15 @@ import sys
 import traceback
 import pytz
 import datetime
+import fcntl
 
 my_path = os.path.dirname(os.path.abspath(__file__))
 tmp_path = my_path.split('oase-root')
 root_dir_path = tmp_path[0] + 'oase-root'
 sys.path.append(root_dir_path)
+
+# 排他制御ファイル名
+exclusive_file = tmp_path[0] + 'oase-root/temp/exclusive/ad_collaboration.lock'
 
 os.environ['DJANGO_SETTINGS_MODULE'] = 'confs.frameworkconfs.settings'
 django.setup()
@@ -49,6 +53,9 @@ from web_app.models.models import Group
 from web_app.models.models import User
 from web_app.models.models import UserGroup
 from web_app.models.models import System
+
+# ロガー初期化
+logger = OaseLogger.get_instance()
 
 AD_COLLABORATION_USER_ID = -2140000004
 BACKYARD_USER = User.objects.get(pk=AD_COLLABORATION_USER_ID)
@@ -408,5 +415,16 @@ class AdCollabExecutor():
 #--------------------------
 if __name__=='__main__':
 
-    executor = AdCollabExecutor()
-    executor.execute()
+    with open(exclusive_file, "w") as f:
+
+        try:
+            # 排他ロックを獲得する。
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+
+            executor = AdCollabExecutor()
+            executor.execute()
+
+            fcntl.flock(f, fcntl.LOCK_UN)
+
+        except IOError:
+            logger.system_log('LOSI00018')

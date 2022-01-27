@@ -39,6 +39,7 @@ import django
 import traceback
 import re
 import ast
+import fcntl
 
 # --------------------------------
 # 環境変数取得
@@ -1487,33 +1488,42 @@ def multi(event_req_list, mode, now):
 
 
 if __name__=='__main__':
-    try:
-        retry_max = 5
+    filepath = oase_root_dir + '/temp/exclusive/oase_agent.lock'
+    with open(filepath, 'w') as f:
         try:
-            retry_max = int(System.objects.get(config_id='AGENT_RETRY_MAX').value)
-        except Exception as e:
-            logger.logic_log('LOSI00005', traceback.format_exc())
+            # 排他制御を行う。
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            try:
+                retry_max = 5
+                try:
+                    retry_max = int(System.objects.get(config_id='AGENT_RETRY_MAX').value)
+                except Exception as e:
+                    logger.logic_log('LOSI00005', traceback.format_exc())
 
-        now = datetime.datetime.now(pytz.timezone('UTC'))
+                now = datetime.datetime.now(pytz.timezone('UTC'))
 
-        #--------------------------
-        #前回'処理中'で終わったレコードがあるものは再処理を行う
-        #--------------------------
-        logger.logic_log('LOSI02000')
-        er_list = list(EventsRequest.objects.filter(status=PROCESSING, retry_cnt__lt=retry_max).order_by('request_id'))
-        multi(er_list, RECOVER, now)
-        #--------------------------
-        #未処理のレコードを取得して処理する
-        #--------------------------
-        logger.logic_log('LOSI02001')
-        er_list = list(EventsRequest.objects.filter(status=UNPROCESS).order_by('request_id'))
-        multi(er_list, NORMAL, now)
+                #--------------------------
+                #前回'処理中'で終わったレコードがあるものは再処理を行う
+                #--------------------------
+                logger.logic_log('LOSI02000')
+                er_list = list(EventsRequest.objects.filter(status=PROCESSING, retry_cnt__lt=retry_max).order_by('request_id'))
+                multi(er_list, RECOVER, now)
+                #--------------------------
+                #未処理のレコードを取得して処理する
+                #--------------------------
+                logger.logic_log('LOSI02001')
+                er_list = list(EventsRequest.objects.filter(status=UNPROCESS).order_by('request_id'))
+                multi(er_list, NORMAL, now)
 
-        #--------------------------
-        #コリレーション情報をチェック
-        #--------------------------
-        check_rhdm_response_correlation(now)
+                #--------------------------
+                #コリレーション情報をチェック
+                #--------------------------
+                check_rhdm_response_correlation(now)
 
-    except Exception as e:
-        logger.logic_log('LOSE02009', traceback.format_exc())
+            except Exception as e:
+                logger.logic_log('LOSE02009', traceback.format_exc())
+  
+            fcntl.flock(f, fcntl.LOCK_UN)
 
+        except IOError:
+            sys.exit(0)

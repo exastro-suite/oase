@@ -35,7 +35,9 @@ import pika
 import time
 import threading
 import copy
+import fcntl
 from time import sleep
+
 
 # --------------------------------
 # 環境変数取得
@@ -54,6 +56,14 @@ except Exception as e:
 # --------------------------------
 # パス追加
 # --------------------------------
+my_path = os.path.dirname(os.path.abspath(__file__))
+tmp_path      = my_path.split('oase-root')
+root_dir_path = tmp_path[0] + 'oase-root'
+sys.path.append(root_dir_path)
+
+# 排他制御ファイル名
+exclusive_file = tmp_path[0] + 'oase-root/temp/exclusive/oase_accept.lock'
+
 sys.path.append(oase_root_dir)
 
 # --------------------------------
@@ -341,48 +351,59 @@ def load_ruletype():
 ################################################
 if __name__ == '__main__':
 
-    # 初期化
-    loop_count = 0
-    thread_flg = False
+    # HA構成用-排他制御-ロック
+    with open(exclusive_file, 'w') as f:
+        while True:
+            try:
+                fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except IOError:
+                time.sleep(10)
 
-    # データ読み込み
-    rule_type_id_list, label_count_list = load_ruletype()
+        # 初期化
+        loop_count = 0
+        thread_flg = False
 
-    # 起動時設定情報取得
-    user = User.objects.get(user_id=1)
-    accept_settings = RabbitMQ.settings()
+        # データ読み込み
+        rule_type_id_list, label_count_list = load_ruletype()
 
-    # rabbitMQ接続
-    channel, connection = RabbitMQ.connect(accept_settings)
+        # 起動時設定情報取得
+        user = User.objects.get(user_id=1)
+        accept_settings = RabbitMQ.settings()
 
-    # キューに接続
-    channel.queue_declare(queue=accept_settings['queuename'], durable=True)
+        # rabbitMQ接続
+        channel, connection = RabbitMQ.connect(accept_settings)
 
-    # ループ
-    for method_frame, properties, body in channel.consume(accept_settings['queuename']):
+        # キューに接続
+        channel.queue_declare(queue=accept_settings['queuename'], durable=True)
 
-        if method_frame:
+        # ループ
+        for method_frame, properties, body in channel.consume(accept_settings['queuename']):
 
-            # DB登録リストを作成
-            _ = data_list(body, user, rule_type_id_list, label_count_list)
+            if method_frame:
 
-            # RabbitMQから取得データを消費
-            channel.basic_ack(method_frame.delivery_tag)
+                # DB登録リストを作成
+                _ = data_list(body, user, rule_type_id_list, label_count_list)
 
-            # ループカウントアップ
-            loop_count = len(data_obj_list)
+                # RabbitMQから取得データを消費
+                channel.basic_ack(method_frame.delivery_tag)
 
-        # コミット件数の場合、DB登録
-        if loop_count >= MAX_COUNT:
-            thread_flg = True
-            thrd = threading.Thread(target=bulk_create())
-            thrd.start()
+                # ループカウントアップ
+                loop_count = len(data_obj_list)
 
-        elif not thread_flg:
-            thread_flg = True
-            thrd = threading.Timer(0.1, bulk_create)
-            thrd.start()
+            # コミット件数の場合、DB登録
+            if loop_count >= MAX_COUNT:
+                thread_flg = True
+                thrd = threading.Thread(target=bulk_create())
+                thrd.start()
 
-    # 念のためclose処理
-    channel.close()
-    connection.close()
+            elif not thread_flg:
+                thread_flg = True
+                thrd = threading.Timer(0.1, bulk_create)
+                thrd.start()
+
+        # 念のためclose処理
+        channel.close()
+        connection.close()
+        fcntl.flock(f, fcntl.LOCK_UN)
+
