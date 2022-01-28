@@ -65,7 +65,7 @@ It will run in one of the following environments.
 
 |Exastro OASE|WildFly|Drools|
 |----|----|----|
-|v1.6.0 or latet |23.0.1.Final|7.63.0.Final|
+|v1.6.0 or latest |23.0.1.Final|7.63.0.Final|
 
 ### 🐳 Docker 🐷
 
