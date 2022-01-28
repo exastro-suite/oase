@@ -64,6 +64,10 @@ Pull型は予め用意された監視アダプタのみ利用可能ですが、R
 |----|----|----|
 |CentOS 7| Red Hat Enterprise Linux 7 or 8|x86_64|
 
+|Exastro OASE|WildFly|Drools|
+|----|----|----|
+|v1.6.0以降|23.0.1.Final|7.63.0.Final|
+
 ### 🐳 Docker版 🐷
 
 Docker 版は OASE を使用するの最も簡単な方法です。
@@ -76,7 +80,7 @@ Docker 版は OASE を使用するの最も簡単な方法です。
 
 2. Exastro OASE にアクセスします
 
-    http://oase.exasmple.com:8080
+    http://oase.example.com:8080
 
 ### 🗿 伝統的な方法 🐶
 
@@ -98,8 +102,8 @@ Docker 版は OASE を使用するの最も簡単な方法です。
     # ダウンロードするバージョンを変数に入れます
     # OASE_VER=X.X.X
     #
-    # 例) 1.4.0 の場合
-    OASE_VER=1.4.0
+    # 例) 1.5.0 の場合
+    OASE_VER=1.5.0
 
     # 資材をダウンロードします
     wget "https://github.com/exastro-suite/oase/releases/download/v${OASE_VER}/exastro-oase-${OASE_VER}.tar.gz"
@@ -129,7 +133,7 @@ Docker 版は OASE を使用するの最も簡単な方法です。
 
 5. Exastro OASE にアクセスします。
 
-    http://oase.exasmple.com
+    http://oase.example.com
 
 ## もっと詳しく OASE について知る
 

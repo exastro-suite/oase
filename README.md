@@ -63,6 +63,10 @@ It will run in one of the following environments.
 |----|----|----|
 |CentOS 7| Red Hat Enterprise Linux 7 or 8|x86_64|
 
+|Exastro OASE|WildFly|Drools|
+|----|----|----|
+|v1.6.0 or latet |23.0.1.Final|7.63.0.Final|
+
 ### 🐳 Docker 🐷
 
 The Docker version is the easiest way to use the OASE.
@@ -75,7 +79,7 @@ The Docker version is the easiest way to use the OASE.
 
 2. access Exastro OASE
 
-    http://oase.exasmple.com:8080
+    http://oase.example.com:8080
 
 ### 🗿 Traditional method 🐶
 
