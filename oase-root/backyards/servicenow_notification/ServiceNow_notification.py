@@ -30,6 +30,7 @@ import requests
 import ssl
 import urllib3
 import pytz
+import fcntl
 from urllib3.exceptions import InsecureRequestWarning
 urllib3.disable_warnings(InsecureRequestWarning)
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -40,6 +41,9 @@ my_path       = os.path.dirname(os.path.abspath(__file__))
 tmp_path      = my_path.split('oase-root')
 root_dir_path = tmp_path[0] + 'oase-root'
 sys.path.append(root_dir_path)
+
+# 排他制御ファイル名
+exclusive_file = tmp_path[0] + 'oase-root/temp/exclusive/servicenow_notification.lock'
 
 # OASE モジュール import
 # #LOCAL_PATCH#
@@ -118,89 +122,99 @@ def events_request_update(request_id, status, user_name):
 #-------------------
 if __name__ == '__main__':
 
-    try:
-        with transaction.atomic():
-            logger.logic_log('LOSI00001', 'Start ServiceNow notification.')
-            user_name = User.objects.get(user_id=DB_OASE_USER).user_name
+    with open(exclusive_file, "w") as f:
 
-            # ServiceNow連携設定のルール種別IDを取得
-            ruletypeid_list = list(RuleType.objects.filter(
-                Q(unknown_event_notification='2') | Q(unknown_event_notification='3')).order_by(
-                'rule_type_id').values_list('rule_type_id', flat=True))
+        # 排他ロックを獲得する。
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
 
-            # ルール未検出かつプロダクション環境かつServiceNow連携設定のレコード取得
-            rset = EventsRequest.objects.filter(
-                status=RULE_UNMATCH, request_type_id=PRODUCTION, rule_type_id__in=ruletypeid_list).order_by(
-                'request_id').values(
-                'request_id', 'trace_id', 'request_type_id', 'rule_type_id', 'event_to_time', 'event_info', 'status')
+        except IOError:
+            sys.exit(0)
 
-            for r in rset:
-                # イベントリクエストのステータスを「ServiceNow連携中」に更新
-                ret = events_request_update(r['request_id'], RULE_IN_COOPERATION, user_name)
-                if not ret:
-                    logger.system_log('LOSM31002', r['request_id'], RULE_IN_COOPERATION)
-                    raise Exception()
+        try:
+            with transaction.atomic():
+                logger.logic_log('LOSI00001', 'Start ServiceNow notification.')
+                user_name = User.objects.get(user_id=DB_OASE_USER).user_name
 
-                rt_data = RuleType.objects.filter(rule_type_id=r['rule_type_id'])
-                snd_data = ServiceNowDriver.objects.filter(servicenow_driver_id=rt_data[0].servicenow_driver_id)
+                # ServiceNow連携設定のルール種別IDを取得
+                ruletypeid_list = list(RuleType.objects.filter(
+                    Q(unknown_event_notification='2') | Q(unknown_event_notification='3')).order_by(
+                    'rule_type_id').values_list('rule_type_id', flat=True))
 
-                cipher = AESCipher(settings.AES_KEY)
-                password = cipher.decrypt(snd_data[0].password)
+                # ルール未検出かつプロダクション環境かつServiceNow連携設定のレコード取得
+                rset = EventsRequest.objects.filter(
+                    status=RULE_UNMATCH, request_type_id=PRODUCTION, rule_type_id__in=ruletypeid_list).order_by(
+                    'request_id').values(
+                    'request_id', 'trace_id', 'request_type_id', 'rule_type_id', 'event_to_time', 'event_info', 'status')
 
-                user = snd_data[0].username
+                for r in rset:
+                    # イベントリクエストのステータスを「ServiceNow連携中」に更新
+                    ret = events_request_update(r['request_id'], RULE_IN_COOPERATION, user_name)
+                    if not ret:
+                        logger.system_log('LOSM31002', r['request_id'], RULE_IN_COOPERATION)
+                        raise Exception()
 
-                url = "{}://{}:{}/api/now/table/incident".format(
-                    snd_data[0].protocol, snd_data[0].hostname, snd_data[0].port)
+                    rt_data = RuleType.objects.filter(rule_type_id=r['rule_type_id'])
+                    snd_data = ServiceNowDriver.objects.filter(servicenow_driver_id=rt_data[0].servicenow_driver_id)
 
-                headers = {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json',
-                }
+                    cipher = AESCipher(settings.AES_KEY)
+                    password = cipher.decrypt(snd_data[0].password)
 
-                temp = snd_data[0].count + 1
-                count = str(temp).zfill(4)
+                    user = snd_data[0].username
 
-                ary_data = {}
-                ary_data['short_description'] = 'OASE Unknown Event Notify #' + count
-                ary_data['description'] = {
-                    'trace_id': r['trace_id'],
-                    'decisiontable': rt_data[0].rule_type_name,
-                    'eventdatetime': r['event_to_time'],
-                    'eventinfo': r['event_info']
-                }
-                str_para_json_encoded = json.dumps(ary_data, default=str)
+                    url = "{}://{}:{}/api/now/table/incident".format(
+                        snd_data[0].protocol, snd_data[0].hostname, snd_data[0].port)
 
-                proxies = {
-                    'http' : snd_data[0].proxy,
-                    'https': snd_data[0].proxy,
-                }
+                    headers = {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    }
 
-                response = requests.post(
-                    url, auth=(user, password), headers=headers, timeout=30,verify=False,
-                    data=str_para_json_encoded.encode('utf-8'), proxies=proxies)
+                    temp = snd_data[0].count + 1
+                    count = str(temp).zfill(4)
 
-                if response.status_code != 201:
-                    logger.system_log('LOSM31000', r['trace_id'], response.status_code)
-                    raise Exception()
+                    ary_data = {}
+                    ary_data['short_description'] = 'OASE Unknown Event Notify #' + count
+                    ary_data['description'] = {
+                        'trace_id': r['trace_id'],
+                        'decisiontable': rt_data[0].rule_type_name,
+                        'eventdatetime': r['event_to_time'],
+                        'eventinfo': r['event_info']
+                    }
+                    str_para_json_encoded = json.dumps(ary_data, default=str)
 
-                # イベントリクエストのステータスを「ServiceNow連携済み」に更新
-                ret = events_request_update(r['request_id'], RULE_ALREADY_LINKED, user_name)
-                if not ret:
-                    logger.system_log('LOSM31002', r['request_id'], RULE_ALREADY_LINKED)
-                    raise Exception()
+                    proxies = {
+                        'http' : snd_data[0].proxy,
+                        'https': snd_data[0].proxy,
+                    }
 
-                servicenow = ServiceNowDriver.objects.select_for_update().get(
-                    servicenow_driver_id=rt_data[0].servicenow_driver_id)
-                servicenow.count = snd_data[0].count + 1
-                servicenow.save(force_update=True)
+                    response = requests.post(
+                        url, auth=(user, password), headers=headers, timeout=30,verify=False,
+                        data=str_para_json_encoded.encode('utf-8'), proxies=proxies)
 
-    except Exception as e:
-        logger.system_log('LOSM31001', 'main')
-        logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
-        # イベントリクエストのステータスを「ルール未検出」に更新
-        ret = events_request_update(r['request_id'], RULE_UNMATCH, user_name)
-        if not ret:
-            logger.system_log('LOSM31002', r['request_id'], RULE_UNMATCH)
+                    if response.status_code != 201:
+                        logger.system_log('LOSM31000', r['trace_id'], response.status_code)
+                        raise Exception()
+
+                    # イベントリクエストのステータスを「ServiceNow連携済み」に更新
+                    ret = events_request_update(r['request_id'], RULE_ALREADY_LINKED, user_name)
+                    if not ret:
+                        logger.system_log('LOSM31002', r['request_id'], RULE_ALREADY_LINKED)
+                        raise Exception()
+
+                    servicenow = ServiceNowDriver.objects.select_for_update().get(
+                        servicenow_driver_id=rt_data[0].servicenow_driver_id)
+                    servicenow.count = snd_data[0].count + 1
+                    servicenow.save(force_update=True)
+
+        except Exception as e:
+            logger.system_log('LOSM31001', 'main')
+            logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
+            # イベントリクエストのステータスを「ルール未検出」に更新
+            ret = events_request_update(r['request_id'], RULE_UNMATCH, user_name)
+            if not ret:
+                logger.system_log('LOSM31002', r['request_id'], RULE_UNMATCH)
+
+        fcntl.flock(f, fcntl.LOCK_UN)
 
     sys.exit(0)
-

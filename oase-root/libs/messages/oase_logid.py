@@ -547,6 +547,7 @@ class OASELogID:
     Ary['LOSI00015'] = "Pre-authentication request."
     Ary['LOSI00016'] = "One-time password expired."
     Ary['LOSI00017'] = "Transition to password change screen."
+    Ary['LOSI00018'] = "Processing is skipped because it is being executed."
     Ary['LOSI01000'] = "OASE_T_RHDM_RESPONSE select count: [{}], TraceID[{}]"
     Ary['LOSI01001'] = "OASE_T_RHDM_RESPONSE status update. TraceID[{}]"
     Ary['LOSI01002'] = "Processing stopped because the record was updated from another session. TraceID[{}]"
