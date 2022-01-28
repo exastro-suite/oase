@@ -63,6 +63,10 @@ It will run in one of the following environments.
 |----|----|----|
 |CentOS 7| Red Hat Enterprise Linux 7 or 8|x86_64|
 
+|Exastro OASE|WildFly|Drools|
+|----|----|----|
+|v1.5.0 or earlier |14.0.1.Final|7.22.0.Final|
+
 ### 🐳 Docker 🐷
 
 The Docker version is the easiest way to use the OASE.
