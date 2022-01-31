@@ -91,7 +91,7 @@ Description=Drools
 After=syslog.target network.target
 
 [Service]
-ExecStart=$1/wildfly-14.0.1.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=0.0.0.0
+ExecStart=$1/wildfly-23.0.1.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=0.0.0.0
 ExecReload=/bin/kill -HUP $MAINPID
 ExecStop=/bin/kill $MAINPID
 
@@ -229,7 +229,8 @@ edit_standalone_full() {
     sed -i -e '/<property name="org.kie.server.id" value="default-kieserver"\/>/a \        <property name="org.kie.server.location" value="http://localhost:8080/kie-server/services/rest/server"\/>' $1
     sed -i -e '/<property name="org.kie.server.location" value=/a \        <property name="org.kie.server.user" value="'${RULE_ENGINE_ADMINNAME}'"\/>' $1
     sed -i -e '/<property name="org.kie.server.user" value="'${RULE_ENGINE_ADMINNAME}'"\/>/a \        <property name="org.kie.server.pwd" value="'${RULE_ENGINE_PASSWORD}'"\/>' $1
-    sed -i -e '/<property name="org.kie.server.pwd" value="'${RULE_ENGINE_PASSWORD}'"\/>/a \    <\/system-properties>' $1
+    sed -i -e '/<property name="org.kie.server.pwd" value="'${RULE_ENGINE_PASSWORD}'"\/>/a \        <property name="drools.dateformat" value="yyyy-MM-dd HH:mm"\/>' $1
+    sed -i -e '/<property name="drools.dateformat" value="yyyy-MM-dd HH:mm"\/>/a \    <\/system-properties>' $1
 }
 
 ############################################################
@@ -312,7 +313,7 @@ PRIVATE_KEY_PATH=${private_key_path}
 OASE_DOMAIN=${oase_domain}
 
 if [ "${rules_engine}" == "drools" ]; then
-    STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
+    STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-23.0.1.Final/standalone/configuration/standalone-full.xml
 fi
 
 
