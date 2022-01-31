@@ -725,27 +725,27 @@ configure_drools(){
 
     mkdir -p ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
     cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    wget https://download.jboss.org/wildfly/14.0.1.Final/wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    tar -xzvf wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    wget https://download.jboss.org/wildfly/23.0.1.Final/wildfly-23.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    tar -xzvf wildfly-23.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     #Owner change
-    chown -R root:root wildfly-14.0.1.Final
-    rm -f wildfly-14.0.1.Final.tar.gz
+    chown -R root:root wildfly-23.0.1.Final
+    rm -f wildfly-23.0.1.Final.tar.gz
 
-    #Business entral Workbench WildFly 14 War install
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    wget https://download.jboss.org/drools/release/7.22.0.Final/business-central-7.22.0.Final-wildfly14.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    #Business entral Workbench WildFly 23 War install
+    cd ${jboss_root_directory}/wildfly-23.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    wget https://download.jboss.org/drools/release/7.63.0.Final/business-central-7.63.0.Final-wildfly23.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     #Kie server install
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    wget https://repo1.maven.org/maven2/org/kie/server/kie-server/7.22.0.Final/kie-server-7.22.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory}/wildfly-23.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    wget https://repo1.maven.org/maven2/org/kie/server/kie-server/7.63.0.Final/kie-server-7.63.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments
-    mv business-central-7.22.0.Final-wildfly14.war decision-central.war
-    mv kie-server-7.22.0.Final-ee8.war kie-server.war
+    cd ${jboss_root_directory}/wildfly-23.0.1.Final/standalone/deployments
+    mv business-central-7.63.0.Final-wildfly23.war decision-central.war
+    mv kie-server-7.63.0.Final-ee8.war kie-server.war
 
     #wildfly user add
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin
+    cd ${jboss_root_directory}/wildfly-23.0.1.Final/bin
     expect -c "
         set timeout -1
         spawn ./add-user.sh
@@ -1044,7 +1044,7 @@ EOS
 
 #standalone.conf setting
 standalone_conf() {
-    cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    cd ${jboss_root_directory}/wildfly-23.0.1.Final/bin >> "$OASE_INSTALL_LOG_FILE" 2>&1
     mv standalone.conf standalone.conf.oase_bk
 
     cat << EOS > "standalone.conf"
@@ -1333,22 +1333,22 @@ make_oase_offline() {
     cd ${jboss_root_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     if [ "${rules_engine}" == "drools" ]; then
-        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/wildfly-14.0.1.Final.tar.gz . >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        tar -xzvf wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        chown -R root:root wildfly-14.0.1.Final
-        rm -f wildfly-14.0.1.Final.tar.gz
+        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/wildfly-23.0.1.Final.tar.gz . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        tar -xzvf wildfly-23.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        chown -R root:root wildfly-23.0.1.Final
+        rm -f wildfly-23.0.1.Final.tar.gz
 
-        cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/business-central-7.22.0.Final-wildfly14.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cd ${jboss_root_directory}/wildfly-23.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/business-central-7.63.0.Final-wildfly23.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-        cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/kie-server-7.22.0.Final-ee8.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cd ${jboss_root_directory}/wildfly-23.0.1.Final/standalone/deployments >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        cp -fp ${YUM_ALL_PACKAGE_DOWNLOAD_DIR}/kie-server-7.63.0.Final-ee8.war . >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
-        cd ${jboss_root_directory}/wildfly-14.0.1.Final/standalone/deployments
-        mv business-central-7.22.0.Final-wildfly14.war decision-central.war
-        mv kie-server-7.22.0.Final-ee8.war kie-server.war
+        cd ${jboss_root_directory}/wildfly-23.0.1.Final/standalone/deployments
+        mv business-central-7.63.0.Final-wildfly23.war decision-central.war
+        mv kie-server-7.63.0.Final-ee8.war kie-server.war
 
-        cd ${jboss_root_directory}/wildfly-14.0.1.Final/bin
+        cd ${jboss_root_directory}/wildfly-23.0.1.Final/bin
         expect -c "
             set timeout -1
             spawn ./add-user.sh
@@ -1530,9 +1530,9 @@ download() {
 
     # wget Drools & Maven.
     if [ "${rules_engine}" == "drools" ]; then
-        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/wildfly/14.0.1.Final/wildfly-14.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/drools/release/7.22.0.Final/business-central-7.22.0.Final-wildfly14.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://repo1.maven.org/maven2/org/kie/server/kie-server/7.22.0.Final/kie-server-7.22.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/wildfly/23.0.1.Final/wildfly-23.0.1.Final.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://download.jboss.org/drools/release/7.63.0.Final/business-central-7.63.0.Final-wildfly23.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://repo1.maven.org/maven2/org/kie/server/kie-server/7.63.0.Final/kie-server-7.63.0.Final-ee8.war >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
     wget -P ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} https://archive.apache.org/dist/maven/maven-3/3.6.1/binaries/apache-maven-3.6.1-bin.tar.gz >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
