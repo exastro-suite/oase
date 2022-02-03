@@ -122,6 +122,7 @@ class DecisionTableFactory:
             'C20' : ['MOSJA11102',],
             'C21' : ['MOSJA11102',],
             'C22' : ['MOSJA11102',],
+            'C23' : ['MOSJA11102',],
             'E3'  : ['MOSJA11151',],
             'E4'  : ['MOSJA11151',],
             'E5'  : ['MOSJA11151',],
@@ -140,6 +141,7 @@ class DecisionTableFactory:
             'E18' : ['MOSJA11151',],
             'E20' : ['MOSJA11151',],
             'E22' : ['MOSJA11151',],
+            'E23' : ['MOSJA11160',],
             'F3'  : ['MOSJA11152',],
             'F4'  : ['MOSJA11152',],
             'F5'  : ['MOSJA11152',],
@@ -161,24 +163,24 @@ class DecisionTableFactory:
             'G19' : ['MOSJA11103',],
             'G21' : ['MOSJA11103',],
             # 記述例コメント
-            'B25' : ['MOSJA11104',],
-            'C25' : ['MOSJA11105',],
-            'C26' : ['MOSJA11115',],
-            'D25' : ['MOSJA11106',],
-            'E25' : ['MOSJA11157',],
-            'F25' : ['MOSJA11158',],
-            'G25' : ['MOSJA11107',],
-            'H25' : ['MOSJA11108',],
-            'H26' : ['MOSJA11116',],
-            'H27' : ['MOSJA11117',],
-            'H28' : ['MOSJA11118',],
-            'H29' : ['MOSJA11119',],
-            'I25' : ['MOSJA11109',],
-            'J25' : ['MOSJA11110',],
-            'P25' : ['MOSJA11111',],
-            'R25' : ['MOSJA11112',],
-            'T25' : ['MOSJA11113',],
-            'U25' : ['MOSJA11114',],
+            'B26' : ['MOSJA11104',],
+            'C26' : ['MOSJA11105',],
+            'C27' : ['MOSJA11115',],
+            'D26' : ['MOSJA11106',],
+            'E26' : ['MOSJA11157',],
+            'F26' : ['MOSJA11158',],
+            'G26' : ['MOSJA11107',],
+            'H26' : ['MOSJA11108',],
+            'H27' : ['MOSJA11116',],
+            'H28' : ['MOSJA11117',],
+            'H29' : ['MOSJA11118',],
+            'H30' : ['MOSJA11119',],
+            'I26' : ['MOSJA11109',],
+            'J26' : ['MOSJA11110',],
+            'P26' : ['MOSJA11111',],
+            'R26' : ['MOSJA11112',],
+            'T26' : ['MOSJA11113',],
+            'U26' : ['MOSJA11114',],
         },
     }
 
@@ -535,7 +537,7 @@ class DecisionTableCustomizer:
 
         dti = ActionType.objects.filter(disuse_flag='0').values_list('driver_type_id', flat=True)
         rs  = DriverType.objects.filter(driver_type_id__in=dti).values('name', 'driver_major_version')
-        ati = [get_message('MOSJA03149', self.lang, showMsgId=False)]
+        ati = [get_message('MOSJA03149', self.lang, showMsgId=False), get_message('MOSJA11159', self.lang, showMsgId=False)]
         for r in rs:
             name_version = r['name'] + '(ver' + str(r['driver_major_version']) + ')'
             ati.append(name_version)
@@ -563,4 +565,3 @@ class DecisionTableCustomizer:
             # 呼び元で対応してね
             logger.system_log('LOSM00001', traceback.format_exc())
             raise
-

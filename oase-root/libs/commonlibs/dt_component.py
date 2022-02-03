@@ -1107,6 +1107,12 @@ class DecisionTableComponent(object):
             str_noact_type = get_message('MOSJA03149', lang_key, showMsgId=False)
             noact_type_list.append(str_noact_type)
 
+        # アクション'No Action'種別を追加
+        noaction_type_list = []
+        for lang_key in defs.LANG_MODE.KEY_LIST_ALL:
+            str_noaction_type = get_message('MOSJA11159', lang_key, showMsgId=False)
+            noaction_type_list.append(str_noaction_type)
+
         for row in range(row_index, row_max):
             # アクション種別をチェック
             col = col_index + self.REVISION_COL_INDEX_ACTION_TYPE
@@ -1114,6 +1120,16 @@ class DecisionTableComponent(object):
 
             # アクション種別なしの場合はチェックしない
             if act_type in noact_type_list:
+                continue
+
+            # アクション種別"No Action"の場合はアクションパラメータ情報のセルに"X"または"x"以外の入力を許容しない
+            if act_type in noaction_type_list:
+                col1 = col_index + self.REVISION_COL_INDEX_ACTION_PARAMS
+                cell_values_action_param = str(wsheet.cell(row, col1).value).split(',')
+                if cell_values_action_param != ["X"] and cell_values_action_param != ["x"]:
+                    cellname = self.convert_rowcol_to_cellno(row, col1)
+                    message_list.append(get_message('MOSJA03169', lang, cellname=cellname))
+
                 continue
 
             # 有効なアクション種別に該当しない場合
@@ -1167,13 +1183,30 @@ class DecisionTableComponent(object):
         act_type_info = {}
         act_type_info['mail(ver1)'] = {'driver_method': None}
 
-        # todo 条件名のリストを取得
+        # アクション'No Action'種別を追加
+        noaction_type_list = []
+        for lang_key in defs.LANG_MODE.KEY_LIST_ALL:
+            str_noaction_type = get_message('MOSJA11159', lang_key, showMsgId=False)
+            noaction_type_list.append(str_noaction_type)
 
         for row in range(row_index, row_max):
+
+            # アクション種別をチェック
+            col = col_index + self.REVISION_COL_INDEX_ACTION_TYPE
+            act_type = str(wsheet.cell(row, col).value)
 
             # 人的確認メールのドライバー登録情報をチェック
             col = col_index + self.REVISION_COL_INDEX_PREACT_INFO
             cell_values = str(wsheet.cell(row, col).value).split(',')
+
+            # アクション種別"No Action"の場合は承認メールパラメータ情報のセルに"X"または"x"以外の入力を許容しない
+            if act_type in noaction_type_list:
+                if cell_values != ["X"] and cell_values != ["x"]:
+                    cellname = self.convert_rowcol_to_cellno(row, col)
+                    message_list.append(get_message('MOSJA03170', lang, cellname=cellname))
+
+                continue
+
             if cell_values == ["X"] or cell_values == ["x"]:
                 continue
 

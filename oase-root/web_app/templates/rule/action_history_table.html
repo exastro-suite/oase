@@ -635,17 +635,23 @@ function actionHistoryConfirmClose( element, returnElement ){
 
                 <!-- アクション種別 -->
                 <!-- アクション種別IDからドライバ名を取得して表示-->
-                {% for type in action_type_list %}
-                  {% if type.action_type_id == history.action_type_id %}
-                  {% for driver in driver_type_list %}
-                    {% if type.driver_type_id == driver.driver_type_id %}
-                    <td class="action-type">
-                      <div class="cell-inner">{{ driver.name }}(ver{{ driver.driver_major_version }})</div>
-                    </td>
+                {% if history.action_type_id != no_action_type_id %}
+                  {% for type in action_type_list %}
+                    {% if type.action_type_id == history.action_type_id %}
+                      {% for driver in driver_type_list %}
+                        {% if type.driver_type_id == driver.driver_type_id %}
+                          <td class="action-type">
+                            <div class="cell-inner">{{ driver.name }}(ver{{ driver.driver_major_version }})</div>
+                          </td>
+                        {% endif %}
+                      {% endfor %}
                     {% endif %}
                   {% endfor %}
-                  {% endif %}
-                {% endfor %}
+                {% else %}
+                  <td class="action-type">
+                    <div class="cell-inner">{% get_message 'MOSJA11159' request.user.get_lang_mode showMsgId=False %}</div>
+                  </td>
+                {% endif %}
 
                 <!-- 最終実行日時 -->
                 <td class="execution-date">
