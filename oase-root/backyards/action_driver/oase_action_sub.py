@@ -460,6 +460,7 @@ class ActionDriverSubModules:
         """
         logger.logic_log('LOSI00001', 'None')
         ActionStatus = PROCESSED
+        no_action_flg = False
 
         rhdm_res = RhdmResponse.objects.get(pk=self.response_id)
 
@@ -474,6 +475,30 @@ class ActionDriverSubModules:
         if len(rhdm_res_act_list) == 0:
             logger.system_log('LOSE01105', self.trace_id, 'OASE_T_RHDM_RESPONSE_ACTION', self.response_id)
             return ACTION_DATA_ERROR
+
+        # アクション種別「No Action」のチェック
+        for rhdm_resp_act in rhdm_res_act_list:
+            if rhdm_resp_act.action_type_id == NO_ACTION:
+                no_action_flg = True
+                break
+
+        # アクション種別「No Action」の場合
+        if no_action_flg:
+            for rhdm_resp_act in rhdm_res_act_list:
+                self.insert_action_history(
+                    rhdm_resp_act,
+                    ACTION_HISTORY_STATUS.NO_ACTION,
+                    ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+                )
+
+                if rhdm_resp_act.action_type_id == NO_ACTION:
+                    # No Actionレコードの詳細ログ
+                    ActCommon.SaveActionLog(self.response_id, rhdm_resp_act.execution_order, self.trace_id, 'MOSJA01115')
+                else:
+                    # No Actionレコードではない詳細ログ
+                    ActCommon.SaveActionLog(self.response_id, rhdm_resp_act.execution_order, self.trace_id, 'MOSJA01116')
+
+            return ACTION_HISTORY_STATUS.PROCESSED
 
         # 実行順に処理
         for idx, rhdm_res_act in enumerate(rhdm_res_act_list):

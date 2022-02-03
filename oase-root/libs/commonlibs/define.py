@@ -42,16 +42,16 @@ STAGING             = 2   #ステージング
 # STATUS
 #-------------------
 # 共通
-UNPROCESS           = 1   # 未処理
-PROCESSING          = 2   # 処理中(データを取得開始)
-PROCESSED           = 3   # 処理済み(正常終了)
-FORCE_PROCESSED     = 4   # 強制処理済み
-SERVER_ERROR        = 5   # 異常終了(サーバーエラー)
-PENDING             = 6   # 処理保留
-NO_DRIVER           = 7   # 不明なドライバー
-STOP                = 8   # 停止
-PREVENT             = 9   # 抑止済
-WAITING             = 10  # 待機
+UNPROCESS           = 1     # 未処理
+PROCESSING          = 2     # 処理中(データを取得開始)
+PROCESSED           = 3     # 処理済み(正常終了)
+FORCE_PROCESSED     = 4     # 強制処理済み
+SERVER_ERROR        = 5     # 異常終了(サーバーエラー)
+PENDING             = 6     # 処理保留
+NO_DRIVER           = 7     # 不明なドライバー
+STOP                = 8     # 停止
+PREVENT             = 9     # 抑止済
+WAITING             = 10    # 待機
 
 # リクエスト管理のステータス
 RULE_UNMATCH        = 1000  # 処理済み(ルール未検出)
@@ -61,7 +61,7 @@ RULE_IN_COOPERATION = 1003  # 処理済み(ServiceNow連携中)
 RULE_ALREADY_LINKED = 1004  # 処理済み(ServiceNow連携済み)
 
 # ルールマッチング結果管理
-BREAK_ACTION        = 2001  # アクション中断
+BREAK_ACTION        = 2001    # アクション中断
 ACTION_DATA_ERROR   = 2002    # アクション実行前エラー　ルールマッチング結果詳細情報エラーなど
 ACTION_EXEC_ERROR   = 2003    # アクション実行エラー
 CORRELATION         = 2004    # コリレーション中
@@ -110,6 +110,7 @@ class ACTION_HISTORY_STATUS():
     EXASTRO_REQUEST   = 2005
     RETRY             = 2007
     ACTION_POST_DATA_ERROR = 2008
+    NO_ACTION         = 2009 
 
     # ITAアクション固有ステータス
     ITA_UNPROCESS  = 2101  # 未実行
@@ -148,12 +149,13 @@ class ACTION_HISTORY_STATUS():
         SNOW_APPROVAL_PENDING              : 'MOSJA13128',
         SNOW_APPROVED                      : 'MOSJA13129',
         SNOW_REJECTED                      : 'MOSJA13133',
+        NO_ACTION                          : 'MOSJA13137',
     }
 
     DISABLE_RETRY_LIST = [
         PROCESSING, PROCESSED, PENDING, NO_DRIVER, STOP,
         BREAK_ACTION, ACTION_EXEC_ERROR_HOLD, EXASTRO_REQUEST, RETRY, PREVENT,
-        ITA_UNPROCESS, ITA_PROCESSING, ITA_CANCEL, ITA_REGISTERING_SUBSTITUTION_VALUE
+        ITA_UNPROCESS, ITA_PROCESSING, ITA_CANCEL, ITA_REGISTERING_SUBSTITUTION_VALUE, NO_ACTION
     ]
 
     EXASTRO_CHECK_LIST = [
@@ -259,6 +261,11 @@ class ACTION_HISTORY_STATUS():
                   'name':'owf-square',
                   'description':'MOSJA13133'
         },
+        NO_ACTION:{
+                  'status':'prevent',
+                  'name':'owf-prevent',
+                  'description':'MOSJA13137'
+        },
     }
 
 
@@ -314,8 +321,10 @@ class ACTION_HISTORY_STATUS():
 #-------------------
 # ACTION_TYPE_ID
 #-------------------
-ITA                 = 1   # ITA
-MAIL                = 2   # メール
+ITA                 = 1     # ITA
+MAIL                = 2     # メール
+SERVICENOW          = 3     # ServiceNow
+NO_ACTION           = 10001 # No Action
 
 class ACTION_TYPE_ID():
 

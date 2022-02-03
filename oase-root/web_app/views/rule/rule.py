@@ -1160,21 +1160,22 @@ def rule_polling(request, rule_manage_id, trace_id):
                             match_rulename = r.rule_name
 
                     for r in rhdm_res_acts:
-                        try:
-                            acttype = ActionType.objects.get(pk=r.action_type_id)
-                            dritype = DriverType.objects.get(pk=acttype.driver_type_id)
-                        except ActionType.DoesNotExist:
-                            logger.user_log('LOSM03006', r.action_type_id, request=request)
-                            msg = get_message('MOSJA12032', request.user.get_lang_mode())
-                            raise
-                        except DriverType.DoesNotExist:
-                            logger.user_log('LOSM03007', acttype.driver_type_id, request=request)
-                            msg = get_message('MOSJA12032', request.user.get_lang_mode())
-                            raise
-                        except Exception as e:
-                            logger.user_log('LOSM03008', request=request)
-                            msg = get_message('MOSJA12032', request.user.get_lang_mode())
-                            raise
+                        if r.action_type_id != defs.NO_ACTION:
+                            try:
+                                acttype = ActionType.objects.get(pk=r.action_type_id)
+                                dritype = DriverType.objects.get(pk=acttype.driver_type_id)
+                            except ActionType.DoesNotExist:
+                                logger.user_log('LOSM03006', r.action_type_id, request=request)
+                                msg = get_message('MOSJA12032', request.user.get_lang_mode())
+                                raise
+                            except DriverType.DoesNotExist:
+                                logger.user_log('LOSM03007', acttype.driver_type_id, request=request)
+                                msg = get_message('MOSJA12032', request.user.get_lang_mode())
+                                raise
+                            except Exception as e:
+                                logger.user_log('LOSM03008', request=request)
+                                msg = get_message('MOSJA12032', request.user.get_lang_mode())
+                                raise
 
                         tmp_actparainfo = json.loads(r.action_parameter_info)
 
@@ -1184,7 +1185,10 @@ def rule_polling(request, rule_manage_id, trace_id):
                             else:
                                 actparainfo = '%s, %s' % (actparainfo, tmp_actparainfo['ACTION_PARAMETER_INFO'][i])
 
-                        name = dritype.name + '(ver' + str(dritype.driver_major_version) + ')'
+                        if r.action_type_id != defs.NO_ACTION:
+                            name = dritype.name + '(ver' + str(dritype.driver_major_version) + ')'
+                        else:
+                            name = get_message('MOSJA11159', request.user.get_lang_mode(), showMsgId=False)
 
                         if not r.action_pre_info:
                             actpreinfo = get_message('MOSJA12154', request.user.get_lang_mode(), showMsgId=False)
@@ -2228,6 +2232,7 @@ def rule_polling_bulk(request, rule_manage_id):
                 ati.append(name_version)
 
             act_types = dict(zip(dti, ati))
+            act_types[defs.NO_ACTION] = get_message('MOSJA11159', request.user.get_lang_mode(), showMsgId=False)
 
             rset = RhdmResponseAction.objects.filter(response_id__in=resp_ids).values(
                 'response_id', 'rule_name', 'execution_order', 'action_type_id', 'action_parameter_info',

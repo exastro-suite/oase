@@ -581,6 +581,9 @@ class Agent:
             str_noact_type = get_message('MOSJA03149', lang_key, showMsgId=False)
             noact_type_list.append(str_noact_type)
 
+        no_action = get_message('MOSJA11159', self.user.get_lang_mode(), showMsgId=False)
+        act_type_dic[no_action] = NO_ACTION
+
         #マッチングしたルールの個数をidで調べる
         length = len(acts['id'])
 
@@ -685,6 +688,9 @@ class Agent:
             str_noact_type = get_message('MOSJA03149', lang_key, showMsgId=False)
             noact_type_list.append(str_noact_type)
 
+
+        no_action = get_message('MOSJA11159', self.user.get_lang_mode(), showMsgId=False)
+        act_type_dic[no_action] = NO_ACTION
 
         # コリレーションチェック
         length = len(acts['id'])

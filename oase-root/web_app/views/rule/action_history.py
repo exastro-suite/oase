@@ -162,6 +162,7 @@ def action_history(request):
         'mail_flg'            : mail_flg,
         'servicenow_flg'      : servicenow_flg,
         'filter_info'         : filter_info,
+        'no_action_type_id'   : defs.NO_ACTION
     }
 
     data.update(request.user_config.get_templates_data(request))
