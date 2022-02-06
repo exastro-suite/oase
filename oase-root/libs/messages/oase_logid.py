@@ -405,7 +405,7 @@ class OASELogID:
     Ary['LOSM20005'] = "Invalid request. \"{}\" IP address is mistyped. (ipaddr:{})"
     Ary['LOSM20006'] = "Invalid request. \"{}\" IP address is duplicated. (ipaddr:{})"
     Ary['LOSM20007'] = "WhiteListIPAddress does not exist. {}"
-    Ary['LOSM22000'] = "Invalid request format. Must be JSON."
+    Ary['LOSM22000'] = "Invalid request format. Must be JSON. (request-body:{})"
     Ary['LOSM22001'] = "Invalid request. \"{}\" key does not exist. (TraceID:{})"
     Ary['LOSM22002'] = "Unmatch, Number of event information elements. (TraceID:{}, RuleTypeID:{}, RequestNum:{}, NeedNum:{})"
     Ary['LOSM22003'] = "Validation error. (TraceID:{}, Message:{})"
