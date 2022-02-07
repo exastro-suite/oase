@@ -132,6 +132,7 @@ def modify(request):
     response = {
             "status": "success",
             "redirect_url": redirect_url,
+            "alert_msg" : "",
         }
 
     msg = ''
@@ -171,6 +172,7 @@ def modify(request):
 
                     response['status'] = 'failure'
                     response['error_msg'] = each_driver_response.get('error_msg', {})
+                    response['alert_msg'] = each_driver_response.get('alert_msg', '')
 
             # 最終的にfailure扱いであればロールバック
             if response['status'] == 'failure':

@@ -212,6 +212,8 @@ function submitAction(){
         else {
             if(response_json.error_apl != "") {
                 alert(response_json.error_apl);
+            } else if(response_json.error_alert != "") {
+                alert(response_json.error_alert);
             } else {
                 alert(getMessage('MOSJA00005', true) + "\n");
             }

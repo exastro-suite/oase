@@ -254,6 +254,15 @@ def update(request, token_id):
             if not perm_flg:
                 raise OASEError('MOSJA37028', 'LOSI37001', log_params=[token_id, request.user_config.group_id_list])
 
+            # 権限ありのグループ有無チェック
+            perm_count = 0
+            for pm in token_info['permission']:
+                if pm['permission_type_id'] == '1':
+                    perm_count = perm_count + 1
+
+            if perm_count < 1:
+                raise OASEError('MOSJA37046', 'LOSI37007', log_params=['update', token_id])
+
             permission_list_reg = []
             for pm in token_info['permission']:
                 if pm['permission_type_id'] != '0' and pm['permission_type_id'] != '1':

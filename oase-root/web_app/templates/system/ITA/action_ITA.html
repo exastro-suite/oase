@@ -208,6 +208,9 @@ function addItaDriver() {
 
     //エラーメッセージを表示
     if(errorMsg['errorFlag']){
+        if(errorMsg['alertMsg'] != ""){
+            alert(errorMsg['alertMsg']);
+        }
         renderItaErrorMsg(errorMsg['errorMsg'], idInfo, 'add');
         return;
     }
@@ -270,6 +273,9 @@ function updateItaDriver() {
 
     //エラーメッセージを表示
     if(errorMsg['errorFlag']){
+        if(errorMsg['alertMsg'] != ""){
+            alert(errorMsg['alertMsg']);
+        }
         renderItaErrorMsg(errorMsg['errorMsg'], idInfo, 'edit');
         return;
     }
@@ -284,6 +290,11 @@ function updateItaDriver() {
 var renderItaErrorMsg = function(errorMsg,idInfo, mode)
 {
     alert(getMessage("MOSJA23014", false));
+
+    perm_mode = '';
+    if(mode == 'edit') {
+        perm_mode = 'b';
+    }
 
     if((typeof idInfo == 'undefined') || (idInfo == null)) {
         idInfo = {
@@ -347,6 +358,7 @@ function validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo) {
     var port = drvInfo["port"];
     var username = drvInfo["username"];
     var password = drvInfo["password"];
+    var permission = drvInfo["permission"];
     var errorFlag = false;
     var errorMsg = {};
     var chk_itaName = {};
@@ -372,6 +384,7 @@ function validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo) {
     chk_host[strID] = host;
 
     // 検査開始
+    alertMsg = "";
     errorMsg['ita_disp_name'] = "";
     errorMsg['version'] = "";
     errorMsg['hostname'] = "";
@@ -407,7 +420,21 @@ function validateBeforeSave{{ driver_id }}(objTBody, ope, drvInfo) {
         errorFlag = true;
     }
 
+    // 更新可能権限の有無をチェック
+    var perm_count = 0;
+    for(var i = 0; i < permission.length; i++) {
+        if(parseInt(permission[i]["permission_type_id"]) == 1) {
+            perm_count += 1;
+        }
+    }
+
+    if(perm_count < 1) {
+        alertMsg += getMessage("MOSJA27128", false) + "\n";
+        errorFlag = true;
+    }
+
     var result = {
+        'alertMsg' : alertMsg,
         'errorFlag': errorFlag,
         'errorMsg' : errorMsg,
     }
