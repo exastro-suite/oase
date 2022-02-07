@@ -485,6 +485,12 @@ def modify(request):
         if len(f.errors.items()):
             raise Exception("validate error")
 
+        # 権限チェック
+        perm_flg = check_permission(request, add_record['group_list'])
+        if perm_flg == False:
+            response_data['error_alert'] = get_message('MOSJA11161', request.user.get_lang_mode())
+            raise Exception("validate error")
+
         # データオブジェクトのバリデーションチェック
         data_obj_data = []
         for rq in add_record['data_obj_info']:
@@ -549,6 +555,7 @@ def modify(request):
             response_data['error_msg'] = error_msg
             response_data['error_top'] = error_msg_top
             response_data['error_apl'] = ''
+            response_data['error_alert'] = ''
             if msg:
                 response_data['error_apl'] = get_message(msg, request.user.get_lang_mode())
 
@@ -661,6 +668,12 @@ def modify_detail(request, rule_type_id):
 
                 logger.user_log('LOSM14003', logger_txt, request=request)
                 raise Exception(log_txt)
+
+            # 権限チェック
+            perm_flg = check_permission(request, add_record['group_list'])
+            if perm_flg == False:
+                error_msg = get_message('MOSJA11161', request.user.get_lang_mode())
+                raise Exception("validate error")
 
             # データ更新
             RuleType.objects.filter(rule_type_id=rule_type_id).update(
@@ -1238,6 +1251,45 @@ def automatic_label_generation(data_obj_data):
             data_obj_info.append(data)
 
     return data_obj_info, index
+
+
+def check_permission(request, group_list):
+    """
+    [メソッド概要]
+      各メニューの更新権限の有無をチェックする
+    [引数]
+      request    : リクエスト情報
+      group_list : グループリスト
+    [戻り値]
+      bool       : True=正常, False=異常
+    """
+
+    perm_count = {}
+    for mid in defs.MENU_BY_RULE:
+        if mid == 2141001009:  # トークン払い出し画面は除外
+            continue
+
+        perm_count[str(mid)] = 0
+
+
+    for gr in group_list:
+        if int(gr['group_id']) not in request.user_config.group_id_list:
+            continue
+
+        for permission in gr['permission']:
+            if permission['menu_id'] not in perm_count:
+                continue
+
+            if int(permission['permission_type_id']) == defs.ALLOWED_MENTENANCE:
+                perm_count[permission['menu_id']] += 1
+
+
+    logger.user_log('LOSI14002', perm_count, request=request)
+    for k, v in perm_count.items():
+        if v < 1:
+            return False
+
+    return True
 
 
 def add_permission(request, now, ruletypeid, group_list):

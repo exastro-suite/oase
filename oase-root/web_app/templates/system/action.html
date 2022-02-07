@@ -144,6 +144,10 @@ function post(postdata, btnId, render_func, req_mode) {
             location.href = response_json.redirect_url;
         }
         else {
+            if(response_json.alert_msg != "") {
+                alert(response_json.alert_msg);
+            }
+
             if(response_json.msg) {
                 alert(response_json.msg);
             }else{

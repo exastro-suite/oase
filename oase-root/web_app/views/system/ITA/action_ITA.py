@@ -233,6 +233,7 @@ class ITADriverInfo():
             'port' : '',
             'username' : '',
             'password' : '',
+            'permission' : '',
         }
         now = datetime.datetime.now(pytz.timezone('UTC'))
         # 成功時データ
@@ -340,9 +341,11 @@ class ITADriverInfo():
 
         except Exception as e:
             logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
+            alert_msg = error_msg.pop('permission')
             response = {
                     'status': 'failure',
                     'error_msg': error_msg,  # エラー詳細(エラーアイコンで出す)
+                    'alert_msg': alert_msg,
                 }
 
         logger.logic_log('LOSI00002', 'response=%s' % response, request=request)
@@ -500,6 +503,17 @@ class ITADriverInfo():
                 error_flag = True
                 error_msg['ita_disp_name'] += get_message('MOSJA27119', request.user.get_lang_mode()) + '\n'
                 logger.user_log('LOSM07005', rq['hostname'], rq['port'], request=request)
+
+
+        # 権限の確認(更新権限を有するグループが1つ以上存在すること)
+        perm_count = 0
+        for perm_info in rq['permission']:
+            if int(perm_info['permission_type_id']) == defs.ALLOWED_MENTENANCE:
+                perm_count = perm_count + 1
+
+        if perm_count < 1:
+            error_flag = True
+            error_msg['permission'] += get_message('MOSJA27128', request.user.get_lang_mode()) + '\n'
 
 
         logger.logic_log('LOSI00002', 'return: %s' % error_flag)
