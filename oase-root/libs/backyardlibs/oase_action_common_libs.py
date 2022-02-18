@@ -69,6 +69,14 @@ class ConstantModules:
     CMCM_UPDATE_LAST_UPDATE_TIMESTAMP = 11
     CMCM_LAST_UPDATE_USER             = 12
 
+    ## C_SYMPHONY_CLASS_MNG
+    CSCM_SYMPHONY_CLASS_ID            =  2
+    CSCM_SYMPHONY_NAME                =  3
+
+    ## C_CONDUCTOR_EDIT_CLASS_MNG
+    CCCM_CONDUCTOR_CLASS_ID           =  2
+    CCCM_CONDUCTOR_NAME               =  3
+
     ## C_NODE_CLASS_MNG
     CNCM_NODE_CLASS_NO                =  2
     CNCM_NODE_NAME                    =  3

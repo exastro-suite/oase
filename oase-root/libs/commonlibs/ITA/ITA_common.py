@@ -18,8 +18,10 @@
 
 """
 import traceback
+import ast
 from web_app.models.ITA_models import ItaDriver
 from web_app.models.ITA_models import ItaActionHistory
+from web_app.models.ITA_models import ItaParameterItemInfo
 from libs.backyardlibs.action_driver.ITA.ITA_driver import ITAManager
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.common import DriverCommon
@@ -53,21 +55,61 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         logger.logic_log('LOSM00035', check_info)
         message_list.append(
             {'id': 'MOSJA03139', 'param': 'SYMPHONY_CLASS_ID, CONDUCTOR_CLASS_ID'})
+    elif 'SYMPHONY_CLASS_ID' in check_info and 'SYMPHONY_NAME' in check_info:
+        logger.logic_log('LOSM00047', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'SYMPHONY_CLASS_ID, SYMPHONY_NAME'})
+    elif 'CONDUCTOR_CLASS_ID' in check_info and 'CONDUCTOR_NAME' in check_info:
+        logger.logic_log('LOSM00048', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'CONDUCTOR_CLASS_ID, CONDUCTOR_NAME'})
+    elif 'SYMPHONY_CLASS_ID' in check_info and 'CONDUCTOR_NAME' in check_info:
+        logger.logic_log('LOSM00049', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'SYMPHONY_CLASS_ID, CONDUCTOR_NAME'})
+    elif 'CONDUCTOR_CLASS_ID' in check_info and 'SYMPHONY_NAME' in check_info:
+        logger.logic_log('LOSM00050', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'CONDUCTOR_CLASS_ID, SYMPHONY_NAME'})
+    elif 'SYMPHONY_NAME' in check_info and 'CONDUCTOR_NAME' in check_info:
+        logger.logic_log('LOSM00051', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'SYMPHONY_NAME, CONDUCTOR_NAME'})
     elif 'SYMPHONY_CLASS_ID' in check_info:
         # SYMPHONY_CLASS_ID チェック
         message_list = symphony_class_id_check(check_info, conditions, message_list)
     elif 'CONDUCTOR_CLASS_ID' in check_info:
         # CONDUCTOR_CLASS_ID チェック
         message_list = conductor_class_id_check(check_info, conditions, message_list)
+    elif 'SYMPHONY_NAME' in check_info:
+        # SYMPHONY_NAME チェック
+        message_list = symphony_name_check(check_info, conditions, message_list)
+    elif 'CONDUCTOR_NAME' in check_info:
+        # CONDUCTOR_NAME チェック
+        message_list = conductor_name_check(check_info, conditions, message_list)
     else:
         # どちらも記述がない場合
         message_list.append({'id': 'MOSJA03108', 'param': None})
 
+    # 重複チェック
+    if 'OPERATION_ID' in check_info and 'OPERATION_NAME' in check_info:
+        logger.logic_log('LOSM00035', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'OPERATION_ID, OPERATION_NAME'})
+
     # OPERATION_ID チェック
-    if 'OPERATION_ID' in check_info:
+    elif 'OPERATION_ID' in check_info:
         operation_id = check_info['OPERATION_ID']
+
         exclusive = exclusive + 1
         message_list = operation_id_check(operation_id, check_info, conditions, message_list)
+
+    # OPERATION_NAME チェック
+    elif 'OPERATION_NAME' in check_info:
+        operation_name = check_info['OPERATION_NAME']
+
+        exclusive = exclusive + 1
+        message_list = operation_name_check(operation_name, check_info, conditions, message_list)
 
     # SERVER_LIST チェック
     if 'SERVER_LIST' in check_info:
@@ -81,11 +123,36 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         exclusive = exclusive + 1
         message_list = menu_id_check(menu_id, check_info, conditions, message_list)
 
-    # OPERATION_ID SERVER_LIST MENU_ID 共存チェック
+    # MENU チェック
+    if 'MENU' in check_info:
+
+        ke = check_info.keys()
+        flg = False
+        fidx = 0
+        tidx = len(params)
+        for i, para in enumerate(params):
+            # if (para.startswith(ke + '=') and flg = True):
+            for k in ke:
+                if para.startswith(k + '='):
+                    if k == 'MENU':
+                        fidx = i
+                        flg = True
+                    elif flg == True:
+                        tidx = i
+                        break
+
+        parameters = (',').join(params[fidx:tidx])
+        check_info['MENU'] = ('=').join(parameters.split('=')[1:])
+        ita_name = check_info['ITA_NAME']
+        flg = act_info[check_info['ITA_NAME']] if 'ITA_NAME' in check_info and check_info['ITA_NAME'] in act_info else False
+
+        messsage_list = into_parameter_check(check_info, flg, message_list)
+
+    # OPERATION_ID OPERATION_NAME SERVER_LIST MENU_ID 共存チェック
     if exclusive > 1:
         logger.logic_log('LOSM00024', check_info)
         message_list.append(
-            {'id': 'MOSJA03139', 'param': 'OPERATION_ID, SERVER_LIST, MENU_ID'})
+            {'id': 'MOSJA03139', 'param': 'OPERATION_ID, OPERATION_NAME, SERVER_LIST, MENU_ID'})
 
     return message_list
 
@@ -147,6 +214,33 @@ def symphony_class_id_check(check_info, conditions, message_list):
     return message_list
 
 
+def symphony_name_check(check_info, conditions, message_list):
+    """
+    [概要]
+    SYMPHONY_NAMEのバリデーションチェックを行う
+    [引数]
+    check_info        : チェック情報
+    conditions        : 条件名
+    message_list      : メッセージリスト
+    [戻り値]
+    message_list      : メッセージリスト
+    """
+
+    if 'SYMPHONY_NAME' not in check_info:
+        logger.logic_log('LOSM00052', check_info)
+        message_list.append({'id': 'MOSJA03113', 'param': 'SYMPHONY_NAME'})
+
+    elif check_info['SYMPHONY_NAME'] == '':
+        logger.logic_log('LOSM00053', check_info)
+        message_list.append({'id': 'MOSJA03176', 'param': None})
+
+    elif not DriverCommon.has_right_reserved_value(conditions, check_info['SYMPHONY_NAME']):
+        logger.logic_log('LOSM00023', check_info['SYMPHONY_NAME'])
+        message_list.append({'id': 'MOSJA03137', 'param': 'SYMPHONY_NAME'})
+
+    return message_list
+
+
 def conductor_class_id_check(check_info, conditions, message_list):
     """
     [概要]
@@ -174,12 +268,39 @@ def conductor_class_id_check(check_info, conditions, message_list):
     return message_list
 
 
+def conductor_name_check(check_info, conditions, message_list):
+    """
+    [概要]
+    CONDUCTOR_NAMEのバリデーションチェックを行う
+    [引数]
+    check_info        : チェック情報
+    conditions        : 条件名
+    message_list      : メッセージリスト
+    [戻り値]
+    message_list      : メッセージリスト
+    """
+
+    if 'CONDUCTOR_NAME' not in check_info:
+        logger.logic_log('LOSM00054', check_info)
+        message_list.append({'id': 'MOSJA03113', 'param': 'CONDUCTOR_NAME'})
+
+    elif check_info['CONDUCTOR_NAME'] == '':
+        logger.logic_log('LOSM00034', check_info)
+        message_list.append({'id': 'MOSJA03177', 'param': None})
+
+    elif not DriverCommon.has_right_reserved_value(conditions, check_info['CONDUCTOR_NAME']):
+        logger.logic_log('LOSM00023', check_info['CONDUCTOR_NAME'])
+        message_list.append({'id': 'MOSJA03137', 'param': 'CONDUCTOR_NAME'})
+
+    return message_list
+
+
 def operation_id_check(operation_id, check_info, conditions, message_list):
     """
     [概要]
     OPERATION_IDのバリデーションチェックを行う
     [引数]
-    operation_id : SYMPHONY_CLASS_ID
+    operation_id : OPERATION_ID
     check_info   : チェック情報
     conditions   : 条件名
     message_list : メッセージリスト
@@ -194,6 +315,30 @@ def operation_id_check(operation_id, check_info, conditions, message_list):
     elif operation_id and not DriverCommon.has_right_reserved_value(conditions, operation_id):
         logger.logic_log('LOSM00023', operation_id)
         message_list.append({'id': 'MOSJA03137', 'param': 'OPERATION_ID'})
+
+    return message_list
+
+
+def operation_name_check(operation_name, check_info, conditions, message_list):
+    """
+    [概要]
+    OPERATION_NAMEのバリデーションチェックを行う
+    [引数]
+    operation_name : OPERATION_NAME
+    check_info     : チェック情報
+    conditions     : 条件名
+    message_list   : メッセージリスト
+    [戻り値]
+    message_list   : メッセージリスト
+    """
+
+    if operation_name == '':
+        logger.logic_log('LOSM00055', check_info)
+        message_list.append({'id': 'MOSJA03178', 'param': None})
+
+    elif operation_name and not DriverCommon.has_right_reserved_value(conditions, operation_name):
+        logger.logic_log('LOSM00023', operation_name)
+        message_list.append({'id': 'MOSJA03137', 'param': 'OPERATION_NAME'})
 
     return message_list
 
@@ -267,6 +412,97 @@ def menu_id_check(menu_id, check_info, conditions, message_list):
         message_list.append({'id': 'MOSJA03145', 'param': None})
 
     return message_list
+
+
+def into_parameter_check(check_info, valid_flg, message_list):
+    """
+    [概要]
+    MENUのバリデーションチェックを行う
+    [引数]
+    check_info   : チェック情報
+    valid_flg    : バリデーションフラグ
+    message_list : メッセージリスト
+    [戻り値]
+    message_list : メッセージリスト
+    """
+
+    # フォーマットチェック、辞書に変換
+    menu = check_info['MENU']
+    menu = ast.literal_eval(menu)
+
+    menuid_list = []
+    menu_val_info = {}
+    for value in menu:
+        menu_id = None
+        if 'ID' not in value:
+            logger.logic_log('LOSM00047', check_info)
+            message_list.append({'id': 'MOSJA03171', 'param': None})
+
+        else:
+            if value['ID'] == '':
+                logger.logic_log('LOSM00048', check_info)
+                message_list.append({'id': 'MOSJA03171', 'param': None})
+
+            else:
+                menu_id = int(value['ID'])
+                menuid_list.append(menu_id)
+
+        if 'VALUES' not in value:
+            logger.logic_log('LOSM00050', check_info)
+            message_list.append({'id': 'MOSJA03172', 'param': None})
+
+        else:
+            if len(value['VALUES']) <= 0:
+                logger.logic_log('LOSM00049', check_info)
+                message_list.append({'id': 'MOSJA03173', 'param': None})
+
+            elif menu_id is not None:
+                if menu_id not in menu_val_info:
+                    menu_val_info[menu_id] = {
+                        'COL_GROUP' : '',
+                        'COL_NAME'  : '',
+                    }
+
+                for k, v in value['VALUES'].items():
+                    col_list = k.split('/')
+                    menu_val_info[menu_id]['COL_GROUP'] = ('/').join(col_list[0:-1]) if len(col_list) >= 2 else ''
+                    menu_val_info[menu_id]['COL_NAME'] = col_list[-1]
+
+
+    # DBに存在しないメニューIDを指定したらエラー
+    rset = []
+    if valid_flg and len(menuid_list) > 0:
+        db_menu_ids = []
+        db_col_info = {}
+
+        ita_name = check_info['ITA_NAME']
+        drv_id = ItaDriver.objects.get(ita_disp_name=ita_name).ita_driver_id
+        rset = ItaParameterItemInfo.objects.filter(ita_driver_id=drv_id, menu_id__in=menuid_list).values('menu_id', 'column_group', 'item_name')
+        for rs in rset:
+            if rs['menu_id'] not in db_menu_ids:
+                db_menu_ids.append(rs['menu_id'])
+            if rs['menu_id'] not in db_col_info:
+                db_col_info[rs['menu_id']] = []
+
+            col_name = '%s/%s' % (rs['column_group'], rs['item_name']) if rs['column_group'] else rs['item_name']
+            db_col_info[rs['menu_id']].append(col_name)
+
+        if len(menuid_list) != len(db_menu_ids):
+            tmp_list = list(set(menuid_list) - set(db_menu_ids))
+            logger.logic_log('LOSM00051', check_info)
+            message_list.append({'id': 'MOSJA03174', 'param': tmp_list})
+
+        for mid in menuid_list:
+            if mid not in db_col_info:
+                continue
+
+            col_name = ''
+            if mid in menu_val_info:
+                col_name = '%s/%s' % (menu_val_info[mid]['COL_GROUP'], menu_val_info[mid]['COL_NAME']) if menu_val_info[mid]['COL_GROUP'] else menu_val_info[mid]['COL_NAME']
+
+            if col_name not in db_col_info[mid]:
+                logger.logic_log('LOSM00052', check_info)
+                message_list.append({'id': 'MOSJA03175', 'param': None})
 
 
 def get_history_data(action_his_id):

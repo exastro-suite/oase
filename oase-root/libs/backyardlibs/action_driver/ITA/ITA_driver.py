@@ -87,7 +87,10 @@ class ITAManager(AbstractManager):
         'CONVERT_FLG',
         'HOSTGROUP_NAME',
         'HOST_NAME',
-        'CONDUCTOR_CLASS_ID'
+        'MENU',
+        'OPERATION_NAME',
+        'SYMPHONY_NAME',
+        'CONDUCTOR_NAME'
     ]
 
     def __init__(self, trace_id, response_id, last_update_user):
@@ -96,6 +99,8 @@ class ITAManager(AbstractManager):
         self.action_history = None
         self.aryActionParameter = {}
         self.last_update_user = last_update_user
+        self.symphony_class_id = None
+        self.conductor_class_id = None
 
         self.ITAobj = None
         self.ary_ita_config = {}
@@ -115,13 +120,8 @@ class ITAManager(AbstractManager):
             'trace_id: %s, aryAnzActionParameter: %s, ActionHistoryID: %s, SymphonyInstanceNO: %s, OperationID: %s, SymphonyWorkflowURL: %s, conductor_instance_id: %s, conductor_url: %s' %
             (self.trace_id, aryAnzActionParameter, self.action_history.pk, SymphonyInstanceNO, OperationID, SymphonyWorkflowURL, conductor_instance_id, conductor_url))
 
-        symphony_class_id = None
-        conductor_class_id = None
-
-        if 'SYMPHONY_CLASS_ID' in aryAnzActionParameter:
-            symphony_class_id = aryAnzActionParameter['SYMPHONY_CLASS_ID']
-        else:
-            conductor_class_id = aryAnzActionParameter['CONDUCTOR_CLASS_ID']
+        symphony_class_id = self.symphony_class_id
+        conductor_class_id = self.conductor_class_id
 
         try:
             with transaction.atomic():
@@ -197,6 +197,8 @@ class ITAManager(AbstractManager):
         event_info_list = []
         instance_check = True
         no_host_flg = False
+        server_str = ''
+        operation_name = ''
 
         param_info = json.loads(rhdm_res_act.action_parameter_info)
 
@@ -212,13 +214,15 @@ class ITAManager(AbstractManager):
             raise OASEError('', 'LOSE01114', log_params=[self.trace_id, 'OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key1], msg_params={
                             'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_SRVLIST_KEY})
 
-        # OPERATION_ID/SERVER_LIST/MENU_ID サーチ
+        # OPERATION_ID/SERVER_LIST/MENU_ID/MENU サーチ
         key_operation_id = 'OPERATION_ID'
         key_server_list = 'SERVER_LIST'
         key_menu_id = 'MENU_ID'
         key_convert_flg = 'CONVERT_FLG'
         key_hostgroup_name = 'HOSTGROUP_NAME'
         key_dt_host_name = 'HOST_NAME'
+        key_menu = 'MENU'
+        key_operation_name = 'OPERATION_NAME'
         check_info = self.analysis_parameters(param_info[key1])
 
         # OPERATION_IDのパターン
@@ -230,6 +234,401 @@ class ITAManager(AbstractManager):
                                 'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
 
             operation_id = check_info[key_operation_id]
+
+        # OPERATION_NAMEのパターン
+        elif key_operation_name in check_info:
+            if len(check_info[key_operation_name]) == 0:
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01118')
+                raise OASEError(
+                    '',
+                    'LOSE01144',
+                    log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
+                    msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                )
+
+            operation_name = check_info[key_operation_name]
+
+        # MENUのパターン
+        elif key_menu in check_info:
+            if len(check_info[key_menu]) == 0:
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01117')
+                raise OASEError(
+                    '',
+                    'LOSE01143',
+                    log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_menu, self.trace_id],
+                    msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                )
+
+            if key_server_list in check_info:
+                server_str = check_info[key_server_list]
+                if not server_str:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01064')
+                    raise OASEError(
+                        '',
+                        'LOSE01130',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_server_list, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+            if key_hostgroup_name in check_info:
+                hostgroup_name = check_info[key_hostgroup_name]
+                if not hostgroup_name:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01121')
+                    raise OASEError(
+                        '',
+                        'LOSE01139',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_hostgroup_name, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+            if key_dt_host_name in check_info:
+                dt_host_name = check_info[key_dt_host_name]
+                if not dt_host_name:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01122')
+                    raise OASEError(
+                        '',
+                        'LOSE01140',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_dt_host_name, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+            params = param_info[key1]
+            ke = check_info.keys()
+            flg = False
+            fidx = 0
+            tidx = len(params)
+            for i, para in enumerate(params):
+                for k in ke:
+                    if para.startswith(k + '='):
+                        if k == 'MENU':
+                            fidx = i
+                            flg = True
+                        elif flg == True:
+                            tidx = i
+                            break
+
+            parameters = (',').join(params[fidx:tidx])
+            check_info[key_menu] = ('=').join(parameters.split('=')[1:])
+
+            menu_str = check_info[key_menu]
+            menu_dict = ast.literal_eval(menu_str)
+
+            menu_id_list = []
+            for menu in menu_dict:
+                menu_id_list.append(menu['ID'])
+
+            hg_flg_info = {}
+            rset = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
+            rset = rset.values('menu_id', 'hostgroup_flag')
+            for r in rset:
+                hg_flg_info[r['menu_id']] = r['hostgroup_flag']
+
+            for menu_id in menu_id_list:
+                menu_id = int(menu_id)
+                if menu_id not in hg_flg_info:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01123')
+
+                    logger.system_log(
+                        'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+            target_host_name = {}
+            server_list = []
+
+            for menu_id in menu_id_list:
+                if menu_id not in target_host_name:
+                    target_host_name[str(menu_id)] = {
+                        'H': [],
+                        'HG': [],
+                    }
+
+            if server_str:
+                server_list = server_str.split(':')
+
+            if hostgroup_name:
+                target_host_name = self.set_host_data(target_host_name, 'HG', hostgroup_name)
+
+            if dt_host_name:
+                target_host_name = self.set_host_data(target_host_name, 'H', dt_host_name)
+
+            commitinfo_list = ItaParametaCommitInfo.objects.filter(
+                response_id=self.response_id,
+                commit_order=rhdm_res_act.execution_order
+            ).order_by('ita_order')
+
+            if len(commitinfo_list) == 0:
+                commitinfo_list = []
+                if not server_list:
+                    server_list.append("HostName")
+
+                server_name = (',').join(server_list[:])
+                for menu in menu_dict:
+                    menu_id = menu['ID']
+                    values = menu['VALUES']
+                    key = values.keys()
+                    for i, ke in enumerate(key):
+
+                        # カラムが空白の場合はDBにコミットしない
+                        if not ke:
+                            continue
+
+                        val = values[ke]
+
+                        # 値が空白の場合はDBにコミットしない
+                        if not val:
+                            continue
+
+                        count = ke.count('/')
+
+                        try:
+                            if count > 0:
+                                tmp = ke.rsplit('/', 1)
+                                column_group = tmp[0]
+                                column       = tmp[1]
+
+                                ita_order = ItaParameterItemInfo.objects.get(
+                                    ita_driver_id=self.ita_driver.ita_driver_id,
+                                    menu_id=int(menu_id),
+                                    column_group=column_group,
+                                    item_name=column
+                                ).ita_order
+
+                            else:
+                                ita_order = ItaParameterItemInfo.objects.get(
+                                    ita_driver_id=self.ita_driver.ita_driver_id,
+                                    menu_id=int(menu_id),
+                                    item_name=ke
+                                ).ita_order
+
+                        except ItaParameterItemInfo.DoesNotExist:
+                            logger.system_log('LOSE01148', self.trace_id)
+                            ActionDriverCommonModules.SaveActionLog(
+                                self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01124')
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                        except Exception as e:
+                            logger.system_log('LOSE01147', self.trace_id, traceback.format_exc())
+                            ActionDriverCommonModules.SaveActionLog(
+                                self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01125')
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                        if i == 0:
+                            itaparcom = ItaParametaCommitInfo(
+                                response_id = self.response_id,
+                                commit_order = rhdm_res_act.execution_order,
+                                menu_id = int(menu_id),
+                                ita_order = 0,
+                                parameter_value = server_name,
+                                last_update_timestamp = Comobj.getStringNowDateTime(),
+                                last_update_user = self.last_update_user,
+                            )
+                            commitinfo_list.append(itaparcom)
+
+                            itaparcom = ItaParametaCommitInfo(
+                                response_id = self.response_id,
+                                commit_order = rhdm_res_act.execution_order,
+                                menu_id = int(menu_id),
+                                ita_order = ita_order + 1,
+                                parameter_value = val,
+                                last_update_timestamp = Comobj.getStringNowDateTime(),
+                                last_update_user = self.last_update_user,
+                            )
+                            commitinfo_list.append(itaparcom)
+
+                        else:
+                            itaparcom = ItaParametaCommitInfo(
+                                response_id = self.response_id,
+                                commit_order = rhdm_res_act.execution_order,
+                                menu_id = int(menu_id),
+                                ita_order = ita_order + 1,
+                                parameter_value = val,
+                                last_update_timestamp = Comobj.getStringNowDateTime(),
+                                last_update_user = self.last_update_user,
+                            )
+                            commitinfo_list.append(itaparcom)
+
+                try:
+                    ItaParametaCommitInfo.objects.bulk_create(commitinfo_list)
+
+                except Exception as e:
+                    logger.system_log('LOSE01133', self.trace_id, traceback.format_exc())
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01071')
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+            parameter_list = {}
+
+            commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('ita_order')
+            for commit_info in commitinfo_list:
+                if commit_info.menu_id not in parameter_list:
+                    parameter_list[commit_info.menu_id] = {'host_name':'', 'param_list':[]}
+
+                if commit_info.ita_order == 0:
+                    parameter_list[commit_info.menu_id]['host_name'] = commit_info.parameter_value
+                else:
+                    parameter_list[commit_info.menu_id]['param_list'].append(commit_info.parameter_value)
+
+            # ホスト情報の有無をチェック
+            for k, v in parameter_list.items():
+
+                # ホスト情報を必要としないパラメーターシートはチェック対象外
+                if hg_flg_info[k] < 0:
+                    continue
+
+                if not v['host_name']:
+                    logger.system_log('LOSE01136', self.trace_id, traceback.format_exc())
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+            operation_data = []
+            if retry:
+                operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
+                ret = self.ITAobj._select_c_operation_list_by_operation_name(operation_name, operation_data, False)
+
+                if ret == Cstobj.RET_DATA_ERROR:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+
+                    operation_name = ''
+                    ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
+                    if ret != True:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                    ret, operation_data = self.ITAobj.select_operation(
+                        self.ary_ita_config, operation_name)
+                    if ret != True:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                elif ret == Cstobj.RET_REST_ERROR:
+                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+            else:
+                # オペレーションID登録
+                ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
+                if ret != True:
+                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+                # オペレーション検索
+                ret, operation_data = self.ITAobj.select_operation(self.ary_ita_config, operation_name)
+                if ret != True:
+                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+            # パラメータシート登録情報作成
+            operation_id = operation_data[0][Cstobj.COL_OPERATION_NO_IDBH]
+            operation_name = operation_data[0][Cstobj.COL_OPERATION_NAME]
+            exec_schedule_date = '%s_%s:%s' % (
+                operation_data[0][Cstobj.COL_OPERATION_DATE],
+                operation_data[0][Cstobj.COL_OPERATION_NO_IDBH],
+                operation_data[0][Cstobj.COL_OPERATION_NAME])
+
+            for menu_id in menu_id_list:
+                menu_id = int(menu_id)
+                host_name = ''
+                param_list = []
+
+                if not parameter_list[menu_id]['host_name'] and hg_flg_info[menu_id] >= 0:
+                    logger.system_log(
+                        'LOSE01138', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                set_host = []
+                target_id = str(menu_id)
+                if target_id in target_host_name.keys():
+                    for h in target_host_name[target_id]['HG']:
+                        host_name_tmp = '[HG]%s' % (h) if hg_flg_info[menu_id] > 0 else h
+
+                        set_host.append(host_name_tmp)
+
+                    for h in target_host_name[target_id]['H']:
+                        host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] > 0 else h
+                        set_host.append(host_name_tmp)
+
+                if len(set_host) == 0 and menu_id in parameter_list and parameter_list[menu_id]['host_name']:
+                    for server in server_list:
+                        host_name_tmp = '[H]%s' % (h) if hg_flg_info[menu_id] > 0 else server
+                        set_host.append(host_name_tmp)
+
+                if len(set_host) == 0 and hg_flg_info[menu_id] < 0:
+                    set_host.append('')
+
+
+                param_list = parameter_list[menu_id]['param_list']
+
+                if len(set_host) == 0:
+                    # Error
+                    logger.system_log(
+                        'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                for sh in set_host:
+                    host_name = sh
+                    # 検索結果によりあったら、update なかったら、insert
+                    ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
+                        self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
+
+                    if ret_select is None:
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                    if ret_select > 0:
+                        col_revision = 3 if self.ita_driver.version in ['1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0', '1.7.1', '1.7.2', '1.8.0', '1.8.1', '1.8.2', '1.9.0'] else 2
+                        ret = self.ITAobj.update_c_parameter_sheet(
+                            self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result, col_revision)
+                    elif ret_select == 0:
+                        ret = self.ITAobj.insert_c_parameter_sheet(
+                            host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
+
+                    if ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
+
+            # 連携項目整形
+            parameter_item_info = self.make_parameter_item_info_menu(menu_id_list, rhdm_res_act, target_host_name)
+
+            # ITAアクション履歴登録
+            ret = self.ita_action_history_insert(
+                self.aryActionParameter,
+                symphony_instance_id,
+                operation_id,
+                symphony_url,
+                rhdm_res_act.execution_order,
+                conductor_instance_id,
+                conductor_url,
+                parameter_item_info
+            )
+            # 履歴の保存に失敗した場合は、異常終了とする
+            if ret == None:
+                return ACTION_EXEC_ERROR, DetailStatus
+
+            return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, DetailStatus
 
         # SERVER_LISTのパターン
         elif key_server_list in check_info:
@@ -586,15 +985,33 @@ class ITAManager(AbstractManager):
 
             return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, DetailStatus
 
-        ret = self.ITAobj.select_ope_ita_master(
-            self.ary_ita_config, operation_id)
-        if ret == Cstobj.RET_DATA_ERROR:
-            raise OASEError('', 'LOSE01128', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_id, self.trace_id], msg_params={
-                            'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
+        if operation_id:
+            ret = self.ITAobj.select_ope_ita_master(
+                self.ary_ita_config, operation_id)
+        else:
+            ret, operation_id = self.ITAobj.select_ope_name_ita_master(
+                self.ary_ita_config, operation_name)
 
-        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
+        if ret == Cstobj.RET_DATA_ERROR:
+            if key_operation_id in check_info:
+                raise OASEError(
+                    '',
+                    'LOSE01128',
+                    log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_id, self.trace_id],
+                    msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                )
+            else:
+                raise OASEError(
+                    '',
+                    'LOSE01128',
+                    log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
+                    msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                )
+
+        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter or 'SYMPHONY_NAME' in self.aryActionParameter:
             code, symphony_instance_id, symphony_url = self.ITAobj.symphony_execute(
                 self.ary_ita_config, operation_id)
+
             if symphony_instance_id == '':
                 instance_check = False
                 symphony_instance_id = None
@@ -754,6 +1171,86 @@ class ITAManager(AbstractManager):
         return parameter_item_info
 
 
+    def make_parameter_item_info_menu(self, menu_id_list, rhdm_res_act, target_host_name):
+        """
+        [概要]
+        """
+
+        menu_name = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
+        menu_name = menu_name.values('menu_id', 'menu_name')
+
+        param_item_info = ItaParameterItemInfo.objects.filter(
+            ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list).order_by('menu_id','ita_order','item_number')
+        param_item_info = param_item_info.values('menu_id', 'item_name', 'ita_order')
+
+        param_commit_info = ItaParametaCommitInfo.objects.filter(
+            response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('menu_id','ita_order')
+        param_commit_info = param_commit_info.values('menu_id', 'parameter_value', 'ita_order')
+
+        parameter_item_info = ''
+
+        for i,mn in enumerate(menu_name):
+            if i == 0:
+                parameter_item_info = str(mn['menu_id']) + ":" + mn['menu_name']
+            else:
+                parameter_item_info = parameter_item_info + ", " + str(mn['menu_id']) + ":" + mn['menu_name']
+
+            host_flg = False
+
+            for j,pii in enumerate(param_item_info):
+                menu_id_prev = 0
+                for k,pci in enumerate(param_commit_info):
+                    if mn['menu_id'] == pii['menu_id'] and mn['menu_id'] == pci['menu_id']:
+                        if menu_id_prev != pci['menu_id'] and \
+                           host_flg == False and \
+                           (len(target_host_name[str(mn['menu_id'])]['HG']) > 0 or \
+                           len(target_host_name[str(mn['menu_id'])]['H']) > 0):
+                            if target_host_name.get(str(mn['menu_id'])) != None:
+                                if len(target_host_name[str(mn['menu_id'])]['HG']) > 0 and \
+                                   len(target_host_name[str(mn['menu_id'])]['H']) > 0:
+                                    hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
+                                    h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
+                                    # TODO 多言語化対応
+                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                    parameter_item_info = parameter_item_info + hg_hostname
+                                    parameter_item_info = parameter_item_info + "," + h_hostname
+                                    host_flg = True
+                                elif len(target_host_name[str(mn['menu_id'])]['HG']) > 0:
+                                    hg_hostname = ",".join(target_host_name[str(mn['menu_id'])]['HG'])
+                                    # TODO 多言語化対応
+                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                    parameter_item_info = parameter_item_info + hg_hostname
+                                    host_flg = True
+                                elif len(target_host_name[str(mn['menu_id'])]['H']) > 0:
+                                    h_hostname = ",".join(target_host_name[str(mn['menu_id'])]['H'])
+                                    # TODO 多言語化対応
+                                    parameter_item_info = parameter_item_info + "[ホスト名/ホストグループ名:"
+                                    parameter_item_info = parameter_item_info + h_hostname
+                                    host_flg = True
+                            elif pci['ita_order'] == 0 and host_flg == False:
+                                # TODO 多言語化対応
+                                parameter_item_info = parameter_item_info + "[ホスト名:"
+                                parameter_item_info = parameter_item_info + pci['parameter_value']
+                                host_flg = True
+                        elif pci['ita_order'] == 0 and host_flg == False:
+                            # TODO 多言語化対応
+                            parameter_item_info = parameter_item_info + "[ホスト名:"
+                            parameter_item_info = parameter_item_info + pci['parameter_value']
+                            host_flg = True
+                        elif (pii['ita_order'] + 1) == pci['ita_order']:
+                            parameter_item_info = parameter_item_info + ", "
+                            parameter_item_info = parameter_item_info + pii['item_name']
+                            parameter_item_info = parameter_item_info + ":"
+                            parameter_item_info = parameter_item_info + pci['parameter_value']
+
+                    menu_id_prev = pci['menu_id']
+
+                if j == len(param_item_info) - 1:
+                    parameter_item_info = parameter_item_info + "]"
+
+        return parameter_item_info
+
+
     def act_with_menuid(self, act_his_id, exec_order, limit_dt):
         """
         [概要]
@@ -771,22 +1268,51 @@ class ITAManager(AbstractManager):
         instance_check = True
         DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
 
-        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
-            symphony_class_id = self.aryActionParameter['SYMPHONY_CLASS_ID']
-        else:
-            conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
-
-        self.ITAobj = ITA1Core(self.trace_id, symphony_class_id, self.response_id, exec_order, conductor_class_id)
+        self.ITAobj = ITA1Core(
+            self.trace_id,
+            self.symphony_class_id,
+            self.response_id,
+            exec_order,
+            self.conductor_class_id)
         self.set_ary_ita_config()
 
         if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
+            self.symphony_class_id = self.aryActionParameter['SYMPHONY_CLASS_ID']
+
+        elif 'CONDUCTOR_CLASS_ID' in self.aryActionParameter:
+            self.conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
+
+        elif 'SYMPHONY_NAME' in self.aryActionParameter:
+            symphony_name = self.aryActionParameter['SYMPHONY_NAME']
+            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, symphony_name)
+
+            if ret > 0:
+                logger.system_log('LOSE01145', self.trace_id, ret, symphony_name)
+                return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
+        else:
+            conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
+            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, conductor_name)
+
+            if ret > 0:
+                logger.system_log('LOSE01146', self.trace_id, ret, conductor_name)
+                return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
+        self.ITAobj = ITA1Core(
+            self.trace_id,
+            self.symphony_class_id,
+            self.response_id,
+            exec_order,
+            self.conductor_class_id)
+
+        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter or 'SYMPHONY_NAME' in self.aryActionParameter:
             code = self.ITAobj.select_symphony_movement_master(self.ary_ita_config, self.ary_movement_list)
         else:
             code = self.ITAobj.select_conductor_movement_master(self.ary_ita_config, self.ary_movement_list)
 
         if code > 0:
             logger.system_log('LOSE01107', self.trace_id, code)
-            return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+            return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         operation_name = '%s%s' % (self.trace_id, exec_order)
 
@@ -895,7 +1421,7 @@ class ITAManager(AbstractManager):
             logger.logic_log('LOSI00002', 'trace_id: %s, subst_count: %s, total_count: %s' % (self.trace_id, subst_count, total_count))
             return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, ACTION_HISTORY_STATUS.DETAIL_STS.NONE
 
-        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
+        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter or 'SYMPHONY_NAME' in self.aryActionParameter:
             # Symphony実行()
             code, symphony_instance_id, symphony_url = self.ITAobj.symphony_execute(
                 self.ary_ita_config, operation_id)
@@ -1019,17 +1545,44 @@ class ITAManager(AbstractManager):
         [概要]
         ITAアクション結果を取得
         """
-        symphony_class_id = None
-        conductor_class_id = None
+
+        self.ITAobj = ITA1Core(
+            self.trace_id,
+            self.symphony_class_id,
+            self.response_id,
+            execution_order,
+            self.conductor_class_id)
+        self.set_ary_ita_config()
 
         # ITAアクション オブジェクト生成
         if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
-            symphony_class_id = self.aryActionParameter['SYMPHONY_CLASS_ID']
-        else:
-            conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
+            self.symphony_class_id = self.aryActionParameter['SYMPHONY_CLASS_ID']
 
-        self.ITAobj = ITA1Core(self.trace_id, symphony_class_id, self.response_id, execution_order, conductor_class_id)
-        self.set_ary_ita_config()
+        elif 'CONDUCTOR_CLASS_ID' in self.aryActionParameter:
+            self.conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
+
+        elif 'SYMPHONY_NAME' in self.aryActionParameter:
+            symphony_name = self.aryActionParameter['SYMPHONY_NAME']
+            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, symphony_name)
+
+            if ret > 0:
+                logger.system_log('LOSE01145', self.trace_id, ret, symphony_name)
+                return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
+        else:
+            conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
+            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, conductor_name)
+
+            if ret > 0:
+                logger.system_log('LOSE01146', self.trace_id, ret, conductor_name)
+                return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
+        self.ITAobj = ITA1Core(
+            self.trace_id,
+            self.symphony_class_id,
+            self.response_id,
+            execution_order,
+            self.conductor_class_id)
 
         logger.logic_log('LOSI00001', 'self.trace_id: %s, action_his_id: %s' % (self.trace_id, action_his_id))
 
@@ -1042,7 +1595,7 @@ class ITAManager(AbstractManager):
             logger.logic_log('LOSE01127', self.trace_id, action_his_id)
             return action_status, detail_status
 
-        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
+        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter or 'SYMPHONY_NAME' in self.aryActionParameter:
             status_id = self.ITAobj.get_last_info(
                 self.ary_ita_config,
                 ita_act_his.symphony_instance_no,
@@ -1166,24 +1719,45 @@ class ITAManager(AbstractManager):
         
         """
 
-        symphony_class_id = None
-        conductor_class_id = None
+        self.ITAobj = ITA1Core(
+            self.trace_id,
+            self.symphony_class_id,
+            self.response_id,
+            execution_order,
+            self.conductor_class_id )
+        self.set_ary_ita_config()
 
         # ITAアクション オブジェクト生成
         if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
-            symphony_class_id = self.aryActionParameter['SYMPHONY_CLASS_ID']
+            self.symphony_class_id = self.aryActionParameter['SYMPHONY_CLASS_ID']
+
+        elif 'CONDUCTOR_CLASS_ID' in self.aryActionParameter:
+            self.conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
+
+        elif 'SYMPHONY_NAME' in self.aryActionParameter:
+            symphony_name = self.aryActionParameter['SYMPHONY_NAME']
+            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, symphony_name)
+
+            if ret > 0:
+                logger.system_log('LOSE01145', self.trace_id, ret, symphony_name)
+                return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
         else:
-            conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
+            conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
+            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, conductor_name)
+
+            if ret > 0:
+                logger.system_log('LOSE01146', self.trace_id, ret, conductor_name)
+                return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         self.ITAobj = ITA1Core(
             self.trace_id,
-            symphony_class_id,
+            self.symphony_class_id,
             self.response_id,
             execution_order,
-            conductor_class_id )
-        self.set_ary_ita_config()
+            self.conductor_class_id )
 
-        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter:
+        if 'SYMPHONY_CLASS_ID' in self.aryActionParameter or 'SYMPHONY_NAME' in self.aryActionParameter:
             code = self.ITAobj.select_ita_master(self.ary_ita_config, self.listActionServer, self.ary_movement_list, self.ary_action_server_id_name)
         else:
             code = self.ITAobj.select_ita_master_conductor(self.ary_ita_config, self.listActionServer, self.ary_movement_list, self.ary_action_server_id_name)
@@ -1301,27 +1875,50 @@ class ITAManager(AbstractManager):
             ret_info = {'msg_id':'MOSJA01006', 'key':'ITA_NAME'}
             return ret_info
 
-        # 排他キー(SYMPHONY_CLASS_ID, CONDUCTOR_CLASS_ID)チェック
+        # 排他キー(SYMPHONY_CLASS_ID, SYMPHONY_NAME, CONDUCTOR_CLASS_ID, CONDUCTOR_NAME)チェック
         key_exists_count = 0
-        matual_exclusive_keys = ['SYMPHONY_CLASS_ID', 'CONDUCTOR_CLASS_ID']
+        matual_exclusive_keys = ['SYMPHONY_CLASS_ID', 'SYMPHONY_NAME', 'CONDUCTOR_CLASS_ID', 'CONDUCTOR_NAME']
         for exkey in matual_exclusive_keys:
             if exkey in self.aryActionParameter:
                 key_exists_count += 1
 
         # キーが排他的ではない
         if key_exists_count > 1:
-            ret_info = {'msg_id':'MOSJA01062', 'key':['SYMPHONY_CLASS_ID', 'CONDUCTOR_CLASS_ID']}
+            ret_info = {'msg_id':'MOSJA01062', 'key':['SYMPHONY_CLASS_ID', 'SYMPHONY_NAME', 'CONDUCTOR_CLASS_ID', 'CONDUCTOR_NAME']}
             return ret_info
 
         # いずれのキーも存在しない
         elif key_exists_count < 1:
-            ret_info = {'msg_id':'MOSJA01063', 'key':['SYMPHONY_CLASS_ID', 'CONDUCTOR_CLASS_ID']}
+            ret_info = {'msg_id':'MOSJA01063', 'key':['SYMPHONY_CLASS_ID', 'SYMPHONY_NAME', 'CONDUCTOR_CLASS_ID', 'CONDUCTOR_NAME']}
             return ret_info
 
         # キーは存在するが値が不完全
-        if (('SYMPHONY_CLASS_ID' in self.aryActionParameter and not self.aryActionParameter['SYMPHONY_CLASS_ID']) \
-        or  ('CONDUCTOR_CLASS_ID'  in self.aryActionParameter and not self.aryActionParameter['CONDUCTOR_CLASS_ID'])):
-            ret_info = {'msg_id':'MOSJA01063', 'key':['SYMPHONY_CLASS_ID', 'CONDUCTOR_CLASS_ID']}
+        if (('SYMPHONY_CLASS_ID'  in self.aryActionParameter and not self.aryActionParameter['SYMPHONY_CLASS_ID']) \
+        or  ('SYMPHONY_NAME'      in self.aryActionParameter and not self.aryActionParameter['SYMPHONY_NAME']) \
+        or  ('CONDUCTOR_CLASS_ID' in self.aryActionParameter and not self.aryActionParameter['CONDUCTOR_CLASS_ID']) \
+        or  ('CONDUCTOR_NAME'     in self.aryActionParameter and not self.aryActionParameter['CONDUCTOR_NAME'])):
+            ret_info = {'msg_id':'MOSJA01063', 'key':['SYMPHONY_CLASS_ID', 'SYMPHONY_NAME', 'CONDUCTOR_CLASS_ID', 'CONDUCTOR_NAME']}
+            return ret_info
+
+        # キー(OPERATION_ID, OPERATION_NAME, SERVER_LIST, MENU_ID, MENU)の有無をチェック
+        key_exists_count = 0
+        key_menu = ['OPERATION_ID', 'OPERATION_NAME', 'SERVER_LIST', 'MENU_ID','MENU']
+        for key in key_menu:
+            if key in self.aryActionParameter:
+                key_exists_count += 1
+
+        # いずれのキーも存在しない
+        if key_exists_count < 1:
+            ret_info = {'msg_id':'MOSJA01063', 'key':['OPERATION_ID', 'OPERATION_NAME', 'SERVER_LIST', 'MENU_ID','MENU']}
+            return ret_info
+
+        # キーは存在するが値が不完全
+        if (('OPERATION_ID'   in self.aryActionParameter and not self.aryActionParameter['OPERATION_ID']) \
+        or  ('OPERATION_NAME' in self.aryActionParameter and not self.aryActionParameter['OPERATION_NAME']) \
+        or  ('SERVER_LIST'    in self.aryActionParameter and not self.aryActionParameter['SERVER_LIST']) \
+        or  ('MENU_ID'        in self.aryActionParameter and not self.aryActionParameter['MENU_ID']) \
+        or  ('MENU'           in self.aryActionParameter and not self.aryActionParameter['MENU'])):
+            ret_info = {'msg_id':'MOSJA01063', 'key':['OPERATION_ID', 'OPERATION_NAME', 'SERVER_LIST', 'MENU_ID','MENU']}
             return ret_info
 
         # 排他キー(OPERATION_ID, SERVER_LIST, MENU_ID)チェック
@@ -1336,16 +1933,16 @@ class ITAManager(AbstractManager):
             ret_info = {'msg_id':'MOSJA01062', 'key':['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
             return ret_info
 
-        # いずれのキーも存在しない
-        elif key_exists_count < 1:
-            ret_info = {'msg_id':'MOSJA01063', 'key':['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
-            return ret_info
+        # 排他キー(MENU_ID, MENU)チェック
+        key_exists_count = 0
+        matual_exclusive_keys = ['MENU_ID', 'MENU']
+        for exkey in matual_exclusive_keys:
+            if exkey in self.aryActionParameter:
+                key_exists_count += 1
 
-        # キーは存在するが値が不完全
-        if (('OPERATION_ID' in self.aryActionParameter and not self.aryActionParameter['OPERATION_ID']) \
-        or  ('SERVER_LIST'  in self.aryActionParameter and not self.aryActionParameter['SERVER_LIST']) \
-        or  ('MENU_ID'      in self.aryActionParameter and not self.aryActionParameter['MENU_ID'])):
-            ret_info = {'msg_id':'MOSJA01063', 'key':['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
+        # キーが排他的ではない
+        if key_exists_count > 1:
+            ret_info = {'msg_id':'MOSJA01062', 'key':['MENU_ID', 'MENU']}
             return ret_info
 
         return ret_info

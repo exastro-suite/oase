@@ -837,6 +837,20 @@ class ActionDriverSubModules:
 
             update_action_history(self.action_history, status, detail, self.user)
 
+        except OASEError as e:
+            if e.log_id:
+                if e.arg_list and isinstance(e.arg_list, list):
+                    logger.system_log(e.log_id, *(e.arg_list))
+                else:
+                    logger.system_log(e.log_id)
+
+            else:
+                logger.system_log('LOSE01119', traceback.format_exc())
+
+            status = self.check_retry_status(ACTION_EXEC_ERROR, rhdm_res_act, revision=1)
+            self.action_history.action_retry_count += 1
+            update_action_history(self.action_history, status, detail, self.user)
+
         except Exception as e:
             logger.system_log('LOSE01119', traceback.format_exc())
             status = self.check_retry_status(ACTION_EXEC_ERROR, rhdm_res_act, revision=1)
@@ -920,6 +934,20 @@ class ActionDriverSubModules:
             # 正常終了の場合
             if status == PROCESSED:
                 ActCommon.SaveActionLog(self.response_id, execution_order, self.trace_id, 'MOSJA01043')
+
+        except OASEError as e:
+            if e.log_id:
+                if e.arg_list and isinstance(e.arg_list, list):
+                    logger.system_log(e.log_id, *(e.arg_list))
+                else:
+                    logger.system_log(e.log_id)
+
+            else:
+                logger.system_log('LOSE01119', traceback.format_exc())
+
+            status = SERVER_ERROR
+            detail = ACTION_HISTORY_STATUS.DETAIL_STS.NONE
+            update_action_history(self.action_history, status, detail, self.user, retry=True)
 
         except Exception as e:
             status = SERVER_ERROR
@@ -1146,10 +1174,15 @@ class ActionDriverSubModules:
             self.driver_manager.set_information(rhdm_res_act, act_his)
             status, detail = self.driver_manager.get_last_info(act_his_id, rhdm_res_act.execution_order)
 
-            if status is None or detail is None:
+            if status is None or detail is None or status is ACTION_EXEC_ERROR:
                 ActCommon.SaveActionLog(
                     act_his.response_id, act_his.execution_order, trace_id, 'MOSJA01055', status=status, detail=detail
                 )
+
+                # アクション履歴のステータス更新
+                retry_flag = True if act_his.retry_status is not None else False
+                update_action_history(act_his, status, detail, self.user, retry=retry_flag)
+
                 return False
 
             # アクション履歴のステータス更新

@@ -618,13 +618,20 @@ class ITA1Core(DriverCore):
             Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
             Cstobj.COL_OPERATION_NO_IDBH: {'LIST': {1: operation_id}}
         }
+
         ary_result = {}
         ret = self.restobj.rest_select(aryfilter, ary_result)
         if ret:
             row_count  = self.restobj.rest_get_row_count(ary_result)
             if row_count < 1:
                 # オペレーション未登録
-                logger.system_log('LOSE01022', self.trace_id, target_table, self.response_id, self.execution_order, operation_id)
+                logger.system_log(
+                    'LOSE01022',
+                    self.trace_id,
+                    target_table,
+                    self.response_id,
+                    self.execution_order,
+                    operation_id)
                 logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
                 ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01026')
                 return Cstobj.RET_DATA_ERROR
@@ -639,6 +646,60 @@ class ITA1Core(DriverCore):
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
+
+
+    def select_c_operation_name_list(self, ary_config, operation_name, row_data):
+        """
+        [概要]
+        投入オペレーション一覧検索メゾット(operation_name指定)
+        オペレーション検索結果とオペレーションIDを取得
+        """
+        logger.logic_log(
+            'LOSI00001', 'trace_id: %s, ary_config: %s, operation_name: %s' %
+            (self.trace_id, ary_config, operation_name))
+        target_table = 'C_OPERATION_LIST'
+        ary_config['menuID'] = '2100000304'
+        self.restobj.rest_set_config(ary_config)
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            Cstobj.COL_OPERATION_NAME: {'LIST': {1: operation_name}}
+        }
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+
+        if ret:
+            row_count  = self.restobj.rest_get_row_count(ary_result)
+            if row_count < 1:
+                # オペレーション未登録
+                logger.system_log(
+                    'LOSE01022',
+                    self.trace_id,
+                    target_table,
+                    self.response_id,
+                    self.execution_order,
+                    operation_name)
+                logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id,
+                    self.execution_order,
+                    self.trace_id,
+                    'MOSJA01026')
+                return Cstobj.RET_DATA_ERROR
+
+            select_data = self.restobj.rest_get_row_data(ary_result)
+            for row in select_data:
+                row_data.append(row)
+
+        else:
+            logger.system_log('LOSE01000', self.trace_id, target_table, 'Filter', ary_result['status'])
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_REST_ERROR))
+            ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01026')
+            return Cstobj.RET_REST_ERROR
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0
+
 
     def select_c_movement_class_mng(self, result):
         """
@@ -868,6 +929,31 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, '0'))
         return 0
 
+
+    def select_ope_name_ita_master(self, ary_ita_config, operation_name):
+        """
+        登録されてるオペレーション名検索
+        """
+        logger.logic_log(
+            'LOSI00001', 'trace_id: %s, ary_ita_config: %s, operation_name: %s' %
+            (self.trace_id, ary_ita_config, operation_name))
+
+        logger.system_log('LOSI01000', 'C_OPERATION_LIST select', self.trace_id)
+
+        row_data_000304 = []
+        operation_id = 0
+        ret = self.select_c_operation_name_list(ary_ita_config, operation_name, row_data_000304)
+        if ret > 0:
+            logger.system_log('LOSE01011', self.trace_id, 'C_PATTERN_PER_ORCH', self.response_id, self.execution_order)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret, operation_id
+
+        operation_id = row_data_000304[0][Cstobj.COL_OPERATION_NO_IDBH]
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, '0'))
+        return 0, operation_id
+
+
     def symphony_execute(self, ary_ita_config, operation_id):
         """
         [概要]
@@ -906,6 +992,56 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0, symphony_instance_id, symphony_url
 
+
+    def select_symphony(self, ary_config, symphony_name):
+        """
+        [概要]
+        SymphonyクラスID検索
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s, ary_config: %s, symphony_name: %s' %
+                         (self.trace_id, ary_config, symphony_name))
+        logger.system_log('LOSI01000', 'Symphony Select', self.trace_id)
+
+        row_data = []
+        target_table = 'C_SYMPHONY_CLASS_MNG'
+        ary_config['menuID'] = '2100000307'
+        symphony_class_id = None
+        self.restobj.rest_set_config(ary_config)
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            Cstobj.CSCM_SYMPHONY_NAME: {'LIST': {1: symphony_name}}
+        }
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+        if ret:
+            row_count  = self.restobj.rest_get_row_count(ary_result)
+            if row_count < 1:
+                # Symphony未登録
+                logger.system_log(
+                    'LOSE01029',
+                    self.trace_id,
+                    target_table,
+                    self.response_id,
+                    self.execution_order,
+                    symphony_name)
+                logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id,
+                    self.execution_order,
+                    self.trace_id,
+                    'MOSJA01119')
+                return Cstobj.RET_DATA_ERROR, symphony_class_id
+
+            select_data = self.restobj.rest_get_row_data(ary_result)
+            for row in select_data:
+                row_data.append(row)
+            symphony_class_id = row_data[0][Cstobj.CSCM_SYMPHONY_CLASS_ID]
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0, symphony_class_id
+
+
     def conductor_execute(self, ary_ita_config, operation_id):
         """
         [概要]
@@ -943,6 +1079,56 @@ class ITA1Core(DriverCore):
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0, conductor_instance_id, conductor_url
+
+
+    def select_conductor(self, ary_config, conductor_name):
+        """
+        [概要]
+        conductorクラスID検索
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s, ary_config: %s, conductor_name: %s' %
+                         (self.trace_id, ary_config, conductor_name))
+        logger.system_log('LOSI01000', 'Conductor Select', self.trace_id)
+
+        row_data = []
+        target_table = 'C_CONDUCTOR_EDIT_CLASS_MNG'
+        ary_config['menuID'] = '2100180002'
+        conductor_class_id = 0
+        self.restobj.rest_set_config(ary_config)
+        aryfilter = {
+            Cstobj.COL_DISUSE_FLAG: {'NORMAL': '0'},
+            Cstobj.CCCM_CONDUCTOR_NAME: {'LIST': {1: conductor_name}}
+        }
+
+        ary_result = {}
+        ret = self.restobj.rest_select(aryfilter, ary_result)
+        if ret:
+            row_count  = self.restobj.rest_get_row_count(ary_result)
+            if row_count < 1:
+                # Conductor未登録
+                logger.system_log(
+                    'LOSE01030',
+                    self.trace_id,
+                    target_table,
+                    self.response_id,
+                    self.execution_order,
+                    conductor_name)
+                logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id,
+                    self.execution_order,
+                    self.trace_id,
+                    'MOSJA01120')
+                return Cstobj.RET_DATA_ERROR, conductor_class_id
+
+            select_data = self.restobj.rest_get_row_data(ary_result)
+            for row in select_data:
+                row_data.append(row)
+            conductor_class_id = row_data[0][Cstobj.CCCM_CONDUCTOR_CLASS_ID]
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0, conductor_class_id
+
 
     def get_last_info(self, ary_config, symphony_instance_no, operation_id):
         """
