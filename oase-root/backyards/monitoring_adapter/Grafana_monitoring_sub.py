@@ -211,13 +211,11 @@ class GrafanaAdapterSubModules:
             logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
 
         logger.logic_log('LOSI00002', 'None')
-
-        
+ 
         return result, api_response, last_monitoring_time
 
 
     def _parser(self, idx, data_tmp, key_list, parse_list):
-
 
         while idx < len(key_list):
             k = key_list[idx]
@@ -280,9 +278,7 @@ class GrafanaAdapterSubModules:
 
             # エポック秒の場合は、整数に型キャスト
             try:
-
                 ret_val = int(val)
-
                 return ret_val
 
             except Exception as e:
@@ -384,7 +380,6 @@ class GrafanaAdapterSubModules:
 
             check_ev_len_list.append(len(tmp_list))
             evinfo_tmp_list.append(tmp_list)
-
 
         # ルール条件数とパースされたイベント情報数が同一であること
         ev_len = 0
