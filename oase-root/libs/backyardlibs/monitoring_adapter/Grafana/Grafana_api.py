@@ -171,25 +171,3 @@ class GrafanaApi(object):
             return True
 
 
-if __name__ == '__main__':
-    GrafanaAdapter = GrafanaAdapter(
-                grafana_disp_name = 'a',
-                uri              = 'http://10.197.18.217:3000/',
-                username         = 'admin',
-                password         = '90ecc336d6200b1389eb49c4b557ee42892345c2f727453ae82c96e6de94098e',
-                match_evtime     = '',
-                match_instance   = '',
-                rule_type_id     = '1',
-                last_update_user = 'admin'
-            )
-
-    api = GrafanaApi(GrafanaAdapter)
-    his_lastchange = 0
-    response = api.get_active_triggers('2021-01-01T00:00:00.000Z','2021-03-01T00:00:00.000Z')
-
-    pprint.pprint(response)
-
-    # ログアウト
-    #result = api.logout()
-
-
