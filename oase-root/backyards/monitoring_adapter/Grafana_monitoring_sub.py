@@ -211,7 +211,7 @@ class GrafanaAdapterSubModules:
             logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
 
         logger.logic_log('LOSI00002', 'None')
- 
+
         return result, api_response, last_monitoring_time
 
 
