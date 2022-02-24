@@ -180,25 +180,3 @@ class PrometheusApi(object):
             return True
 
 
-if __name__ == '__main__':
-    PrometheusAdapter = PrometheusAdapter(
-                prometheus_disp_name = 'a',
-                uri              = 'http://10.197.17.180:30090/api/v1/query_range',
-                username         = '',
-                password         = '',
-                metric           = 'UP',
-                label            = 'ALL',
-                rule_type_id     = '1',
-                last_update_user = 'admin'
-            )
-
-    api = PrometheusApi(PrometheusAdapter)
-    his_lastchange = 0
-    response = api.get_active_triggers('2021-01-01T00:00:00.000Z','2021-03-01T00:00:00.000Z')
-
-    pprint.pprint(response)
-
-    # ログアウト
-    #result = api.logout()
-
-

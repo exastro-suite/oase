@@ -314,6 +314,7 @@ class GrafanaAdapterSubModules:
             dt_tmp = dt_tmp.replace(tzinfo=pytz.timezone('UTC'))
             ret_val = dt_tmp.timestamp()
 
+            ret_val = int(ret_val)
             return ret_val
 
 
@@ -464,7 +465,8 @@ class GrafanaAdapterSubModules:
                     if not runnable:
                         raise Exception()
 
-                    flag_array = triggerManager.main(confirm_list)
+                    str_confirm_list = [(str(instance), ev_time) for instance, ev_time in confirm_list]
+                    flag_array = triggerManager.main(str_confirm_list)
 
                     runnable, evinfo_list = self.eventinfo_parse(result_data)
                     if not runnable:
