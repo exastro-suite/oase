@@ -313,7 +313,7 @@ class ITA1Rest:
                     ary_result['response'] = json_string
                     logger.system_log('LOSM01302', self.trace_id, ary_result['status'], ary_result['response'])
                     logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
-                    return False
+                    return False, ary_result['response']
 
                 if ary_result['response']['resultdata']['LIST']['RAW'][0][0] != '000' or \
                    ary_result['response']['resultdata']['LIST']['NORMAL'][kind]['ct'] == 0 or \
@@ -322,7 +322,7 @@ class ITA1Rest:
                     ary_result['response'] = ary_result['response']['resultdata']['LIST']['RAW'][0][2]
                     logger.system_log('LOSM01302', self.trace_id, ary_result['status'], ary_result['response'])
                     logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
-                    return False
+                    return False, ary_result['response']
 
             except Exception as ex:
                 ary_result['status'] = '-1'
@@ -331,7 +331,7 @@ class ITA1Rest:
                     str(response.status_code) + '\nresponse.text\n' + response.text
                 logger.system_log('LOSM01301', self.trace_id, traceback.format_exc())
                 logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
-                return False
+                return False, ary_result['response']
 
         except Exception as ex:
             ary_result['status'] = '-1'
@@ -339,10 +339,10 @@ class ITA1Rest:
             ary_result['response'] = back_trace + '\nhttp header\n' + str(headers)
             logger.system_log('LOSM01301', self.trace_id, traceback.format_exc())
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'False'))
-            return False
+            return False, ary_result['response']
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
-        return True
+        return True, ary_result['response']
 
     def rest_select(self, aryfilter, ary_result):
         """
@@ -603,7 +603,7 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
 
-    def select_c_operation_list(self, ary_config, operation_id, row_data):
+    def select_c_operation_list(self, ary_config, operation_id, row_data, flg=True):
         """
         [概要]
         投入オペレーション一覧検索メゾット
@@ -633,7 +633,8 @@ class ITA1Core(DriverCore):
                     self.execution_order,
                     operation_id)
                 logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
-                ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01026')
+                if flg:
+                    ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01026')
                 return Cstobj.RET_DATA_ERROR
             select_data = self.restobj.rest_get_row_data(ary_result)
             for row in select_data:
@@ -648,7 +649,7 @@ class ITA1Core(DriverCore):
         return 0
 
 
-    def select_c_operation_name_list(self, ary_config, operation_name, row_data):
+    def select_c_operation_name_list(self, ary_config, operation_name, row_data, flg):
         """
         [概要]
         投入オペレーション一覧検索メゾット(operation_name指定)
@@ -680,11 +681,18 @@ class ITA1Core(DriverCore):
                     self.execution_order,
                     operation_name)
                 logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, Cstobj.RET_DATA_ERROR))
-                ActionDriverCommonModules.SaveActionLog(
-                    self.response_id,
-                    self.execution_order,
-                    self.trace_id,
-                    'MOSJA01026')
+                if flg:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA01026')
+                else:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA01056')
                 return Cstobj.RET_DATA_ERROR
 
             select_data = self.restobj.rest_get_row_data(ary_result)
@@ -930,7 +938,26 @@ class ITA1Core(DriverCore):
         return 0
 
 
-    def select_ope_name_ita_master(self, ary_ita_config, operation_name):
+    def select_operation_id(self, ary_ita_config, operation_id):
+        """
+        登録されてるオペレーションID検索
+        検索で取得したデータを返却する
+        """
+        logger.logic_log(
+            'LOSI00001', 'trace_id: %s, ary_ita_config: %s, operation_id: %s' %
+            (self.trace_id, ary_ita_config, operation_id))
+
+        row_data = []
+        ret = self.select_c_operation_list(ary_ita_config, operation_id, row_data, False)
+        if ret > 0:
+            logger.system_log('LOSE01011', self.trace_id, 'C_PATTERN_PER_ORCH', self.response_id, self.execution_order)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret, row_data
+
+        return 0, row_data
+
+
+    def select_ope_name_ita_master(self, ary_ita_config, operation_name, flg=True):
         """
         登録されてるオペレーション名検索
         """
@@ -942,7 +969,7 @@ class ITA1Core(DriverCore):
 
         row_data_000304 = []
         operation_id = 0
-        ret = self.select_c_operation_name_list(ary_ita_config, operation_name, row_data_000304)
+        ret = self.select_c_operation_name_list(ary_ita_config, operation_name, row_data_000304, flg)
         if ret > 0:
             logger.system_log('LOSE01011', self.trace_id, 'C_PATTERN_PER_ORCH', self.response_id, self.execution_order)
             logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
@@ -1272,6 +1299,76 @@ class ITA1Core(DriverCore):
         return 0
 
 
+    def insert_working_host(self, configs, movements, action_server_id_names, operation_id, operation_name):
+        """
+        [概要]
+          作業対象ホスト登録
+        """
+        logger.logic_log(
+            'LOSI00001',
+            'trace_id:%s, configs:%s, movements:%s, action_server_id_names:%s, operation_id:%s, operation_name:%s' %
+            (self.trace_id, configs, movements, action_server_id_names, operation_id, operation_name))
+
+        operation_id_name = operation_id + ':' + operation_name
+        self.restobj.rest_set_config(configs)
+
+        for movement_id, Items in movements.items():
+            if movements[movement_id]['ORCHESTRATOR_ID'] == '3':
+                self.restobj.menu_id = '2100020108'
+                target_table = 'B_ANSIBLE_LNS_PHO_LINK'
+            elif movements[movement_id]['ORCHESTRATOR_ID'] == '4':
+                self.restobj.menu_id = '2100020209'
+                target_table = 'B_ANSIBLE_PNS_PHO_LINK'
+            elif movements[movement_id]['ORCHESTRATOR_ID'] == '5':
+                self.restobj.menu_id = '2100020310'
+                target_table = 'B_ANSIBLE_LRL_PHO_LINK'
+            else:
+                continue
+
+            movement_id_name = movements[movement_id]['MovementIDName']
+            for server_name in action_server_id_names:
+                server_id_name = action_server_id_names[server_name]
+
+                aryfilter = {}
+                aryfilter[Cstobj.COL_DISUSE_FLAG] = {'NORMAL': '0'}
+                aryfilter[Cstobj.BAPL_OPERATION_NO_UAPK] = {'LIST': {1: operation_id_name}}
+                aryfilter[Cstobj.BAPL_PATTERN_ID] = {'LIST': {1: movement_id_name}}
+                aryfilter[Cstobj.BAPL_SYSTEM_ID] = {'LIST': {1: server_id_name}}
+
+                ary_result = {}
+                ret = self.restobj.rest_select(aryfilter, ary_result)
+
+                if ret:
+                    row_count  = self.restobj.rest_get_row_count(ary_result)
+                    if row_count < 1:
+                        row_data_bapl = {}
+                        row_data_bapl[Cstobj.COL_FUNCTION_NAME] = '登録'
+                        row_data_bapl[Cstobj.BAPL_OPERATION_NO_UAPK] = operation_id_name
+                        row_data_bapl[Cstobj.BAPL_PATTERN_ID] = movement_id_name
+                        row_data_bapl[Cstobj.BAPL_SYSTEM_ID] = server_id_name
+
+                        ret = self._insert_b_ansible_pho_link(target_table, row_data_bapl)
+                        if ret > 0:
+                            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+                            return Cstobj.RET_REST_ERROR
+                else:
+                    logger.system_log(
+                        'LOSE01025',
+                        self.trace_id,
+                        self.restobj.menu_id,
+                        'Filter',
+                        ary_result['status'])
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA01127')
+                    return Cstobj.RET_REST_ERROR
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0
+
+
     def insert_operation(self, configs):
         """
         [概要]
@@ -1293,6 +1390,36 @@ class ITA1Core(DriverCore):
 
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return True, operation_name
+
+
+    def insert_operation_name(self, configs, operation_name):
+        """
+        [概要]
+          ユーザ任意のオペレーション名でオペレーション登録メゾット
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s, operation_name: %s' %
+            (self.trace_id, operation_name))
+
+        operation_data = {}
+        operation_data[Cstobj.COL_FUNCTION_NAME] = '登録'
+        operation_data[Cstobj.COL_OPERATION_NAME] = operation_name
+        operation_data[Cstobj.COL_OPERATION_DATE] = datetime.datetime.now(pytz.timezone('UTC')).strftime("%Y/%m/%d")
+
+        self.restobj.rest_set_config(configs)
+        row_data = []
+        ret = self._insert_c_operation_list(operation_data)
+        if ret > 0:
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret, row_data
+
+        ret = self._select_c_operation_list_by_operation_name(operation_name, row_data)
+        if ret > 0:
+            logger.system_log('LOSE01011', self.trace_id, 'C_PATTERN_PER_ORCH', self.response_id, self.execution_order)
+            logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, ret))
+            return ret, row_data
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0, row_data
 
 
     def select_operation(self, configs, operation_name, log_flg=True):
@@ -1321,12 +1448,23 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00001', 'trace_id: %s' % self.trace_id)
         self.restobj.menu_id = '2100000304'
         ary_result = {}
-        ret = self.restobj.rest_insert(insert_row_data, ary_result)
+        ret, dic_api = self.restobj.rest_insert(insert_row_data, ary_result)
+
         if not ret:
             target_table = 'C_OPERATION_LIST'
             logger.system_log('LOSE01021', self.trace_id, target_table, self.response_id, self.execution_order)
             logger.system_log('LOSE01000', self.trace_id, target_table, 'Insert', ary_result['status'])
-            ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01025')
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA01025')
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA13138',
+                dic_api=dic_api)
             return Cstobj.RET_REST_ERROR
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
@@ -1358,13 +1496,23 @@ class ITA1Core(DriverCore):
             row_data_000001[Cstobj.COL_PARAMETER + add_col_no + i] = p
 
         result = {}
-        ret = self.restobj.rest_insert(row_data_000001, result)
+        ret, dic_api = self.restobj.rest_insert(row_data_000001, result)
+
         if not ret:
             target_table = 'C_PARAMETER_SHEET'
             logger.system_log('LOSE01021', self.trace_id, target_table, self.response_id, self.execution_order)
             logger.system_log('LOSE01000', self.trace_id, target_table, 'Insert', result['status'])
             ActionDriverCommonModules.SaveActionLog(
-                self.response_id, self.execution_order, self.trace_id, 'MOSJA01066')
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA01066')
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA13138',
+                dic_api=dic_api)
             return Cstobj.RET_REST_ERROR
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
@@ -1403,13 +1551,22 @@ class ITA1Core(DriverCore):
         update_data[Cstobj.COL_PARAMETER + add_col_no + i + col_revision + 1] = select_data[0][Cstobj.COL_PARAMETER + add_col_no + i + col_revision + 1]
 
         result = {}
-        ret = self.restobj.rest_insert(update_data, result, 'update')
+        ret, dic_api = self.restobj.rest_insert(update_data, result, 'update')
         if not ret:
             target_table = 'C_PARAMETER_SHEET'
             logger.system_log('LOSE01028', self.trace_id, target_table, self.response_id, self.execution_order)
             logger.system_log('LOSE01000', self.trace_id, target_table, 'Update', result['status'])
             ActionDriverCommonModules.SaveActionLog(
-                self.response_id, self.execution_order, self.trace_id, 'MOSJA01084')
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA01084')
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA13138',
+                dic_api=dic_api)
             return Cstobj.RET_REST_ERROR
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
@@ -1457,11 +1614,22 @@ class ITA1Core(DriverCore):
         """
         logger.logic_log('LOSI00001', 'trace_id: %s, target_table: %s' % (self.trace_id, target_table))
         ary_result = {}
-        ret = self.restobj.rest_insert(insert_row_data, ary_result)
+        ret, dic_api = self.restobj.rest_insert(insert_row_data, ary_result)
+
         if not ret:
             logger.system_log('LOSE01021', self.trace_id, target_table, self.response_id, self.execution_order)
             logger.system_log('LOSE01000', self.trace_id, target_table, 'Insert', ary_result['status'])
-            ActionDriverCommonModules.SaveActionLog(self.response_id, self.execution_order, self.trace_id, 'MOSJA01027')
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA01027')
+            ActionDriverCommonModules.SaveActionLog(
+                self.response_id,
+                self.execution_order,
+                self.trace_id,
+                'MOSJA13138',
+                dic_api=dic_api)
             return Cstobj.RET_REST_ERROR
         logger.logic_log('LOSI00002', 'trace_id: %s, return: 0' % self.trace_id)
         return 0

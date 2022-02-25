@@ -43,6 +43,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     server_list = None
     menu_id = None
     exclusive = 0
+    coexist = 0
 
     # パラメーター情報取得
     check_info = ITAManager.analysis_parameters(params)
@@ -100,15 +101,11 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     # OPERATION_ID チェック
     elif 'OPERATION_ID' in check_info:
         operation_id = check_info['OPERATION_ID']
-
-        exclusive = exclusive + 1
         message_list = operation_id_check(operation_id, check_info, conditions, message_list)
 
     # OPERATION_NAME チェック
     elif 'OPERATION_NAME' in check_info:
         operation_name = check_info['OPERATION_NAME']
-
-        exclusive = exclusive + 1
         message_list = operation_name_check(operation_name, check_info, conditions, message_list)
 
     # SERVER_LIST チェック
@@ -121,6 +118,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     if 'MENU_ID' in check_info:
         menu_id = check_info['MENU_ID']
         exclusive = exclusive + 1
+        coexist = coexist + 1
         message_list = menu_id_check(menu_id, check_info, conditions, message_list)
 
     # MENU チェック
@@ -145,14 +143,20 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         check_info['MENU'] = ('=').join(parameters.split('=')[1:])
         ita_name = check_info['ITA_NAME']
         flg = act_info[check_info['ITA_NAME']] if 'ITA_NAME' in check_info and check_info['ITA_NAME'] in act_info else False
-
+        coexist = coexist + 1
         messsage_list = into_parameter_check(check_info, flg, message_list)
 
-    # OPERATION_ID OPERATION_NAME SERVER_LIST MENU_ID 共存チェック
+    # SERVER_LIST MENU_ID 共存チェック
     if exclusive > 1:
         logger.logic_log('LOSM00024', check_info)
         message_list.append(
-            {'id': 'MOSJA03139', 'param': 'OPERATION_ID, OPERATION_NAME, SERVER_LIST, MENU_ID'})
+            {'id': 'MOSJA03139', 'param': 'SERVER_LIST, MENU_ID'})
+
+    # MENU_ID MENU 共存チェック
+    if coexist > 1:
+        logger.logic_log('LOSM00056', check_info)
+        message_list.append(
+            {'id': 'MOSJA03139', 'param': 'MENU_ID, MENU'})
 
     return message_list
 
