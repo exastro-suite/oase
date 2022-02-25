@@ -1867,7 +1867,6 @@ class ITAManager(AbstractManager):
 
         else:
             conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
-            conductor_name = 'aaa'
             ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, conductor_name)
 
             if ret > 0:
