@@ -225,32 +225,8 @@ class ITAManager(AbstractManager):
         key_operation_name = 'OPERATION_NAME'
         check_info = self.analysis_parameters(param_info[key1])
 
-        # OPERATION_IDのパターン
-        if key_operation_id in check_info:
-            if len(check_info[key_operation_id]) == 0:
-                ActionDriverCommonModules.SaveActionLog(
-                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01059')
-                raise OASEError('', 'LOSE01128', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_id, self.trace_id], msg_params={
-                                'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
-
-            operation_id = check_info[key_operation_id]
-
-        # OPERATION_NAMEのパターン
-        elif key_operation_name in check_info:
-            if len(check_info[key_operation_name]) == 0:
-                ActionDriverCommonModules.SaveActionLog(
-                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01118')
-                raise OASEError(
-                    '',
-                    'LOSE01144',
-                    log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
-                    msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
-                )
-
-            operation_name = check_info[key_operation_name]
-
         # MENUのパターン
-        elif key_menu in check_info:
+        if key_menu in check_info:
             if len(check_info[key_menu]) == 0:
                 ActionDriverCommonModules.SaveActionLog(
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01117')
@@ -294,6 +270,32 @@ class ITAManager(AbstractManager):
                         '',
                         'LOSE01140',
                         log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_dt_host_name, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+            if key_operation_id in check_info:
+                operation_id = check_info[key_operation_id]
+                if not operation_id:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01059')
+
+                    raise OASEError(
+                        '',
+                        'LOSE01128',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+            elif key_operation_name in check_info:
+                operation_name = check_info[key_operation_name]
+                if not operation_name:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01118')
+
+                    raise OASEError(
+                        '',
+                        'LOSE01144',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
                         msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
                     )
 
@@ -488,14 +490,109 @@ class ITAManager(AbstractManager):
 
             operation_data = []
             if retry:
-                operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
-                ret = self.ITAobj._select_c_operation_list_by_operation_name(operation_name, operation_data, False)
+                if operation_id:
+                    ret, operation_data = self.ITAobj.select_operation_id(
+                        self.ary_ita_config, operation_id)
 
-                if ret == Cstobj.RET_DATA_ERROR:
-                    ActionDriverCommonModules.SaveActionLog(
-                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+                    if ret != 0:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01126')
 
-                    operation_name = ''
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                elif operation_name:
+                    ret = self.ITAobj._select_c_operation_list_by_operation_name(
+                        operation_name, operation_data, False)
+                    if ret == Cstobj.RET_DATA_ERROR:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+
+                        ret, operation_data = self.ITAobj.insert_operation_name(
+                            self.ary_ita_config, operation_name)
+
+                        if ret > 0:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                    elif ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                else:
+                    operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
+                    ret = self.ITAobj._select_c_operation_list_by_operation_name(operation_name, operation_data, False)
+
+                    if ret == Cstobj.RET_DATA_ERROR:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+
+                        operation_name = ''
+                        ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
+                        if ret != True:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                        ret, operation_data = self.ITAobj.select_operation(
+                            self.ary_ita_config, operation_name)
+                        if ret != True:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                    elif ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+            else:
+                if operation_id:
+                    ret, operation_data = self.ITAobj.select_operation_id(
+                        self.ary_ita_config, operation_id)
+
+                    if ret != 0:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01126')
+
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                elif operation_name:
+                    ret = self.ITAobj._select_c_operation_list_by_operation_name(
+                        operation_name, operation_data, False)
+                    if ret == Cstobj.RET_DATA_ERROR:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+
+                        ret, operation_data = self.ITAobj.insert_operation_name(
+                            self.ary_ita_config, operation_name)
+
+                        if ret > 0:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                    elif ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                else:
+                    # オペレーションID登録
                     ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
                     if ret != True:
                         logger.system_log('LOSE01110', ActionStatus, self.trace_id)
@@ -503,36 +600,13 @@ class ITAManager(AbstractManager):
 
                         return ACTION_EXEC_ERROR, DetailStatus
 
-                    ret, operation_data = self.ITAobj.select_operation(
-                        self.ary_ita_config, operation_name)
+                    # オペレーション検索
+                    ret, operation_data = self.ITAobj.select_operation(self.ary_ita_config, operation_name)
                     if ret != True:
                         logger.system_log('LOSE01110', ActionStatus, self.trace_id)
                         DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
 
                         return ACTION_EXEC_ERROR, DetailStatus
-
-                elif ret == Cstobj.RET_REST_ERROR:
-                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-
-                    return ACTION_EXEC_ERROR, DetailStatus
-
-            else:
-                # オペレーションID登録
-                ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
-                if ret != True:
-                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-
-                    return ACTION_EXEC_ERROR, DetailStatus
-
-                # オペレーション検索
-                ret, operation_data = self.ITAobj.select_operation(self.ary_ita_config, operation_name)
-                if ret != True:
-                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-
-                    return ACTION_EXEC_ERROR, DetailStatus
 
             # パラメータシート登録情報作成
             operation_id = operation_data[0][Cstobj.COL_OPERATION_NO_IDBH]
@@ -638,30 +712,110 @@ class ITAManager(AbstractManager):
                 raise OASEError('', 'LOSE01130', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_server_list, self.trace_id], msg_params={
                                 'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
 
-            if retry:
-                # 再実行の際、登録前にエラーになっていた場合は登録処理から行う。
-                operation_data = []
-                operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
-                ret = self.ITAobj._select_c_operation_list_by_operation_name(
-                    operation_name, operation_data, False)
-
-                if ret == Cstobj.RET_DATA_ERROR:
+            if key_operation_id in check_info:
+                operation_id = check_info[key_operation_id]
+                if not operation_id:
                     ActionDriverCommonModules.SaveActionLog(
-                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01059')
+
+                    raise OASEError(
+                        '',
+                        'LOSE01128',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+                row_data = []
+                ret = self.ITAobj.select_c_operation_list(
+                    self.ary_ita_config, operation_id, row_data, False)
+
+                if ret != 0:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01126')
+
+                    raise OASEError(
+                        '',
+                        'LOSE01128',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_id, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+                operation_name = row_data[0][Cstobj.COL_OPERATION_NAME]
+
+                ret = self.ITAobj.insert_working_host(
+                    self.ary_ita_config,
+                    self.ary_movement_list,
+                    self.ary_action_server_id_name,
+                    operation_id,
+                    operation_name)
+
+                if ret > 0:
+                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+            elif key_operation_name in check_info:
+                operation_name = check_info[key_operation_name]
+                if not operation_name:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01118')
+
+                    raise OASEError(
+                        '',
+                        'LOSE01144',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+                row_data = []
+                ret, operation_id = self.ITAobj.select_ope_name_ita_master(
+                    self.ary_ita_config, operation_name, False)
+
+                if operation_id == 0:
+                    ret, row_data = self.ITAobj.insert_operation_name(
+                        self.ary_ita_config, operation_name)
+
+                    if ret > 0:
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                    operation_id = row_data[0][Cstobj.COL_OPERATION_NO_IDBH]
+
+                ret = self.ITAobj.insert_working_host(
+                    self.ary_ita_config,
+                    self.ary_movement_list,
+                    self.ary_action_server_id_name,
+                    operation_id,
+                    operation_name)
+
+                if ret > 0:
+                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+                    return ACTION_EXEC_ERROR, DetailStatus
+
+            else:
+                if retry:
+                    # 再実行の際、登録前にエラーになっていた場合は登録処理から行う。
+                    operation_data = []
+                    operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
+                    ret = self.ITAobj._select_c_operation_list_by_operation_name(
+                        operation_name, operation_data, False)
+
+                    if ret == Cstobj.RET_DATA_ERROR:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+                        ret = self.ITAobj.insert_ita_master(
+                            self.ary_ita_config, self.ary_movement_list, self.ary_action_server_id_name, list_operation_id)
+                        if ret > 0:
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+                        operation_id = list_operation_id[0]
+                    elif ret == 0:
+                        operation_id = operation_data[0][Cstobj.COL_OPERATION_NO_IDBH]
+
+                else:
                     ret = self.ITAobj.insert_ita_master(
                         self.ary_ita_config, self.ary_movement_list, self.ary_action_server_id_name, list_operation_id)
                     if ret > 0:
                         DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
                     operation_id = list_operation_id[0]
-                elif ret == 0:
-                    operation_id = operation_data[0][Cstobj.COL_OPERATION_NO_IDBH]
-
-            else:
-                ret = self.ITAobj.insert_ita_master(
-                    self.ary_ita_config, self.ary_movement_list, self.ary_action_server_id_name, list_operation_id)
-                if ret > 0:
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-                operation_id = list_operation_id[0]
 
         # MENU_IDのパターン
         elif key_menu_id in check_info:
@@ -686,6 +840,32 @@ class ITAManager(AbstractManager):
                 if not dt_host_name:
                     raise OASEError('', 'LOSE01140', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id], msg_params={
                                     'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
+
+            if key_operation_id in check_info:
+                operation_id = check_info[key_operation_id]
+                if not operation_id:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01059')
+
+                    raise OASEError(
+                        '',
+                        'LOSE01128',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_convert_flg, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
+
+            elif key_operation_name in check_info:
+                operation_name = check_info[key_operation_name]
+                if not operation_name:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01118')
+
+                    raise OASEError(
+                        '',
+                        'LOSE01144',
+                        log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
+                        msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                    )
 
             menu_id = check_info[key_menu_id]
             convert_flg = check_info[key_convert_flg]
@@ -846,13 +1026,109 @@ class ITAManager(AbstractManager):
 
             operation_data = []
             if retry:
-                operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
-                ret = self.ITAobj._select_c_operation_list_by_operation_name(operation_name, operation_data, False)
-                if ret == Cstobj.RET_DATA_ERROR:
-                    ActionDriverCommonModules.SaveActionLog(
-                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+                if operation_id:
+                    ret, operation_data = self.ITAobj.select_operation_id(
+                        self.ary_ita_config, operation_id)
 
-                    operation_name = ''
+                    if ret != 0:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01126')
+
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                elif operation_name:
+                    ret = self.ITAobj._select_c_operation_list_by_operation_name(
+                        operation_name, operation_data, False)
+
+                    if ret == Cstobj.RET_DATA_ERROR:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+
+                        ret, operation_data = self.ITAobj.insert_operation_name(
+                            self.ary_ita_config, operation_name)
+
+                        if ret > 0:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                    elif ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                else:
+                    operation_name = '%s%s' % (self.trace_id, rhdm_res_act.execution_order)
+                    ret = self.ITAobj._select_c_operation_list_by_operation_name(operation_name, operation_data, False)
+                    if ret == Cstobj.RET_DATA_ERROR:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+
+                        operation_name = ''
+                        ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
+                        if ret != True:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                        ret, operation_data = self.ITAobj.select_operation(
+                            self.ary_ita_config, operation_name)
+                        if ret != True:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+                    elif ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+            else:
+                if operation_id:
+                    ret, operation_data = self.ITAobj.select_operation_id(
+                        self.ary_ita_config, operation_id)
+
+                    if ret != 0:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01126')
+
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                elif operation_name:
+                    ret = self.ITAobj._select_c_operation_list_by_operation_name(
+                        operation_name, operation_data, False)
+
+                    if ret == Cstobj.RET_DATA_ERROR:
+                        ActionDriverCommonModules.SaveActionLog(
+                            self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01056')
+
+                        ret, operation_data = self.ITAobj.insert_operation_name(
+                            self.ary_ita_config, operation_name)
+
+                        if ret > 0:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                    elif ret == Cstobj.RET_REST_ERROR:
+                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
+
+                        return ACTION_EXEC_ERROR, DetailStatus
+
+                else:
+                    # オペレーションID登録
                     ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
                     if ret != True:
                         logger.system_log('LOSE01110', ActionStatus, self.trace_id)
@@ -860,35 +1136,13 @@ class ITAManager(AbstractManager):
 
                         return ACTION_EXEC_ERROR, DetailStatus
 
-                    ret, operation_data = self.ITAobj.select_operation(
-                        self.ary_ita_config, operation_name)
+                    # オペレーション検索
+                    ret, operation_data = self.ITAobj.select_operation(self.ary_ita_config, operation_name)
                     if ret != True:
                         logger.system_log('LOSE01110', ActionStatus, self.trace_id)
                         DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
 
                         return ACTION_EXEC_ERROR, DetailStatus
-                elif ret == Cstobj.RET_REST_ERROR:
-                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-
-                    return ACTION_EXEC_ERROR, DetailStatus
-
-            else:
-                # オペレーションID登録
-                ret, operation_name = self.ITAobj.insert_operation(self.ary_ita_config)
-                if ret != True:
-                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-
-                    return ACTION_EXEC_ERROR, DetailStatus
-
-                # オペレーション検索
-                ret, operation_data = self.ITAobj.select_operation(self.ary_ita_config, operation_name)
-                if ret != True:
-                    logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                    DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_OPEID_FAIL
-
-                    return ACTION_EXEC_ERROR, DetailStatus
 
             # パラメータシート登録情報作成
             operation_id = operation_data[0][Cstobj.COL_OPERATION_NO_IDBH]
@@ -984,6 +1238,30 @@ class ITAManager(AbstractManager):
                 return ACTION_EXEC_ERROR, DetailStatus
 
             return ACTION_HISTORY_STATUS.ITA_REGISTERING_SUBSTITUTION_VALUE, DetailStatus
+
+        # OPERATION_IDのパターン
+        elif key_operation_id in check_info:
+            if len(check_info[key_operation_id]) == 0:
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01059')
+                raise OASEError('', 'LOSE01128', log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_id, self.trace_id], msg_params={
+                                'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL})
+
+            operation_id = check_info[key_operation_id]
+
+        # OPERATION_NAMEのパターン
+        elif key_operation_name in check_info:
+            if len(check_info[key_operation_name]) == 0:
+                ActionDriverCommonModules.SaveActionLog(
+                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01118')
+                raise OASEError(
+                    '',
+                    'LOSE01144',
+                    log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
+                    msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
+                )
+
+            operation_name = check_info[key_operation_name]
 
         if operation_id:
             ret = self.ITAobj.select_ope_ita_master(
@@ -1258,6 +1536,7 @@ class ITAManager(AbstractManager):
         logger.logic_log('LOSI00001', 'self.trace_id: %s, act_his_id: %s, exec_order: %s' % (self.trace_id, act_his_id, exec_order))
         symphony_instance_id = None
         operation_id = None
+        operation_name = ''
         symphony_url = ''
         restapi_error_info = ''
         conductor_instance_id = None
@@ -1314,7 +1593,24 @@ class ITAManager(AbstractManager):
             logger.system_log('LOSE01107', self.trace_id, code)
             return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
-        operation_name = '%s%s' % (self.trace_id, exec_order)
+        if 'OPERATION_ID' in self.aryActionParameter:
+            operation_id = self.aryActionParameter['OPERATION_ID']
+
+            row_data = []
+            ret = self.ITAobj.select_c_operation_list(
+                self.ary_ita_config, operation_id, row_data)
+
+            if ret != 0:
+                logger.system_log('LOSE01149', self.trace_id, ret, operation_id)
+                return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
+
+            operation_name = row_data[0][Cstobj.COL_OPERATION_NAME]
+
+        elif 'OPERATION_NAME' in self.aryActionParameter:
+            operation_name = self.aryActionParameter['OPERATION_NAME']
+
+        else:
+            operation_name = '%s%s' % (self.trace_id, exec_order)
 
         operation_list = []
         ret = self.ITAobj._select_c_operation_list_by_operation_name(operation_name, operation_list)
@@ -1923,14 +2219,14 @@ class ITAManager(AbstractManager):
 
         # 排他キー(OPERATION_ID, SERVER_LIST, MENU_ID)チェック
         key_exists_count = 0
-        matual_exclusive_keys = ['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']
+        matual_exclusive_keys = ['SERVER_LIST', 'MENU_ID']
         for exkey in matual_exclusive_keys:
             if exkey in self.aryActionParameter:
                 key_exists_count += 1
 
         # キーが排他的ではない
         if key_exists_count > 1:
-            ret_info = {'msg_id':'MOSJA01062', 'key':['OPERATION_ID', 'SERVER_LIST', 'MENU_ID']}
+            ret_info = {'msg_id':'MOSJA01062', 'key':['SERVER_LIST', 'MENU_ID']}
             return ret_info
 
         # 排他キー(MENU_ID, MENU)チェック

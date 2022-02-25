@@ -1174,7 +1174,7 @@ class ActionDriverSubModules:
             self.driver_manager.set_information(rhdm_res_act, act_his)
             status, detail = self.driver_manager.get_last_info(act_his_id, rhdm_res_act.execution_order)
 
-            if status is None or detail is None or status is ACTION_EXEC_ERROR:
+            if status is None or detail is None or status == ACTION_EXEC_ERROR:
                 ActCommon.SaveActionLog(
                     act_his.response_id, act_his.execution_order, trace_id, 'MOSJA01055', status=status, detail=detail
                 )
