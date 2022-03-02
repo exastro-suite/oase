@@ -233,6 +233,12 @@ class InstallAdapterInfo():
             'srv_path'  : 'backyards/monitoring_adapter/',
             'srv_file'  : 'oase-Grafana-monitoring.service',
         },
+        'Datadog' : {
+            'conf_path' : 'confs/backyardconfs/services/',
+            'conf_file' : 'Datadog_monitoring_env',
+            'srv_path'  : 'backyards/monitoring_adapter/',
+            'srv_file'  : 'oase-Datadog-monitoring.service',
+        },
     }
 
 

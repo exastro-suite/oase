@@ -296,6 +296,10 @@ function check_answer_vars() {
         log "ERROR : grafana_adapter should be enter to value(yes or no)"
         _error_flag=true
     fi
+    if [ -z "${datadog_adapter}" ]; then
+        log "ERROR : datadog_adapter should be enter to value(yes or no)"
+        _error_flag=true
+    fi
 
     #################################
     ### oase_middleware_setup_core.sh 用
