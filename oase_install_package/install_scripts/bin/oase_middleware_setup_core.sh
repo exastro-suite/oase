@@ -85,15 +85,15 @@ create_drools_service() {
         exit 1
     fi
 
-cat << 'EOS' > "$DROOLS_SERVICE_FILE"
+cat << EOS > "$DROOLS_SERVICE_FILE"
 [Unit]
 Description=Drools
 After=syslog.target network.target
 
 [Service]
 ExecStart=$1/wildfly-23.0.1.Final/bin/standalone.sh -c standalone-full.xml -Djboss.bind.address=0.0.0.0
-ExecReload=/bin/kill -HUP $MAINPID
-ExecStop=/bin/kill $MAINPID
+ExecReload=/bin/kill -HUP \$MAINPID
+ExecStop=/bin/kill \$MAINPID
 
 [Install]
 WantedBy=multi-user.target
