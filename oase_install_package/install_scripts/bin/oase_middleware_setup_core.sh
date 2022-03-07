@@ -85,7 +85,7 @@ create_drools_service() {
         exit 1
     fi
 
-cat << EOS > "$DROOLS_SERVICE_FILE"
+cat << 'EOS' > "$DROOLS_SERVICE_FILE"
 [Unit]
 Description=Drools
 After=syslog.target network.target

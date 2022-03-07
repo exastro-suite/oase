@@ -1047,7 +1047,7 @@ standalone_conf() {
     cd ${jboss_root_directory}/wildfly-23.0.1.Final/bin >> "$OASE_INSTALL_LOG_FILE" 2>&1
     mv standalone.conf standalone.conf.oase_bk
 
-    cat << EOS > "standalone.conf"
+    cat << 'EOS' > "standalone.conf"
 ## -*- shell-script -*- ######################################################
 ##                                                                          ##
 ##  WildFly bootstrap Script Configuration                                  ##
