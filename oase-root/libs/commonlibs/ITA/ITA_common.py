@@ -45,6 +45,8 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     menu_id = None
     exclusive = 0
     coexist = 0
+    operation_id_check_flg = 0
+    server_list_flg = False
 
     # パラメーター情報取得
     check_info = ITAManager.analysis_parameters(params)
@@ -102,6 +104,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     # OPERATION_ID チェック
     elif 'OPERATION_ID' in check_info:
         operation_id = check_info['OPERATION_ID']
+        operation_id_check_flg = operation_id_check_flg + 1
         message_list = operation_id_check(operation_id, check_info, conditions, message_list)
 
     # OPERATION_NAME チェック
@@ -113,6 +116,8 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     if 'SERVER_LIST' in check_info:
         server_list = check_info['SERVER_LIST']
         exclusive = exclusive + 1
+        operation_id_check_flg = operation_id_check_flg + 1
+        server_list_flg = True
         message_list = server_list_check(server_list, check_info, conditions, message_list)
 
     # MENU_ID チェック
@@ -120,6 +125,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         menu_id = check_info['MENU_ID']
         exclusive = exclusive + 1
         coexist = coexist + 1
+        operation_id_check_flg = operation_id_check_flg + 1
         message_list = menu_id_check(menu_id, check_info, conditions, message_list)
 
     # MENU チェック
@@ -145,6 +151,10 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         ita_name = check_info['ITA_NAME']
         flg = act_info[check_info['ITA_NAME']] if 'ITA_NAME' in check_info and check_info['ITA_NAME'] in act_info else False
         coexist = coexist + 1
+
+        if not server_list_flg:
+            operation_id_check_flg = operation_id_check_flg + 1
+
         search = re.search("{{ VAR_", check_info['MENU'])
 
         if search is None:
@@ -161,6 +171,12 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         logger.logic_log('LOSM00056', check_info)
         message_list.append(
             {'id': 'MOSJA03139', 'param': 'MENU_ID, MENU'})
+
+    # OPERATION_ID 共存チェック
+    if operation_id_check_flg > 1:
+        logger.logic_log('LOSM00057', check_info)
+        message_list.append(
+            {'id': 'MOSJA03179', 'param': 'SERVER_LIST, MENU, MENU_ID'})
 
     return message_list
 
