@@ -58,6 +58,7 @@ from web_app.models.ITA_models import ItaParameterItemInfo
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.aes_cipher import AESCipher
 from libs.commonlibs.define import *
+from libs.commonlibs.common import Common
 
 from libs.backyardlibs.oase_action_common_libs import ActionDriverCommonModules, ConstantModules as Cstobj
 from libs.backyardlibs.action_driver.ITA.ITA_core import ITA1Core
@@ -227,6 +228,7 @@ class ITAManager(AbstractManager):
 
         # MENUのパターン
         if key_menu in check_info:
+            server_list_flg = False
             if len(check_info[key_menu]) == 0:
                 ActionDriverCommonModules.SaveActionLog(
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01117')
@@ -299,6 +301,15 @@ class ITAManager(AbstractManager):
                         msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
                     )
 
+                event_str = ''
+                event_list = []
+                event_info = EventsRequest.objects.get(trace_id=self.trace_id).event_info
+                event_list = ast.literal_eval(event_info)['EVENT_INFO']
+                for event_data in event_list:
+                    event_str = event_str + event_data
+                hash_str = Common.sha256_hash_str(event_str)
+                operation_name = operation_name + hash_str
+
             params = param_info[key1]
             ke = check_info.keys()
             flg = False
@@ -368,6 +379,7 @@ class ITAManager(AbstractManager):
             if len(commitinfo_list) == 0:
                 commitinfo_list = []
                 if not server_list:
+                    server_list_flg = True
                     server_list.append("HostName")
 
                 server_name = (',').join(server_list[:])
@@ -616,6 +628,9 @@ class ITAManager(AbstractManager):
                 operation_data[0][Cstobj.COL_OPERATION_NO_IDBH],
                 operation_data[0][Cstobj.COL_OPERATION_NAME])
 
+            if server_list_flg:
+                server_list = []
+
             for menu_id in menu_id_list:
                 menu_id = int(menu_id)
                 host_name = ''
@@ -766,6 +781,15 @@ class ITAManager(AbstractManager):
                         msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
                     )
 
+                event_str = ''
+                event_list = []
+                event_info = EventsRequest.objects.get(trace_id=self.trace_id).event_info
+                event_list = ast.literal_eval(event_info)['EVENT_INFO']
+                for event_data in event_list:
+                    event_str = event_str + event_data
+                hash_str = Common.sha256_hash_str(event_str)
+                operation_name = operation_name + hash_str
+
                 row_data = []
                 ret, operation_id = self.ITAobj.select_ope_name_ita_master(
                     self.ary_ita_config, operation_name, False)
@@ -866,6 +890,15 @@ class ITAManager(AbstractManager):
                         log_params=['OASE_T_RHDM_RESPONSE_ACTION', rhdm_res_act.response_detail_id, key_operation_name, self.trace_id],
                         msg_params={'sts': ACTION_DATA_ERROR, 'detail': ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_OPEID_VAL}
                     )
+
+                event_str = ''
+                event_list = []
+                event_info = EventsRequest.objects.get(trace_id=self.trace_id).event_info
+                event_list = ast.literal_eval(event_info)['EVENT_INFO']
+                for event_data in event_list:
+                    event_str = event_str + event_data
+                hash_str = Common.sha256_hash_str(event_str)
+                operation_name = operation_name + hash_str
 
             menu_id = check_info[key_menu_id]
             convert_flg = check_info[key_convert_flg]
@@ -1608,6 +1641,15 @@ class ITAManager(AbstractManager):
 
         elif 'OPERATION_NAME' in self.aryActionParameter:
             operation_name = self.aryActionParameter['OPERATION_NAME']
+
+            event_str = ''
+            event_list = []
+            event_info = EventsRequest.objects.get(trace_id=self.trace_id).event_info
+            event_list = ast.literal_eval(event_info)['EVENT_INFO']
+            for event_data in event_list:
+                event_str = event_str + event_data
+            hash_str = Common.sha256_hash_str(event_str)
+            operation_name = operation_name + hash_str
 
         else:
             operation_name = '%s%s' % (self.trace_id, exec_order)
