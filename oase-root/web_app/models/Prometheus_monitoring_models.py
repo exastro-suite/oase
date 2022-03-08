@@ -53,7 +53,6 @@ class PrometheusAdapter(models.Model):
 
     class Meta:
         db_table = 'OASE_T_PROMETHEUS_ADAPTER'
-        unique_together = (('hostname', 'rule_type_id'), )
 
     def __str__(self):
         return "%s(%s)" % (self.prometheus_disp_name, str(self.prometheus_adapter_id))

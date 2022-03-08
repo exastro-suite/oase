@@ -51,7 +51,6 @@ class GrafanaAdapter(models.Model):
 
     class Meta:
         db_table = 'OASE_T_GRAFANA_ADAPTER'
-        unique_together = (('hostname', 'rule_type_id'), )
 
     def __str__(self):
         return "%s(%s)" % (self.grafana_disp_name, str(self.grafana_adapter_id))
