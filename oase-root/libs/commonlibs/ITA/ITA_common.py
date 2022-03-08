@@ -19,6 +19,7 @@
 """
 import traceback
 import ast
+import re
 from web_app.models.ITA_models import ItaDriver
 from web_app.models.ITA_models import ItaActionHistory
 from web_app.models.ITA_models import ItaParameterItemInfo
@@ -144,7 +145,10 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         ita_name = check_info['ITA_NAME']
         flg = act_info[check_info['ITA_NAME']] if 'ITA_NAME' in check_info and check_info['ITA_NAME'] in act_info else False
         coexist = coexist + 1
-        messsage_list = into_parameter_check(check_info, flg, message_list)
+        search = re.search("{{ VAR_", check_info['MENU'])
+
+        if search is None:
+            messsage_list = into_parameter_check(check_info, flg, message_list)
 
     # SERVER_LIST MENU_ID 共存チェック
     if exclusive > 1:
