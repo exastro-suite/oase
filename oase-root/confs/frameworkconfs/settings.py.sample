@@ -94,6 +94,7 @@ AUTHENTICATION_BACKENDS = [
     'libs.middleware.oase_auth.ActiveDirectoryAuthBackend',
 ]
 
+MAX_ACTION_PROC = -1
 
 ################################################################
 # セッション管理
