@@ -180,6 +180,7 @@ class OASELogID:
     Ary['LOSM00054'] = "There is no description of CONDUCTOR_NAME. (check_info: {})"
     Ary['LOSM00055'] = "No value for OPERATION_ID. (check_info: {})"
     Ary['LOSM00056'] = "MENU_ID and MENU are set at the same time. (check_info: {})"
+    Ary['LOSM00057'] = "OPERATION_ID cannot be set at the same time as SERVER_LIST, MENU and MENU_ID. (check_info: {})"
     Ary['LOSM00100'] = "RuleType does not exist. (rule_type_id: {}, {})"
     Ary['LOSM00101'] = "ConditionalExpression does not exist. (conditional_expression_id: {})"
     Ary['LOSM00102'] = "Failed to get data from the OASE_T_CONDITIONAL_EXPRESSION table. (conditional_expression_id: {}, {})"
