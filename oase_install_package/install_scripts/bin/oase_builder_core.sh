@@ -881,22 +881,22 @@ configure_maven(){
 configure_django(){
     # django
     if [ "${oase_os}" == "RHEL8" ]; then
-        pip_list=`pip3 list --format=legacy | grep -c -e "django==2.2.3" -e "django-crispy-forms" -e "django-filter"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip_list=`pip3 list --format=legacy | grep -c -e "django==2.2.26" -e "django-crispy-forms" -e "django-filter"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
     else
-        pip_list=`pip list | grep -c -e "django==2.2.3" -e "django-crispy-forms" -e "django-filter"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        pip_list=`pip list | grep -c -e "django==2.2.26" -e "django-crispy-forms" -e "django-filter"` >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
     if [ $pip_list -lt 3 ]; then
         if [ "${oase_os}" == "RHEL8" ]; then
-            pip3 install django==2.2.3 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            pip3 install django==2.2.26 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
-            pip install django==2.2.3 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            pip install django==2.2.26 django-crispy-forms django-filter >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
         if [ $? -ne 0 ]; then
-            log "ERROR:Installation failed django==2.2.3 django-crispy-forms django-filter"
+            log "ERROR:Installation failed django==2.2.26 django-crispy-forms django-filter"
             func_exit
         fi
     else
-        echo "install skip django==2.2.3 django-crispy-forms django-filter" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        echo "install skip django==2.2.26 django-crispy-forms django-filter" >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
 
     # requests
