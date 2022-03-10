@@ -148,7 +148,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
 
         parameters = (',').join(params[fidx:tidx])
         check_info['MENU'] = ('=').join(parameters.split('=')[1:])
-        ita_name = check_info['ITA_NAME']
+
         flg = act_info[check_info['ITA_NAME']] if 'ITA_NAME' in check_info and check_info['ITA_NAME'] in act_info else False
         coexist = coexist + 1
 
@@ -499,34 +499,37 @@ def into_parameter_check(check_info, valid_flg, message_list):
         db_menu_ids = []
         db_col_info = {}
 
-        ita_name = check_info['ITA_NAME']
-        drv_id = ItaDriver.objects.get(ita_disp_name=ita_name).ita_driver_id
-        rset = ItaParameterItemInfo.objects.filter(ita_driver_id=drv_id, menu_id__in=menuid_list).values('menu_id', 'column_group', 'item_name')
-        for rs in rset:
-            if rs['menu_id'] not in db_menu_ids:
-                db_menu_ids.append(rs['menu_id'])
-            if rs['menu_id'] not in db_col_info:
-                db_col_info[rs['menu_id']] = []
+        if 'ITA_NAME' in check_info:
+            ita_name = check_info['ITA_NAME']
+            drv_id = ItaDriver.objects.get(ita_disp_name=ita_name).ita_driver_id
+            rset = ItaParameterItemInfo.objects.filter(ita_driver_id=drv_id, menu_id__in=menuid_list).values('menu_id', 'column_group', 'item_name')
+            for rs in rset:
+                if rs['menu_id'] not in db_menu_ids:
+                    db_menu_ids.append(rs['menu_id'])
+                if rs['menu_id'] not in db_col_info:
+                    db_col_info[rs['menu_id']] = []
 
-            col_name = '%s/%s' % (rs['column_group'], rs['item_name']) if rs['column_group'] else rs['item_name']
-            db_col_info[rs['menu_id']].append(col_name)
+                col_name = '%s/%s' % (rs['column_group'], rs['item_name']) if rs['column_group'] else rs['item_name']
+                db_col_info[rs['menu_id']].append(col_name)
 
-        if len(menuid_list) != len(db_menu_ids):
-            tmp_list = list(set(menuid_list) - set(db_menu_ids))
-            logger.logic_log('LOSM00051', check_info)
-            message_list.append({'id': 'MOSJA03174', 'param': tmp_list})
+            if len(menuid_list) != len(db_menu_ids):
+                tmp_list = list(set(menuid_list) - set(db_menu_ids))
+                logger.logic_log('LOSM00051', check_info)
+                message_list.append({'id': 'MOSJA03174', 'param': tmp_list})
 
-        for mid in menuid_list:
-            if mid not in db_col_info:
-                continue
+            for mid in menuid_list:
+                if mid not in db_col_info:
+                    continue
 
-            col_name = ''
-            if mid in menu_val_info:
-                col_name = '%s/%s' % (menu_val_info[mid]['COL_GROUP'], menu_val_info[mid]['COL_NAME']) if menu_val_info[mid]['COL_GROUP'] else menu_val_info[mid]['COL_NAME']
+                col_name = ''
+                if mid in menu_val_info:
+                    col_name = '%s/%s' % (menu_val_info[mid]['COL_GROUP'], menu_val_info[mid]['COL_NAME']) if menu_val_info[mid]['COL_GROUP'] else menu_val_info[mid]['COL_NAME']
 
-            if col_name not in db_col_info[mid]:
-                logger.logic_log('LOSM00052', check_info)
-                message_list.append({'id': 'MOSJA03175', 'param': None})
+                if col_name not in db_col_info[mid]:
+                    logger.logic_log('LOSM00052', check_info)
+                    message_list.append({'id': 'MOSJA03175', 'param': None})
+        else:
+            logger.logic_log('LOSM00004', check_info)
 
 
 def get_history_data(action_his_id):

@@ -375,7 +375,7 @@ def upload(request):
 
         if not os.path.exists(dstpath):
             os.makedirs(dstpath, exist_ok=True)
-        with open(errfilepath, 'a') as f:
+        with open(errfilepath, 'a', encoding='utf8') as f:
             f.write(errmsg)
 
         msg = 'MOSJA03007' if not msg else msg
@@ -1437,7 +1437,7 @@ def build_kjar(request):
             exec_cmd = []
             exec_cmd.append('mvn')
             exec_cmd.append('install')
-            exec_cmd.append('-Ddrools.dateformat="yyyy-MM-dd HH:mm"')
+            exec_cmd.append('-Ddrools.dateformat=yyyy-MM-dd HH:mm')
             exec_cmd.append('-f')
             exec_cmd.append(filepath)
             ret = subprocess.run(exec_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
