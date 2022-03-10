@@ -1437,7 +1437,7 @@ def build_kjar(request):
             exec_cmd = []
             exec_cmd.append('mvn')
             exec_cmd.append('install')
-            exec_cmd.append('-Ddrools.dateformat="yyyy-MM-dd HH:mm"')
+            exec_cmd.append('-Ddrools.dateformat=yyyy-MM-dd HH:mm')
             exec_cmd.append('-f')
             exec_cmd.append(filepath)
             ret = subprocess.run(exec_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
