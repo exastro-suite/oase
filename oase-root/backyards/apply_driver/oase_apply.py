@@ -375,7 +375,7 @@ def upload(request):
 
         if not os.path.exists(dstpath):
             os.makedirs(dstpath, exist_ok=True)
-        with open(errfilepath, 'a') as f:
+        with open(errfilepath, 'a', encoding='utf8') as f:
             f.write(errmsg)
 
         msg = 'MOSJA03007' if not msg else msg
