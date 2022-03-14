@@ -525,7 +525,7 @@ def apply(request):
         if reqtypeid not in [PRODUCTION, STAGING]:
             errmessage = str(now_tz) + ' ' + userlog + ' ' + get_message('MOSJA03206',
                                                                          lang, reqtypeid=reqtypeid).replace('\n', '\n') + '\n'
-            with open(errfilepath, 'a') as f:
+            with open(errfilepath, 'a', encoding='utf8') as f:
                 f.write(errmessage)
 
             ret_info = {
@@ -729,7 +729,7 @@ def apply(request):
                         # コンテナ削除時の接続エラーはすでに削除済みであるためファイルに記載し、準正常とする。
                         elif response2.status_code == 404:
                             errmessage = str(now_tz) + ' ' + userlog + ' ' + get_message('MOSJA03216', lang) + '\n'
-                            with open(errfilepath, 'a') as f:
+                            with open(errfilepath, 'a', encoding='utf8') as f:
                                 f.write(errmessage)
                             logger.system_log('LOSM12033', str(request['apply_user_id']), reqtypeid, ContID)
 
@@ -846,7 +846,7 @@ def apply(request):
         errmessage = str(now_tz) + ' ' + userlog + ' ' + get_message('MOSJA03218',
                                                                      lang, manageid=manageid).replace('\n', '\n')
         errmessage = errmessage + '\n'
-        with open(errfilepath, 'a') as f:
+        with open(errfilepath, 'a', encoding='utf8') as f:
             f.write(errmessage)
         logger.system_log('LOSM12035', str(request['apply_user_id']), manageid, traceback.format_exc())
 
@@ -873,7 +873,7 @@ def apply(request):
 
             errmessage = str(now_tz) + ' ' + userlog + ' ' + get_message('MOSJA03219', lang).replace('\n', '\n')
             errmessage = errmessage + '\n' + str(now_tz) + ' ' + userlog + ' ' + str(e) + '\n'
-            with open(errfilepath, 'a') as f:
+            with open(errfilepath, 'a', encoding='utf8') as f:
                 f.write(errmessage)
             logger.system_log('LOSM12036', str(request['apply_user_id']), reqtypeid, manageid, traceback.format_exc())
 
@@ -1406,7 +1406,7 @@ def build_kjar(request):
                 errmessage = str(now_tz) + ' ' + userlog + ' ' + \
                     get_message('MOSJA03404', user.get_lang_mode()).replace('\n', '\n')
                 errmessage = errmessage + '\n' + str(now_tz) + ' ' + userlog + ' ' + str(e) + '\n'
-                with open(errfilepath, 'a') as f:
+                with open(errfilepath, 'a', encoding='utf8') as f:
                     f.write(errmessage)
                 logger.system_log('LOSM12046', str(request['apply_user_id']),
                                   reqtypeid, manageid, traceback.format_exc())
@@ -1463,7 +1463,7 @@ def build_kjar(request):
                 errmessage = str(now_tz) + ' ' + userlog + ' ' + \
                     get_message('MOSJA03405', user.get_lang_mode()).replace('\n', '\n')
                 errmessage = errmessage + '\n' + str(now_tz) + ' ' + userlog + ' ' + str(e) + '\n'
-                with open(errfilepath, 'a') as f:
+                with open(errfilepath, 'a', encoding='utf8') as f:
                     f.write(errmessage)
 
                 logger.system_log('LOSM12047', str(request['apply_user_id']),
@@ -1486,7 +1486,7 @@ def build_kjar(request):
                 errmessage = str(now_tz) + ' ' + userlog + ' ' + \
                     get_message('MOSJA03406', user.get_lang_mode()).replace('\n', '\n')
                 errmessage = errmessage + '\n' + str(now_tz) + ' ' + userlog + ' ' + ret.stdout.decode("utf8") + '\n'
-                with open(errfilepath, 'a') as f:
+                with open(errfilepath, 'a', encoding='utf8') as f:
                     f.write(errmessage)
 
                 logger.system_log('LOSM12048', str(request['apply_user_id']), reqtypeid, manageid, ret.returncode)
@@ -1528,7 +1528,7 @@ def build_kjar(request):
             errmessage = str(now_tz) + ' ' + userlog + ' ' + \
                 get_message('MOSJA03406', user.get_lang_mode()).replace('\n', '\n')
             errmessage = errmessage + '\n' + str(now_tz) + ' ' + userlog + ' ' + str(e) + '\n'
-            with open(errfilepath, 'a') as f:
+            with open(errfilepath, 'a', encoding='utf8') as f:
                 f.write(errmessage)
             logger.system_log('LOSM12048', str(request['apply_user_id']), reqtypeid, manageid, traceback.format_exc())
 
