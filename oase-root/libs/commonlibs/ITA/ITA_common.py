@@ -47,6 +47,10 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     coexist = 0
     operation_id_check_flg = 0
     server_list_flg = False
+    menu_flg = False
+    server_host_check = 0
+    hostgroup_flg = False
+    action_check = 0
 
     # パラメーター情報取得
     check_info = ITAManager.analysis_parameters(params)
@@ -105,18 +109,22 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     elif 'OPERATION_ID' in check_info:
         operation_id = check_info['OPERATION_ID']
         operation_id_check_flg = operation_id_check_flg + 1
+        action_check = action_check + 1
         message_list = operation_id_check(operation_id, check_info, conditions, message_list)
 
     # OPERATION_NAME チェック
     elif 'OPERATION_NAME' in check_info:
         operation_name = check_info['OPERATION_NAME']
+        action_check = action_check + 1
         message_list = operation_name_check(operation_name, check_info, conditions, message_list)
 
     # SERVER_LIST チェック
     if 'SERVER_LIST' in check_info:
         server_list = check_info['SERVER_LIST']
         exclusive = exclusive + 1
+        action_check = action_check + 1
         operation_id_check_flg = operation_id_check_flg + 1
+        server_host_check = server_host_check + 1
         server_list_flg = True
         message_list = server_list_check(server_list, check_info, conditions, message_list)
 
@@ -126,6 +134,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         exclusive = exclusive + 1
         coexist = coexist + 1
         operation_id_check_flg = operation_id_check_flg + 1
+        action_check = action_check + 1
         message_list = menu_id_check(menu_id, check_info, conditions, message_list)
 
     # MENU チェック
@@ -151,6 +160,8 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
 
         flg = act_info[check_info['ITA_NAME']] if 'ITA_NAME' in check_info and check_info['ITA_NAME'] in act_info else False
         coexist = coexist + 1
+        action_check = action_check + 1
+        menu_flg = True
 
         if not server_list_flg:
             operation_id_check_flg = operation_id_check_flg + 1
@@ -159,6 +170,26 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
 
         if search is None:
             messsage_list = into_parameter_check(check_info, flg, message_list)
+
+    # HOSTGROUP_NAME チェック
+    if 'HOSTGROUP_NAME' in check_info:
+        server_host_check = server_host_check + 1
+        hostgroup_flg = True
+        hostgroup_list = check_info['HOSTGROUP_NAME']
+        message_list = hostgroup_list_check(hostgroup_list, check_info, message_list)
+
+    # HOST_NAME チェック
+    if 'HOST_NAME' in check_info:
+        if not hostgroup_flg:
+            server_host_check = server_host_check + 1
+        hostname_list = check_info['HOST_NAME']
+        message_list = hostname_list_check(hostname_list, check_info, message_list)
+
+    # OPERATION_ID OPERATION_NAME SERVER_LIST MENU MENU_ID 記述チェック
+    if action_check == 0:
+        logger.logic_log('LOSM00060', check_info)
+        message_list.append(
+            {'id': 'MOSJA03182', 'param': 'OPERATION_ID, OPERATION_NAME, SERVER_LIST, MENU, MENU_ID'})
 
     # SERVER_LIST MENU_ID 共存チェック
     if exclusive > 1:
@@ -177,6 +208,17 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         logger.logic_log('LOSM00057', check_info)
         message_list.append(
             {'id': 'MOSJA03179', 'param': 'SERVER_LIST, MENU, MENU_ID'})
+
+    # MENU と SERVER_LIST,HOSTGROUP_NAME,HOST_NAMEチェック
+    if menu_flg and server_host_check > 1:
+        logger.logic_log('LOSM00058', check_info)
+        message_list.append(
+            {'id': 'MOSJA03180', 'param': 'SERVER_LIST, HOSTGROUP_NAME, HOST_NAME'})
+
+    elif menu_flg and server_host_check < 1:
+        logger.logic_log('LOSM00059', check_info)
+        message_list.append(
+            {'id': 'MOSJA03181', 'param': 'SERVER_LIST, HOSTGROUP_NAME, HOST_NAME'})
 
     return message_list
 
@@ -391,6 +433,44 @@ def server_list_check(server_list, check_info, conditions, message_list):
     return message_list
 
 
+def hostgroup_list_check(hostgroup_list, check_info, message_list):
+    """
+    [概要]
+    HOSTGROUP_NAMEのバリデーションチェックを行う
+    [引数]
+    hostgroup_list : HOSTGROUP_NAME
+    check_info     : チェック情報
+    message_list   : メッセージリスト
+    [戻り値]
+    message_list   : メッセージリスト
+    """
+
+    if hostgroup_list == '':
+        logger.logic_log('LOSM00031', check_info)
+        message_list.append({'id': 'MOSJA03146', 'param': None})
+
+    return message_list
+
+
+def hostname_list_check(hostname_list, check_info, message_list):
+    """
+    [概要]
+    HOST_NAMEのバリデーションチェックを行う
+    [引数]
+    hostname_list : HOST_NAME
+    check_info    : チェック情報
+    message_list  : メッセージリスト
+    [戻り値]
+    message_list  : メッセージリスト
+    """
+
+    if hostname_list == '':
+        logger.logic_log('LOSM00032', check_info)
+        message_list.append({'id': 'MOSJA03147', 'param': None})
+
+    return message_list
+
+
 def menu_id_check(menu_id, check_info, conditions, message_list):
     """
     [概要]
@@ -419,16 +499,6 @@ def menu_id_check(menu_id, check_info, conditions, message_list):
     elif check_info['CONVERT_FLG'] == '':
         logger.logic_log('LOSM00029', check_info)
         message_list.append({'id': 'MOSJA03144', 'param': None})
-
-    if 'HOSTGROUP_NAME' in check_info:
-        if check_info['HOSTGROUP_NAME'] == '':
-            logger.logic_log('LOSM00031', check_info)
-            message_list.append({'id': 'MOSJA03146', 'param': None})
-
-    if 'HOST_NAME' in check_info:
-        if check_info['HOST_NAME'] == '':
-            logger.logic_log('LOSM00032', check_info)
-            message_list.append({'id': 'MOSJA03147', 'param': None})
 
     menu_id_list = menu_id.split(':')
     if len(menu_id_list) != 1 and check_info['CONVERT_FLG'].upper() == 'TRUE':
