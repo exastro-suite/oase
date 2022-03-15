@@ -50,7 +50,9 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     menu_flg = False
     server_host_check = 0
     hostgroup_flg = False
+    hostname_flg = False
     action_check = 0
+    operation_flg = False
 
     # パラメーター情報取得
     check_info = ITAManager.analysis_parameters(params)
@@ -110,12 +112,14 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         operation_id = check_info['OPERATION_ID']
         operation_id_check_flg = operation_id_check_flg + 1
         action_check = action_check + 1
+        operation_flg = True
         message_list = operation_id_check(operation_id, check_info, conditions, message_list)
 
     # OPERATION_NAME チェック
     elif 'OPERATION_NAME' in check_info:
         operation_name = check_info['OPERATION_NAME']
         action_check = action_check + 1
+        operation_flg = True
         message_list = operation_name_check(operation_name, check_info, conditions, message_list)
 
     # SERVER_LIST チェック
@@ -182,6 +186,7 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
     if 'HOST_NAME' in check_info:
         if not hostgroup_flg:
             server_host_check = server_host_check + 1
+        hostname_flg = True
         hostname_list = check_info['HOST_NAME']
         message_list = hostname_list_check(hostname_list, check_info, message_list)
 
@@ -190,6 +195,12 @@ def check_dt_action_params(params, act_info, conditions, *args, **kwargs):
         logger.logic_log('LOSM00060', check_info)
         message_list.append(
             {'id': 'MOSJA03182', 'param': 'OPERATION_ID, OPERATION_NAME, SERVER_LIST, MENU, MENU_ID'})
+
+    elif operation_flg == True and action_check == 1:
+        if hostgroup_flg == True or hostname_flg == True:
+            logger.logic_log('LOSM00061', check_info)
+            message_list.append(
+            {'id': 'MOSJA03183', 'param': 'HOSTGROUP_NAME, HOST_NAME'})
 
     # SERVER_LIST MENU_ID 共存チェック
     if exclusive > 1:

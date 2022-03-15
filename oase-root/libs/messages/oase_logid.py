@@ -184,6 +184,7 @@ class OASELogID:
     Ary['LOSM00058'] = "MENU cannot use SERVER_LIST, HOSTGROUP_NAME, HOST_NAME at the same time. (check_info: {})"
     Ary['LOSM00059'] = "MENU must be set to one of SERVER_LIST, HOSTGROUP_NAME, HOST_NAME. (check_info: {})"
     Ary['LOSM00060'] = "ITA actions cannot be performed unless OPERATION_ID, OPERATION_NAME, SERVER_LIST, MENU, and MENU_ID are specified. (check_info: {})"
+    Ary['LOSM00061'] = "You cannot use HOSTGROUP_NAME or HOST_NAME for the operation specification. (check_info: {})"
     Ary['LOSM00100'] = "RuleType does not exist. (rule_type_id: {}, {})"
     Ary['LOSM00101'] = "ConditionalExpression does not exist. (conditional_expression_id: {})"
     Ary['LOSM00102'] = "Failed to get data from the OASE_T_CONDITIONAL_EXPRESSION table. (conditional_expression_id: {}, {})"
