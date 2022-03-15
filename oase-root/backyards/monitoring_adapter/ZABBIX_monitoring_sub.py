@@ -75,7 +75,7 @@ ENABLE_LOAD_TEST = getattr(settings, 'ENABLE_LOAD_TEST', False)
 if ENABLE_LOAD_TEST:
     import time
     import logging
-    loadtest_logger = logging.getLogger('oase_action_sub')
+    loadtest_logger = logging.getLogger('load_zabbix_monitor')
 
 
 from web_app.models.models import User
@@ -135,26 +135,24 @@ class ZabbixAdapterSubModules:
         monitoring_history = None
         monitoring_history_id = -1
         try:
-            with transaction.atomic():
+            monitoring_history = ZabbixMonitoringHistory(
+                zabbix_adapter_id     = self.zabbix_adapter_id,
+                zabbix_lastchange     = zabbix_lastchange,
+                status                = status,
+                status_update_id      = gethostname(),
+                last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
+                last_update_user      = self.user,
+            )
+            monitoring_history.save(force_insert=True)
 
-                monitoring_history = ZabbixMonitoringHistory(
-                    zabbix_adapter_id     = self.zabbix_adapter_id,
-                    zabbix_lastchange     = zabbix_lastchange,
-                    status                = status,
-                    status_update_id      = gethostname(),
-                    last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC')),
-                    last_update_user      = self.user,
-                )
-                monitoring_history.save(force_insert=True)
-
-                monitoring_history_id = monitoring_history.pk
+            monitoring_history_id = monitoring_history.pk
 
         except Exception as e:
-            logger.system_log('LOSM25013')
-            logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
+            logger.system_log('LOSM25013', self.zabbix_adapter_id)
+            logger.logic_log('LOSM00001', 'zabbix_adapter_id: %s, Traceback: %s' % (self.zabbix_adapter_id, traceback.format_exc()))
             monitoring_history = None
 
-        logger.logic_log('LOSI00002', 'monitoring_history_id: %s' % (str(monitoring_history_id)))
+        logger.logic_log('LOSI00002', 'zabbix_adapter_id: %s, monitoring_history_id: %s' % (self.zabbix_adapter_id, str(monitoring_history_id)))
 
         return monitoring_history
 
@@ -165,20 +163,19 @@ class ZabbixAdapterSubModules:
           ZABBIX監視履歴更新メゾット
         """
 
-        logger.logic_log('LOSI00001', 'status: %s' % (status))
+        logger.logic_log('LOSI00001', 'zabbix_adapter_id: %s, status: %s' % (self.zabbix_adapter_id, status))
         try:
-            with transaction.atomic():
-                self.monitoring_history.status = status
-                self.monitoring_history.zabbix_lastchange = last_monitoring_time
-                self.monitoring_history.status_update_id = gethostname()
-                self.monitoring_history.last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC'))
-                self.monitoring_history.last_update_user = self.user
-                self.monitoring_history.save(force_update=True)
+            self.monitoring_history.status = status
+            self.monitoring_history.zabbix_lastchange = last_monitoring_time
+            self.monitoring_history.status_update_id = gethostname()
+            self.monitoring_history.last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC'))
+            self.monitoring_history.last_update_user = self.user
+            self.monitoring_history.save(force_update=True)
 
         except Exception as e:
             raise
 
-        logger.logic_log('LOSI00002', 'None')
+        logger.logic_log('LOSI00002', 'zabbix_adapter_id: %s' % (self.zabbix_adapter_id))
         return True
 
 
@@ -188,7 +185,7 @@ class ZabbixAdapterSubModules:
           監視実行
         """
 
-        logger.logic_log('LOSI00001', zabbix_adapter.zabbix_adapter_id)
+        logger.logic_log('LOSI00001', 'zabbix_adapter_id: %s' % (self.zabbix_adapter_id))
 
         result = True
         api_response = []
@@ -201,15 +198,15 @@ class ZabbixAdapterSubModules:
 
         except TypeError as e:
             result = False
-            logger.system_log('LOSM25014')
-            logger.logic_log('LOSM00001', 'e: %s' % (e))
+            logger.system_log('LOSM25014', self.zabbix_adapter_id)
+            logger.logic_log('LOSM00001', 'zabbix_adapter_id: %s, e: %s' % (self.zabbix_adapter_id, e))
 
         except Exception as e:
             result = False
-            logger.system_log('LOSM25014')
-            logger.logic_log('LOSM00001', 'e: %s, Traceback: %s' % (e, traceback.format_exc()))
+            logger.system_log('LOSM25014', self.zabbix_adapter_id)
+            logger.logic_log('LOSM00001', 'zabbix_adapter_id: %s, e: %s, Traceback: %s' % (self.zabbix_adapter_id, e, traceback.format_exc()))
 
-        logger.logic_log('LOSI00002', 'None')
+        logger.logic_log('LOSI00002', 'zabbix_adapter_id: %s' % (self.zabbix_adapter_id))
 
         return result, api_response, last_monitoring_time
 
@@ -219,7 +216,7 @@ class ZabbixAdapterSubModules:
         [概要]
           
         """
-        logger.logic_log('LOSI00001', 'None')
+        logger.logic_log('LOSI00001', 'zabbix_adapter_id: %s' % (self.zabbix_adapter_id))
 
         zabbix_adapter = None
         latest_monitoring_history = None
@@ -232,7 +229,7 @@ class ZabbixAdapterSubModules:
             latest_monitoring_history = ZabbixMonitoringHistory.objects.filter(zabbix_adapter_id=self.zabbix_adapter_id, status=PROCESSED).order_by('zabbix_lastchange').reverse().first()
 
         except Exception as e:
-            logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
+            logger.logic_log('LOSM00001', 'zabbix_adapter_id: %s, Traceback: %s' % (self.zabbix_adapter_id, traceback.format_exc()))
 
         if latest_monitoring_history != None:
             zabbix_lastchange = latest_monitoring_history.zabbix_lastchange
@@ -244,7 +241,7 @@ class ZabbixAdapterSubModules:
                 return False
 
         except Exception as e:
-            logger.system_log('LOSM25013')
+            logger.system_log('LOSM25013', self.zabbix_adapter_id)
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
             return False
 
@@ -260,44 +257,47 @@ class ZabbixAdapterSubModules:
 
             # トリガー比較
             difference = []
-            with transaction.atomic():
-                if runnable:
-                    triggerManager = ManageTrigger(self.zabbix_adapter_id, self.user)
-                    confirm_list = [(int(record['triggerid']), int(record['lastchange'])) for record in result_data]
-                    flag_array = triggerManager.main(confirm_list)
+            if runnable:
+                triggerManager = ManageTrigger(self.zabbix_adapter_id, self.user)
+                confirm_list = [(int(record['triggerid']), int(record['lastchange'])) for record in result_data]
+                flag_array = triggerManager.main(confirm_list)
 
-                    index = 0
-                    for flag in flag_array:
-                        if flag:
-                            difference.append(result_data[index])
+                index = 0
+                for flag in flag_array:
+                    if flag:
+                        difference.append(result_data[index])
 
-                        index = index + 1
+                    index = index + 1
 
-                    if len(difference) <= 0:
-                        runnable = False
+                if len(difference) <= 0:
+                    runnable = False
 
-                # メッセージ整形
-                if runnable:
-                    formatting_result, form_data = message_formatting(difference, zabbix_adapter.rule_type_id, self.zabbix_adapter_id)
+            # メッセージ整形
+            if runnable:
+                formatting_result, form_data = message_formatting(difference, zabbix_adapter.rule_type_id, self.zabbix_adapter_id)
 
-                    if not formatting_result:
-                        error_occurred = True
-                        runnable = False
+                if not formatting_result:
+                    error_occurred = True
+                    runnable = False
 
-                    if len(form_data) <= 0:
-                        runnable = False
+                if len(form_data) <= 0:
+                    runnable = False
 
-                # OASEへ本番リクエスト
-                if runnable:
-                    send_result = send_request(form_data)
+            # OASEへ本番リクエスト
+            if runnable:
+                send_result = send_request(form_data)
 
-                    if not send_result:
-                        error_occurred = True
-                        runnable = False
+                if not send_result:
+                    error_occurred = True
+                    runnable = False
+
+            # トリガー情報を保存
+            if runnable:
+                triggerManager.save_trigger_info(confirm_list)
 
         except Exception as e:
             error_occurred = True
-            logger.system_log('LOSM25014')
+            logger.system_log('LOSM25014', self.zabbix_adapter_id)
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
 
         # 結果により監視履歴更新
@@ -348,7 +348,7 @@ if __name__ == '__main__':
         zabbix_sub_module.do_workflow()
 
     except Exception as e:
-        logger.system_log('LOSM25014')
+        logger.system_log('LOSM25014', self.zabbix_adapter_id)
         logger.logic_log('LOSM00001', 'zabbix_adapter_id: %s, Traceback: %s' % (str(zabbix_adapter_id), traceback.format_exc()))
 
     if ENABLE_LOAD_TEST:
