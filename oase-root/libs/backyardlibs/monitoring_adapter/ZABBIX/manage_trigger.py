@@ -26,6 +26,7 @@ import os
 import sys
 import pytz
 import traceback
+import ast
 
 # OASE モジュール importパス追加
 my_path = os.path.dirname(os.path.abspath(__file__))
@@ -53,6 +54,8 @@ class ManageTrigger:
         """
         self.zabbix_adapter_id = zabbix_adapter_id
         self.user = user
+        self.path = os.path.join(*[root_dir_path, 'temp', 'monitor'])
+        self.filepath = os.path.join(self.path, 'zabbix%s.dat' % (self.zabbix_adapter_id))
 
 
     def main(self, triggerid_lastchange_list):
@@ -68,8 +71,28 @@ class ManageTrigger:
               未登録の障害又は新たに障害が発生した場合はTrue, 既に取得済みの障害の場合はFalse
               例外が発生した場合は空のリストを返す
         """
-        logger.logic_log('LOSI00001', 'triggerid_lastchange_list: %s' % (triggerid_lastchange_list))
-        
+
+        logger.logic_log('LOSI00001', 'zabbix_adapter_id: %s, triggerid_lastchange_list: %s' % (self.zabbix_adapter_id, triggerid_lastchange_list))
+
+        result = []
+
+        # ディレクトリが存在しなければ作成
+        os.makedirs(self.path, exist_ok=True)
+
+        # ファイルが存在しなければ取得分は全て追加
+        if os.path.exists(self.filepath) == False:
+            result = [True] * len(triggerid_lastchange_list)
+
+        # 前回取得データを保存したファイルをオープン
+        else:
+            with open(self.filepath, 'r') as fp:
+                before_data = fp.read()
+                before_data = ast.literal_eval(before_data)
+
+            result = self.compare_data(before_data, triggerid_lastchange_list)
+
+
+        """
         trigger_history_list = ZabbixTriggerHistory.objects.select_for_update().filter(zabbix_adapter_id=self.zabbix_adapter_id)
         trigger_history_dict = {t.trigger_id:t for t in trigger_history_list}
 
@@ -93,8 +116,9 @@ class ManageTrigger:
                 result.append(True)
 
         self.delete_resolved_records(trigger_history_list, active_trigger_id_list)
+        """
 
-        logger.logic_log('LOSI00002', 'result: %s' % (result))
+        logger.logic_log('LOSI00002', 'zabbix_adapter_id: %s, result: %s' % (self.zabbix_adapter_id, result))
         return result
 
 
@@ -147,4 +171,48 @@ class ManageTrigger:
             if not t.trigger_id in active_trigger_id_list:
                 logger.logic_log('LOSI25000', self.zabbix_adapter_id, t.trigger_id)
                 t.delete()
+
+
+    def compare_data(self, trg1_list, trg2_list):
+        """
+        [概要]
+        Zabbix から取得したトリガーとその更新日時を比較する
+
+        [引数]
+        trg1_list : 比較対象1のトリガーID、および、更新日時のset配列
+        trg2_list : 比較対象2のトリガーID、および、更新日時のset配列
+
+        [戻り値]
+        list : 真偽値の配列(True=trg2_listの要素に変更あり, False=trg1_listと同じ要素)
+        """
+
+        result = []
+
+        # 比較対象2にのみ存在する要素を取得
+        diff_list = list(set(trg2_list) - set(trg1_list))
+
+        # 比較対象2の各要素に対して、差分の有無を真偽値として返却
+        for t2 in trg2_list:
+            if t2 in diff_list:
+                result.append(True)
+
+            else:
+                result.append(False)
+
+
+        return result
+
+
+    def save_trigger_info(self, trg_list):
+        """
+        [概要]
+        Zabbix から取得したトリガーとその更新日時を保存する
+
+        [引数]
+        trg_list : 保存するトリガー情報リスト
+        """
+
+        with open(self.filepath, 'w') as fp:
+            fp.write(str(trg_list))
+
 
