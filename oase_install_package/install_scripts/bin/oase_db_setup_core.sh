@@ -173,6 +173,7 @@ check_result $? $encrypted_password
 create_initcustom 51 "RabbitMQパスワード"            "RABBITMQ"      "MQ_PASSWORD"       $encrypted_password   $date
 create_initcustom 52 "RabbitMQIPアドレス"            "RABBITMQ"      "MQ_IPADDRESS"      ${RabbitMQ_ipaddr}    $date
 create_initcustom 53 "RabbitMQキュー名"              "RABBITMQ"      "MQ_QUEUE_NAME"     ${RabbitMQ_queuename} $date
+create_initcustom 60 "DMリクエスト送信先kie"         "DMSETTINGS"    "DM_IPADDRPORT_KIE" ${rule_engine_ipaddrport}      $date
 
 ################################################################################
 log "INFO : Create init_custom.yaml is completed."
