@@ -349,7 +349,7 @@ class DMController:
         self.request_uri = '/kie-server/services/rest/server/containers/instances'
         self.auth = (dmconf['DM_USERID'],dmconf['DM_PASSWD'])
         self.timeout = int(dmconf['DM_TIMEOUT'])
-        self.url = dmconf['DM_PROTOCOL'] + '://' + dmconf['DM_IPADDRPORT'] + \
+        self.url = dmconf['DM_PROTOCOL'] + '://' + dmconf['DM_IPADDRPORT_KIE'] + \
                     self.request_uri + '/' + driver.container_id
         logger.logic_log('LOSI00002', 'TraceID: %s, url: %s' % (self.driver.trace_id, self.url))
 
