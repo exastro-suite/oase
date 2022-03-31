@@ -568,11 +568,17 @@ def into_parameter_check(check_info, valid_flg, message_list):
                         'COL_NAME'  : '',
                     }
 
-                for k, v in value['VALUES'].items():
-                    col_list = k.split('/')
-                    menu_val_info[menu_id]['COL_GROUP'] = ('/').join(col_list[0:-1]) if len(col_list) >= 2 else ''
-                    menu_val_info[menu_id]['COL_NAME'] = col_list[-1]
-
+                if isinstance(value['VALUES'], dict):
+                    for k, v in value['VALUES'].items():
+                        col_list = k.split('/')
+                        menu_val_info[menu_id]['COL_GROUP'] = ('/').join(col_list[0:-1]) if len(col_list) >= 2 else ''
+                        menu_val_info[menu_id]['COL_NAME'] = col_list[-1]
+                else:
+                    for value in value['VALUES']:
+                        for k, v in value.items():
+                            col_list = k.split('/')
+                            menu_val_info[menu_id]['COL_GROUP'] = ('/').join(col_list[0:-1]) if len(col_list) >= 2 else ''
+                            menu_val_info[menu_id]['COL_NAME'] = col_list[-1]
 
     # DBに存在しないメニューIDを指定したらエラー
     rset = []

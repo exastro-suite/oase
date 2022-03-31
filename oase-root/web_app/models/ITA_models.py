@@ -110,13 +110,14 @@ class ItaParametaCommitInfo(models.Model):
     commit_order = models.IntegerField("実行順序")
     menu_id = models.IntegerField("メニューID")
     ita_order = models.IntegerField("ITA順序")
+    array_count = models.IntegerField("配列数")
     parameter_value = models.CharField("抽出パラメータ値", max_length=4000)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
 
     class Meta:
         db_table = 'OASE_T_ITA_PARAMETER_COMMIT_INFO'
-        unique_together = (('response_id', 'commit_order', 'menu_id', 'ita_order'), )
+        unique_together = (('response_id', 'commit_order', 'menu_id', 'ita_order', 'array_count'), )
 
     def __str__(self):
         return str(self.commit_id)
@@ -133,6 +134,7 @@ class ItaMenuName(models.Model):
     menu_group_name = models.CharField("メニューグループ名", max_length=64)
     menu_name = models.CharField("メニュー名", max_length=64)
     hostgroup_flag = models.IntegerField("ホストグループフラグ", default=0)
+    vertical_menu_flag = models.IntegerField("縦メニューフラグ", default=0)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
 
