@@ -375,10 +375,12 @@ class ITAParameterSheetMenuManager:
             group_name = ita_data[u]['group_name']
             menu_name = ita_data[u]['menu_name']
             hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else 0
+            vertical_flg = use_info[(group_name, menu_name)]['vertical_flg'] if (group_name, menu_name) in use_info else 0
             ItaMenuName.objects.filter(ita_menu_name_id=pkey).update(
                 menu_group_name = group_name,
                 menu_name = menu_name,
                 hostgroup_flag = hg_flag,
+                vertical_menu_flag = vertical_flg,
                 last_update_timestamp = self.now,
                 last_update_user = self.user_name
             )
@@ -392,6 +394,7 @@ class ITAParameterSheetMenuManager:
             group_name = ita_data[r]['group_name']
             menu_name = ita_data[r]['menu_name']
             hg_flag = use_info[(group_name, menu_name)]['hostgroup_flg'] if (group_name, menu_name) in use_info else 0
+            vertical_flg = use_info[(group_name, menu_name)]['vertical_flg'] if (group_name, menu_name) in use_info else 0
             reg_list.append(
                 ItaMenuName(
                     ita_driver_id = self.drv_id,
@@ -400,6 +403,7 @@ class ITAParameterSheetMenuManager:
                     menu_group_name = ita_data[r]['group_name'],
                     menu_name = ita_data[r]['menu_name'],
                     hostgroup_flag = hg_flag,
+                    vertical_menu_flag = vertical_flg,
                     last_update_timestamp = self.now,
                     last_update_user = self.user_name
                 )

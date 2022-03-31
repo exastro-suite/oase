@@ -136,8 +136,8 @@ class ITAParameterSheetMenuManager2(ITAParameterSheetMenuManager):
             elif menu[Cstobj.FCMI_USE] == '':
                 hostgroup_flg = -1
 
-            if False:# menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]:
-                group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL]
+            if menu[Cstobj.FCMI_MENUGROUP_FOR_VERTICAL_2]:
+                group_name = menu[Cstobj.FCMI_MENUGROUP_FOR_HOSTGROUP]
                 vertical_flg = True
                 priority = 3
 

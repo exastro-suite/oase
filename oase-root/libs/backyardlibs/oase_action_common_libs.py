@@ -114,6 +114,15 @@ class ConstantModules:
     COL_PARAMETER                     =  10
     TBL_CPS_MAX                       =  COL_PARAMETER + 1
 
+    ## C_PARAMETER_SHEET_VERTICAL
+    COL_PARAMETER_NO_VERTICAL               =  2
+    COL_HOSTNAME_VERTICAL                   =  3
+    COL_OPERATION_ID_VERTICAL               =  4
+    COL_OPERATION_NAME_PARAM_VERTICAL       =  5
+    COL_SCHEDULE_TIMESTAMP_ID_NAME_VERTICAL =  9
+    COL_SUBSTITUTION_ORDER_VERTICAL         =  10
+    COL_PARAMETER_VERTICAL                  =  11
+
     ## C_PATTERN_PER_ORCH
     CPPO_PATTERN_ID                   =  2
     CPPO_PATTERN_NAME                 =  3
@@ -142,6 +151,7 @@ class ConstantModules:
     FCMI_MENU_NAME                    = 3
     FCMI_TARGET                       = 4
     FCMI_USE                          = 6
+    FCMI_MENUGROUP_FOR_VERTICAL_2     = 7
     FCMI_MENUGROUP_FOR_HOSTGROUP      = 8
     FCMI_MENUGROUP_FOR_HOST           = 9
     FCMI_MENUGROUP_FOR_VERTICAL       = 11

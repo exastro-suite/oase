@@ -336,14 +336,25 @@ class ITAManager(AbstractManager):
                 menu_id_list.append(menu['ID'])
 
             hg_flg_info = {}
+            vm_flg_info = {}
             rset = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
-            rset = rset.values('menu_id', 'hostgroup_flag')
+            rset = rset.values('menu_id', 'hostgroup_flag', 'vertical_menu_flag')
             for r in rset:
                 hg_flg_info[r['menu_id']] = r['hostgroup_flag']
+                vm_flg_info[r['menu_id']] = r['vertical_menu_flag']
 
             for menu_id in menu_id_list:
                 menu_id = int(menu_id)
                 if menu_id not in hg_flg_info:
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01123')
+
+                    logger.system_log(
+                        'LOSM01101', self.trace_id, self.response_id, rhdm_res_act.execution_order, menu_id
+                    )
+                    return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                elif menu_id not in vm_flg_info:
                     ActionDriverCommonModules.SaveActionLog(
                         self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01123')
 
@@ -386,87 +397,177 @@ class ITAManager(AbstractManager):
                 for menu in menu_dict:
                     menu_id = menu['ID']
                     values = menu['VALUES']
-                    key = values.keys()
-                    for i, ke in enumerate(key):
+                    if isinstance(values, dict):
+                        key = values.keys()
+                        for i, ke in enumerate(key):
+                            # カラムが空白の場合はDBにコミットしない
+                            if not ke:
+                                continue
 
-                        # カラムが空白の場合はDBにコミットしない
-                        if not ke:
-                            continue
+                            val = values[ke]
 
-                        val = values[ke]
+                            # 値が空白の場合はDBにコミットしない
+                            if not val:
+                                continue
 
-                        # 値が空白の場合はDBにコミットしない
-                        if not val:
-                            continue
+                            count = ke.count('/')
 
-                        count = ke.count('/')
+                            try:
+                                if count > 0:
+                                    tmp = ke.rsplit('/', 1)
+                                    column_group = tmp[0]
+                                    column       = tmp[1]
 
-                        try:
-                            if count > 0:
-                                tmp = ke.rsplit('/', 1)
-                                column_group = tmp[0]
-                                column       = tmp[1]
+                                    ita_order = ItaParameterItemInfo.objects.get(
+                                        ita_driver_id=self.ita_driver.ita_driver_id,
+                                        menu_id=int(menu_id),
+                                        column_group=column_group,
+                                        item_name=column
+                                    ).ita_order
 
-                                ita_order = ItaParameterItemInfo.objects.get(
-                                    ita_driver_id=self.ita_driver.ita_driver_id,
-                                    menu_id=int(menu_id),
-                                    column_group=column_group,
-                                    item_name=column
-                                ).ita_order
+                                else:
+                                    ita_order = ItaParameterItemInfo.objects.get(
+                                        ita_driver_id=self.ita_driver.ita_driver_id,
+                                        menu_id=int(menu_id),
+                                        item_name=ke
+                                    ).ita_order
+
+                            except ItaParameterItemInfo.DoesNotExist:
+                                logger.system_log('LOSE01148', self.trace_id)
+                                ActionDriverCommonModules.SaveActionLog(
+                                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01124')
+                                return ACTION_EXEC_ERROR, DetailStatus
+
+                            except Exception as e:
+                                logger.system_log('LOSE01147', self.trace_id, traceback.format_exc())
+                                ActionDriverCommonModules.SaveActionLog(
+                                    self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01125')
+                                return ACTION_EXEC_ERROR, DetailStatus
+
+                            if i == 0:
+                                itaparcom = ItaParametaCommitInfo(
+                                    response_id = self.response_id,
+                                    commit_order = rhdm_res_act.execution_order,
+                                    menu_id = int(menu_id),
+                                    ita_order = 0,
+                                    array_count = 1,
+                                    parameter_value = server_name,
+                                    last_update_timestamp = Comobj.getStringNowDateTime(),
+                                    last_update_user = self.last_update_user,
+                                )
+                                commitinfo_list.append(itaparcom)
+
+                                itaparcom = ItaParametaCommitInfo(
+                                    response_id = self.response_id,
+                                    commit_order = rhdm_res_act.execution_order,
+                                    menu_id = int(menu_id),
+                                    ita_order = ita_order + 1,
+                                    array_count = 1,
+                                    parameter_value = val,
+                                    last_update_timestamp = Comobj.getStringNowDateTime(),
+                                    last_update_user = self.last_update_user,
+                                )
+                                commitinfo_list.append(itaparcom)
 
                             else:
-                                ita_order = ItaParameterItemInfo.objects.get(
-                                    ita_driver_id=self.ita_driver.ita_driver_id,
-                                    menu_id=int(menu_id),
-                                    item_name=ke
-                                ).ita_order
+                                itaparcom = ItaParametaCommitInfo(
+                                    response_id = self.response_id,
+                                    commit_order = rhdm_res_act.execution_order,
+                                    menu_id = int(menu_id),
+                                    ita_order = ita_order + 1,
+                                    array_count = 1,
+                                    parameter_value = val,
+                                    last_update_timestamp = Comobj.getStringNowDateTime(),
+                                    last_update_user = self.last_update_user,
+                                )
+                                commitinfo_list.append(itaparcom)
 
-                        except ItaParameterItemInfo.DoesNotExist:
-                            logger.system_log('LOSE01148', self.trace_id)
-                            ActionDriverCommonModules.SaveActionLog(
-                                self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01124')
-                            return ACTION_EXEC_ERROR, DetailStatus
+                    else:
+                        for j, value in enumerate(values):
+                            key = value.keys()
+                            for i, ke in enumerate(key):
 
-                        except Exception as e:
-                            logger.system_log('LOSE01147', self.trace_id, traceback.format_exc())
-                            ActionDriverCommonModules.SaveActionLog(
-                                self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01125')
-                            return ACTION_EXEC_ERROR, DetailStatus
+                                # カラムが空白の場合はDBにコミットしない
+                                if not ke:
+                                    continue
 
-                        if i == 0:
-                            itaparcom = ItaParametaCommitInfo(
-                                response_id = self.response_id,
-                                commit_order = rhdm_res_act.execution_order,
-                                menu_id = int(menu_id),
-                                ita_order = 0,
-                                parameter_value = server_name,
-                                last_update_timestamp = Comobj.getStringNowDateTime(),
-                                last_update_user = self.last_update_user,
-                            )
-                            commitinfo_list.append(itaparcom)
+                                val = value[ke]
 
-                            itaparcom = ItaParametaCommitInfo(
-                                response_id = self.response_id,
-                                commit_order = rhdm_res_act.execution_order,
-                                menu_id = int(menu_id),
-                                ita_order = ita_order + 1,
-                                parameter_value = val,
-                                last_update_timestamp = Comobj.getStringNowDateTime(),
-                                last_update_user = self.last_update_user,
-                            )
-                            commitinfo_list.append(itaparcom)
+                                # 値が空白の場合はDBにコミットしない
+                                if not val:
+                                    continue
 
-                        else:
-                            itaparcom = ItaParametaCommitInfo(
-                                response_id = self.response_id,
-                                commit_order = rhdm_res_act.execution_order,
-                                menu_id = int(menu_id),
-                                ita_order = ita_order + 1,
-                                parameter_value = val,
-                                last_update_timestamp = Comobj.getStringNowDateTime(),
-                                last_update_user = self.last_update_user,
-                            )
-                            commitinfo_list.append(itaparcom)
+                                count = ke.count('/')
+
+                                try:
+                                    if count > 0:
+                                        tmp = ke.rsplit('/', 1)
+                                        column_group = tmp[0]
+                                        column       = tmp[1]
+
+                                        ita_order = ItaParameterItemInfo.objects.get(
+                                            ita_driver_id=self.ita_driver.ita_driver_id,
+                                            menu_id=int(menu_id),
+                                            column_group=column_group,
+                                            item_name=column
+                                        ).ita_order
+
+                                    else:
+                                        ita_order = ItaParameterItemInfo.objects.get(
+                                            ita_driver_id=self.ita_driver.ita_driver_id,
+                                            menu_id=int(menu_id),
+                                            item_name=ke
+                                        ).ita_order
+
+                                except ItaParameterItemInfo.DoesNotExist:
+                                    logger.system_log('LOSE01148', self.trace_id)
+                                    ActionDriverCommonModules.SaveActionLog(
+                                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01124')
+                                    return ACTION_EXEC_ERROR, DetailStatus
+
+                                except Exception as e:
+                                    logger.system_log('LOSE01147', self.trace_id, traceback.format_exc())
+                                    ActionDriverCommonModules.SaveActionLog(
+                                        self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01125')
+                                    return ACTION_EXEC_ERROR, DetailStatus
+
+                                if i == 0:
+                                    itaparcom = ItaParametaCommitInfo(
+                                        response_id = self.response_id,
+                                        commit_order = rhdm_res_act.execution_order,
+                                        menu_id = int(menu_id),
+                                        ita_order = 0,
+                                        array_count = j,
+                                        parameter_value = server_name,
+                                        last_update_timestamp = Comobj.getStringNowDateTime(),
+                                        last_update_user = self.last_update_user,
+                                    )
+                                    commitinfo_list.append(itaparcom)
+
+                                    itaparcom = ItaParametaCommitInfo(
+                                        response_id = self.response_id,
+                                        commit_order = rhdm_res_act.execution_order,
+                                        menu_id = int(menu_id),
+                                        ita_order = ita_order + 1,
+                                        array_count = j,
+                                        parameter_value = val,
+                                        last_update_timestamp = Comobj.getStringNowDateTime(),
+                                        last_update_user = self.last_update_user,
+                                    )
+                                    commitinfo_list.append(itaparcom)
+
+                                else:
+                                    itaparcom = ItaParametaCommitInfo(
+                                        response_id = self.response_id,
+                                        commit_order = rhdm_res_act.execution_order,
+                                        menu_id = int(menu_id),
+                                        ita_order = ita_order + 1,
+                                        array_count = j,
+                                        parameter_value = val,
+                                        last_update_timestamp = Comobj.getStringNowDateTime(),
+                                        last_update_user = self.last_update_user,
+                                    )
+                                    commitinfo_list.append(itaparcom)
 
                 try:
                     ItaParametaCommitInfo.objects.bulk_create(commitinfo_list)
@@ -479,15 +580,16 @@ class ITAManager(AbstractManager):
 
             parameter_list = {}
 
-            commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('ita_order')
+            commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('commit_id')
             for commit_info in commitinfo_list:
                 if commit_info.menu_id not in parameter_list:
-                    parameter_list[commit_info.menu_id] = {'host_name':'', 'param_list':[]}
+                    parameter_list[commit_info.menu_id] = {'host_name':'', 'param_list':[], 'array_list':[]}
 
                 if commit_info.ita_order == 0:
                     parameter_list[commit_info.menu_id]['host_name'] = commit_info.parameter_value
                 else:
                     parameter_list[commit_info.menu_id]['param_list'].append(commit_info.parameter_value)
+                    parameter_list[commit_info.menu_id]['array_list'].append(commit_info.array_count)
 
             # ホスト情報の有無をチェック
             for k, v in parameter_list.items():
@@ -635,6 +737,7 @@ class ITAManager(AbstractManager):
                 menu_id = int(menu_id)
                 host_name = ''
                 param_list = []
+                array_list = []
 
                 if not parameter_list[menu_id]['host_name'] and hg_flg_info[menu_id] >= 0:
                     logger.system_log(
@@ -664,6 +767,7 @@ class ITAManager(AbstractManager):
 
 
                 param_list = parameter_list[menu_id]['param_list']
+                array_list = parameter_list[menu_id]['array_list']
 
                 if len(set_host) == 0:
                     # Error
@@ -672,29 +776,73 @@ class ITAManager(AbstractManager):
                     )
                     return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
-                for sh in set_host:
-                    host_name = sh
-                    # 検索結果によりあったら、update なかったら、insert
-                    ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
-                        self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
+                if vm_flg_info[menu_id] == 0:
+                    for sh in set_host:
+                        host_name = sh
+                        # 検索結果によりあったら、update なかったら、insert
+                        ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
+                            self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
 
-                    if ret_select is None:
-                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
-                        return ACTION_EXEC_ERROR, DetailStatus
+                        if ret_select is None:
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                            return ACTION_EXEC_ERROR, DetailStatus
 
-                    if ret_select > 0:
-                        col_revision = 3 if self.ita_driver.version in ['1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0', '1.7.1', '1.7.2', '1.8.0', '1.8.1', '1.8.2', '1.9.0', '1.9.1'] else 2
-                        ret = self.ITAobj.update_c_parameter_sheet(
-                            self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result, col_revision)
-                    elif ret_select == 0:
-                        ret = self.ITAobj.insert_c_parameter_sheet(
-                            host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
+                        if ret_select > 0:
+                            col_revision = 3 if self.ita_driver.version in ['1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0', '1.7.1', '1.7.2', '1.8.0', '1.8.1', '1.8.2', '1.9.0', '1.9.1'] else 2
+                            ret = self.ITAobj.update_c_parameter_sheet(
+                                self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result, col_revision)
+                        elif ret_select == 0:
+                            ret = self.ITAobj.insert_c_parameter_sheet(
+                                host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
 
-                    if ret == Cstobj.RET_REST_ERROR:
-                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                        if ret == Cstobj.RET_REST_ERROR:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
-                        return ACTION_EXEC_ERROR, DetailStatus
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                else:
+                    for sh in set_host:
+                        host_name = sh
+                        # 検索結果によりあったら、update なかったら、insert
+                        ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
+                            self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
+
+                        if ret_select is None:
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                        if ret_select > 0:
+                            if self.ita_driver.version in [
+                                '1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0', '1.7.1', '1.7.2',
+                                '1.8.0', '1.8.1', '1.8.2', '1.9.0', '1.9.1']:
+                                col_revision = 3
+                            else:
+                                col_revision = 2
+                            ret = self.ITAobj.update_c_parameter_sheet_vertical(
+                                self.ary_ita_config,
+                                host_name,
+                                operation_name,
+                                exec_schedule_date,
+                                param_list, array_list,
+                                str(menu_id).zfill(10),
+                                ary_result,
+                                col_revision)
+                        elif ret_select == 0:
+                            ret = self.ITAobj.insert_c_parameter_sheet_vertical(
+                                host_name,
+                                operation_id,
+                                operation_name,
+                                exec_schedule_date,
+                                param_list,
+                                array_list,
+                                str(menu_id).zfill(10))
+
+                        if ret == Cstobj.RET_REST_ERROR:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
 
                 ActionDriverCommonModules.SaveActionLog(
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')
@@ -910,10 +1058,12 @@ class ITAManager(AbstractManager):
 
 
             hg_flg_info = {}
+            vm_flg_info = {}
             rset = ItaMenuName.objects.filter(ita_driver_id=self.ita_driver.ita_driver_id, menu_id__in=menu_id_list)
-            rset = rset.values('menu_id', 'hostgroup_flag')
+            rset = rset.values('menu_id', 'hostgroup_flag', 'vertical_menu_flag')
             for r in rset:
                 hg_flg_info[r['menu_id']] = r['hostgroup_flag']
+                vm_flg_info[r['menu_id']] = r['vertical_menu_flag']
 
             for menu_id in menu_id_list:
                 menu_id = int(menu_id)
@@ -951,6 +1101,10 @@ class ITAManager(AbstractManager):
                         events_request = EventsRequest.objects.get(trace_id=self.trace_id)
                         data_object_list = list(DataObject.objects.filter(rule_type_id=events_request.rule_type_id).order_by('data_object_id'))
 
+                        array_count = 1
+                        column_num  = 0
+                        match_order = 0
+
                         for match in ita_param_matchinfo_list:
                             label_list = []
                             for obj in data_object_list:
@@ -972,15 +1126,54 @@ class ITAManager(AbstractManager):
                                         value = m.group(0).split(match.extraction_method2)
                                         parameter_value = value[1].strip()
 
-                                    itaparcom = ItaParametaCommitInfo(
-                                        response_id = self.response_id,
-                                        commit_order = rhdm_res_act.execution_order,
-                                        menu_id = int(menu_id),
-                                        ita_order = match.order,
-                                        parameter_value = parameter_value,
-                                        last_update_timestamp = Comobj.getStringNowDateTime(),
-                                        last_update_user = self.last_update_user,
-                                    )
+                                    parameter_name = match.parameter_name
+
+                                    if parameter_name[-1] == ']':
+                                        tmp = re.findall('[0-9]+' , parameter_name)
+                                        temp = tmp[-1]
+
+                                        if column_num == 0 or temp == column_num:
+                                            column_num = tmp[-1]
+                                            order_num = int(match_order) * (int(column_num) - 1)
+                                            itaparcom = ItaParametaCommitInfo(
+                                                response_id = self.response_id,
+                                                commit_order = rhdm_res_act.execution_order,
+                                                menu_id = int(menu_id),
+                                                ita_order = match.order - order_num,
+                                                array_count = array_count,
+                                                parameter_value = parameter_value,
+                                                last_update_timestamp = Comobj.getStringNowDateTime(),
+                                                last_update_user = self.last_update_user,
+                                            )
+
+                                        elif temp != column_num:
+                                            array_count = array_count + 1
+                                            column_num = tmp[-1]
+                                            order_num = int(match_order) * (int(column_num) - 1)
+                                            itaparcom = ItaParametaCommitInfo(
+                                                response_id = self.response_id,
+                                                commit_order = rhdm_res_act.execution_order,
+                                                menu_id = int(menu_id),
+                                                ita_order = match.order - order_num,
+                                                array_count = array_count,
+                                                parameter_value = parameter_value,
+                                                last_update_timestamp = Comobj.getStringNowDateTime(),
+                                                last_update_user = self.last_update_user,
+                                            )
+
+                                    else:
+                                        itaparcom = ItaParametaCommitInfo(
+                                            response_id = self.response_id,
+                                            commit_order = rhdm_res_act.execution_order,
+                                            menu_id = int(menu_id),
+                                            ita_order = match.order,
+                                            array_count = 0,
+                                            parameter_value = parameter_value,
+                                            last_update_timestamp = Comobj.getStringNowDateTime(),
+                                            last_update_user = self.last_update_user,
+                                        )
+                                        match_order = match.order
+
                                     commitinfo_list.append(itaparcom)
 
                     try:
@@ -993,15 +1186,16 @@ class ITAManager(AbstractManager):
 
                 parameter_list = {}
 
-                commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('ita_order')
+                commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('commit_id')
                 for commit_info in commitinfo_list:
                     if commit_info.menu_id not in parameter_list:
-                        parameter_list[commit_info.menu_id] = {'host_name':'', 'param_list':[]}
+                        parameter_list[commit_info.menu_id] = {'host_name':'', 'param_list':[], 'array_list':[]}
 
                     if commit_info.ita_order == 0:
                         parameter_list[commit_info.menu_id]['host_name'] = commit_info.parameter_value
                     else:
                         parameter_list[commit_info.menu_id]['param_list'].append(commit_info.parameter_value)
+                        parameter_list[commit_info.menu_id]['array_list'].append(commit_info.array_count)
 
             elif convert_flg.upper() == 'TRUE':
                 menu_id = int(menu_id_list[0])
@@ -1218,6 +1412,7 @@ class ITAManager(AbstractManager):
 
 
                 param_list = parameter_list[menu_id]['param_list']
+                array_list = parameter_list[menu_id]['array_list']
 
                 if len(set_host) == 0:
                     # Error
@@ -1226,28 +1421,71 @@ class ITAManager(AbstractManager):
                     )
                     return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
-                for sh in set_host:
-                    host_name = sh
-                    # 検索結果によりあったら、update なかったら、insert
-                    ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
-                        self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
-                    if ret_select is None:
-                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
-                        return ACTION_EXEC_ERROR, DetailStatus
+                if vm_flg_info[menu_id] == 0:
+                    for sh in set_host:
+                        host_name = sh
+                        # 検索結果によりあったら、update なかったら、insert
+                        ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
+                            self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
+                        if ret_select is None:
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                            return ACTION_EXEC_ERROR, DetailStatus
 
-                    if ret_select > 0:
-                        col_revision = 3 if self.ita_driver.version in ['1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0', '1.7.1', '1.7.2', '1.8.0', '1.8.1', '1.8.2', '1.9.0', '1.9.1'] else 2
-                        ret = self.ITAobj.update_c_parameter_sheet(
-                            self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result, col_revision)
-                    elif ret_select == 0:
-                        ret = self.ITAobj.insert_c_parameter_sheet(
-                            host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
+                        if ret_select > 0:
+                            col_revision = 3 if self.ita_driver.version in ['1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0', '1.7.1', '1.7.2', '1.8.0', '1.8.1', '1.8.2', '1.9.0', '1.9.1'] else 2
+                            ret = self.ITAobj.update_c_parameter_sheet(
+                                self.ary_ita_config, host_name, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10), ary_result, col_revision)
+                        elif ret_select == 0:
+                            ret = self.ITAobj.insert_c_parameter_sheet(
+                                host_name, operation_id, operation_name, exec_schedule_date, param_list, str(menu_id).zfill(10))
 
-                    if ret == Cstobj.RET_REST_ERROR:
-                        logger.system_log('LOSE01110', ActionStatus, self.trace_id)
-                        DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                        if ret == Cstobj.RET_REST_ERROR:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
 
-                        return ACTION_EXEC_ERROR, DetailStatus
+                            return ACTION_EXEC_ERROR, DetailStatus
+                else:
+                    for sh in set_host:
+                        host_name = sh
+                        # 検索結果によりあったら、update なかったら、insert
+                        ret_select, ary_result = self.ITAobj.select_c_parameter_sheet(
+                            self.ary_ita_config, host_name, operation_name, str(menu_id).zfill(10))
+
+                        if ret_select is None:
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+                            return ACTION_EXEC_ERROR, DetailStatus
+
+                        if ret_select > 0:
+                            if self.ita_driver.version in [
+                                '1.6.0', '1.6.1', '1.6.2', '1.6.3', '1.7.0', '1.7.1', '1.7.2',
+                                '1.8.0', '1.8.1', '1.8.2', '1.9.0', '1.9.1']:
+                                col_revision = 3
+                            else:
+                                col_revision = 2
+                            ret = self.ITAobj.update_c_parameter_sheet_vertical(
+                                self.ary_ita_config,
+                                host_name,
+                                operation_name,
+                                exec_schedule_date,
+                                param_list, array_list,
+                                str(menu_id).zfill(10),
+                                ary_result,
+                                col_revision)
+                        elif ret_select == 0:
+                            ret = self.ITAobj.insert_c_parameter_sheet_vertical(
+                                host_name,
+                                operation_id,
+                                operation_name,
+                                exec_schedule_date,
+                                param_list,
+                                array_list,
+                                str(menu_id).zfill(10))
+
+                        if ret == Cstobj.RET_REST_ERROR:
+                            logger.system_log('LOSE01110', ActionStatus, self.trace_id)
+                            DetailStatus = ACTION_HISTORY_STATUS.DETAIL_STS.EXECERR_PARAM_FAIL
+
+                            return ACTION_EXEC_ERROR, DetailStatus
 
                 ActionDriverCommonModules.SaveActionLog(
                     self.response_id, rhdm_res_act.execution_order, self.trace_id, 'MOSJA01067')

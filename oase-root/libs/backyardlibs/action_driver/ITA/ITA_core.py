@@ -1517,6 +1517,99 @@ class ITA1Core(DriverCore):
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
 
+
+    def insert_c_parameter_sheet_vertical(
+            self, host_name, operation_id, operation_name, exec_schedule_date,
+            parameter_list, array_list, menu_id='0000000001'):
+        """
+        [概要]
+        パラメーターシート登録メソッド(縦メニュー用)
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s' % self.trace_id)
+
+        add_col_no = 0
+        if not host_name:
+            add_col_no = -1
+
+        self.restobj.menu_id = menu_id
+        row_data_000001 = {
+            Cstobj.COL_FUNCTION_NAME: '登録',
+        }
+
+        if host_name:
+            row_data_000001[Cstobj.COL_HOSTNAME_VERTICAL] = host_name
+
+        row_data_000001[Cstobj.COL_OPERATION_ID_VERTICAL               + add_col_no] = operation_id
+        row_data_000001[Cstobj.COL_OPERATION_NAME_PARAM_VERTICAL       + add_col_no] = operation_name
+        row_data_000001[Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME_VERTICAL + add_col_no] = exec_schedule_date
+
+        i = 0
+        j = 1
+        for k, p in enumerate(parameter_list):
+            if i == 0:
+                row_data_000001[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+                i = i + 1
+
+            elif k == len(parameter_list) - 1:
+                row_data_000001[Cstobj.COL_SUBSTITUTION_ORDER_VERTICAL + add_col_no] = j
+                row_data_000001[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+
+                result = {}
+                ret, dic_api = self.restobj.rest_insert(row_data_000001, result)
+
+                if not ret:
+                    target_table = 'C_PARAMETER_SHEET'
+                    logger.system_log('LOSE01021', self.trace_id, target_table, self.response_id, self.execution_order)
+                    logger.system_log('LOSE01000', self.trace_id, target_table, 'Insert', result['status'])
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA01066')
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA13138',
+                        dic_api=dic_api)
+                    return Cstobj.RET_REST_ERROR
+
+            elif array_list[i] == array_list[i-1]:
+                row_data_000001[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+                i = i + 1
+
+            elif array_list[i] != array_list[i-1]:
+                row_data_000001[Cstobj.COL_SUBSTITUTION_ORDER_VERTICAL + add_col_no] = j
+
+                result = {}
+                ret, dic_api = self.restobj.rest_insert(row_data_000001, result)
+
+                if not ret:
+                    target_table = 'C_PARAMETER_SHEET'
+                    logger.system_log('LOSE01021', self.trace_id, target_table, self.response_id, self.execution_order)
+                    logger.system_log('LOSE01000', self.trace_id, target_table, 'Insert', result['status'])
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA01066')
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA13138',
+                        dic_api=dic_api)
+                    return Cstobj.RET_REST_ERROR
+
+                i = 0
+                row_data_000001[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+                j = j + 1
+                i = i + 1
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0
+
+
     def update_c_parameter_sheet(self, config, host_name, operation_name, exec_schedule_date, parameter_list, menu_id, ary_result, col_revision):
         """
         [概要]
@@ -1570,6 +1663,109 @@ class ITA1Core(DriverCore):
             return Cstobj.RET_REST_ERROR
         logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
         return 0
+
+
+    def update_c_parameter_sheet_vertical(
+            self, config, host_name, operation_name, exec_schedule_date,
+            parameter_list, array_list, menu_id, ary_result, col_revision):
+        """
+        [概要]
+        パラメーターシート更新メソッド
+        """
+        logger.logic_log('LOSI00001', 'trace_id: %s' % self.trace_id)
+
+        update_data = {}
+        add_col_no = 0
+
+        if not host_name:
+            add_col_no = -1
+        else:
+            update_data[Cstobj.COL_HOSTNAME_VERTICAL] = host_name
+
+        config['menuID'] = menu_id
+        self.restobj.rest_set_config(config)
+        update_data[Cstobj.COL_FUNCTION_NAME] = '更新'
+        update_data[Cstobj.COL_OPERATION_NAME_PARAM_VERTICAL + add_col_no] = operation_name
+        update_data[Cstobj.COL_SCHEDULE_TIMESTAMP_ID_NAME_VERTICAL + add_col_no] = exec_schedule_date
+
+        select_data = self.restobj.rest_get_row_data(ary_result)
+
+        i = 0
+        j = 1
+        for k, p in enumerate(parameter_list):
+            if i == 0:
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+                i = i + 1
+
+            elif k == len(parameter_list) - 1:
+                update_data[Cstobj.COL_SUBSTITUTION_ORDER_VERTICAL + add_col_no] = j
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+
+                # パラメータ項目の次は備考欄、最終更新日時、更新用の最終更新日時を設定(備考欄は空白)
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 0] = select_data[j-1][Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 0]
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 1] = select_data[j-1][Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 1]
+                update_data[Cstobj.COL_PARAMETER_NO_VERTICAL] = select_data[j-1][Cstobj.COL_PARAMETER_NO_VERTICAL]
+
+                result = {}
+                i = 0
+                ret, dic_api = self.restobj.rest_insert(update_data, result, 'update')
+                if not ret:
+                    target_table = 'C_PARAMETER_SHEET'
+                    logger.system_log('LOSE01028', self.trace_id, target_table, self.response_id, self.execution_order)
+                    logger.system_log('LOSE01000', self.trace_id, target_table, 'Update', result['status'])
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA01084')
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA13138',
+                        dic_api=dic_api)
+                    return Cstobj.RET_REST_ERROR
+
+            elif array_list[i] == array_list[i-1]:
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+                i = i + 1
+
+            elif array_list[i] != array_list[i-1]:
+                update_data[Cstobj.COL_SUBSTITUTION_ORDER_VERTICAL + add_col_no] = j
+
+                # パラメータ項目の次は備考欄、最終更新日時、更新用の最終更新日時を設定(備考欄は空白)
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 0] = select_data[j-1][Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 0]
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 1] = select_data[j-1][Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i + col_revision + 1]
+                update_data[Cstobj.COL_PARAMETER_NO_VERTICAL] = select_data[j-1][Cstobj.COL_PARAMETER_NO_VERTICAL]
+
+                result = {}
+                ret, dic_api = self.restobj.rest_insert(update_data, result, 'update')
+
+                if not ret:
+                    target_table = 'C_PARAMETER_SHEET'
+                    logger.system_log('LOSE01028', self.trace_id, target_table, self.response_id, self.execution_order)
+                    logger.system_log('LOSE01000', self.trace_id, target_table, 'Update', result['status'])
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA01084')
+                    ActionDriverCommonModules.SaveActionLog(
+                        self.response_id,
+                        self.execution_order,
+                        self.trace_id,
+                        'MOSJA13138',
+                        dic_api=dic_api)
+                    return Cstobj.RET_REST_ERROR
+
+                i = 0
+                update_data[Cstobj.COL_PARAMETER_VERTICAL + add_col_no + i] = p
+                j = j + 1
+                i = i + 1
+
+        logger.logic_log('LOSI00002', 'trace_id: %s, return: %s' % (self.trace_id, 'True'))
+        return 0
+
 
     def select_c_parameter_sheet(self, config, host_name, operation_name, menu_id):
         """
