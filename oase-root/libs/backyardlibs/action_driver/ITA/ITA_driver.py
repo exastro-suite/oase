@@ -385,7 +385,7 @@ class ITAManager(AbstractManager):
             commitinfo_list = ItaParametaCommitInfo.objects.filter(
                 response_id=self.response_id,
                 commit_order=rhdm_res_act.execution_order
-            ).order_by('ita_order')
+            ).order_by('commit_id')
 
             if len(commitinfo_list) == 0:
                 commitinfo_list = []
@@ -1092,7 +1092,7 @@ class ITAManager(AbstractManager):
             host_name = None
             events_request = EventsRequest.objects.get(trace_id=self.trace_id)
             if convert_flg.upper() == 'FALSE':
-                commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('ita_order')
+                commitinfo_list = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=rhdm_res_act.execution_order).order_by('commit_id')
                 if len(commitinfo_list) == 0:
                     commitinfo_list = []
                     for menu_id in menu_id_list:
@@ -1950,7 +1950,7 @@ class ITAManager(AbstractManager):
         total_count = 0
         subst_count = 0
         if self.ita_driver.version in ['1.7.0', '1.7.1', '1.7.2', '1.8.0', '1.8.1', '1.8.2', '1.9.0', '1.9.1']:
-            total_count = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, ita_order__gt=0).count()
+            total_count = ItaParametaCommitInfo.objects.filter(response_id=self.response_id, commit_order=exec_order, ita_order__gt=0).count()
 
         for orch_id, num in var_count.items():
             total_count += num
