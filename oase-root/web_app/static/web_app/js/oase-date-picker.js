@@ -76,14 +76,14 @@ let datePickerHTML = ( function(){/*
 </div>
 */}).toString().match(/[^]*\/\*([^]*)\*\/\}$/)[1];
 
-datePickerHTML = datePickerHTML.replace(/\{0\}/, getMessage("MOSEN00070", false) );
-datePickerHTML = datePickerHTML.replace(/\{1\}/, getMessage("MOSEN00208", false) );
+datePickerHTML = datePickerHTML.replace(/\{0\}/, getMessage("MOSJA00070", false) );
+datePickerHTML = datePickerHTML.replace(/\{1\}/, getMessage("MOSJA00208", false) );
 
 // Date Picker Calender
-let datePickerCalender = function( year, month ){
+let datePickerCalender = function( year, month, inputDay ){
 
     // Today
-    let thisDate = new Date();
+    let thisDate = ( inputDay !== '' && inputDay !== undefined )? new Date( inputDay ): new Date();
     let today = thisDate.getDate();
     let selectedDay = today;
     if( !year ) year = thisDate.getFullYear();
@@ -111,8 +111,6 @@ let datePickerCalender = function( year, month ){
     '<tr><th class="sun">SUN</th><th>MON</th><th>TUE</th><th>WED</th><th>THU</th><th>FRI</th><th class="sat">SAT</th></tr>\n' +
     '</thead>\n' +
     '<tbody class="calendar-body">'; // HTML
-
-
 
     for (let row = 0; row < 6; row++){
     let tr = '<tr class="week">';
@@ -162,121 +160,163 @@ let datePickerCalender = function( year, month ){
     return(tableBody);
 
 }
- 
-
-
 
 
 $.fn.oaseDatePicker = function() {
 
-$( this ).on('focus', function(){
-if( $('.oase-datepicker').length > 0 ) $('.oase-datepicker').remove();
+    $( this ).on('focus', function(){
+        if( $('.oase-datepicker').length > 0 ) $('.oase-datepicker').remove();
 
+        $('#container').append( datePickerHTML );
+        const $window = $( window ),
+              $datePicker = $('.oase-datepicker'),
+              $datePickerCalender = $('.oase-datepicker-calender-body');
 
-$('#container').append( datePickerHTML );
-let $datePicker = $('.oase-datepicker'),
-    $datePickerCalender = $('.oase-datepicker-calender-body');
+        const $focusObj = $( this ),
+              value = $focusObj.val();
 
-let $focusObj = $( this );
-let inputOffset = $focusObj.offset(),
-    inputHeight = $focusObj.outerHeight(),
-    windowWidth = $( window ).outerWidth(),
-    datePickerWidth = $datePicker.outerWidth();
-
-$datePickerCalender.html( datePickerCalender() );
-
-if ( windowWidth > inputOffset.left + datePickerWidth ) {
-$datePicker.css({
-    'top':  inputOffset.top + inputHeight -1,
-    'left': inputOffset.left
-});
-} else {
-$datePicker.css({
-    'top':  inputOffset.top + inputHeight -1,
-    'right': 0
-});
-}
-
-// value変更
-let changeDate = function() {
-
-let year = $datePicker.find('.date-year').val(),
-    month = ( 0 + $datePicker.find('.date-month').val() ).slice(-2),
-    day = ( 0 + $datePicker.find('.select-date').text() ).slice(-2),
-    HH = ( 0 + $datePicker.find('.date-h').val() ).slice(-2),
-    mm = ( 0 + $datePicker.find('.date-m').val() ).slice(-2),
-    ss = ( 0 + $datePicker.find('.date-s').val() ).slice(-2);
-
-$focusObj.val( year + '/' + month + '/' + day + ' ' + HH + ':' + mm + ':' + ss );
-
-}
-
-// 日付変更
-$datePicker.on('click', '.num', function(){
-
-    $('.select-date').removeClass('select-date');
-    $( this ).addClass('select-date');    
-    changeDate();
-
-});
-
-// 時間変更
-$datePicker.on('change', 'select', function(){
-
-    changeDate();
-
-});
-
-// 年月変更
-$datePicker.find('.calender-move').on('click', function(){
-
-let moveYear = $('.date-year').val(),
-    moveMonth = $('.date-month').val();
-
-    if ( $( this ).is('.prev') ) {
-        moveMonth--;
-        if( moveMonth < 1 ) {
-            moveMonth = 12;
-            moveYear--;
+        // 入力済みの時間をセット
+        if ( value !== '' && value.match(/[0-9][0-9]:[0-9][0-9]:[0-9][0-9]$/)) {
+          const time = value.slice(-8).split(':');
+          $datePicker.find('.date-h').val( time[0] );
+          $datePicker.find('.date-m').val( time[1] );
+          $datePicker.find('.date-s').val( time[2] );
+        } else if ( value !== '' && value.match(/[0-9][0-9]:[0-9][0-9]$/)) {
+          const time = value.slice(-5).split(':');
+          $datePicker.find('.date-h').val( time[0] );
+          $datePicker.find('.date-m').val( time[1] );
         }
-    } else {
-        moveMonth++;
-        if( moveMonth > 12 ) {
-            moveMonth = 1;
-            moveYear++;
+
+        let inputOffset = $focusObj.offset(),
+            inputHeight = $focusObj.outerHeight(),
+            windowWidth = $window.outerWidth(),
+            datePickerWidth = $datePicker.outerWidth();
+
+        $datePickerCalender.html( datePickerCalender( undefined, undefined, value ) );
+
+        if ( windowWidth > inputOffset.left + datePickerWidth ) {
+            $datePicker.css({
+                'top':  inputOffset.top + inputHeight -1,
+                'left': inputOffset.left
+            });
+        } else {
+            $datePicker.css({
+                'top':  inputOffset.top + inputHeight -1,
+                'right': 0
+            });
         }
-    }
-    $datePickerCalender.html( datePickerCalender( moveYear, moveMonth ) );
 
-});
+        // value変更
+        let changeDate = function() {
 
-// 年月直接入力制限
-$datePicker.find('.date-year, .date-month').on('change', function(){
+            let year = $datePicker.find('.date-year').val(),
+                month = ( 0 + $datePicker.find('.date-month').val() ).slice(-2),
+                day = ( 0 + $datePicker.find('.select-date').text() ).slice(-2),
+                HH = ( 0 + $datePicker.find('.date-h').val() ).slice(-2),
+                mm = ( 0 + $datePicker.find('.date-m').val() ).slice(-2),
+                ss = ( 0 + $datePicker.find('.date-s').val() ).slice(-2);
 
-    let moveYear = $('.date-year').val(),
-        moveMonth = $('.date-month').val();
+            $focusObj.val( year + '/' + month + '/' + day + ' ' + HH + ':' + mm + ':' + ss );
 
-    if ( moveMonth > 12 ) moveMonth = 12;
-    if ( moveMonth < 1 )  moveMonth = 1;
-    if ( moveYear > 2099 ) moveYear = 2099;
-    if ( moveYear < 2001 )  moveYear = 2001;
-    $datePickerCalender.html( datePickerCalender( moveYear, moveMonth ) );
+        }
 
-});
+        // 日付変更
+        $datePicker.on('click', '.num', function(){
 
-// ボタンメニュー
-$datePicker.find('.menu button').on('click', function(){
+            $('.select-date').removeClass('select-date');
+            $( this ).addClass('select-date');    
+            changeDate();
 
-     if ( $( this ).is('.close') ) {
-        $datePicker.remove();
-    } else {
-        $focusObj.val('');
-    }
-    
-});
+        });
 
-});
+        // 時間変更
+        $datePicker.on('change', 'select', function(){
 
-return this;
-};
+            changeDate();
+
+        });
+
+        // 年月変更
+        $datePicker.find('.calender-move').on('click', function(){
+
+        let moveYear = $('.date-year').val(),
+            moveMonth = $('.date-month').val();
+
+            if ( $( this ).is('.prev') ) {
+                moveMonth--;
+                if( moveMonth < 1 ) {
+                    moveMonth = 12;
+                    moveYear--;
+                }
+            } else {
+                moveMonth++;
+                if( moveMonth > 12 ) {
+                    moveMonth = 1;
+                    moveYear++;
+                }
+            }
+            $datePickerCalender.html( datePickerCalender( moveYear, moveMonth ) );
+
+        });
+
+        // 年月直接入力制限
+        $datePicker.find('.date-year, .date-month').on('change', function(){
+
+            let moveYear = $('.date-year').val(),
+                moveMonth = $('.date-month').val();
+
+            if ( moveMonth > 12 ) moveMonth = 12;
+            if ( moveMonth < 1 )  moveMonth = 1;
+            if ( moveYear > 2099 ) moveYear = 2099;
+            if ( moveYear < 2001 )  moveYear = 2001;
+            $datePickerCalender.html( datePickerCalender( moveYear, moveMonth ) );
+
+        });
+
+        const removeDataPicker = function() {
+          $datePicker.remove();
+        };
+        const offEvent = function() {
+          $window.off('mousewheel.dataPicker');
+          $focusObj.off('blur.dataPicker');
+        };
+
+        // ボタンメニュー
+        $datePicker.find('.menu button').on('click', function(){
+            if ( $( this ).is('.close') ) {
+                removeDataPicker();
+            } else {
+                $focusObj.val('');
+            }    
+        });
+
+        // Window マウスホイール、マウスダウンで消去
+        $window.on({
+          'mousewheel.dataPicker': function(){
+            removeDataPicker();
+            offEvent();
+          },
+          'mousedown.dataPicker': function( e ){
+              if ( !$( e.target ).is( $focusObj ) && !$( e.target ).closest('.oase-datepicker').length ) {
+                  removeDataPicker();
+                  offEvent();
+              }
+          }
+        });
+
+        // 対象以外にフォーカスが移動したら消去
+        $focusObj.on('blur.dataPicker', function(){
+            offEvent();
+            setTimeout( function(){
+              const $focus = $(':focus');
+              if ( $focus.length && !$focus.closest('.oase-datepicker').length ) {
+                removeDataPicker();
+              }
+            }, 10 );
+        });
+
+        });
+
+        return this;
+    };
 }( jQuery ));

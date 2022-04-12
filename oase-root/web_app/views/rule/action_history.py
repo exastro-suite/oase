@@ -34,6 +34,7 @@ import urllib.parse
 import ast
 import re
 from importlib import import_module
+from datetime import date, datetime
 
 from django.shortcuts             import render, redirect
 from django.http                  import HttpResponse
@@ -174,6 +175,134 @@ def action_history(request):
 
     else:
         return render(request, 'rule/action_history_table.html', data)
+
+
+################################################
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
+def data(request):
+    """
+    [メソッド概要]
+    アクション履歴画面の一覧表示
+    """
+
+    logger.logic_log('LOSI00001', 'none', request=request)
+    msg = ''
+    lang = request.user.get_lang_mode()
+    ita_flg = False
+    mail_flg = False
+    servicenow_flg = False
+    filter_info = {
+        'tblname'  : None,
+        'rulename' : None,
+    }
+
+    interval = request.GET.get('reload', None)
+
+    if not hasattr(request.session, 'user_config'):
+        request.session['user_config'] = {}
+
+    if not hasattr(request.session['user_config'], 'action_history_interval'):
+        request.session['user_config']['action_history_interval'] = 0
+
+    if interval is not None:
+        request.session['user_config']['action_history_interval'] = interval
+
+    try:
+        # アクション画面のルール別アクセス権限を取得
+        permission_info = request.user_config.get_rule_auth_type(MENU_ID)
+
+        # アクセス可能なルール種別IDを取得
+        rule_ids_view = permission_info[defs.VIEW_ONLY]
+        rule_ids_admin = permission_info[defs.ALLOWED_MENTENANCE]
+        rule_ids_all = rule_ids_view + rule_ids_admin 
+
+        # アクション種別管理
+        action_type_list    = ActionType.objects.all()
+
+        # アクションステータス管理
+        action_status_dict  = defs.ACTION_STATUS
+
+        # ドライバ種別を取得
+        driver_type_list = DriverType.objects.all()
+
+        # ドライバインストール確認
+        for act_type in action_type_list:
+            if act_type.driver_type_id == 1 and act_type.disuse_flag == '0':
+                ita_flg = True
+            elif act_type.driver_type_id == 2 and act_type.disuse_flag == '0':
+                mail_flg = True
+            elif act_type.driver_type_id == 3 and act_type.disuse_flag == '0':
+                servicenow_flg = True
+
+        # アクション履歴を取得
+        action_history = ActionHistory.objects.filter(rule_type_id__in=rule_ids_all).order_by('-pk') if len(rule_ids_all) > 0 else []
+
+        action_history_list = []
+        # 表示用データ整備
+        for act in action_history:
+            # ルール種別の削除フラグを確認
+            act.disuse_flag = RuleType.objects.get(rule_type_id=act.rule_type_id).disuse_flag
+
+            # アイコン表示用文字列セット
+            status = act.status
+            if act.retry_status is not None:
+                status = act.retry_status
+
+            if status in defs.ACTION_HISTORY_STATUS.ICON_INFO:
+                #承認中のものが削除された場合は処理済みとして取り扱う
+                if act.disuse_flag != '0' and status == 6:
+                    act.tmp = defs.ACTION_HISTORY_STATUS.ICON_INFO[8]
+                else:
+                    act.tmp = defs.ACTION_HISTORY_STATUS.ICON_INFO[status]
+            else:
+                act.tmp = {'status':'attention','name':'owf-attention','description':'MOSJA13063'}
+
+            act.class_info = {'status':'','name':'','description':''}
+            act.class_info['status'] = act.tmp['status']
+            act.class_info['name'] = act.tmp['name']
+            act.class_info['description'] = get_message(act.tmp['description'], lang, showMsgId=False)
+
+            if act.action_type_id != defs.NO_ACTION:
+                for type in action_type_list:
+                    if type.action_type_id == act.action_type_id:
+                        for driver in driver_type_list:
+                            if type.driver_type_id == driver.driver_type_id:
+                                driver_name = driver.name + '(ver' + str(driver.driver_major_version) + ')'
+            else:
+                driver_name = get_message('MOSJA11159', lang, showMsgId=False)
+
+            table_info = {
+                'pk'                    : act.pk,
+                'response_id'           : act.response_id,
+                'execution_order'       : act.execution_order,
+                'disuse_flag'           : act.disuse_flag,
+                'can_update'            : rule_ids_admin,
+                'rule_type_id'          : act.rule_type_id,
+                'rule_type_name'        : act.rule_type_name,
+                'rule_name'             : act.rule_name,
+                'incident_happened'     : act.incident_happened,
+                'handling_summary'      : act.handling_summary,
+                'driver_name'           : driver_name,
+                'status'                : act.status,
+                'retry_status'          : act.retry_status,
+                'class_info'            : act.class_info,
+                'action_start_time'     : act.action_start_time,
+                'last_update_timestamp' : act.last_update_timestamp,
+                'last_act_user'         : act.last_update_user
+            }
+            action_history_list.append(table_info)
+
+    except Exception as e:
+        msg = get_message('MOSJA13000', request.user.get_lang_mode())
+        logger.logic_log('LOSM05000', 'traceback: %s' % traceback.format_exc(), request=request)
+
+    logger.logic_log('LOSI00002', 'none', request=request)
+    response_json = json.dumps(action_history_list, default=json_serial)
+    return HttpResponse(response_json, content_type="application/json")
+
+def json_serial(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
 
 
 ################################################
@@ -524,15 +653,60 @@ def dataobject(request, response_id, execution_order ):
         act_shape_dic[get_message('MOSJA13135', lang, showMsgId=False)] = act_dic['handling_summary']
         act_shape_dic[get_message('MOSJA13010', lang, showMsgId=False)] = act_dic['action_parameter_info']
 
-        # 各ドライバーのアクションの詳細を取得
-        func = _get_get_history_data_func(act_history_info.action_type_id)
-        history_data = func(act_history_info.pk)
+        if act_history_info.status != defs.ACTION_HISTORY_STATUS.NO_ACTION and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.NO_ACTION and \
+           act_history_info.status != defs.ACTION_HISTORY_STATUS.PENDING and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.PENDING and \
+           act_history_info.status != defs.ACTION_HISTORY_STATUS.STOP and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.STOP and \
+           act_history_info.status != defs.ACTION_HISTORY_STATUS.PREVENT and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.PREVENT:
 
-        # ドライバー固有のアクション情報
-        for k,v in history_data.items():
-            act_shape_dic[get_message(k, lang, showMsgId=False)] = v
+            # 各ドライバーのアクションの詳細を取得
+            func = _get_get_history_data_func(act_history_info.action_type_id)
+            history_data = func(act_history_info.pk)
 
-        #[ログ]    
+            # operation_idとoperation_nameを整形
+            if 'MOSJA13141' in history_data:
+                operation_data  = history_data['MOSJA13141']
+                operation_id    = operation_data[0]
+                operation_name  = operation_data[1]
+
+                if not operation_name:
+                    operation_name = '-'
+
+                operation = f' ID:{operation_id}, Name:{operation_name}'
+                history_data['MOSJA13141'] = operation
+
+            # symphony_id、symphony_nameを整形
+            if 'MOSJA13140' in history_data:
+                symphony_data  = history_data['MOSJA13140']
+                symphony_id    = symphony_data[0]
+                symphony_name  = symphony_data[1]
+
+                if not symphony_name:
+                    symphony_name = '-'
+
+                symphony = f' ClassID:{symphony_id}, Name:{symphony_name}'
+                history_data['MOSJA13140'] = symphony
+
+            # conductor_id、conductor_nameを整形
+            if 'MOSJA13139' in history_data:
+                conductor_data  = history_data['MOSJA13139']
+                conductor_id    = conductor_data[0]
+                conductor_name  = conductor_data[1]
+
+                if not conductor_name:
+                    conductor_name = '-'
+
+                conductor = f' ClassID:{conductor_id}, Name:{conductor_name}'
+                history_data['MOSJA13139'] = conductor
+
+            # ドライバー固有のアクション情報
+            for k,v in history_data.items():
+                act_shape_dic[get_message(k, lang, showMsgId=False)] = v
+
+        #[ログ]
         for log in action_history_log_list :
             msg_params = log.message_params
             if not msg_params:
@@ -627,18 +801,62 @@ def download(request, response_id, execution_order):
                     + get_message('MOSJA13135', lang, showMsgId=False) + ':' + act_dic['handling_summary'] + '\n'  \
                     + get_message('MOSJA13010', lang, showMsgId=False) + ':' + act_dic['action_parameter_info'] + '\n'  \
 
-        # 各ドライバーのアクションの詳細を取得
-        func = _get_get_history_data_func(act_history_info.action_type_id)
-        history_data = func(act_history_info.pk)
+        if act_history_info.status != defs.ACTION_HISTORY_STATUS.NO_ACTION and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.NO_ACTION and \
+           act_history_info.status != defs.ACTION_HISTORY_STATUS.PENDING and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.PENDING and \
+           act_history_info.status != defs.ACTION_HISTORY_STATUS.STOP and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.STOP and \
+           act_history_info.status != defs.ACTION_HISTORY_STATUS.PREVENT and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.PREVENT:
+            # 各ドライバーのアクションの詳細を取得
+            func = _get_get_history_data_func(act_history_info.action_type_id)
+            history_data = func(act_history_info.pk)
 
-        # ドライバー固有のアクション情報追記
-        for k,v in history_data.items():
-            if not v:
-                v = ''
-            log_message += get_message(k, lang, showMsgId=False) + ':' + str(v) + '\n'
+            # operation_idとoperation_nameを整形
+            if 'MOSJA13141' in history_data:
+                operation_data  = history_data['MOSJA13141']
+                operation_id    = operation_data[0]
+                operation_name  = operation_data[1]
 
-        else:
-            log_message += '\n'
+                if not operation_name:
+                    operation_name = '-'
+
+                operation = f' ID:{operation_id}, Name:{operation_name}'
+                history_data['MOSJA13141'] = operation
+
+            # symphony_id、symphony_nameを整形
+            if 'MOSJA13140' in history_data:
+                symphony_data  = history_data['MOSJA13140']
+                symphony_id    = symphony_data[0]
+                symphony_name  = symphony_data[1]
+
+                if not symphony_name:
+                    symphony_name = '-'
+
+                symphony = f' ClassID:{symphony_id}, Name:{symphony_name}'
+                history_data['MOSJA13140'] = symphony
+
+            # conductor_id、conductor_nameを整形
+            if 'MOSJA13139' in history_data:
+                conductor_data  = history_data['MOSJA13139']
+                conductor_id    = conductor_data[0]
+                conductor_name  = conductor_data[1]
+
+                if not conductor_name:
+                    conductor_name = '-'
+
+                conductor = f' ClassID:{conductor_id}, Name:{conductor_name}'
+                history_data['MOSJA13139'] = conductor
+
+            # ドライバー固有のアクション情報追記
+            for k,v in history_data.items():
+                if not v:
+                    v = ''
+                log_message += get_message(k, lang, showMsgId=False) + ':' + str(v) + '\n'
+
+            else:
+                log_message += '\n'
 
         # action_history_listをループしながらテキストにいれる。
         if len(action_history_log_list) > 0:
@@ -658,13 +876,19 @@ def download(request, response_id, execution_order):
         # ダウンロード
         rule_name = act_dic['rule_type_name']
         act_type = act_dic['action_type_id']
-        act_list = ActionType.objects.all()
-        num = act_type-1
-        act_typ = str(act_list[num])
-        action_type =act_typ.split('(')[0]
         act_time = act_dic['act_time_stamp']
         action_time = (act_time.translate(str.maketrans({'-':'', '_':'' ,  ':':'' ,' ':''})))
-        file_name   = 'Action_log_%s_%s_%s.txt' %(rule_name, action_type, action_time)
+
+        if act_history_info.status != defs.ACTION_HISTORY_STATUS.NO_ACTION and \
+           act_history_info.retry_status != defs.ACTION_HISTORY_STATUS.NO_ACTION:
+            act_list = ActionType.objects.all()
+            num = act_type-1
+            act_typ = str(act_list[num])
+            action_type =act_typ.split('(')[0]
+            file_name = 'Action_log_%s_%s_%s.txt' %(rule_name, action_type, action_time)
+
+        else:
+            file_name = 'Action_log_%s_No_Action_%s.txt' %(rule_name, action_time)
 
         response = HttpResponse(log_message, content_type='text/plain')
         response['Content-Disposition'] = "attachment; filename*=UTF-8''%s" % (urllib.parse.quote(file_name))
@@ -767,7 +991,7 @@ def retry(request):
     アクションを再実行する
     """
     logger.logic_log('LOSI00001', 'none', request=request)
-    now = datetime.datetime.now(pytz.timezone('UTC'))
+    now = datetime.now(pytz.timezone('UTC'))
     msg = ''
     action_history_id = 0 
     try:
@@ -829,7 +1053,7 @@ def resume(request):
     アクションを再開する
     """
     logger.logic_log('LOSI00001', 'none', request=request)
-    now = datetime.datetime.now(pytz.timezone('UTC'))
+    now = datetime.now(pytz.timezone('UTC'))
     msg = ''
     action_history_id = 0 
     try:
@@ -915,7 +1139,7 @@ def stop(request):
     保留中のアクションを停止する
     """
     logger.logic_log('LOSI00001', 'none', request=request)
-    now = datetime.datetime.now(pytz.timezone('UTC'))
+    now = datetime.now(pytz.timezone('UTC'))
     msg = ''
     action_history_id = 0 
     try:

@@ -101,7 +101,9 @@ class ITAManager(AbstractManager):
         self.aryActionParameter = {}
         self.last_update_user = last_update_user
         self.symphony_class_id = None
+        self.symphony_name = None
         self.conductor_class_id = None
+        self.conductor_name = None
 
         self.ITAobj = None
         self.ary_ita_config = {}
@@ -112,7 +114,7 @@ class ITAManager(AbstractManager):
 
 
     def ita_action_history_insert(self, aryAnzActionParameter, SymphonyInstanceNO,
-            OperationID,SymphonyWorkflowURL, exe_order, conductor_instance_id, conductor_url, parameter_item_info=''):
+            OperationID,operation_name,SymphonyWorkflowURL, exe_order, conductor_instance_id, conductor_url, parameter_item_info=''):
         """
         [概要]
         ITAアクション履歴登録メゾット
@@ -122,7 +124,9 @@ class ITAManager(AbstractManager):
             (self.trace_id, aryAnzActionParameter, self.action_history.pk, SymphonyInstanceNO, OperationID, SymphonyWorkflowURL, conductor_instance_id, conductor_url))
 
         symphony_class_id = self.symphony_class_id
+        symphony_name = self.symphony_name
         conductor_class_id = self.conductor_class_id
+        conductor_name = self.conductor_name
 
         try:
             with transaction.atomic():
@@ -132,10 +136,13 @@ class ITAManager(AbstractManager):
                     itaacthist.ita_disp_name = aryAnzActionParameter['ITA_NAME']
                     itaacthist.symphony_instance_no = SymphonyInstanceNO
                     itaacthist.symphony_class_id = symphony_class_id
+                    itaacthist.symphony_name = symphony_name
                     itaacthist.operation_id = OperationID
+                    itaacthist.operation_name = operation_name
                     itaacthist.symphony_workflow_confirm_url = SymphonyWorkflowURL
                     itaacthist.conductor_instance_no = conductor_instance_id
                     itaacthist.conductor_class_id = conductor_class_id
+                    itaacthist.conductor_name = conductor_name
                     itaacthist.conductor_workflow_confirm_url = conductor_url
                     itaacthist.last_update_timestamp = Comobj.getStringNowDateTime()
                     itaacthist.last_update_user = self.last_update_user
@@ -146,11 +153,14 @@ class ITAManager(AbstractManager):
                         ita_disp_name=aryAnzActionParameter['ITA_NAME'],
                         symphony_instance_no=SymphonyInstanceNO,
                         symphony_class_id=symphony_class_id,
+                        symphony_name=symphony_name,
                         operation_id=OperationID,
+                        operation_name = operation_name,
                         symphony_workflow_confirm_url=SymphonyWorkflowURL,
                         parameter_item_info=parameter_item_info,
                         conductor_instance_no=conductor_instance_id,
                         conductor_class_id=conductor_class_id,
+                        conductor_name = conductor_name,
                         conductor_workflow_confirm_url=conductor_url,
                         last_update_timestamp=Comobj.getStringNowDateTime(),
                         last_update_user=self.last_update_user,
@@ -855,6 +865,7 @@ class ITAManager(AbstractManager):
                 self.aryActionParameter,
                 symphony_instance_id,
                 operation_id,
+                operation_name,
                 symphony_url,
                 rhdm_res_act.execution_order,
                 conductor_instance_id,
@@ -1498,6 +1509,7 @@ class ITAManager(AbstractManager):
                 self.aryActionParameter,
                 symphony_instance_id,
                 operation_id,
+                operation_name,
                 symphony_url,
                 rhdm_res_act.execution_order,
                 conductor_instance_id,
@@ -1589,6 +1601,7 @@ class ITAManager(AbstractManager):
             self.aryActionParameter,
             symphony_instance_id,
             operation_id,
+            operation_name,
             symphony_url,
             rhdm_res_act.execution_order,
             conductor_instance_id,
@@ -1833,19 +1846,19 @@ class ITAManager(AbstractManager):
             self.conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
 
         elif 'SYMPHONY_NAME' in self.aryActionParameter:
-            symphony_name = self.aryActionParameter['SYMPHONY_NAME']
-            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, symphony_name)
+            self.symphony_name = self.aryActionParameter['SYMPHONY_NAME']
+            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, self.symphony_name)
 
             if ret > 0:
-                logger.system_log('LOSE01145', self.trace_id, ret, symphony_name)
+                logger.system_log('LOSE01145', self.trace_id, ret, self.symphony_name)
                 return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         else:
-            conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
-            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, conductor_name)
+            self.conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
+            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, self.conductor_name)
 
             if ret > 0:
-                logger.system_log('LOSE01146', self.trace_id, ret, conductor_name)
+                logger.system_log('LOSE01146', self.trace_id, ret, self.conductor_name)
                 return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         self.ITAobj = ITA1Core(
@@ -2025,6 +2038,7 @@ class ITAManager(AbstractManager):
             self.aryActionParameter,
             symphony_instance_id,
             operation_id,
+            operation_name,
             symphony_url,
             exec_order,
             conductor_instance_id,
@@ -2138,19 +2152,19 @@ class ITAManager(AbstractManager):
             self.conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
 
         elif 'SYMPHONY_NAME' in self.aryActionParameter:
-            symphony_name = self.aryActionParameter['SYMPHONY_NAME']
-            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, symphony_name)
+            self.symphony_name = self.aryActionParameter['SYMPHONY_NAME']
+            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, self.symphony_name)
 
             if ret > 0:
-                logger.system_log('LOSE01145', self.trace_id, ret, symphony_name)
+                logger.system_log('LOSE01145', self.trace_id, ret, self.symphony_name)
                 return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         else:
-            conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
-            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, conductor_name)
+            self.conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
+            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, self.conductor_name)
 
             if ret > 0:
-                logger.system_log('LOSE01146', self.trace_id, ret, conductor_name)
+                logger.system_log('LOSE01146', self.trace_id, ret, self.conductor_name)
                 return ACTION_EXEC_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         self.ITAobj = ITA1Core(
@@ -2311,19 +2325,19 @@ class ITAManager(AbstractManager):
             self.conductor_class_id = self.aryActionParameter['CONDUCTOR_CLASS_ID']
 
         elif 'SYMPHONY_NAME' in self.aryActionParameter:
-            symphony_name = self.aryActionParameter['SYMPHONY_NAME']
-            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, symphony_name)
+            self.symphony_name = self.aryActionParameter['SYMPHONY_NAME']
+            ret, self.symphony_class_id = self.ITAobj.select_symphony(self.ary_ita_config, self.symphony_name)
 
             if ret > 0:
-                logger.system_log('LOSE01145', self.trace_id, ret, symphony_name)
+                logger.system_log('LOSE01145', self.trace_id, ret, self.symphony_name)
                 return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         else:
-            conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
-            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, conductor_name)
+            self.conductor_name = self.aryActionParameter['CONDUCTOR_NAME']
+            ret, self.conductor_class_id = self.ITAobj.select_conductor(self.ary_ita_config, self.conductor_name)
 
             if ret > 0:
-                logger.system_log('LOSE01146', self.trace_id, ret, conductor_name)
+                logger.system_log('LOSE01146', self.trace_id, ret, self.conductor_name)
                 return ACTION_DATA_ERROR, ACTION_HISTORY_STATUS.DETAIL_STS.DATAERR_PARAM_VAL
 
         self.ITAobj = ITA1Core(
