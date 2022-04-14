@@ -33,6 +33,7 @@ import datetime
 import urllib.parse
 import ast
 from importlib import import_module
+from datetime import date, datetime
 
 from django.shortcuts             import render, redirect
 from django.http                  import HttpResponse
@@ -174,3 +175,98 @@ def index(request):
         return render(request, 'rule/request_history.html', data)
     else:
         return render(request, 'rule/request_history_table.html', data)
+
+
+################################################
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_EVERY)
+def data(request):
+    """
+    [メソッド概要]
+    リクエスト履歴画面の一覧表示
+    """
+    logger.logic_log('LOSI00001', 'none', request=request)
+    msg = ''
+    lang = request.user.get_lang_mode()
+
+    target_type = request.GET.get('target', None)
+    interval = request.GET.get('reload', None)
+
+    if not hasattr(request.session, 'user_config'):
+        request.session['user_config'] = {}
+
+    if not hasattr(request.session['user_config'], 'request_history_interval'):
+        request.session['user_config']['reuqest_history_interval'] = 0
+
+    if interval is not None:
+        request.session['user_config']['request_history_interval'] = interval
+
+    try:
+        # リクエスト履歴画面のルール別アクセス権限を取得
+        permission_info = request.user_config.get_rule_auth_type(MENU_ID)
+
+        # アクセス可能なルール種別IDを取得
+        rule_ids_view = permission_info[defs.VIEW_ONLY]
+        rule_ids_admin = permission_info[defs.ALLOWED_MENTENANCE]
+        rule_ids_all = rule_ids_view + rule_ids_admin 
+
+        # リクエストデータを取得
+        request_history_list = EventsRequest.objects.filter(rule_type_id__in=rule_ids_all).order_by('-pk') if len(rule_ids_all) > 0 else []
+
+        table_list = []
+        for req in request_history_list:
+            # アイコン表示用文字列セット
+            status = req.status
+            if status in defs.REQUEST_HISTORY_STATUS.ICON_INFO:
+                req.tmp = defs.REQUEST_HISTORY_STATUS.ICON_INFO[status]
+            else:
+                req.tmp = {'status':'attention','name':'owf-attention','description':'MOSJA36019'}
+
+            req.class_info = {'status':'','name':'','description':''}
+            req.class_info['status'] = req.tmp['status']
+            req.class_info['name'] = req.tmp['name']
+            req.class_info['description'] = get_message(req.tmp['description'], lang, showMsgId=False)
+
+            # ルール種別欄
+            rules = RuleType.objects.filter(rule_type_id=req.rule_type_id)
+
+            # 削除されているルール種別の場合リクエスト履歴を表示しない
+            if not len(rules):
+                continue
+
+            rule_name = rules[0].rule_type_name
+
+            # リクエスト種別欄
+            request_name = ''
+            if req.request_type_id == 1:
+                # request_name = "プロダクション"
+                request_name =get_message('MOSJA00094', lang, showMsgId=False)
+            elif req.request_type_id == 2:
+                # request_name = "ステージング"
+                request_name =get_message('MOSJA00093', lang, showMsgId=False)
+
+            table_info = {
+                'class_info'             : req.class_info,
+                'rule_id'                : req.rule_type_id,
+                'rule_name'              : rule_name,
+                'request_id'             : req.request_type_id,
+                'request_name'           : request_name,
+                'request_reception_time' : req.request_reception_time,
+                'event_info'             : req.event_info,
+                'event_to_time'          : req.event_to_time,
+                'trace_id'               : req.trace_id
+            }
+            table_list.append(table_info)
+
+    except Exception as e:
+        msg = get_message('MOSJA36000', lang)
+        logger.logic_log('LOSM24000', 'traceback: %s' % traceback.format_exc(), request=request)
+
+    logger.logic_log('LOSI00002', 'none', request=request)
+    response_json = json.dumps(table_list, default=json_serial)
+    return HttpResponse(response_json, content_type="application/json")
+
+
+def json_serial(obj):
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+

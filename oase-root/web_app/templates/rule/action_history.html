@@ -16,10 +16,235 @@ Copyright 2019 NEC Corporation
 
 {% endcomment %}
 {% load tz %}
+{% load static %}
 {% load common %}
 {% block myheader %}
+<script type="text/javascript">
+<!--
+$(function(){
 
+const config = {
+    'table': {
+        'grid': {
+            'grid-template-areas': `
+"status operationMenu tableName incident actionStart action"
+"status operationMenu ruleName handling lastUpdate lastActUser"`,
+            'grid-template-columns': '56px 128px 1fr 240px 176px 240px'
+        },
+        'dataKey': 'action_history_data',
+        'url': '/oase_web/rule/action_history/data',
+        'pollingTime': 5000,
+        'page': 1,
+        'onePageNum': 25,
+        'sort': {
+            'key': 'last_update_timestamp',
+            'order': 'desc'
+        },
+        'pin': {
+            'key': 'pk'
+        }
+    },
+    'row': [
+        'data-response-id',
+        'data-execution-order',
+        'data-id',
+        'class',
+        'data-status',
+        'data-retry-status'
+    ],
+    'col': [
+        {
+            'className': 'status', // styleで使用する
+            'heading': '', // 見出し
+            'tooltip': getMessage('MOSJA13032', false), // 見出しの表示するスペースがない場合
+            'type': 'icon', // 種別
+            'sort': 'class_info.description', // ソートするキー
+            'filter': { // フィルタ設定
+                'list': {'key': 'class_info.description'}, // リストフィルタ
+                'text': {'key': 'class_info.description', 'value': '', option: {
+                    'regexp': 1,
+                    'ignoreCase': 1,
+                    'exactMatch': 0,
+                    'pointUp': 1,
+                    'negative': 0
+                }}
+            }
+        },
+        {'className': 'operationMenu', 'heading': getMessage('MOSJA00074', false), 'type': 'operationMenu'},
+        {'className': 'tableName', 'heading': getMessage('MOSJA00075', false), 'type': 'text', 'sort': 'rule_type_name', 'filter': {
+            'list': {'key': 'rule_type_name'},
+            'text': {'key': 'rule_type_name', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},
+        {'className': 'ruleName', 'heading': getMessage('MOSJA13008', false), 'type': 'text', 'sort': 'rule_name', 'filter': {
+            'list': {'key': 'rule_name'},
+            'text': {'key': 'rule_name', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},
+        {'className': 'incident', 'heading': getMessage('MOSJA13134', false), 'type': 'text', 'sort': 'incident_happened', 'filter': {
+            'list': {'key': 'incident_happened'},
+            'text': {'key': 'incident_happened', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},
+        {'className': 'handling', 'heading': getMessage('MOSJA13135', false), 'type': 'text', 'sort': 'handling_summary', 'filter': {
+            'list': {'key': 'handling_summary'},
+            'text': {'key': 'handling_summary', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},
+        {'className': 'action', 'heading': getMessage('MOSJA13033', false), 'type': 'text', 'sort': 'driver_name', 'filter': {
+            'list': {'key': 'driver_name'},
+            'text': {'key': 'driver_name', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},
+        {'className': 'actionStart', 'heading': getMessage('MOSJA13142', false), 'type': 'date', 'format': getMessage('MOSJA00135', false), 'align': 'center', 'sort': 'action_start_time', 'filter': {
+            'date': {'key': 'action_start_time', option: 0 }
+        }},
+        {'className': 'lastUpdate', 'heading': getMessage('MOSJA13034', false), 'tooltip': getMessage('MOSJA13034', false), 'type': 'date', 'format': getMessage('MOSJA00135', false), 'align': 'center', 'sort': 'last_update_timestamp', 'filter': {
+            'date': {'key': 'last_update_timestamp', option: 0 }
+        }},
+        {'className': 'lastActUser', 'heading': getMessage('MOSJA13035', false), 'type': 'text', 'sort': 'last_act_user', 'filter': {
+            'list': {'key': 'last_act_user'},
+            'text': {'key': 'last_act_user', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},
+    ]
+};
+const convert = function( r ){
 
+    // ボタン
+    const btn = [
+        {'type': 'detail', 'id': 'btnDetail' + r.pk, 'icon': 'details', 'tooltip': getMessage('MOSJA13045', false)},
+        {'type': 'download', 'id': 'btnDl' + r.pk, 'icon': 'download', 'tooltip': getMessage('MOSJA13046', false)}
+    ];
+    const status = ( r.retry_status !== null )? r.retry_status: r.status,
+          btnType = ( status === 2003 )? 'retry': ( status === 6 )? 'restart': '';
+    // 再実行 or 再開ボタン
+    if ( r.can_update.indexOf( r.rule_type_id ) !== -1 ) {
+        if ( btnType === 'retry') {
+            btn.push({'type': btnType, 'id': 'btnReset' + r.pk, 'icon': 'run', 'tooltip': getMessage('MOSJA13048', false)});
+        } else if ( btnType === 'restart') {
+            btn.push({'type': btnType, 'icon': 'run-stop', 'tooltip': getMessage('MOSJA13047', false)});
+        } else {
+            btn.push({'type': btnType, 'icon': 'run' });
+        }
+        // 無効
+        btn[2].disabled = ( r.disuse_flag === '1' || btnType === '')? true: false;
+    }
+
+    return {
+        'row': [
+            r.response_id,
+            r.execution_order,
+            r.pk,
+            r.class_info.status,
+            r.status,
+            r.retry_status
+        ],
+        'col': [
+            r.class_info,
+            btn,
+            r.rule_type_name,
+            r.rule_name,
+            r.incident_happened,
+            r.handling_summary,
+            r.driver_name,
+            r.action_start_time,
+            r.last_update_timestamp,
+            r.last_act_user,
+        ]
+    };
+};
+
+const t = new exTable();
+t.setup('#table', config, {}, convert );
+
+// 操作メニューイベント
+t.$.tbody.on('click.button', '.et-opb', function() {
+    const $b = $( this ),
+          $r = $b.closest('.et-r');
+
+    const type = $b.attr('data-type'),
+          pk = $r.attr('data-id'),
+          response_id = $r.attr('data-response-id'),
+          execution_order = $r.attr('data-execution-order');
+          status = $r.attr('data-status');
+          retry_status = $r.attr('data-retry-status');
+
+    switch ( type ) {
+        // 詳細
+        case 'detail':
+            $("#btnDetail" + pk).prop("disabled", true);
+            url = '/oase_web/rule/action_history/action_dataobject/' + response_id + '/' + execution_order + '/';
+
+            $.ajax({
+                type : "GET",
+                url  : url,
+            })
+            .done(function(respdata) {
+                if(typeof respdata.message !== 'undefined') {
+                    alert(respdata.message);
+                    location.href = '/oase_web/rule/action_history';
+                }
+                else {
+                    modalOpen('#detail');
+                    $("#dataObjectList").html(respdata);
+                }
+            })
+            .fail(function(respdata, stscode, resp) {
+                alert(getMessage("MOSJA13014", true));
+                window.location.href = "/oase_web/top/logout";
+            });
+
+            $("#btnDetail" + pk).prop("disabled", false);
+        break;
+        // 詳細出力
+        case 'download':
+           $("#btnDl" + pk).prop("disabled", true);
+           var url = '/oase_web/rule/action_history/download/' + response_id + '/' + execution_order + '/';
+           downloadAjaxText("#btnDl" + pk, url);
+        break;
+        // 再実行
+        case 'retry':
+            var btnId = "#btnReset" + pk;
+            var status_id = ( retry_status !== null )? retry_status: status;
+            var url = '/oase_web/rule/action_history/retry';
+            $(btnId).prop("disabled", true);
+            result = confirm(getMessage("MOSJA13012", false));
+            if(result){
+                // 実行中の場合は再実行しない
+                if(status_id == "2"){
+                    alert(getMessage("MOSJA13013", true));
+                    $(btnId).prop("disabled", false);
+                    return;
+                }
+            }else{
+                $(btnId).prop("disabled", false);
+                return;
+            }
+            $("#ActHisId").val(pk);
+            postHistoryId(url, btnId);
+        break;
+        // 再開 or 停止
+        case 'restart':
+            $('#hold-cancel').attr('data-hold-cancelid', pk);
+            confirmOpen('#hold-cancel');
+        break;
+    }
+});
+});
+
+function cancel(id){
+    modalClose(id);
+}
+
+-->
+</script>
 {% endblock %}
 {% block maincontent %}
 
@@ -33,25 +258,13 @@ Copyright 2019 NEC Corporation
             <h1>{% get_message 'MOSJA13031' request.user.get_lang_mode showMsgId=False %}</h1>
           </div><!-- /.oase-main-title-inner -->
         </div><!-- /.oase-main-title -->
-        <div class="oase-main-menu">
-          <div class="oase-main-menu-inner">
-            <ul class="oase-button-group">
-              <li class="oase-filter-button-item">
-                <button class="oase-button oase-filter-button" onclick="search_clear();modalOpen('#modal-filter');">
-                  <em class="owf owf-filter-on"></em>
-                  <span>{% get_message 'MOSJA13090' request.user.get_lang_mode showMsgId=False %}</span>
-                </button>
-                <span class="oase-filter-number"></span>
-              </li>
-            </ul>
-          </div><!-- /.oase-main-menu-inner -->
-        </div><!-- /.oase-main-menu -->
       </div><!-- /.oase-main-header-inner -->
     </div><!-- /.oase-main-header -->
 
     <div class="oase-main-body full-table">
       <div class="oase-main-body-inner" id="oase-action-history-table">
 
+        <section id="table"></section>
         {% include 'rule/action_history_table.html' %}
 
       </div><!-- /.oase-main-body-inner -->
@@ -60,4 +273,6 @@ Copyright 2019 NEC Corporation
   </main><!-- /.oase-main-inner -->
 </div><!-- /.oase-main -->
 
+<script type="text/javascript" src="{% static "web_app/js/oase-function.js" %}?ver=202204041355" charset="UTF-8"></script>
+<script type="text/javascript" src="{% static "web_app/js/oase-w-table.js" %}?ver=202204041355" charset="UTF-8"></script>
 {% endblock%}

@@ -52,7 +52,8 @@ urlpatterns = [
 
     # リクエスト履歴
     path('request_history',  request_history.index,  name='request_history'),
-  
+    path('request_history/data', request_history.data,   name='request_history_data'),
+
     # アクション履歴
     re_path(r'^action_history$',  action_history.action_history,  name='action_history'),
     path('action_history/download/<int:response_id>/<int:execution_order>/',  action_history.download,  name='action_history_download'),
@@ -61,5 +62,6 @@ urlpatterns = [
     path('action_history/resume', action_history.resume, name='action_history_resume'),
     path('action_history/stop', action_history.stop, name='action_history_stop'),
     path('action_history/search', action_history.search_history, name='search_history'),
+    path('action_history/data', action_history.data,   name='action_history_data'),
 ]
 

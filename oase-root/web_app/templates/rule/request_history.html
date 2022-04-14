@@ -16,9 +16,105 @@ Copyright 2019 NEC Corporation
 
 {% endcomment %}
 {% load tz %}
+{% load static %}
 {% load common %}
 {% block myheader %}
+<script type="text/javascript">
+<!--
+$(function(){
 
+const config = {
+    // テーブル設定
+    'table': {
+        'grid': {
+            'grid-template-areas': `
+"status requestType tableName serial requestDate"
+"status eventInfo eventInfo eventInfo eventDate"`, // 列の配置
+            'grid-template-columns': getMessage('MOSJA00136', false) // 列の幅
+        },
+        'dataKey': 'table_list', // データキー
+        'url': '/oase_web/rule/request_history/data', // データ取得用URL
+        'pollingTime': 5000,
+        'page': 1, // 初期表示ページ
+        'onePageNum': 25, // 初期表示件数
+        'sort': {
+            'key': 'event_to_time', // 初期ソートキー
+            'order': 'desc' // 初期ソートタイプ
+        },
+        'pin': {
+            'key': 'trace_id' // ピン止めキー
+        }
+    },
+    // 行ごとに設定する属性名
+    'row': [
+        'data-id',
+        'class'
+    ],
+    // 列設定
+    'col': [
+        {
+            'className': 'status', // styleで使用する
+            'heading': '', // 見出し
+            'tooltip': getMessage('MOSJA36003', false), // 見出しの表示するスペースがない場合
+            'type': 'icon', // 種別
+            'sort': 'class_info.description', // ソートするキー
+            'filter': { // フィルタ設定
+                'list': {'key': 'class_info.description'}, // リストフィルタ
+            }
+        },
+        {'className': 'requestType', 'heading': getMessage('MOSJA36004', false), 'type': 'text', 'sort': 'request_name', 'filter': {
+            'list': {'key': 'request_name'}
+        } },
+        {'className': 'tableName', 'heading': getMessage('MOSJA36005', false), 'type': 'text', 'sort': 'rule_name', 'filter': {
+            'text': {'key': 'rule_name', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }},
+            'list': {'key': 'rule_name'}
+        }},        
+        {'className': 'requestDate', 'heading': getMessage('MOSJA36006', false), 'type': 'date', 'format': getMessage('MOSJA00135', false), 'align': 'center', 'sort': 'request_reception_time', 'filter': {
+            'date': {'key': 'event_to_time'}
+        } },
+        {'className': 'eventInfo', 'heading': getMessage('MOSJA36007', false), 'type': 'text', 'sort': 'event_info', 'filter': {
+            'text': {'key': 'event_info', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},
+        {'className': 'eventDate', 'heading': getMessage('MOSJA36008', false), 'type': 'date', 'format': getMessage('MOSJA00135', false), 'align': 'center', 'sort': 'event_to_time', 'filter': {
+            'date': {'key': 'event_to_time'}
+        }},
+        {'className': 'serial', 'heading': getMessage('MOSJA36009', false), 'type': 'text', 'sort': 'trace_id', 'align': 'center','filter': {
+            'text': {'key': 'trace_id', option: {
+                'regexp': 1, 'ignoreCase': 1, 'exactMatch': 0, 'pointUp': 1,'negative': 0
+            }}
+        }},  
+    ]
+};
+// JSON変換用
+// row,colはconfigの設定に対するデータ
+const convert = function( r ){
+    return {
+        'row': [
+            r.trace_id,
+            r.class_info.status
+        ],
+        'col': [
+            r.class_info,
+            r.request_name,
+            r.rule_name,
+            r.request_reception_time,
+            r.event_info,
+            r.event_to_time,
+            r.trace_id
+        ]
+    };
+};
+
+const t = new exTable();
+t.setup('#table', config, {}, convert );
+
+});
+-->
+</script>
 {% endblock %}
 {% block maincontent %}
 <div class="oase-main">
@@ -36,14 +132,13 @@ Copyright 2019 NEC Corporation
     </div><!-- /.oase-main-header -->
 
     <div class="oase-main-body full-table">
-      <div class="oase-main-body-inner" id="oase-request-history-table">
-
-          {% include 'rule/request_history_table.html' %}
-
+      <div class="oase-main-body-inner">
+        <section id="table"></section>
       </div><!-- /.oase-main-body-inner -->
     </div><!-- /.oase-main-body -->
   </main><!-- /.oase-main-inner -->
 </div><!-- /.oase-main -->
 
-
+<script type="text/javascript" src="{% static "web_app/js/oase-function.js" %}?ver=202204041355" charset="UTF-8"></script>
+<script type="text/javascript" src="{% static "web_app/js/oase-w-table.js" %}?ver=202204041355" charset="UTF-8"></script>
 {% endblock %}
