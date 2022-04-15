@@ -233,7 +233,7 @@ class WidgetData(object):
                     list = [
                         known, rs[3], rs[1], rs[2],
                         from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S'),
-                        '%s,%s' % (defs.PROCESSED, defs.FORCE_PROCESSED),
+                        '%s,%s' % (get_message('MOSJA36013', lang, showMsgId=False), get_message('MOSJA36018', lang, showMsgId=False)),
                     ]
                     data['data'][data_name] = list
 
@@ -344,7 +344,7 @@ class WidgetData(object):
                     list = [
                         unknown, rs[3],
                         rs[1], rs[2], from_day.strftime('%Y/%m/%d %H:%M:%S'), to_day.strftime('%Y/%m/%d %H:%M:%S'),
-                        '%s,%s,%s' % (defs.RULE_UNMATCH, defs.RULE_IN_COOPERATION, defs.RULE_ALREADY_LINKED),
+                        '%s,%s,%s' % (get_message('MOSJA36014', lang, showMsgId=False), get_message('MOSJA36015', lang, showMsgId=False), get_message('MOSJA36016', lang, showMsgId=False)),
                     ]
                     data['data'][data_name] = list
 

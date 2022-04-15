@@ -16,12 +16,17 @@ exFunction.prototype = {
             ['\"', 'quot'],
             ['\'', 'apos'],
             ['<', 'lt'],
-            ['>', 'gt']
+            ['>', 'gt'],
+            ['\\(', '#040'],
+            ['\\)', '#041'],
+            ['\\[', '#091'],
+            ['\\]', '#093']
         ];
         if ( value !== undefined && value !== null && this.typeof( value ) === 'string') {
             for ( var i = 0; i < entities.length; i++ ) {
                 value = value.replace( new RegExp( entities[i][0], 'g'), `&${entities[i][1]};`);
             }
+            value = value.replace( new RegExp(/\\/, 'g'), `&#092;`);
             if ( brFlag ) value = value.replace(/\r?\n/g, '<br>');
             if ( spaceFlag ) value = value.replace(/^\s+|\s+$/g, '');
         } else {
@@ -45,6 +50,17 @@ exFunction.prototype = {
             format = format.replace(/ss/g, ('0' + d.getSeconds()).slice(-2));
             format = format.replace(/SSS/g, ('00' + d.getMilliseconds()).slice(-3));
             return format;
+        } else {
+            return '';
+        }
+    },
+    // 時刻をOASE内の形式に変換する
+    'oaseDate': function( date ) {
+        if ( date ) {
+            date = new Date( date );
+            date.setMinutes( date.getMinutes() + date.getTimezoneOffset() );
+            date = this.date( date, 'yyyy-MM-ddTHH:mm:ss.SSSZ' );
+            return date;
         } else {
             return '';
         }

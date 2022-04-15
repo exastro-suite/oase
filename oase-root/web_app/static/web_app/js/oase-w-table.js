@@ -505,7 +505,9 @@ exTable.prototype = {
                 if ( hd.filter && hd.filter.text && hd.filter.text.value
                     && hd.filter.text.option && hd.filter.text.option.pointUp === 1 ) {
                     // フィルタ強調
-                    const reg = new RegExp( `(${hd.filter.text.value})`, 'gi');
+                    const val = ex.fn.escape( hd.filter.text.value ),
+                          reg = new RegExp( `(${val})`, 'gi');
+                    bd = ex.fn.escape( bd );
                     b = bd.replace( reg, '<span class="highlight">$1</span>');
                 } else {
                     b = bd;
@@ -746,11 +748,7 @@ exTable.prototype = {
                         // 入力された時間をUTCタイムに変換する
                         const l = values.length;
                         for ( let i = 0; i < l; i++ ) {
-                            if ( values[i] ) {
-                                values[i] = new Date( values[i] );
-                                values[i].setMinutes( values[i].getMinutes() + values[i].getTimezoneOffset() );
-                                values[i] = ex.fn.date( values[i], 'yyyy-MM-ddTHH:mm:ss.SSSZ' );
-                            }
+                            if ( values[i] ) values[i] = ex.fn.oaseDate( values[i] );
                         }
                         c.filter.date.value = values;
                         c.filter.date.option = $d.find('.date-select').val();
@@ -759,6 +757,9 @@ exTable.prototype = {
                     if ( $d.length ) {
                         // データピッカー
                         $f.find('.date-a, .date-b').oaseDatePicker();
+                        // A to B select
+                        const ab = ( c.filter.date.option )? c.filter.date.option: '0';
+                        $d.find('.date-select').val( ab );
                     }
                     
                     // フィルタクリア
@@ -873,7 +874,7 @@ exTable.prototype = {
                                   disabled = ( o === 'exactMatch' && f.option.regexp === 1 )? ' disabled': '';
                             option.push(`<li class="et-fb-li"><label${disabled}><input class="et-fb-c" data-type="${o}" type="checkbox"${checked}${disabled}>${ex.s[o]}</label></li>`);
                         }
-                        const v = ex.fn.val( f.value, '');
+                        const v = ex.fn.val( ex.fn.escape( f.value ), '');
                         filter.push(`
                         <div id="filter-text" class="et-fb">
                             <input class="et-fb-t" type="text" value="${v}" placeholder="Text"><button class="et-fb-b" data-type="text"><em class="owf owf-update"></em></button>
@@ -883,8 +884,8 @@ exTable.prototype = {
                     } break;
                     case 'date': {
                         if ( !f.value ) f.value = [];
-                        const a = ex.fn.date( ex.fn.val( f.value[0], ''), 'yyyy/MM/dd HH:mm:ss'),
-                              b = ex.fn.date( ex.fn.val( f.value[1], ''), 'yyyy/MM/dd HH:mm:ss');
+                        const a = ex.fn.date( ex.fn.val( ex.fn.escape( f.value[0] ), ''), 'yyyy/MM/dd HH:mm:ss'),
+                              b = ex.fn.date( ex.fn.val( ex.fn.escape( f.value[1] ), ''), 'yyyy/MM/dd HH:mm:ss');
                         menu.push(`<li class="et-fm-li"><a class="tooltip et-fm-a" href="#filter-date" data-tooltip="${ex.s.filterDate}"><em class="owf owf-date"></em></a></li>`);
                         
                         filter.push(`<div id="filter-date" class="et-fb">
