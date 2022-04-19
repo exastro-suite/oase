@@ -626,6 +626,7 @@ class SYSTEM_SETTINGS():
         'PASSWORD',
         'ACCESS_RESTRICT',
         'EVREQSETTINGS',
+        'OASE_MAIL',
     ]
 
     LOG_PERIOD = {

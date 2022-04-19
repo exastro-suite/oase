@@ -77,6 +77,8 @@ def index(request):
     system_actdir_list   = []
     system_targro_list   = []
     system_evreq_list    = []
+    system_mail_list     = []
+    system_mailsmtp_list = []
     output_flag          = 0
     pass_flag            = 0
 
@@ -111,6 +113,13 @@ def index(request):
             elif s.category == "EVREQSETTINGS" and getattr(settings, 'MAX_ACTION_PROC', 0) < 0:
                 system_evreq_list.append(system_info)
 
+            elif s.category == "OASE_MAIL":
+                system_mail_list.append(system_info)
+                if s.config_id == "OASE_MAIL_SMTP" and s.value:
+                    mail_smtp = ast.literal_eval(s.value)
+                    if mail_smtp:
+                        system_mailsmtp_list.append(mail_smtp)
+
             elif s.category == "ACTIVE_DIRECTORY":
                 system_actdir_list.append(system_info)
                 if s.config_id == "TARGET_GROUP_LIST" and s.value:
@@ -135,6 +144,8 @@ def index(request):
         'system_actdir_list'   : system_actdir_list,
         'system_targro_list'   : system_targro_list,
         'system_evreq_list'    : system_evreq_list,
+        'system_mail_list'     : system_mail_list,
+        'system_mailsmtp_list' : system_mailsmtp_list,
         'output_flag'          : output_flag,
         'pass_flag'            : pass_flag,
         'disabled_flag'        : settings.DISABLE_WHITE_BLACK_LIST,
@@ -164,8 +175,11 @@ def edit(request):
     system_actdir_list   = []
     system_targro_list   = []
     system_evreq_list    = []
+    system_mail_list     = []
+    system_mailsmtp_list = []
     output_flag          = 0
     pass_flag            = 0
+    mail_flag            = 0
 
     permission_type = request.user_config.get_menu_auth_type(MENU_ID)
     edit = True if permission_type == defs.ALLOWED_MENTENANCE else False
@@ -197,6 +211,20 @@ def edit(request):
 
             elif s.category == "EVREQSETTINGS" and getattr(settings, 'MAX_ACTION_PROC', 0) < 0:
                 system_evreq_list.append(system_info)
+
+            elif s.category == "OASE_MAIL":
+                system_mail_list.append(system_info)
+                if s.config_id == "OASE_MAIL_SMTP" and s.value:
+                    mail_smtp = ast.literal_eval(s.value)
+                    if mail_smtp:
+                        system_mailsmtp_list.append(mail_smtp)
+                        mail_flag = 1
+                    else:
+                        mail_smtp = {
+                            'IPADDR': "",
+                            'PORT': "",
+                        }
+                        system_mailsmtp_list.append(mail_smtp)
 
             elif s.category == "ACTIVE_DIRECTORY":
 
@@ -232,8 +260,11 @@ def edit(request):
         'system_actdir_list'   : system_actdir_list,
         'system_targro_list'   : system_targro_list,
         'system_evreq_list'    : system_evreq_list,
+        'system_mail_list'     : system_mail_list,
+        'system_mailsmtp_list' : system_mailsmtp_list,
         'output_flag'          : output_flag,
         'pass_flag'            : pass_flag,
+        'mail_flag'            : mail_flag,
         'disabled_flag'        : settings.DISABLE_WHITE_BLACK_LIST,
     }
 
@@ -349,6 +380,11 @@ def modify(request):
                                 logger.user_log('LOSM09007',error_ids, request=request)
                                 raise Exception('validation error.')
                             value = ','.join(login_id_lists)
+
+                    # メール連携
+                    if system_data.config_id == 'OASE_MAIL_SMTP':
+                        if value != "{}":
+                            value['AUTH'] = False
 
                     if system_data.config_id == 'ADMINISTRATOR_PW':
 

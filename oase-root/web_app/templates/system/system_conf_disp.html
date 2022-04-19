@@ -39,16 +39,16 @@ var groupListRow = heredocHTML( function(){/*
 
 <div class="oase-main config">
   <main class="oase-main-inner">
-  
+
   <div class="oase-main-header">
     <div class="oase-main-header-inner">
-    
+
       <div class="oase-main-title">
         <div class="oase-main-title-inner">
           <h1>{% get_message 'MOSJA22044' request.user.get_lang_mode showMsgId=False %}</h1>
         </div><!-- /.oase-main-title-inner -->
       </div><!-- /.oase-main-title -->
-    
+
       {% if edit %}
       <div class="oase-main-menu">
         <div class="oase-main-menu-inner">
@@ -64,9 +64,9 @@ var groupListRow = heredocHTML( function(){/*
 
   <div class="oase-main-body">
     <div class="oase-main-body-inner">
-    
+
       <div class="oase-config">
-      
+
         <div class="oase-config-menu">
           <ul>
             <li><a href="#oase-config-log">{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</a></li>
@@ -77,6 +77,7 @@ var groupListRow = heredocHTML( function(){/*
             {% if pass_flag == 0 %}
             <li><a href="#oase-config-password">{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</a></li>
             {% endif %}
+            <li><a href="#oase-config-mail">{% get_message 'MOSJA22085' request.user.get_lang_mode showMsgId=False %}</a></li>
             <li><a href="#oase-config-active-directory">{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</a></li>
           </ul>
         </div><!-- /.oase-config-menu -->
@@ -84,13 +85,13 @@ var groupListRow = heredocHTML( function(){/*
         <div class="oase-config-main">
 
           <section id="oase-config-log">
-          
+
             <div class="oase-config-header">
               <h3>{% get_message 'MOSJA22045' request.user.get_lang_mode showMsgId=False %}</h3>
             </div>
-          
+
             <div class="oase-config-body">
-          
+
               <div class="oase-config-item">
                 <h4>{% get_message 'MOSJA22049' request.user.get_lang_mode showMsgId=False %}</h4>
                 <table>
@@ -110,12 +111,12 @@ var groupListRow = heredocHTML( function(){/*
                   </tbody>
                 </table>
               </div><!-- /.oase-config-item -->
-          
+
             </div><!-- /.oase-config-body -->
-          
+
             <div class="oase-config-footer">
             </div>
-          
+
           </section>
 
 
@@ -151,13 +152,13 @@ var groupListRow = heredocHTML( function(){/*
 
 
           <section id="oase-config-authentication">
-          
+
             <div class="oase-config-header">
               <h3>{% get_message 'MOSJA22046' request.user.get_lang_mode showMsgId=False %}</h3>
             </div>
-          
+
             <div class="oase-config-body">
-          
+
               <div class="oase-config-item">
                 <h4>{% get_message 'MOSJA22051' request.user.get_lang_mode showMsgId=False %}</h4>
                 <table>
@@ -171,23 +172,23 @@ var groupListRow = heredocHTML( function(){/*
                   </tbody>
                 </table>
               </div>
-              
+
             </div>
-            
+
             <div class="oase-config-footer">
             </div>
-          
+
           </section>
 
           {% if pass_flag == 0 %}
           <section id="oase-config-password">
-          
+
             <div class="oase-config-header">
               <h3>{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</h3>
             </div>
-          
+
             <div class="oase-config-body">
-          
+
               <div class="oase-config-item">
                 <h4>{% get_message 'MOSJA22053' request.user.get_lang_mode showMsgId=False %}</h4>
                 <table>
@@ -254,21 +255,77 @@ var groupListRow = heredocHTML( function(){/*
                   </tbody>
                 </table>
               </div>
-              
+
             </div>
-            
+
             <div class="oase-config-footer">
             </div>
-          
+
           </section>
           {% endif %}
 
+
+          {% comment %} MOSJA22085 : メール設定 {% endcomment %}
+          <section id="oase-config-mail">
+            <div class="oase-config-header">
+              <h3>{% get_message 'MOSJA22085' request.user.get_lang_mode showMsgId=False %}</h3>
+            </div>
+
+            <div class="oase-config-body">
+              <div class="oase-config-item">
+                <h4>{% get_message 'MOSJA22086' request.user.get_lang_mode showMsgId=False %}</h4>
+                <table>
+                  <tbody>
+                    {% if system_mailsmtp_list|length %}
+                      <thead>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA22089' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner">{% get_message 'MOSJA22063' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        </tr>
+                      </thead>
+                      {% for s in system_mail_list %}
+                        {% if s.config_id == "OASE_MAIL_SMTP" %}
+                          {% for dict_item in system_mailsmtp_list %}
+                            {% for k,v in dict_item.items %}
+                              {% if k == "IPADDR" %}
+                                <tr>
+                                  <th><div class="cell-inner">{% get_message 'MOSJA22087' request.user.get_lang_mode showMsgId=False %}</div></th>
+                                  <td><div class="cell-inner"><span>{{v}}</span></div></td>
+                                </tr>
+                              {% elif k == "PORT" %}
+                                <tr>
+                                  <th><div class="cell-inner">{% get_message 'MOSJA22088' request.user.get_lang_mode showMsgId=False %}</div></th>
+                                  <td><div class="cell-inner"><span>{{v}}</span></div></td>
+                                </tr>
+                              {% endif %}
+                            {% endfor %}
+                          {% endfor %}
+                        {% endif %}
+                      {% endfor %}
+                    {% else %}
+                      <thead>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA22089' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td><div class="cell-inner">{% get_message 'MOSJA22062' request.user.get_lang_mode showMsgId=False %}</div></td>
+                        </tr>
+                      </thead>
+                    {% endif %}
+                  </tbody>
+                </table>
+              </div><!-- /.oase-config-item -->
+            </div><!-- /.oase-config-body -->
+
+            <div class="oase-config-footer">
+            </div>
+          </section>
+
+
           <section id="oase-config-active-directory">
-          
+
             <div class="oase-config-header">
               <h3>{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</h3>
             </div>
-            
+
             <div class="oase-config-body">
               <div class="oase-config-item">
                 <h4>{% get_message 'MOSJA22061' request.user.get_lang_mode showMsgId=False %}</h4>
@@ -333,10 +390,10 @@ var groupListRow = heredocHTML( function(){/*
                 </table>
               </div>
             </div>
-            
+
             <div class="oase-config-footer">
             </div>
-          
+
           </section>
 
         </div><!-- /.oase-config-main -->

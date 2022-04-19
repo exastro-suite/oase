@@ -29,7 +29,8 @@ function setRangeLowerValue( range ) {
 // 有効・無効スイッチ
 let switchChange = function( change ) {
 
-  let selector = '#input-switch7';
+  id = change.id;
+  let selector = '#' + id;
   let value = $(selector).val();
 
   let switchElement = $( change ).attr('data-switch');

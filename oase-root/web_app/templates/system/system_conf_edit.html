@@ -361,6 +361,63 @@ function submitSystemActdir(){
     submitAction("#actdir");
 }
 
+////////////////////////////////////////////////
+// メール連携設定
+////////////////////////////////////////////////
+function submitSystemMail(){
+    $("#mail").prop("disabled", true);
+    if(!confirm(getMessage("MOSJA22000", false))) {
+        $("#mail").prop("disabled", false);
+        return;
+    }
+
+    var a_dicSystemList = new Array();
+
+    var strItemId  = "";
+    var strConName = "";
+    var strValue   = "";
+    var strIpaddr  = "";
+    var strPort    = "";
+    valueinfo      = {};
+
+    {% for system in system_mail_list %}
+        strItemId  = {{system.item_id}};
+        strConName = "{{system.config_name}}";
+        strValue   = document.getElementsByName("{{system.category}}");
+
+        dicSystemInfo                     = {};
+        dicSystemInfo["item_id"]          = strItemId;
+        dicSystemInfo["config_name"]      = strConName;
+        dicSystemInfo["category"]         = "{{system.category}}";
+        dicSystemInfo["config_id"]        = "{{system.config_id}}";
+        dicSystemInfo["maintenance_flag"] = {{system.maintenance_flag}};
+
+        if ( parseInt(strValue[0].value) == 1 ){
+            strIpaddr = document.getElementsByName("{{system.config_id}}");
+            strPort = document.getElementsByName("PORT");
+
+            valueinfo["IPADDR"] = strIpaddr[0].value;
+            valueinfo["PORT"]   = strPort[0].value;
+            dicSystemInfo["value"] = valueinfo;
+        } else {
+            dicSystemInfo["value"] = "{}";
+        }
+
+        a_dicSystemList.push(dicSystemInfo);
+    {% endfor %}
+
+    if ( a_dicSystemList.length <= 0 ){
+        alert(getMessage("MOSJA22013", true));
+        $("#mail").prop("disabled", false);
+        return;
+    }
+
+    var jstr = JSON.stringify({"json_str":a_dicSystemList});
+    document.getElementById("hidJsonStr").value = jstr;
+
+    submitAction("#mail");
+}
+
 
 function submitAction(id) {
     // バリデーションエラー初期化
@@ -578,6 +635,7 @@ function submitRedirect(){
               {% if pass_flag == 0 %}
               <li><a href="#oase-config-password">{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</a></li>
               {% endif %}
+              <li><a href="#oase-config-mail">{% get_message 'MOSJA22085' request.user.get_lang_mode showMsgId=False %}</a></li>
               <li><a href="#oase-config-active-directory">{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</a></li>
             </ul>
           </div><!-- /.oase-config-menu -->
@@ -782,6 +840,56 @@ function submitRedirect(){
 
             </section>
             {% endif%}
+
+
+            {% comment %} MOSJA22085 : メール設定 {% endcomment %}
+            <section id="oase-config-mail">
+              <div class="oase-config-header">
+                <h3>{% get_message 'MOSJA22085' request.user.get_lang_mode showMsgId=False %}</h3>
+              </div>
+
+              <div class="oase-config-body">
+                <div class="oase-config-item">
+                  <h4>{% get_message 'MOSJA22086' request.user.get_lang_mode showMsgId=False %}</h4>
+                  <table>
+                    {% for system in system_mail_list %}
+                      <thead>
+                        <tr>
+                          <th><div class="cell-inner">{% get_message 'MOSJA22089' request.user.get_lang_mode showMsgId=False %}</div></th>
+                          <td class="config-switch"><div class="cell-inner"><input data-switch=".mail-setting" class="config-switch-input" name="{{system.category}}" type="checkbox" id="input-switch8"  value={% if mail_flag == 1 %} "1" checked {% else %} "0" {% endif %} required ><label for="input-switch8" class="config-switch-label"></label></div></td>
+                          <td colspan="2"><div class="cell-inner"></div></td>
+                        </tr>
+                      </thead>
+                      <tbody class="mail-setting" style={% if mail_flag == 1 %} "" {% else %} "display: none;"{% endif %}>
+                      {% for dict_item in system_mailsmtp_list %}
+                        {% for key, value in dict_item.items %}
+                          {% if key == "IPADDR" %}
+                            <tr>
+                              <th><div class="cell-inner">{% get_message 'MOSJA22087' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA22090' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                              <td colspan="3"><div class="cell-inner"><input class="validation-input" data-maxlength="64" type="text" name="{{system.config_id}}" value="{{value|default:""}}" required /></div></td>
+                            </tr>
+                          {% elif key == "PORT" %}
+                            <tr>
+                              <th><div class="cell-inner">{% get_message 'MOSJA22088' request.user.get_lang_mode showMsgId=False %}<sup>*</sup><span class="tooltip help" title="{% get_message 'MOSJA22091' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></div></th>
+                              <td colspan="3"><div class="cell-inner"><input class="validation-input" min="0" max="65535" type="number" name="{{key}}" value="{{value|default:""}}" required /></div></td>
+                            </tr>
+                          {% endif %}
+                        {% endfor %}
+                      {% endfor %}
+                    {% endfor %}
+                    </tbody>
+                  </table>
+                </div><!-- /.oase-config-item -->
+              </div><!-- /.oase-config-body -->
+
+              <div class="oase-config-footer">
+                <ul class="oase-button-group">
+                  <li><button class="oase-button reset" disabled><em class="owf owf-reset"></em><span>{% get_message 'MOSJA00019' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                  <li><button class="oase-button save" id="mail" onClick="submitSystemMail();" disabled><em class="owf owf-save"></em><span>{% get_message 'MOSJA00021' request.user.get_lang_mode showMsgId=False %}</span></button></li>
+                </ul>
+              </div>
+            </section>
+
 
             <section id="oase-config-active-directory">
 

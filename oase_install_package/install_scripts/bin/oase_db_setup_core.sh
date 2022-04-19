@@ -37,7 +37,7 @@ check_result() {
 # append to init_custom.yaml
 create_initcustom() {
 
-    if [ $# -ne 6 ]; then
+    if [ $# -ne 7 ]; then
         log "ERROR : missing required positional argument."
         exit 1
     fi
@@ -56,7 +56,7 @@ cat << EOS >> $OASE_INICUSTOM_FILE
     category: $3
     config_id: $4
     value: $5
-    maintenance_flag: 0
+    maintenance_flag: $7
     last_update_timestamp: $6
     last_update_user: ${admin_name}
 
@@ -158,22 +158,22 @@ log "INFO : append to init_custom.yaml."
 encrypter=$oase_directory/OASE/tool/encrypter.py
 
 date=`date +"%Y-%m-%dT%H:%M:%S"`
-create_initcustom 2  "ルールファイル設置ルートパス"  "RULE"          "RULEFILE_ROOTPATH" ${rulefile_rootpath}  $date
-create_initcustom 26 "DMリクエスト送信先"            "DMSETTINGS"    "DM_IPADDRPORT"     ${rule_engine_ipaddrport}      $date
-create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${rule_engine_adminname}   $date
+create_initcustom 2  "ルールファイル設置ルートパス"  "RULE"          "RULEFILE_ROOTPATH" ${rulefile_rootpath}      $date 0
+create_initcustom 26 "DMリクエスト送信先"            "DMSETTINGS"    "DM_IPADDRPORT"     ${rule_engine_ipaddrport} $date 0
+create_initcustom 27 "DMユーザID"                    "DMSETTINGS"    "DM_USERID"         ${rule_engine_adminname}  $date 0
 encrypted_password=$(python3 $encrypter ${rule_engine_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? $encrypted_password
-create_initcustom 28 "DMパスワード"                  "DMSETTINGS"    "DM_PASSWD"         $encrypted_password   $date
-create_initcustom 29 "適用君待ち受け情報"            "APPLYSETTINGS" "APPLY_IPADDRPORT"  ${apply_ipaddrport}   $date
-create_initcustom 31 "OASEメールSMTP"                "OASE_MAIL"     "OASE_MAIL_SMTP"    ${oasemail_smtp}      $date
-create_initcustom 32 "Maven repositoryパス"          "RULE"          "MAVENREP_PATH"     ${mavenrep_path}      $date
-create_initcustom 50 "RabbitMQユーザID"              "RABBITMQ"      "MQ_USER_ID"        ${RabbitMQ_username}  $date
+create_initcustom 28 "DMパスワード"                  "DMSETTINGS"    "DM_PASSWD"         $encrypted_password       $date 0
+create_initcustom 29 "適用君待ち受け情報"            "APPLYSETTINGS" "APPLY_IPADDRPORT"  ${apply_ipaddrport}       $date 0
+create_initcustom 31 "OASEメールSMTP"                "OASE_MAIL"     "OASE_MAIL_SMTP"    ${oasemail_smtp}          $date 1
+create_initcustom 32 "Maven repositoryパス"          "RULE"          "MAVENREP_PATH"     ${mavenrep_path}          $date 0
+create_initcustom 50 "RabbitMQユーザID"              "RABBITMQ"      "MQ_USER_ID"        ${RabbitMQ_username}      $date 0
 encrypted_password=$(python3 $encrypter ${RabbitMQ_password} 2>> "$OASE_INSTALL_LOG_FILE")
 check_result $? $encrypted_password
-create_initcustom 51 "RabbitMQパスワード"            "RABBITMQ"      "MQ_PASSWORD"       $encrypted_password   $date
-create_initcustom 52 "RabbitMQIPアドレス"            "RABBITMQ"      "MQ_IPADDRESS"      ${RabbitMQ_ipaddr}    $date
-create_initcustom 53 "RabbitMQキュー名"              "RABBITMQ"      "MQ_QUEUE_NAME"     ${RabbitMQ_queuename} $date
-create_initcustom 60 "DMリクエスト送信先kie"         "DMSETTINGS"    "DM_IPADDRPORT_KIE" ${rule_engine_ipaddrport}      $date
+create_initcustom 51 "RabbitMQパスワード"            "RABBITMQ"      "MQ_PASSWORD"       $encrypted_password       $date 0
+create_initcustom 52 "RabbitMQIPアドレス"            "RABBITMQ"      "MQ_IPADDRESS"      ${RabbitMQ_ipaddr}        $date 0
+create_initcustom 53 "RabbitMQキュー名"              "RABBITMQ"      "MQ_QUEUE_NAME"     ${RabbitMQ_queuename}     $date 0
+create_initcustom 60 "DMリクエスト送信先kie"         "DMSETTINGS"    "DM_IPADDRPORT_KIE" ${rule_engine_ipaddrport} $date 0
 
 ################################################################################
 log "INFO : Create init_custom.yaml is completed."
