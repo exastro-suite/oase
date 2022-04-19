@@ -1220,7 +1220,7 @@ class ITAManager(AbstractManager):
 
                 for i, v in enumerate(event_info_list):
                     if menu_id not in parameter_list:
-                        parameter_list[menu_id] = {'host_name':'', 'param_list':[]}
+                        parameter_list[menu_id] = {'host_name':'', 'param_list':[], 'array_list':[]}
 
                     no_host_flg = True if hg_flg_info[menu_id] < 0 else False
 
@@ -1228,11 +1228,13 @@ class ITAManager(AbstractManager):
                         parameter_list[menu_id]['host_name'] = event_info_list[0]
                     else:
                         parameter_list[menu_id]['param_list'].append(event_info_list[i])
+                        parameter_list[menu_id]['array_list'].append(0)
                         itaparcom = ItaParametaCommitInfo(
                             response_id           = self.response_id,
                             commit_order          = rhdm_res_act.execution_order,
                             menu_id               = int(menu_id),
                             ita_order             = i + 1,
+                            array_count           = 0,
                             parameter_value       = event_info_list[i],
                             last_update_timestamp = Comobj.getStringNowDateTime(),
                             last_update_user      = self.last_update_user
