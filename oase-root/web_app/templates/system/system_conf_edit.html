@@ -635,7 +635,7 @@ function submitRedirect(){
               {% if pass_flag == 0 %}
               <li><a href="#oase-config-password">{% get_message 'MOSJA22047' request.user.get_lang_mode showMsgId=False %}</a></li>
               {% endif %}
-              <li><a href="#oase-config-mail">メール設定</a></li>
+              <li><a href="#oase-config-mail">{% get_message 'MOSJA22085' request.user.get_lang_mode showMsgId=False %}</a></li>
               <li><a href="#oase-config-active-directory">{% get_message 'MOSJA22048' request.user.get_lang_mode showMsgId=False %}</a></li>
             </ul>
           </div><!-- /.oase-config-menu -->
