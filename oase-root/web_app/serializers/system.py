@@ -47,6 +47,8 @@ class SystemSerializer(serializers.ModelSerializer):
     IPADDR_LOGIN_RETRY_MAX     = 1000
     ACTION_PROCESS_MIN         = 0
     ACTION_PROCESS_MAX         = 1000
+    MAIL_PORT_MIN              = 0
+    MAIL_PORT_MAX              = 65535
     EMO_CHK                    = UnicodeCheck()
     EMAIL_PATTERN   = r'^([\w!#$%&\'*+\-\/=?^`{|}~]+(\.[\w!#$%&\'*+\-\/=?^`{|}~]+)*|"([\w!#$%&\'*+\-\/=?^`{|}~. ()<>\[\]:;@,]|\\[\\"])+")@(([a-zA-Z\d\-]+\.)+[a-zA-Z]+|\[(\d{1,3}(\.\d{1,3}){3}|IPv6:[\da-fA-F]{0,4}(:[\da-fA-F]{0,4}){1,5}(:\d{1,3}(\.\d{1,3}){3}|(:[\da-fA-F]{0,4}){0,2}))\])$'
     HOUR_PATTERN = r'([0-2]?[0-9])'
@@ -94,6 +96,31 @@ class SystemSerializer(serializers.ModelSerializer):
                 val_tmp = int(data['value'])
                 if val_tmp < self.ACTION_PROCESS_MIN or val_tmp > self.ACTION_PROCESS_MAX:
                     raise serializers.ValidationError("無効なアクションプロセス数の上限 val=%s" % (val_tmp))
+
+
+        if data['category'] == 'OASE_MAIL':
+            if data['value'] != "{}":
+                value_len = len(data['value']['IPADDR'])
+                if value_len < 1:
+                    raise serializers.ValidationError("IPアドレスは必須項目です")
+
+                # 絵文字チェック
+                value_list = self.EMO_CHK.is_emotion(data['value']['IPADDR'])
+                if len(value_list) > 0:
+                    raise serializers.ValidationError("IPアドレスに使用できない文字が含まれています。")
+
+                if isinstance(data['value']['PORT'], int):
+                    data['value']['PORT'] = str(data['value']['PORT'])
+
+                if not isinstance(data['value']['PORT'], str):
+                    raise serializers.ValidationError("予期せぬ型(ポート番号) type=%s, val=%s" % (type(data['value']['PORT']), data['value']['PORT']))
+
+                if not data['value']['PORT'].isdigit():
+                    raise serializers.ValidationError("数値以外の値(ボート番号) val=%s" % (data['value']['PORT']))
+
+                val_tmp = int(data['value']['PORT'])
+                if val_tmp < self.MAIL_PORT_MIN or val_tmp > self.MAIL_PORT_MAX:
+                    raise serializers.ValidationError("無効なポート番号の上限 val=%s" % (val_tmp))
 
 
         if data['category'] == 'SESSION_TIMEOUT':
