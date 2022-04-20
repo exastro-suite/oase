@@ -483,6 +483,10 @@ function submitAction() {
                 alert(response_json.msg);
 
             beforeunloadThroughFlag = true;
+
+            if(response_json.redirect_url != "")
+                location.href = response_json.redirect_url;
+
             errorMsg = response_json.error_msg_user_name
 
             Object.keys(errorMsg).forEach(function(rowId) {

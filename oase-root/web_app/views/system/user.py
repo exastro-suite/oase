@@ -39,12 +39,14 @@ from django.http import HttpResponse, Http404
 from django.shortcuts import render,redirect
 from django.db import transaction
 from django.db.models import Q
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_POST, require_GET
+from django.conf import settings
 
 from libs.commonlibs import define as defs
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.common import Common
-
+from libs.commonlibs.aes_cipher import AESCipher
+from libs.webcommonlibs.oase_exception import OASEError
 from libs.webcommonlibs.decorator import *
 from libs.webcommonlibs.password  import RandomPassword
 from libs.webcommonlibs.oase_mail import *
@@ -272,6 +274,7 @@ def modify(request):
     error_msg_login_id   = ''
     error_msg_mail       = ''
     error_msg_user_group = ''
+    mail_error_flag      = False
 
     json_str = request.POST.get('json_str',None)
 
@@ -436,7 +439,9 @@ def modify(request):
             for rq in json_str['insertInfo']:
                 # ランダムパスワード生成
                 password = RandomPassword().get_password()
-                password_hash = Common.oase_hash(password)
+                # パスワードを暗号化
+                cipher = AESCipher(settings.AES_KEY)
+                password_hash = cipher.encrypt(password)
                 password_expire = None
                 if ttl_hour == 0:
                     # datetime supportで日時がずれoverflowするため9000年とした
@@ -517,8 +522,13 @@ def modify(request):
                     logger.logic_log('LOSI05006', u['mail'], u['id'], request=request)
                     if send_result and send_result not in msg_ids:
                         msg_ids.append(send_result)
+
+                        if send_result == 'MOSJA00006':
+                            mail_error_flag = True
+
                         send_result = get_message(send_result, request.user.get_lang_mode())
                         error_flag = True
+
                         if msg:
                             msg += '\n'
                         msg += send_result
@@ -535,8 +545,13 @@ def modify(request):
                     logger.logic_log('LOSI05007', u['mail'], request=request)
                     if send_result and send_result not in msg_ids:
                         msg_ids.append(send_result)
+
+                        if send_result == 'MOSJA00006':
+                            mail_error_flag = True
+
                         send_result = get_message(send_result, request.user.get_lang_mode())
                         error_flag = True
+
                         if msg:
                             msg += '\n'
                         msg += send_result
@@ -553,7 +568,12 @@ def modify(request):
 
         response_data['status'] = 'failure'
         response_data['error_msg'] = error_msg
-        response_data['msg'] = msg
+        if mail_error_flag:
+            response_data['msg'] = get_message('MOSJA00011', request.user.get_lang_mode(), showMsgId=False) +'\n' + msg
+            response_data['redirect_url'] = '/oase_web/system/user'
+        else:
+            response_data['msg'] = msg
+            response_data['redirect_url'] = ''
         logger.logic_log('LOSM05007', 'json_str: %s, response_data: %s, traceback: %s' % (json_str, response_data, traceback.format_exc()), request=request)
 
     # 正常処理
@@ -821,25 +841,135 @@ def _getUserData(filters, edit=False, request=None):
 
     # 抽出結果を画面表示用に整形
     user_list = []
+
+    hasUpdateAuthority = False
+
+    if request:
+        permission_type = request.user_config.get_menu_auth_type(MENU_ID)
+        hasUpdateAuthority = True if permission_type == defs.ALLOWED_MENTENANCE else False
+
     for u in user:
+        pw_lst_mod = 1
+        
+        if hasUpdateAuthority == True:
+            if u.user_id > 1:
+                if not u.password_last_modified:
+                    if u.ad_data_flag != '1':
+                        if not u.sso_id:
+                            print('876')
+                            pw_lst_mod = None
+                            print(pw_lst_mod)
+
         group_id_list, group_name_list = u.get_group_info()
         user_info = {
-            'user_id'  : u.user_id,
-            'user_name': u.user_name,
-            'login_id' : u.login_id,
-            'mail'     : u.mail_address,
-            'sso_id'   : u.sso_id,
-            'group_id' : group_id_list,
-            'upd_user': u.last_update_user,
-            'updated'  : u.last_update_timestamp,
-            'group_name' : group_name_list,
-            'upd_user_name' : u.last_update_user,
+            'user_id'      : u.user_id,
+            'user_name'    : u.user_name,
+            'password'     : u.password,
+            'login_id'     : u.login_id,
+            'mail'         : u.mail_address,
+            'pw_lst_mod'   : pw_lst_mod,
+            'sso_id'       : u.sso_id,
+            'group_id'     : group_id_list,
+            'upd_user'     : u.last_update_user,
+            'updated'      : u.last_update_timestamp,
+            'group_name'   : group_name_list,
+            'upd_user_name': u.last_update_user,
         }
         user_list.append(user_info)
 
     logger.logic_log('LOSI00002', 'user_list: %s' % len(user_list), request=request)
 
     return user_list, search_info
+
+
+@check_allowed_auth(MENU_ID, defs.MENU_CATEGORY.ALLOW_ADMIN)
+@require_GET
+def initialpass(request, user_id):
+    """
+    [メソッド概要]
+      初期パスワード取得処理
+    [戻り値]
+      initial_password
+    """
+
+    logger.logic_log('LOSI00001', 'initialpass request.  request: %s  user_id: %s' %(request,user_id), request=request)
+
+    response_data = {
+        'status' : 'failure',
+        'msg'    : '',
+    }
+
+    now = datetime.datetime.now(pytz.timezone('UTC'))
+
+    try:
+        # UserData取得
+        user_data_list = User.objects.filter(
+            user_id = user_id
+        ).exclude(user_id__lte=1).values('user_id', 'password', 'password_last_modified', 'disuse_flag','password_expire','ad_data_flag','sso_id')
+
+        # データ取得の成否チェック
+        if len(user_data_list) <= 0 or len(user_data_list) >= 2:
+            raise OASEError('MOSJA24001', 'LOSM05009')
+
+        # リストから辞書を取り出す
+        user_data_dic = user_data_list[0]
+
+        # 初期パスワードチェック
+        if user_data_dic['password_last_modified']:
+            raise OASEError('MOSJA24001', 'LOSM05010')
+
+        # 廃止フラグチェック
+        if user_data_dic['disuse_flag'] != '0':
+            raise OASEError('MOSJA24001', 'LOSM05011')
+
+        # パスワード有効期限チェック
+        if user_data_dic['password_expire']:
+            if user_data_dic['password_expire'] <= now:
+                raise OASEError('MOSJA24031', 'LOSM05012')
+
+        # ADデータフラグチェック
+        if user_data_dic['ad_data_flag'] == '1':
+            raise OASEError('MOSJA24001', 'LOSM05013')
+
+        # SSO_IDチェック
+        if user_data_dic['sso_id']:
+            raise OASEError('MOSJA24001', 'LOSM05014')
+
+        # パスワードを変数に格納
+        pwd = ''
+        pwd = user_data_dic['password']
+        
+        # 応答データ・パスワードの復号化
+        cipher = AESCipher(settings.AES_KEY)
+        response_data['status'] = 'success'
+        response_data['msg'] = cipher.decrypt(pwd)
+    
+    except OASEError as e:
+        if e.log_id:
+            if e.arg_list and isinstance(e.arg_list, list):
+                logger.logic_log(e.log_id, *(e.arg_list), request=request)
+            else:
+                logger.logic_log(e.log_id, request=request)
+
+        if e.msg_id:
+            if e.arg_dict and isinstance(e.arg_dict, dict):
+                msg = get_message(e.msg_id, request.user.get_lang_mode(), **(e.arg_dict))
+            else:
+                msg = get_message(e.msg_id, request.user.get_lang_mode())
+
+        response_data['status'] = 'failure'
+        response_data['msg'] = msg    
+    
+    except Exception as e:
+        logger.logic_log('LOSI00005', traceback.format_exc(), request=request)
+        response_data['status'] = 'failure'
+        response_data['msg'] = get_message('MOSJA37037', request.user.get_lang_mode())
+
+
+    
+    # 応答
+    response_json = json.dumps(response_data)
+    return HttpResponse(response_json, content_type="application/json")
 
 
 def _get_search_info(where_info):
@@ -873,11 +1003,23 @@ def _get_search_info(where_info):
     if 'login_id__in' in where_info:
         search_info['login_id'].extend(where_info['login_id__in'])
 
+    if 'password__contains' in where_info:
+        search_info['password'].append(where_info['password__contains'])
+
+    if 'password__in' in where_info:
+        search_info['password'].extend(where_info['password__in'])    
+
     if 'mail_address__contains' in where_info:
         search_info['mail_address'].append(where_info['mail_address__contains'])
 
     if 'mail_address__in' in where_info:
         search_info['mail_address'].extend(where_info['mail_address__in'])
+
+    if 'pw_lst_mod__contains' in where_info:
+        search_info['password'].append(where_info['password__contains'])
+
+    if 'pw_lst_mod__in' in where_info:
+        search_info['password'].extend(where_info['password__in'])    
 
     if 'group_name__contains' in where_info:
         search_info['group_id'].append(where_info['group_name__contains'])
