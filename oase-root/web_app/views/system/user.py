@@ -1001,23 +1001,11 @@ def _get_search_info(where_info):
     if 'login_id__in' in where_info:
         search_info['login_id'].extend(where_info['login_id__in'])
 
-    if 'password__contains' in where_info:
-        search_info['password'].append(where_info['password__contains'])
-
-    if 'password__in' in where_info:
-        search_info['password'].extend(where_info['password__in'])    
-
     if 'mail_address__contains' in where_info:
         search_info['mail_address'].append(where_info['mail_address__contains'])
 
     if 'mail_address__in' in where_info:
         search_info['mail_address'].extend(where_info['mail_address__in'])
-
-    if 'pw_lst_mod__contains' in where_info:
-        search_info['password'].append(where_info['password__contains'])
-
-    if 'pw_lst_mod__in' in where_info:
-        search_info['password'].extend(where_info['password__in'])    
 
     if 'group_name__contains' in where_info:
         search_info['group_id'].append(where_info['group_name__contains'])
@@ -1031,4 +1019,3 @@ def _get_search_info(where_info):
     logger.logic_log('LOSI00002', 'search_info: %s' % search_info)
 
     return search_info
-
