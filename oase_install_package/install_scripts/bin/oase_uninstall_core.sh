@@ -30,11 +30,11 @@ readonly OASE_UNINSTALING_FILE_SUFFIX='.oase_during_uninstallation'
 JBOSS_ROOT_DIR="${jboss_root_directory}"
 
 if [ "${rules_engine}" == "drools" ]; then
-    JBOSS_CONF_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/bin/standalone.conf
+    JBOSS_CONF_FILE="${JBOSS_ROOT_DIR}"/wildfly-23.0.1.Final/bin/standalone.conf
 fi
 
 if [ "${rules_engine}" == "drools" ]; then
-    STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-14.0.1.Final/standalone/configuration/standalone-full.xml
+    STANDALONE_FULL_FILE="${JBOSS_ROOT_DIR}"/wildfly-23.0.1.Final/standalone/configuration/standalone-full.xml
 fi
 
 KERNEL_PARAM_FILE=/etc/sysctl.conf
