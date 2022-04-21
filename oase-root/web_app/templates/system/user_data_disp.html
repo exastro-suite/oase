@@ -24,6 +24,12 @@ background-color: inherit !important;
 box-shadow: none !important;
 color: rgba(0, 0, 0, 0) !important;
 }
+.ond .owf-save:before {
+    content: "\e923";
+    color: #665;
+    cursor: pointer;
+    font-size : x-large
+}
 </style>
 
 <script type="text/javascript">
@@ -125,7 +131,7 @@ function copyPassword(url, btn)
       {% else %}      
       <td style="text-align:center;">
         <button style="border:0; background-color:transparent;" onClick="copyPassword('{% url 'web_app:system:initial_password' user.user_id %}',this)">
-          <div class="oase-password-copy tooltip" style="font-size : x-large" title="{% get_message 'MOSJA37033' request.user.get_lang_mode showMsgId=False %}">
+          <div class="oase-password-copy tooltip" title="{% get_message 'MOSJA37033' request.user.get_lang_mode showMsgId=False %}">
             <em class="owf owf-save"></em>
           </div>
         </button>
