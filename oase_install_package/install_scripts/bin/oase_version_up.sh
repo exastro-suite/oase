@@ -229,6 +229,37 @@ create_repo_check(){
     fi
 }
 
+################################################################################
+# append to init_custom.yaml
+create_initcustom() {
+
+    if [ $# -ne 7 ]; then
+        log "ERROR : missing required positional argument."
+        exit 1
+    fi
+
+    if [ ${oase_language} == 'ja_JP' ]; then
+        admin_name='システム管理者'
+    else
+        admin_name='administrator'
+    fi
+
+cat << EOS >> $OASE_INICUSTOM_FILE
+- model: web_app.System
+  pk: $1
+  fields:
+    config_name: $2
+    category: $3
+    config_id: $4
+    value: $5
+    maintenance_flag: $7
+    last_update_timestamp: $6
+    last_update_user: ${admin_name}
+
+EOS
+
+}
+
 #-----関数定義ここまで-----
 
 # yum install packages
@@ -700,6 +731,16 @@ do
     fi
 done < "${LIST_DIR}/time_zone_list.txt"
 
+date=`date +"%Y-%m-%dT%H:%M:%S"`
+OASE_FIXTURES_DIR=$(cd $oase_directory/OASE/oase-root/web_app/fixtures/;pwd)
+while read LIST_VERSION || [ -n "${LIST_VERSION}" ] ; do
+
+    if [ "${LIST_VERSION}" = "1.6.1" ] ; then
+        OASE_INICUSTOM_FILE=$OASE_FIXTURES_DIR/init_custom"${LIST_VERSION}".yaml
+        create_initcustom 60 "DMリクエスト送信先kie" "DMSETTINGS" "DM_IPADDRPORT_KIE" ${rule_engine_ipaddrport} $date 0
+    fi
+
+done < ${VERSION_UP_LIST_FILE}
 
 
 EXEC_VERSION=${NOW_VERSION}
@@ -752,6 +793,14 @@ while read LIST_VERSION || [ -n "${LIST_VERSION}" ] ; do
 
         echo "" >> /etc/httpd/conf.d/oase.conf
         echo "WSGIPassAuthorization On" >> /etc/httpd/conf.d/oase.conf
+    fi
+
+    if [ "${LIST_VERSION}" = "1.6.1" ] ; then
+        migrate_log=$(python manage.py loaddata $OASE_INICUSTOM_FILE 2>> "$LOG_FILE")
+        check_result $? "$migrate_log" >> "$LOG_FILE" 2>&1
+        log "INFO : $migrate_log." >> "$LOG_FILE" 2>&1
+
+        sed -i -e '$ a MAX_ACTION_PROC = -1' ${OASE_DIRECTORY}/OASE/oase-root/confs/frameworkconfs/settings.py >> "$LOG_FILE" 2>&1
     fi
 
     cd - > /dev/null 2>&1

@@ -1,0 +1,240 @@
+################################
+# ユーザ管理
+################################
+- model: web_app.User
+  pk: -2140000000
+  fields:
+    login_id: oase_admin
+    user_name: OASE
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000001
+  fields:
+    login_id: oase_action_driver
+    user_name: アクションドライバープロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000002
+  fields:
+    login_id: oase_agent
+    user_name: OASEエージェントプロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000003
+  fields:
+    login_id: oase_apply
+    user_name: OASEルール適用プロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000004
+  fields:
+    login_id: oase_ad_linkage
+    user_name: OASE_AD連携プロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000005
+  fields:
+    login_id: oase_zabbix
+    user_name: ZABBIXアダプタプロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000006
+  fields:
+    login_id: oase_ITA_collabo
+    user_name: OASE_ITA連携プロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000007
+  fields:
+    login_id: oase_Prometheus
+    user_name: Prometheusアダプタプロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000008
+  fields:
+    login_id: oase_Servicenow
+    user_name: ServiceNow連携プロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000009
+  fields:
+    login_id: oase_Grafana
+    user_name: Grafanaアダプタプロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.User
+  pk: -2140000010
+  fields:
+    login_id: oase_Datadog
+    user_name: Datadogアダプタプロシージャ
+    password: db09f9a8139fe25376c6e2a16098b6a83fc95d08fb4b5005385ed8212e10fe21
+    mail_address: sample@example.com
+    lang_mode_id: 1
+    disp_mode_id: 1
+    disuse_flag: 1
+    pass_exp_check_flag: 0
+    pass_hist_check_flag: 0
+    account_lock_times: 0
+    account_lock_flag: 0
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# ユーザグループ管理
+################################
+- model: web_app.UserGroup
+  pk: -2140000010
+  fields:
+    user_id: -2140000010
+    group_id: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+
+################################
+# システム設定
+################################
+- model: web_app.System
+  pk: 58
+  fields:
+    config_name: MOSJA00307
+    category: EVREQSETTINGS
+    config_id: MAX_ACTION_PROCESS
+    value: 20
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+- model: web_app.System
+  pk: 59
+  fields:
+    config_name: MOSJA00306
+    category: EVREQSETTINGS
+    config_id: EXPIRE_EVREQ
+    value: 60
+    maintenance_flag: 1
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
+
+################################
+# 監視アダプタ種別管理
+################################
+- model: web_app.AdapterType
+  pk: 4
+  fields:
+    name: Datadog
+    version: 1.0.0
+    adapter_major_version: 1
+    icon_name: oda-adapter-datadog
+    last_update_timestamp: 2019-07-01T00:00:00+0900
+    last_update_user: システム管理者
