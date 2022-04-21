@@ -33,6 +33,7 @@ from django.db import transaction
 from django.conf import settings
 
 from libs.commonlibs.common import Common
+from libs.commonlibs.aes_cipher import AESCipher
 from libs.commonlibs.oase_logger import OaseLogger
 
 from libs.webcommonlibs.decorator import *
@@ -195,8 +196,16 @@ def _validate(request, data, user):
         error_msg['oldPw'] = get_message('MOSJA32012', request.user.get_lang_mode())
         logger.user_log('LOSM17002', request=request)
     else:
-        password_hash = Common.oase_hash(input_old_password)
-        if user.password != password_hash:
+        db_pass = user.password
+        login_pass = input_old_password
+
+        if user.password_last_modified or user.user_id == 1:
+            login_pass = Common.oase_hash(input_old_password)
+        else:
+            cipher = AESCipher(settings.AES_KEY)
+            db_pass = cipher.decrypt(db_pass)
+
+        if db_pass != login_pass:
             error_msg['oldPw'] = get_message('MOSJA32013', request.user.get_lang_mode())
             logger.user_log('LOSM17003', request=request)
 

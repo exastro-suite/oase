@@ -89,7 +89,7 @@ class User(AbstractBaseUser):
     user_id = models.AutoField("ユーザID", primary_key=True)
     login_id = models.CharField("ログインID", max_length=32, unique=True)
     user_name = models.CharField("ユーザ名", max_length=64)
-    password = models.CharField("パスワード", max_length=64)
+    password = models.CharField("パスワード", max_length=192)
     mail_address = models.EmailField("メールアドレス", max_length=256)
     lang_mode_id = models.IntegerField("言語種別")
     disp_mode_id = models.IntegerField("表示設定")
@@ -490,7 +490,7 @@ class PasswordHistory(models.Model):
     """
     password_id = models.AutoField("パスワードID", primary_key=True)
     user_id = models.IntegerField("ユーザID")
-    password = models.CharField("パスワード", max_length=64)
+    password = models.CharField("パスワード", max_length=192)
     last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user = models.CharField("最終更新者", max_length=64)
 
@@ -862,4 +862,3 @@ class Count(models.Model):
 
     def __str__(self):
         return str(self.count_id)
-

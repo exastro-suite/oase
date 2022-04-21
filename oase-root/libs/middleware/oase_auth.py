@@ -39,9 +39,11 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.backends import ModelBackend
 from django.db import transaction
 from django.urls import reverse
+from django.conf import settings
 import libs.commonlibs.define as defs
 from libs.commonlibs.ad_authenticator import AdAuthenticator
 from libs.commonlibs.common import Common
+from libs.commonlibs.aes_cipher import AESCipher
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.webcommonlibs.oase_exception import *
 from libs.webcommonlibs.oase_mail import OASEMailSMTP, OASEMailUserLocked
@@ -65,18 +67,25 @@ class OASEAuthBackend(ModelBackend):
 
         try:
             with transaction.atomic():
-                password_hash = Common.oase_hash(password)
                 now  = datetime.datetime.now(pytz.timezone('UTC'))
                 user = User.objects.select_for_update().get(
                     login_id=username, login_id__contains=username, disuse_flag='0', sso_id=0
                 )
                 uid  = user.user_id
                 msg  = None
+                db_pass = user.password
+                login_pass = password
+
+                if user.password_last_modified or uid == 1:
+                    login_pass = Common.oase_hash(password)
+                else:
+                    cipher = AESCipher(settings.AES_KEY)
+                    db_pass = cipher.decrypt(db_pass)
 
                 self.check_account_lock_parameter(now, user, uid, username)
 
                 # パスワードが一致したらユーザ情報を返却し終了
-                if user.password == password_hash:
+                if db_pass == login_pass:
                     # ミス回数,アカウントロック回数リセット
                     user.password_count = 0
                     user.account_lock_times = 0

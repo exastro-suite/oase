@@ -50,6 +50,7 @@ urlpatterns = [
     path('user/edit',  user.edit,   name='user_edit'),
     re_path(r'^user/modify$',  user.modify,   name='user_modify'),
     re_path(r'^user/data$',    user.data,   name='user_data'),
+    path('user/initialpass/<int:user_id>/',  user.initialpass,   name='initial_password'),
 
     # 監視アダプタ
     path('monitoring',             monitoring.monitoring,  name='monitoring'),

@@ -16,6 +16,82 @@ Copyright 2019 NEC Corporation
 
 {% endcomment %}
 {% load tz %}
+{% block myheader %}
+<style>
+.oase-initial-data {
+border: none !important;
+background-color: inherit !important;
+box-shadow: none !important;
+color: rgba(0, 0, 0, 0) !important;
+}
+</style>
+
+<script type="text/javascript">
+<!--
+////////////////////////////////////////////////
+//  
+////////////////////////////////////////////////
+function copyPassword(url, btn)
+{
+    btn.disabled = true;
+    const $copyButton = $( btn );
+    const clickCopy = function(){
+      $copyButton.addClass('copy');
+      
+      setTimeout( function(){
+          $copyButton.removeClass('copy');
+      }, 1000 );
+    }
+
+    $.ajax({
+        type     : "GET",
+        url      :  url,
+        dataType : "json",
+    })
+    .done(function(respdata) {
+        if(respdata.status == "failure"){
+            alert(respdata.msg);
+            beforeunloadThroughFlag = true;
+            btn.disabled = false;
+        } else if ( !$copyButton.is('.copy') ) {
+            if ( navigator.clipboard !== undefined ) {
+              // navigator.clipboard
+              const text = respdata.msg;
+              navigator.clipboard.writeText(text);
+              clickCopy();
+              beforeunloadThroughFlag = true;
+              btn.disabled = false;
+            } else if( document.execCommand !== undefined ) {
+                // document.execCommand
+                $("#oase-initial-data").text(respdata.msg)
+                const passwordElm = $("#oase-initial-data").get(0);
+                      range = document.createRange(),
+                      selection = window.getSelection();
+                range.selectNodeContents( passwordElm );
+                selection.removeAllRanges();
+                selection.addRange( range );
+                document.execCommand('copy');
+                selection.removeAllRanges();
+                clickCopy();
+                $("#oase-initial-data").text("")
+                btn.disabled = false;
+            }
+        }
+    })
+    
+    .fail(function(respdata, stscode, resp) {
+        alert(getMessage("MOSJA00014", true));
+        btn.disabled = false;
+    });
+}
+
+
+-->
+</script>
+
+{% endblock %}
+
+{% block maincontent %}
 <table class="oase-filter oase-sort" id="user">
   <thead class="user-data-head">
     <tr>
@@ -23,6 +99,7 @@ Copyright 2019 NEC Corporation
       <th class="login-id sort filter" filter-type="common" filter-label="login-id"><div class="cell-inner">{% get_message 'MOSJA00034' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="mail-address sort filter" filter-type="common" filter-label="mail-address"><div class="cell-inner">{% get_message 'MOSJA00035' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="group filter" filter-type="select" filter-label="group"><div class="cell-inner">{% get_message 'MOSJA00037' request.user.get_lang_mode showMsgId=False %}</div></th>
+      <th class="password sort filter" filter-type="common" filter-label="password"><div class="cell-inner">{% get_message 'MOSJA24030' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="last-update-user sort filter" filter-type="common" filter-label="last-update-user"><div class="cell-inner">{% get_message 'MOSJA00028' request.user.get_lang_mode showMsgId=False %}</div></th>
       <th class="last-modified sort filter" filter-type="date" filter-label="last-modified"><div class="cell-inner">{% get_message 'MOSJA00038' request.user.get_lang_mode showMsgId=False %}</div></th>
     </tr>
@@ -42,9 +119,24 @@ Copyright 2019 NEC Corporation
           </ul>
         </div>
       </td>
+      {% if user.pw_lst_mod %}
+      <td>
+      </td>
+      {% else %}      
+      <td style="text-align:center;">
+        <button style="border:0; background-color:transparent;" onClick="copyPassword('{% url 'web_app:system:initial_password' user.user_id %}',this)">
+          <div class="oase-password-copy tooltip" style="font-size : x-large" title="{% get_message 'MOSJA37033' request.user.get_lang_mode showMsgId=False %}">
+            <em class="owf owf-save"></em>
+          </div>
+        </button>
+      </td>
+      {% endif %}
       <td class="last-update-user"><div class="cell-inner">{{user.upd_user_name|search_red:search_info.last_update_user}}</div></td>
       <td class="last-modified"><div class="cell-inner"><time datetime="{{ user.updated|localtime|date:'Y-m-d\TH:i:s' }}">{{user.updated|localtime}}</time></div></td>
     </tr>
     {% endfor %}
+    <div id="oase-initial-data" class="oase-initial-data" ></div>
   </tbody>
 </table>
+
+{% endblock%}
