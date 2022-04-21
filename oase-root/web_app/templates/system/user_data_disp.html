@@ -63,10 +63,7 @@ function copyPassword(url, btn)
               btn.disabled = false;
             } else if( document.execCommand !== undefined ) {
                 // document.execCommand
-                str = respdata.msg
-                str = str.replace(/>/g, '&gt');
-                str = str.replace(/</g, '&lt');
-                $("#oase-initial-data").html(str)
+                $("#oase-initial-data").text(respdata.msg)
                 const passwordElm = $("#oase-initial-data").get(0);
                       range = document.createRange(),
                       selection = window.getSelection();
@@ -76,7 +73,7 @@ function copyPassword(url, btn)
                 document.execCommand('copy');
                 selection.removeAllRanges();
                 clickCopy();
-                $("#oase-initial-data").html("")
+                $("#oase-initial-data").text("")
                 btn.disabled = false;
             }
         }

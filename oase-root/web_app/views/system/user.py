@@ -856,9 +856,7 @@ def _getUserData(filters, edit=False, request=None):
                 if not u.password_last_modified:
                     if u.ad_data_flag != '1':
                         if not u.sso_id:
-                            print('876')
                             pw_lst_mod = None
-                            print(pw_lst_mod)
 
         group_id_list, group_name_list = u.get_group_info()
         user_info = {
