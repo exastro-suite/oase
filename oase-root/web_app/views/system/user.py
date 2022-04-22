@@ -365,6 +365,7 @@ def modify(request):
                     'error_msg_mail'      : error_msg_mail,
                     'error_msg_user_group': error_msg_user_group,
                     'msg'                 : '',
+                    'redirect_url'        : '',
                 })
 
                 logger.user_log('LOSM05004', 'error_msg_user_name: %s' % error_msg_user_name, request=request)
