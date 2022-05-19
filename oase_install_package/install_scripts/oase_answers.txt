@@ -158,6 +158,7 @@ zabbix_adapter:yes
 prometheus_adapter:no
 grafana_adapter:no
 datadog_adapter:no
+mail_adapter:no
 
 ##############################
 # SSLサーバ証明書

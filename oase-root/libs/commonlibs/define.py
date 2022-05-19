@@ -335,9 +335,11 @@ class ACTION_TYPE_ID():
 
 class ADAPTER_TYPE_ID():
 
-    ZABBIX     = 1   # Zabbix
-    PROMETHEUS = 2   # Prometheus
-
+    ZABBIX       = 1   # Zabbix
+    PROMETHEUS   = 2   # Prometheus
+    GRAFANA      = 3   # Grafana
+    DATADOG      = 4   # Datadog
+    MAIL_ADAPTER = 5   # Mail_adapter
 
 #-------------------
 # RULE_TYPE_ID
@@ -446,6 +448,21 @@ class SMTP_PROTOCOL():
             {'k': 'smtp',      'v': SMTP},
             {'k': 'smtp_auth', 'v': SMTP_AUTH},
         ]
+
+#-------------------
+# IMAPプロトコル
+#-------------------
+class IMAP_PROTOCOL():
+
+    NONE           = 0
+    SSL            = 1
+    TLS            = 2
+
+    LIST_ALL = [
+        {'k': 'NONE', 'v': NONE},
+        {'k': 'SSL',  'v': SSL},
+        {'k': 'TLS',  'v': TLS},
+    ]
 
 #-------------------
 # DB操作コード

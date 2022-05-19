@@ -300,6 +300,10 @@ function check_answer_vars() {
         log "ERROR : datadog_adapter should be enter to value(yes or no)"
         _error_flag=true
     fi
+    if [ -z "${mail_adapter}" ]; then
+        log "ERROR : mail_adapter should be enter to value(yes or no)"
+        _error_flag=true
+    fi
 
     #################################
     ### oase_middleware_setup_core.sh 用

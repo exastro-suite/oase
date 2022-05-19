@@ -34,6 +34,7 @@ import urllib.parse
 import ast
 from importlib import import_module
 from datetime import date, datetime
+import html
 
 from django.shortcuts             import render, redirect
 from django.http                  import HttpResponse
@@ -251,7 +252,7 @@ def data(request):
                 'request_id'             : req.request_type_id,
                 'request_name'           : request_name,
                 'request_reception_time' : req.request_reception_time,
-                'event_info'             : req.event_info,
+                'event_info'             : html.escape(req.event_info),
                 'event_to_time'          : req.event_to_time,
                 'trace_id'               : req.trace_id
             }
