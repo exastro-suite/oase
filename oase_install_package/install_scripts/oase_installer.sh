@@ -168,6 +168,14 @@ function install_package() {
         rm -f ${oase_directory}/Datadog_Adapter.tar.gz
         python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins -i 4 >> "$OASE_INSTALL_LOG_FILE" 2>&1
     fi
+    
+    # Mail Adapter
+    if [ ${mail_adapter} = "yes" ]; then
+        cp -fp ${OASE_INSTALL_PACKAGE_DIR}/OASE/oase-contents/Mail_Adapter.tar.gz ${oase_directory}
+        tar -zxvf ${oase_directory}/Mail_Adapter.tar.gz -C ${oase_directory} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rm -f ${oase_directory}/Mail_Adapter.tar.gz
+        python3 ${oase_directory}/OASE/oase-root/manage.py adapter_installer -p ${oase_directory}/plugins -i 5 >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    fi
     log "INFO : Finished to Adapter install"
 }
 

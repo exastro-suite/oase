@@ -26,24 +26,30 @@ $(function(){
     beforeunloadThroughFlag = true;
 });
 
-function monitoringModalClear(selector)
+function monitoringModalClear(selector1, selector2)
 {
-    var $targetModal = $(selector);
+    var $targetModal = $(selector1);
 
     var $elements = $targetModal.find('input:not([name^=csrf], #add_record)');
 
-    $elements.each(function(index, element) {
-        if(element != addDatadogUri) {
-            element.value = "";
-        } else {
-            element.value = "https://api.datadoghq.com/api/v1/events";
-        }
-    });
+    if(selector2 == 'btnEditDatadog' || selector2 == 'btnAddDatadog') {
+        $elements.each(function(index, element) {
+            if(element != addDatadogUri) {
+                element.value = "";
+            } else {
+                element.value = "https://api.datadoghq.com/api/v1/events";
+            }
+        });
+    }else{
+        $elements.each(function(index, element) {
+                element.value = "";
+        });
+    }
 
     var $selectObj = $targetModal.find('select');
     $selectObj.prop("selectedIndex", 0);
 
-    clearErrorMsg(selector);
+    clearErrorMsg(selector1);
 }
 
 ////////////////////////////////////////////////
@@ -54,7 +60,7 @@ function monitoringModalClose(selector1, selector2) {
 
     confirmResult = modalClose(selector1);
     if(confirmResult){
-        monitoringModalClear(selector1);
+        monitoringModalClear(selector1, selector2);
         $(selector2).prop("disabled", true);
     }
     return confirmResult;
@@ -70,7 +76,7 @@ function monitoringModalChange(selector1, selector2, selector3) {
 
     confirmResult = modalChange(selector1, selector2);
     if(confirmResult){
-        monitoringModalClear(selector1);
+        monitoringModalClear(selector1, selector3);
         $(selector3).prop("disabled", true);
     }
     return confirmResult;

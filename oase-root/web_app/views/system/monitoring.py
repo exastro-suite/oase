@@ -69,6 +69,8 @@ class MonitoringAdapterSupportTool():
             adapter_disp_info['monitoring_items'] = adapter.get_grafana_items()
         elif adapter_cls_info['adp_id'] == 4:
             adapter_disp_info['monitoring_items'] = adapter.get_datadog_items()
+        elif adapter_cls_info['adp_id'] == 5:
+            adapter_disp_info['monitoring_items'] = adapter.get_mail_items()
 
         return adapter_disp_info
 

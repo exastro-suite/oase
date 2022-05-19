@@ -398,7 +398,32 @@ configure_python() {
             echo "install skip retry" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
     fi
-
+    
+    # imapclient
+    if [ "${oase_os}" == "RHEL8" ]; then
+        pip3 list --format=legacy | grep imapclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip3 install imapclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ $? -ne 0 ]; then
+                log "ERROR:Installation failed imapclient"
+                func_exit
+            fi
+        else
+            echo "install skip imapclient" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+    else
+        pip list | grep imapclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            pip install imapclient >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            if [ $? -ne 0 ]; then
+                log "ERROR:Installation failed imapclient"
+                func_exit
+            fi
+        else
+            echo "install skip imapclient" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+    fi
+    
     if [ "${oase_os}" != "RHEL8" ]; then
         #!/usr/bin/python → #!/usr/bin/python2.7
         grep "python2.7" /usr/bin/yum >> "$OASE_INSTALL_LOG_FILE" 2>&1

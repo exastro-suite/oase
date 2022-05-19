@@ -78,3 +78,7 @@
   content: "\e906";
   color: #632ca6;
 }
+.oda-adapter-mail:before {
+  content: "\e907";
+  color: #333;
+}
