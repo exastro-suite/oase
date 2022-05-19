@@ -572,6 +572,13 @@ class OASELogID:
     Ary['LOSM40007'] = "Invalid request. Number does not match. data_object_length=\"{}\" match_list_length=\"{}\""
     Ary['LOSM40008'] = "Invalid request. \"{}\" Not match format. (Numelic 0-65535) value={}"
     Ary['LOSM40009'] = "Faild to connect. Host={}, Port={}"
+    Ary['LOSM41001'] = "Child process execute faild."
+    Ary['LOSM41002'] = "Child process terminate check faild."
+    Ary['LOSM41003'] = "OASE_T_MAIL_MONITORING_HISTORY Table update processing failed."
+    Ary['LOSM41004'] = "Main process execute failed."
+    Ary['LOSM41005'] = "OASE_T_MAIL_MONITORING_HISTORY Table insert processing failed. (mail_adapter_id: {})"
+    Ary['LOSM41006'] = "Execution of mail monitoring failed. (mail_adapter_id: {})"
+
 # LOSI
     Ary['LOSI00001'] = "Method start. [params: {}]"
     Ary['LOSI00002'] = "Method end. [overview of returns: {}]"
@@ -773,6 +780,9 @@ class OASELogID:
     Ary['LOSI38001'] = "Datadog Adapter sub start. datadog_adapter_id:{}"
     Ary['LOSI38002'] = "Datadog Adapter sub end. datadog_adapter_id:{}"
     Ary['LOSI38003'] = "Update from {}. (adapter_id:{})"
+    Ary['LOSI41001'] = "Update from OASE_T_MAIL_MONITORING_HISTORY. (mail_adapter_id:{})"
+    Ary['LOSI41002'] = "Get mail. (count:{})"
+
 # LOOE
     Ary['LOOE00001'] = "LOOE message1"
     Ary['LOOE00002'] = "LOOE message2"
