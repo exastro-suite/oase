@@ -296,6 +296,7 @@ class Driver:
             }
         postdata["lookup"] = self._lookup
 
+        event_info = event_info.replace('\\r\\n', ' ').replace('\\r', ' ').replace('\\n', ' ')
         j = json.loads(event_info)
 
         try:
