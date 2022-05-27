@@ -1,5 +1,5 @@
 ---
-name: New story
+name: New release
 about: リリース時に利用
 title: '〇〇リリース'
 labels: story
