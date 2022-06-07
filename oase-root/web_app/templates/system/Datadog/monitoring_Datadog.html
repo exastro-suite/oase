@@ -68,6 +68,25 @@ Copyright 2019 NEC Corporation
                       <table class="table-in-table">
                         <thead>
                           <tr>
+                            <th>{% get_message 'MOSJA26447' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26409' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="viewDatadogMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26448' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td><div id="viewDatadogEventTime" class="cell-inner"></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26449' request.user.get_lang_mode showMsgId=False %}</div></td>
+                            <td><div id="viewDatadogInstance" class="cell-inner"></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
+                      <table class="table-in-table">
+                        <thead>
+                          <tr>
                             <th>{% get_message 'MOSJA26408' request.user.get_lang_mode showMsgId=False %}</th>
                             <th>{% get_message 'MOSJA26409' request.user.get_lang_mode showMsgId=False %}</th>
                           </tr>
@@ -170,6 +189,25 @@ Copyright 2019 NEC Corporation
                       <div id="edit-rule-none-datadog" class="unselected" style="display: none;">{% get_message 'MOSJA26436' request.user.get_lang_mode showMsgId=False %}</div>
 
                       <!-- ルール種別選択後 -->
+                      <table id="edit-monitor-detail-datadog" class="table-in-table table-datadog">
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26447' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26409' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="editDatadogMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26448' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="editDatadogEventTime" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26449' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="editDatadogInstance" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
                       <table id="edit-rule-detail-datadog" class="table-in-table table-datadog">
                         <thead>
                           <tr>
@@ -249,7 +287,7 @@ Copyright 2019 NEC Corporation
 
       <tbody id="tbodyDatadogAdapterInfo">
         {% for i in info_list %}
-        <tr id="datadogadapter-{{ i.datadog_adapter_id }}" data-datadog_id="{{ i.datadog_adapter_id }}" data-name="{{ i.datadog_disp_name }}" data-uri="{{ i.uri }}" data-apikey="{{ i.api_key }}" data-applicationkey="{{ i.application_key }}" data-proxy="{{ i.proxy }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
+        <tr id="datadogadapter-{{ i.datadog_adapter_id }}" data-datadog_id="{{ i.datadog_adapter_id }}" data-name="{{ i.datadog_disp_name }}" data-uri="{{ i.uri }}" data-apikey="{{ i.api_key }}" data-applicationkey="{{ i.application_key }}" data-proxy="{{ i.proxy }}" data-evtime="{{ i.match_evtime }}" data-instance="{{ i.match_instance }}" data-ruletypeid="{{ i.rule_type_id }}" data-ruletypename="{{ i.rule_type_name }}" data-matchlist="{{ i.match_list|jsonify }}" data-updateuser="{{ i.last_update_user }}" data-timestamp="{{ i.last_update_timestamp|localtime }}" data-editable="{% if i.editable %}true{% else %}false{% endif %}">
           <td class="operation-menu">
             <div class="cell-inner">
               <ul>
@@ -258,9 +296,19 @@ Copyright 2019 NEC Corporation
             </div>
           </td>
 
+          {% if i.status_flag %}
+          <td class="action-name">
+            <div class="cell-inner">
+              <ul class="error-list">
+                <li><em class="owf owf-cross"></em>{% get_message 'MOSJA26015' request.user.get_lang_mode showMsgId=False %}<span class="tooltip help" data-tooltip="{% get_message 'MOSJA26016' request.user.get_lang_mode showMsgId=False %}"><em class="owf owf-question"></em></span></li>
+              </ul>
+            </div>
+          </td>
+          {% else %}
           <td class="action-name">
             <div class="cell-inner">{{ i.datadog_disp_name }}</div>
           </td>
+          {% endif %}
 
           <td class="uri">
             <div class="cell-inner">{{ i.uri }}</div>
@@ -417,6 +465,25 @@ Copyright 2019 NEC Corporation
                       </div>
 
                       <!-- ルール種別選択後 -->
+                      <table id="add-monitor-detail-datadog" class="table-in-table table-datadog" hidden>
+                        <thead>
+                          <tr>
+                            <th>{% get_message 'MOSJA26447' request.user.get_lang_mode showMsgId=False %}</th>
+                            <th>{% get_message 'MOSJA26409' request.user.get_lang_mode showMsgId=False %}</th>
+                          </tr>
+                        </thead>
+                        <tbody id="addDatadogMonitortable">
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26448' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="addDatadogEventTime" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                          <tr>
+                            <td><div class="cell-inner">{% get_message 'MOSJA26449' request.user.get_lang_mode showMsgId=False %}<sup>*</sup></div></td>
+                            <td><div class="cell-inner"><input id="addDatadogInstance" data-maxlength="128" type="text" data-type="text" class="validation-input" value="" required></div></td>
+                          </tr>
+                        </tbody>
+                      </table>
+
                       <table id="add-rule-detail-datadog" class="table-in-table table-datadog" hidden>
                         <thead>
                           <tr>
@@ -454,3 +521,4 @@ Copyright 2019 NEC Corporation
 
 </div>
 <!-- 監視先の追加画面 -->
+

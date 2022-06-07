@@ -205,6 +205,8 @@ class DatadogAdapterInfo():
             'proxy'             : '',
             'rule_type_id'      : '',
             'match_list'        : '',
+            'evtime'            : '',
+            'instance'          : '',
         }
         now = datetime.datetime.now(pytz.timezone('UTC'))
 
@@ -224,11 +226,26 @@ class DatadogAdapterInfo():
 
             # Datadogアダプタの更新
             adapter = DatadogAdapter.objects.get(pk=datadog_adapter_id)
+
+            if adapter.uri != rq['uri']:
+                adapter.status_flag = 0
+
+            if adapter.api_key != rq['api_key']:
+                adapter.status_flag = 0
+
+            if adapter.application_key != rq['application_key']:
+                adapter.status_flag = 0
+
+            if adapter.proxy != rq['proxy']:
+                adapter.status_flag = 0
+
             adapter.datadog_disp_name     = rq['datadog_disp_name']
             adapter.uri                   = rq['uri']
             adapter.api_key               = rq['api_key']
             adapter.application_key       = rq['application_key']
             adapter.proxy                 = rq['proxy']
+            adapter.match_evtime          = rq['evtime']
+            adapter.match_instance        = rq['instance']
             adapter.rule_type_id          = rq['rule_type_id']
             adapter.last_update_user      = request.user.user_name
             adapter.last_update_timestamp = now
@@ -287,7 +304,9 @@ class DatadogAdapterInfo():
             'api_key'           : '',
             'application_key'   : '',
             'proxy'             : '',
-            'rule_type_id'      :'',
+            'rule_type_id'      : '',
+            'evtime'            : '',
+            'instance'          : '',
         }
         now = datetime.datetime.now(pytz.timezone('UTC'))
 
@@ -309,7 +328,10 @@ class DatadogAdapterInfo():
                 uri                   = rq['uri'],
                 api_key               = rq['api_key'],
                 application_key       = rq['application_key'],
+                match_evtime          = rq['evtime'],
+                match_instance        = rq['instance'],
                 rule_type_id          = rq['rule_type_id'],
+                status_flag           = 0,
                 proxy                 = rq['proxy'],
                 last_update_user      = request.user.user_name,
                 last_update_timestamp = now,
@@ -479,6 +501,44 @@ class DatadogAdapterInfo():
                 rule_type_id_error_flag = True
                 error_msg['rule_type_id'] += get_message('MOSJA26428', lang) + '\n'
                 logger.user_log('LOSM39002', 'rule_type_id', request=request)
+
+            # evtime未入力チェック
+            if len(rq['evtime']) == 0:
+                error_flag = True
+                error_msg['evtime'] += get_message('MOSJA26450', lang) + '\n'
+                logger.user_log('LOSM39002', 'evtime', request=request)
+
+            # evtime長さチェック
+            if len(rq['evtime']) > 128:
+                error_flag = True
+                error_msg['evtime'] += get_message('MOSJA26451', lang) + '\n'
+                logger.user_log('LOSM39003', 'evtime', 128, rq['evtime'], request=request)
+
+            # evtime絵文字使用チェック
+            value_list = emo_chk.is_emotion(rq['evtime'])
+            if len(value_list) > 0:
+                error_flag = True
+                error_msg['evtime'] += get_message('MOSJA26452', lang) + '\n'
+                logger.user_log('LOSM39005', rq['evtime'], request=request)
+
+            # instance未入力チェック
+            if len(rq['instance']) == 0:
+                error_flag = True
+                error_msg['instance'] += get_message('MOSJA26453', lang) + '\n'
+                logger.user_log('LOSM39002', 'instance', request=request)
+
+            # instance長さチェック
+            if len(rq['instance']) > 128:
+                error_flag = True
+                error_msg['instance'] += get_message('MOSJA26454', lang) + '\n'
+                logger.user_log('LOSM39003', 'instance', 128, rq['instance'], request=request)
+
+            # instance絵文字使用チェック
+            value_list = emo_chk.is_emotion(rq['instance'])
+            if len(value_list) > 0:
+                error_flag = True
+                error_msg['instance'] += get_message('MOSJA26455', lang) + '\n'
+                logger.user_log('LOSM39005', rq['instance'], request=request)
 
             # 突合情報存在チェック
 

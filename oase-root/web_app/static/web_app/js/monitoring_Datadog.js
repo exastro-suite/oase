@@ -179,6 +179,8 @@ function setInfoInDatadogDetailView(idName) {
     var name         = $(trId).data('name');
     var uri          = $(trId).data('uri');
     var proxy        = $(trId).data('proxy');
+    var evtime       = $(trId).data('evtime');
+    var instance     = $(trId).data('instance');
     var ruletypeid   = $(trId).data('ruletypeid');
     var ruletypename = $(trId).data('ruletypename');
     var matchlist    = $(trId).data('matchlist');
@@ -189,6 +191,8 @@ function setInfoInDatadogDetailView(idName) {
     $('#viewDatadogName').text(name);
     $('#viewDatadogUri').text(uri);
     $('#viewDatadogProxy').text(proxy);
+    $('#viewDatadogEventTime').text(evtime);
+    $('#viewDatadogInstance').text(instance);
     $('#viewDatadogRuletype').text(ruletypename);
     $('#viewDatadogUpdateuser').text(updateuser);
     $('#viewDatadogTimestamp').text(timestamp);
@@ -219,6 +223,8 @@ function setInfoInDatadogEditView() {
     var apikey         = $(trId).data('apikey');
     var applicationkey = $(trId).data('applicationkey');
     var proxy          = $(trId).data('proxy');
+    var evtime         = $(trId).data('evtime');
+    var instance       = $(trId).data('instance');
     var ruletypeid     = $(trId).data('ruletypeid');
     var matchlist      = $(trId).data('matchlist');
     var updateuser     = $(trId).data('updateuser');
@@ -229,6 +235,8 @@ function setInfoInDatadogEditView() {
     $('#editDatadogApiKey').val(apikey);
     $('#editDatadogAppKey').val(applicationkey);
     $('#editDatadogProxy').val(proxy);
+    $('#editDatadogEventTime').val(evtime);
+    $('#editDatadogInstance').val(instance);
     $('#edit-datadog-rule-select').val(ruletypeid);
     if(!ruletypeid || ruletypeid <= 0) {
         renderErrorMsg($('#edit-datadog-rule-select'), getMessage("MOSJA26427", false));
@@ -292,6 +300,8 @@ function setDatadogInfo(idInfo){
     adapterInfo["api_key"] = $(idInfo['api_key']).val();
     adapterInfo["application_key"] = $(idInfo['application_key']).val();
     adapterInfo["proxy"] = $(idInfo['proxy']).val();
+    adapterInfo["evtime"] = $(idInfo['evtime']).val();
+    adapterInfo["instance"] = $(idInfo['instance']).val();
     adapterInfo["rule_type_id"] = $(idInfo['rule_type_id']).val();
 
     var conditionalData = {}; // 条件名、Datadog項目を辞書形式で格納
@@ -509,6 +519,8 @@ function getIdInfoDatadog(mode){
         'uri'              : "#" + mode + "DatadogUri",
         'api_key'          : "#" + mode + "DatadogApiKey",
         'application_key'  : "#" + mode + "DatadogAppKey",
+        'evtime'           : "#" + mode + "DatadogEventTime",
+        'instance'         : "#" + mode + "DatadogInstance",
         'rule_type_id'     : "#" + mode + "-datadog-rule-select",
         'proxy'            : "#" + mode + "DatadogProxy",
         'match_list'       : "#" + mode + "Datadogtable tr",
@@ -538,6 +550,8 @@ var renderDatadogErrorMsg = function(errorMsg, mode) {
     renderErrorMsg(idInfo['application_key'], errorMsg['application_key']);
     renderErrorMsg(idInfo['proxy'], errorMsg['proxy']);
     renderErrorMsg(idInfo['rule_type_id'], errorMsg['rule_type_id']);
+    renderErrorMsg(idInfo['evtime'], errorMsg['evtime']);
+    renderErrorMsg(idInfo['instance'], errorMsg['instance']);
 
     //--------------------------------------------
     // Datadog項目へのエラー表示
