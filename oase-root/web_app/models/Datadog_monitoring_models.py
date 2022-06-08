@@ -38,15 +38,18 @@ from django.core.validators import MinLengthValidator, MinValueValidator
 # DOSL20001:Datadog監視マスタ
 #------------------------------------------------
 class DatadogAdapter(models.Model):
-    datadog_adapter_id    = models.AutoField("Datadog監視マスタID", primary_key=True)
-    datadog_disp_name     = models.CharField("Datadog表示名", max_length=64, unique=True)
-    uri                   = models.CharField("URI", max_length=512)
-    api_key               = models.CharField("APIキー", max_length=48)
-    application_key       = models.CharField("Applicationキー", max_length=48)
-    proxy                 = models.CharField("プロキシ", max_length=256)
-    rule_type_id          = models.IntegerField("ルール種別ID")
-    last_update_timestamp = models.DateTimeField("最終更新日時", default=timezone.now)
-    last_update_user      = models.CharField("最終更新者", max_length=64)
+    datadog_adapter_id        = models.AutoField("Datadog監視マスタID", primary_key=True)
+    datadog_disp_name         = models.CharField("Datadog表示名", max_length=64, unique=True)
+    uri                       = models.CharField("URI", max_length=512)
+    api_key                   = models.CharField("APIキー", max_length=48)
+    application_key           = models.CharField("Applicationキー", max_length=48)
+    status_flag               = models.IntegerField("ステータスフラグ", default=0)
+    proxy                     = models.CharField("プロキシ", max_length=256)
+    rule_type_id              = models.IntegerField("ルール種別ID")
+    match_evtime              = models.CharField("突合情報(イベント発生日時)", max_length=128)
+    match_instance            = models.CharField("突合情報(マッチインスタンス名)", max_length=128)
+    last_update_timestamp     = models.DateTimeField("最終更新日時", default=timezone.now)
+    last_update_user          = models.CharField("最終更新者", max_length=64)
 
     class Meta:
         db_table = 'OASE_T_DATADOG_ADAPTER'
@@ -96,7 +99,7 @@ class DatadogMonitoringHistory(models.Model):
 class DatadogTriggerHistory(models.Model):
     datadog_trigger_his_id    = models.AutoField("Datadog障害取得履歴ID", primary_key=True)
     datadog_adapter_id        = models.IntegerField("Datadog監視マスタID")
-    trigger_id                = models.CharField("トリガーID", max_length=11)
+    trigger_id                = models.CharField("トリガーID", max_length=256)
     lastchange                = models.IntegerField("トリガー最終更新日時")
     last_update_timestamp     = models.DateTimeField("最終更新日時", default=timezone.now)
     last_update_user          = models.CharField("最終更新者", max_length=64)
