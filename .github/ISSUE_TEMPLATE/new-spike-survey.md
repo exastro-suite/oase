@@ -1,7 +1,7 @@
 ---
 name: New spike - Technical survey
 about: 技術調査系スパイクストーリー作成時に利用
-title: '【スパイク】〇〇を明確にしたい'
+title: "【スパイク】〇〇を明確にしたい"
 labels: spike, story
 assignees: ''
 
@@ -28,6 +28,7 @@ assignees: ''
 ### 検証項目
 - [ ] 検証の際の前提条件が定まっていること (スペック、入力データ、データの個数など)
 - [ ] 性能が要件を満たすこと
+
 
 # チーム内のメモ
 

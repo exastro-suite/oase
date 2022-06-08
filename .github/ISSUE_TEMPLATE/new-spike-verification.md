@@ -1,7 +1,7 @@
 ---
 name: New spike - Technical verification
 about: 技術検証系スパイクストーリー作成時に利用
-title: '【スパイク】〇〇を明確にしたい'
+title: "【スパイク】〇〇を明確にしたい"
 labels: spike, story
 assignees: ''
 

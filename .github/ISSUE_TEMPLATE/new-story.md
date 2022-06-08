@@ -1,7 +1,7 @@
 ---
 name: New story
 about: 開発ストーリー作成時に利用
-title: '〇〇を△△できるようにしたい'
+title: 〇〇を△△できるようにしたい
 labels: story
 assignees: ''
 
