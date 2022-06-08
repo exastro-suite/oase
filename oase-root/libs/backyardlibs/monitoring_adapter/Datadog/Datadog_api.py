@@ -133,7 +133,6 @@ class DatadogApi(object):
             logger.logic_log('LOSI00005', traceback.format_exc())
             raise
 
-        logger.logic_log('LOSI00002', 'None')
         return resp, flg
 
     def get_active_triggers(self, last_change_since=None, now=None):
