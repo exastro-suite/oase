@@ -1,6 +1,6 @@
 ---
-name: Release
-about: リリース時に利用
+name: New release
+about: リリース作業時に利用
 title: 〇〇リリース
 labels: story
 assignees: ''
