@@ -141,6 +141,10 @@ class DatadogAdapterMainModules:
         if len(datadog_adapter_list) > 0:
             for datadog_adapter in datadog_adapter_list:
 
+                if datadog_adapter.status_flag > 0:
+                    logger.logic_log('LOSM38023', datadog_adapter.datadog_adapter_id, datadog_adapter.status_flag)
+                    continue
+
                 # 子プロセス起動
                 datadog_adapter_id = datadog_adapter.datadog_adapter_id
                 ret = self.execute_subprocess(aryPCB, datadog_adapter_id)

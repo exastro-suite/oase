@@ -553,6 +553,7 @@ class OASELogID:
     Ary['LOSM38020'] = "Failed to get request_data for {}. {}"
     Ary['LOSM38021'] = "argument does not exist. {} message length: {}, rule_type_id: {}, adapter_id: {}"
     Ary['LOSM38022'] = "Trace ID is incorrect."
+    Ary['LOSM38023'] = "Datadog_Adapter has an error. datadog_adapter_id: {}, datadog_adapter_error_status: {}"
     Ary['LOSM39001'] = "This record is missing. key=\"{}\" value={}"
     Ary['LOSM39002'] = "Invalid request. \"{}\" Key does not exist."
     Ary['LOSM39003'] = "Invalid request. \"{}\" is longer than {} characters. value={}"
@@ -780,6 +781,7 @@ class OASELogID:
     Ary['LOSI38001'] = "Datadog Adapter sub start. datadog_adapter_id:{}"
     Ary['LOSI38002'] = "Datadog Adapter sub end. datadog_adapter_id:{}"
     Ary['LOSI38003'] = "Update from {}. (adapter_id:{})"
+    Ary['LOSI38004'] = "Receive response. (status code:{})"
     Ary['LOSI41001'] = "Update from OASE_T_MAIL_MONITORING_HISTORY. (mail_adapter_id:{})"
     Ary['LOSI41002'] = "Get mail. (count:{})"
 

@@ -25,6 +25,7 @@
 
 """
 import pika
+import traceback
 from retry import retry
 from libs.commonlibs.oase_logger import OaseLogger
 from libs.commonlibs.rabbitmq import RabbitMQ
