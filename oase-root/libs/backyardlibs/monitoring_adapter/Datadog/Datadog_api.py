@@ -114,8 +114,15 @@ class DatadogApi(object):
             logger.system_log('LOSM38020', 'Datadog', 'RequestException error.')
             raise
 
-        if response.status_code != 200:
-           # 200以外は関知しない 上位で処理
+        logger.system_log('LOSI38004', response.status_code)
+
+        flg = False
+        if response.status_code == 403:
+           # 認証に失敗した場合はフラグを立てる
+            flg = True
+
+        if response.status_code != 200 and response.status_code != 403:
+           # 200と403以外は関知しない 上位で処理
             raise Exception('Failed to get response. sts_code=%s, reason=%s' % (response.status_code, getattr(response, 'text', '')))
 
         try:
@@ -126,7 +133,8 @@ class DatadogApi(object):
             logger.logic_log('LOSI00005', traceback.format_exc())
             raise
 
-        return resp
+        logger.logic_log('LOSI00002', 'None')
+        return resp, flg
 
     def get_active_triggers(self, last_change_since=None, now=None):
         """

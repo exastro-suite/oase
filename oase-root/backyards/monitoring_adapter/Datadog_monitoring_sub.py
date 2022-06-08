@@ -196,12 +196,23 @@ class DatadogAdapterSubModules:
         result = True
         api_response = []
         last_monitoring_time = to_dt
-        to_dt   = self.convert_epoch_time(to_dt)
+        to_dt = self.convert_epoch_time(to_dt)
 
         try:
             datadog_api = DatadogApi(datadog_adapter)
             # TODO last_monitoring_timeを返却してもらう予定 現状(2020/01/10) 0で実施する
-            api_response = datadog_api.get_active_triggers(from_dt, to_dt)
+            api_response, flg = datadog_api.get_active_triggers(from_dt, to_dt)
+            if flg:
+                with transaction.atomic():
+                    comp_dd_adap = DatadogAdapter.objects.select_for_update().get(datadog_adapter_id=datadog_adapter.datadog_adapter_id)
+                    if datadog_adapter.last_update_timestamp == comp_dd_adap.last_update_timestamp:
+                        comp_dd_adap.status_flag = 1
+                        comp_dd_adap.last_update_timestamp = datetime.datetime.now(pytz.timezone('UTC'))
+                        comp_dd_adap.save(force_update=True)
+                
+                result = False
+                api_response = []
+                last_monitoring_time = last_monitoring_time
 
         except TypeError as e:
             result = False
@@ -263,12 +274,6 @@ class DatadogAdapterSubModules:
                 data_tmp = data_tmp[k]
                 idx = idx + 1
 
-                if k == 'children':
-                    num = len(data_tmp)
-                    date_happened = data_tmp[num - 1]
-                    parse_list.append(date_happened['date_happened'])
-
-                    return True
 
         if idx >= len(key_list):
             parse_list.append(data_tmp)
@@ -337,7 +342,7 @@ class DatadogAdapterSubModules:
 
         # イベント発生日時のパース
         evtime_list_tmp = []
-        match_evtime = 'events.[].children.[].date_happened'
+        match_evtime = self.datadog_adapter.match_evtime
         evtime_parse_list = match_evtime.split('.')
         result = self._parser(0, pull_data, evtime_parse_list, evtime_list_tmp)
         if not result:
@@ -350,7 +355,7 @@ class DatadogAdapterSubModules:
             evtime_list.append(val)
 
         # インスタンスのパース
-        match_instance = 'events.[].host'
+        match_instance = self.datadog_adapter.match_instance
         instance_parse_list = match_instance.split('.')
         result = self._parser(0, pull_data, instance_parse_list, instance_list)
         if not result:
@@ -422,7 +427,7 @@ class DatadogAdapterSubModules:
         datadog_adapter = None
         latest_monitoring_history = None
         now = datetime.datetime.now(pytz.timezone('UTC'))
-        datadog_lastchange = now
+        datadog_lastchange = None
 
         # 事前情報取得
         try:
@@ -439,9 +444,12 @@ class DatadogAdapterSubModules:
 
         except Exception as e:
             logger.logic_log('LOSM00001', 'Traceback: %s' % (traceback.format_exc()))
+            return False
 
         if latest_monitoring_history != None:
             datadog_lastchange = latest_monitoring_history.datadog_lastchange
+        else:
+            datadog_lastchange = self.datadog_adapter.last_update_timestamp
 
         # 監視履歴作成 メンバ変数にセット
         try:
