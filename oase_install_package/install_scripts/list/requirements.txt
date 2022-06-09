@@ -13,6 +13,7 @@ djangorestframework
 django-simple-history
 pyyaml
 pytz
+imapclient
 
 
 ### Requirements with Version Specifiers
