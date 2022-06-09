@@ -285,12 +285,8 @@ install_rpm() {
 
 # Pypi install
 install_pypi() {
-    PIP_INSTALL_CMD="pip install"
+    PIP_INSTALL_CMD="pip3 install --ignore-installed"
     LOOP_CNT=0
-
-    if [ "${oase_os}" == "RHEL8" ]; then
-        PIP_INSTALL_CMD="pip3 install --ignore-installed"
-    fi
 
     #get name of pypi
     for pathfile in ${DOWNLOAD_DIR["pip"]}/*.tar.gz; do
@@ -316,6 +312,7 @@ configure_python() {
             yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
             subscription-manager repos --enable rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
             subscription-manager repos --enable rhel-server-rhscl-7-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum-config-manager --enable rhui-rhel-7-server-rhui-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
             yum_install ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
             echo "install skip python3-devel.x86_64 python3-libs.x86_64 python3-pip.noarch" >> "$OASE_INSTALL_LOG_FILE" 2>&1
@@ -441,33 +438,124 @@ configure_python() {
 
 }
 
+rabbitmq_erlang_repo() {
+    cat << 'EOS' > "/etc/yum.repos.d/rabbitmq_erlang.repo"
+# In /etc/yum.repos.d/rabbitmq.repo
+
+##
+## Zero dependency Erlang
+##
+
+[rabbitmq_erlang]
+name=rabbitmq_erlang
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/8/$basearch
+repo_gpgcheck=1
+gpgcheck=1
+enabled=1
+# PackageCloud's repository key and RabbitMQ package signing key
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+       https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+[rabbitmq_erlang-source]
+name=rabbitmq_erlang-source
+baseurl=https://packagecloud.io/rabbitmq/erlang/el/8/SRPMS
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+# PackageCloud's repository key and RabbitMQ package signing key
+gpgkey=https://packagecloud.io/rabbitmq/erlang/gpgkey
+       https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+##
+## RabbitMQ server
+##
+
+[rabbitmq_server]
+name=rabbitmq_server
+baseurl=https://packagecloud.io/rabbitmq/rabbitmq-server/el/8/$basearch
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+# PackageCloud's repository key and RabbitMQ package signing key
+gpgkey=https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
+       https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+
+[rabbitmq_server-source]
+name=rabbitmq_server-source
+baseurl=https://packagecloud.io/rabbitmq/rabbitmq-server/el/8/SRPMS
+repo_gpgcheck=1
+gpgcheck=0
+enabled=1
+gpgkey=https://packagecloud.io/rabbitmq/rabbitmq-server/gpgkey
+sslverify=1
+sslcacert=/etc/pki/tls/certs/ca-bundle.crt
+metadata_expire=300
+EOS
+
+}
+
 # RabbitMQ Server
 configure_rabbitmq() {
-    # install some packages
-    yum list installed | grep "erlang" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    if [ $? -eq 1 ]; then
-        yum_install ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    else
-        echo "install skip erlang" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    fi
-
-    # Check installation erlang packages
-    yum_package_check ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
-    # install some packages
-    yum list installed | grep "rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
-    rabbimq_flg=$?
-    if [ $rabbimq_flg -eq 1 ]; then
-        if [ "${oase_os}" == "RHEL8" ]; then
-            curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            yum makecache -y --disablerepo='*' --enablerepo='rabbitmq_rabbitmq-server' >> "$OASE_INSTALL_LOG_FILE" 2>&1
-            yum -y install --nobest rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+    if [ "${oase_os}" == "RHEL8" ]; then
+        yum list installed | grep "erlang" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum -y makecache >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            rabbitmq_erlang_repo
+            yum -q makecache -y --disablerepo='*' --enablerepo='rabbitmq_erlang' >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum update -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum install --repo rabbitmq_erlang erlang -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
-            yum -y install rabbitmq-server --enablerepo=epel >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            echo "install skip erlang" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
+
+        yum list installed | grep "rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rabbimq_flg=$?
+        if [ $rabbimq_flg -eq 1 ]; then
+            curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum -y makecache >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            rabbitmq_erlang_repo
+            yum -q makecache -y --disablerepo='*' --enablerepo='rabbitmq_server' >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum update -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum install --repo rabbitmq_server rabbitmq-server -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
+            yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+
     else
-        SKIP_ARRAY+=("rabbitmq-server")
-        echo "install skip rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        # install some packages
+        yum list installed | grep "erlang" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        if [ $? -eq 1 ]; then
+            yum_install ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            echo "install skip erlang" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
+
+        # Check installation erlang packages
+        yum_package_check ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+
+        # install some packages
+        yum list installed | grep "rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rabbimq_flg=$?
+        if [ $rabbimq_flg -eq 1 ]; then
+            yum -y install rabbitmq-server --enablerepo=epel >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        else
+            SKIP_ARRAY+=("rabbitmq-server")
+            echo "install skip rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        fi
     fi
 
     # Check installation RabbitMQ packages
@@ -1246,6 +1334,7 @@ make_oase_offline() {
     # offline install (pypi)
     if [ "${MODE}" == "local" ]; then
         log "Pypi install"
+        pip3 install --upgrade pip >> "$OASE_INSTALL_LOG_FILE" 2>&1
         install_pypi
     fi
 
@@ -1456,6 +1545,7 @@ download() {
         yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm >> "$OASE_INSTALL_LOG_FILE" 2>&1
         subscription-manager repos --enable rhel-7-server-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
         subscription-manager repos --enable rhel-server-rhscl-7-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum-config-manager --enable rhui-rhel-7-server-rhui-optional-rpms >> "$OASE_INSTALL_LOG_FILE" 2>&1
         yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["python"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     elif [ "${oase_os}" == "RHEL8" ]; then
@@ -1471,29 +1561,20 @@ download() {
 
 
     # Download erlang packages.
-    log "INFO : Download packages[${YUM_PACKAGE["erlang"]}]"
+    log "INFO : Download packages[${YUM_PACKAGE["erlang"]} ${YUM_PACKAGE["rabbitmq-server"]}]"
 
     if [ "${oase_os}" == "RHEL8" ]; then
         curl -s https://packagecloud.io/install/repositories/rabbitmq/erlang/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        yum makecache -y --disablerepo='*' --enablerepo='rabbitmq-erlang' >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum -y makecache >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        rabbitmq_erlang_repo
+        yum -q makecache -y --disablerepo='*' --enablerepo='rabbitmq_erlang' --enablerepo='rabbitmq_server' >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum update -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yumdownloader --repo rabbitmq_erlang --repo rabbitmq_server --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} erlang rabbitmq-server >> "$OASE_INSTALL_LOG_FILE" 2>&1
+        yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     elif [ "${oase_os}" == "CentOS7" -o "${oase_os}" == "RHEL7" ]; then
         yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["erlang"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
-    fi
-    download_check
-
-
-    # Download RabbitMQ packages.
-    log "INFO : Download packages[YUM_PACKAGE["rabbitmq-server"]]"
-
-    if [ "${oase_os}" == "RHEL8" ]; then
-        curl -s https://packagecloud.io/install/repositories/rabbitmq/rabbitmq-server/script.rpm.sh | sudo bash >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        yum makecache -y --disablerepo='*' --enablerepo='rabbitmq_rabbitmq-server' >> "$OASE_INSTALL_LOG_FILE" 2>&1
-        dnf download --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["rabbitmq-server"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
-
-    else
         yumdownloader --resolve --destdir ${YUM_ALL_PACKAGE_DOWNLOAD_DIR} ${YUM_PACKAGE["rabbitmq-server"]} >> "$OASE_INSTALL_LOG_FILE" 2>&1
 
     fi
