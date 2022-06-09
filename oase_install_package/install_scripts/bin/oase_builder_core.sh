@@ -532,6 +532,7 @@ configure_rabbitmq() {
             yum install --repo rabbitmq_server rabbitmq-server -y >> "$OASE_INSTALL_LOG_FILE" 2>&1
             yum clean all >> "$OASE_INSTALL_LOG_FILE" 2>&1
         else
+            SKIP_ARRAY+=("rabbitmq-server")
             echo "install skip rabbitmq-server" >> "$OASE_INSTALL_LOG_FILE" 2>&1
         fi
 
