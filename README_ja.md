@@ -34,6 +34,8 @@ Pull型は予め用意された監視アダプタのみ利用可能ですが、R
 - [**Zabbix**](https://github.com/zabbix/zabbix)
 - [**Grafana**](https://github.com/grafana/grafana)
 - [**Prometheus**](https://github.com/prometheus/prometheus)
+- [**Datadog**](https://www.datadoghq.com/ja/)
+- **Mail**
 
 #### Push型(アダプタ不使用)
 
@@ -68,19 +70,36 @@ Pull型は予め用意された監視アダプタのみ利用可能ですが、R
 |----|----|----|
 |v1.6.0以降|23.0.1.Final|7.63.0.Final|
 
-### 🐳 Docker版 🐷
+### 🐳 Docker Compose版 🐷
 
-Docker 版は OASE を使用するの最も簡単な方法です。
+Docker-compose 版は OASE を使用するのに最も簡単な方法です。
 
-1. Docker を利用すれば即座に Exastro OASE を利用できます。
-
+1. 下記の手順を実行します。
     ```bash
-    docker run --privileged --add-host=exastro-oase:127.0.0.1 -d -p 8080:80 -p 10443:443 --name exastro-oase exastro/oase 
+    # GitHubから資材をダウンロード
+    git clone https://github.com/exastro-suite/oase-container.git
+
+    # 作業のため、ディレクトリを移動
+    cd oase-container
+    
+    # logsディレクトリの所有者・グループを変更
+    chown 1000:1000 -R logs/
+
+    # さらにwebaplogsの所有者・グループを変更
+    chown 33:33 -R logs/webaplogs
+
+    # このコマンドで起動
+    docker-compose -f docker-compose.yml up -d
     ```
 
 2. Exastro OASE にアクセスします
 
-    http://oase.example.com:8080
+    http://oase.example.com:30080
+
+3. Docker Compose を利用すれば即座に Exastro OASE を利用できます。
+   詳細は下記のリンクから。[マニュアル](https://exastro-suite.github.io/oase-docs/OASE_documents_ja/html/settings/installation.html)はこちら。
+
+    https://github.com/exastro-suite/oase-container
 
 ### 🗿 伝統的な方法 🐶
 
@@ -102,8 +121,8 @@ Docker 版は OASE を使用するの最も簡単な方法です。
     # ダウンロードするバージョンを変数に入れます
     # OASE_VER=X.X.X
     #
-    # 例) 1.5.0 の場合
-    OASE_VER=1.5.0
+    # 例) 1.7.0 の場合
+    OASE_VER=1.7.0
 
     # 資材をダウンロードします
     wget "https://github.com/exastro-suite/oase/releases/download/v${OASE_VER}/exastro-oase-${OASE_VER}.tar.gz"
@@ -145,4 +164,4 @@ Docker 版は OASE を使用するの最も簡単な方法です。
 
 |[<img src="https://img.shields.io/badge/-Python-F9DC3E.svg?logo=python&style=flat">](https://www.python.org/) | [<img src="https://img.shields.io/badge/-Django-092E20.svg?logo=django&style=flat">](https://www.djangoproject.com/)| [<img src="https://img.shields.io/badge/-OpenJDK-007396.svg?logo=Java&style=flat">](https://www.djangoproject.com/)| [<img src="https://img.shields.io/badge/Maven-C71A36.svg?logo=apachemaven&style=flat">](https://www.djangoproject.com/)|
 |----|----|----|----|
-|Python 3.6.8|Django 2.2.3|Java 1.8.0|Apache Maven 3.6.1|
+|Python 3.6.8|Django 2.2.26|Java 1.8.0|Apache Maven 3.6.1|
