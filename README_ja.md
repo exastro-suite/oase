@@ -70,7 +70,7 @@ Pull型は予め用意された監視アダプタのみ利用可能ですが、R
 |----|----|----|
 |v1.6.0以降|23.0.1.Final|7.63.0.Final|
 
-### 🐳 Docker-compose版 🐷
+### 🐳 Docker Compose版 🐷
 
 Docker-compose 版は OASE を使用するのに最も簡単な方法です。
 
@@ -96,7 +96,7 @@ Docker-compose 版は OASE を使用するのに最も簡単な方法です。
 
     http://oase.example.com:30080
 
-3. Docker-compose を利用すれば即座に Exastro OASE を利用できます。
+3. Docker Compose を利用すれば即座に Exastro OASE を利用できます。
    詳細は下記のリンクから。[マニュアル](https://exastro-suite.github.io/oase-docs/OASE_documents_ja/html/settings/installation.html)はこちら。
 
     https://github.com/exastro-suite/oase-container

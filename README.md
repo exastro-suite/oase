@@ -69,7 +69,7 @@ It will run in one of the following environments.
 |----|----|----|
 |v1.6.0 or latest |23.0.1.Final|7.63.0.Final|
 
-### 🐳 Docker-compose 🐷
+### 🐳 Docker Compose 🐷
 
 The Docker Compose version is the easiest way to use the OASE.
 
