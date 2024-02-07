@@ -18,7 +18,7 @@ imapclient
 
 ### Requirements with Version Specifiers
 mysqlclient==2.0.1
-django==2.2.24
+django==3.2.24
 openpyxl==2.5.14
 xlrd==1.2.0
 
